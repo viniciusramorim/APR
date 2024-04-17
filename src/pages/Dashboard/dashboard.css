@@ -1,0 +1,312 @@
+.dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.dashboard span {
+  margin: 2em 0;
+  font-weight: 600;
+  font-size: 1.2em;
+}
+
+.tableAprs b {
+  background-color: rgb(179, 175, 175);
+  color: #FFF;
+  padding: 0.2em;
+  border-radius: 10px;
+  font-weight: lighter;
+}
+
+.tableAprs {
+  border-collapse: separate;
+  border-spacing: 0 7px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+th {
+  background-color: #380054e8;
+  color: #f8f8f8;
+}
+
+.grupoCard {
+  display: flex;
+  width: -webkit-fill-available;
+  color: #f8f8f8;
+  border-radius: 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+
+
+.grupoCard span {
+  background-color: #380054e8;
+  padding: 0.8em;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  width: -webkit-fill-available;
+  border-radius: 8px;
+  margin-right: 0.8em;
+
+}
+
+
+/*
+.card-aberto{
+  box-shadow: 1px 1px 7px #be0704ce;
+}
+.card-cancelado{
+  box-shadow: 1px 1px 7px #000000ce;
+}
+.card-enviado{
+  box-shadow: 1px 1px 7px #ffeb13ce;
+}
+.card-respondido{
+  box-shadow: 1px 1px 7px #029f1cce;
+}
+*/
+
+.filtrosAPRs {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: 10px;
+  padding-left: 7px;
+  background-color: #38005459;
+  border-radius: 8px;
+}
+
+.filter {
+  justify-content: space-around;
+}
+
+.filter a {
+  background-color: #51006cf5;
+  color: white;
+  padding: 0.7em;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+  border-radius: 8px;
+
+}
+
+.filter a:hover {
+  background-color: #5c13bb;
+  cursor: pointer;
+}
+
+.filter input {
+  border: 1px solid #6e0dec4d;
+  padding: 0.5em;
+  margin-right: 0.5em;
+  margin-bottom: 1.2em;
+  border-radius: 8px;
+  display: none;
+}
+
+.filter select {
+  border: 1px solid #6e0dec4d;
+  padding: 0.5em;
+  margin-right: 0.5em;
+  margin-bottom: 1.2em;
+  border-radius: 8px;
+  display: none;
+
+}
+
+.filter input:focus {
+  border: 1px solid #6e0dec;
+}
+
+.filter select:focus {
+  border: 1px solid #6e0dec;
+}
+
+.container.filter {
+  background-color: #f8f8f8a4;
+}
+
+.container.indicadores-aprs {
+  background-color: #f8f8f8a4;
+
+}
+
+.filter label {
+  width: 100%;
+  padding: 0.7em;
+  font-weight: bold;
+  background-size: contain;
+  border-radius: 8px;
+  color: #f8f8f8;
+
+}
+
+.filter span {
+  width: 100%;
+}
+
+.filter i {
+  text-align: center;
+  font-style: normal;
+}
+
+.filter i:hover {
+  color: rgb(131, 7, 148);
+  cursor: pointer;
+}
+
+
+
+
+table caption {
+  font-size: 1.5em;
+  margin: .5em 0 .75em;
+}
+
+table tr {
+  background-color: #f8f8f8a4;
+  border: 1px solid #ddd;
+  padding: .35em;
+
+}
+
+
+
+table th,
+table td {
+  padding: .62em;
+  text-align: center;
+  min-width: 130px;
+}
+
+table th {
+  font-size: .85em;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+table td .action {
+  border: 0;
+  padding: 5px;
+  margin-right: 2px;
+  align-items: center;
+  display: inline-block;
+  border-radius: 4px;
+  ;
+}
+
+table td .action svg {
+  vertical-align: middle;
+}
+
+
+table td .action-log {
+  border: 0;
+  padding: 5px;
+  margin-right: 2px;
+  align-items: center;
+  display: inline-block;
+  border-radius: 4px;
+  ;
+}
+
+table td .action-log svg {
+  vertical-align: middle;
+}
+
+table td .badge {
+  padding: 3px;
+  border-radius: 3px;
+  color: #FFF;
+}
+
+.btn-more {
+  margin: 1.5em 0;
+  padding: .5em 1em;
+  height: 35px;
+  border: 0;
+  border-radius: 5px;
+  background-color: #181c2e;
+  color: #FFF;
+  font-size: 1.1em;
+}
+
+@media screen and (max-width: 700px) {
+  table {
+    border: 0;
+
+  }
+
+  table caption {
+    font-size: 1.3em;
+  }
+
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: .65em;
+
+  }
+
+  table td {
+    border-bottom: 1px solid #DDD;
+    display: block;
+    font-size: .8em;
+    text-align: right;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  table td:last-child {
+    border-bottom: 0;
+  }
+
+  .indicadores-aprs div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .grupoCard span {
+    margin: 5px;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .filtrosAPRs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+    margin: 0;
+  }
+
+  .container.filter{
+    justify-content: center;
+
+  }
+
+  .btnListar{
+    margin: 15px;
+  }
+}

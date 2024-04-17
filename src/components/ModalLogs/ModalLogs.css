@@ -1,0 +1,73 @@
+
+
+.modal-logs a {
+    cursor: pointer;
+  }
+
+  .tela-logs {
+    text-align: center;
+    width: 100%;
+    align-items: flex-start; /* ajuste o valor dessa propriedade conforme desejado */
+    flex-grow: 1; /* adicionamos essa propriedade */
+  }
+  
+  .titulo-logs {
+    margin-bottom: 20px;
+    position: relative;
+    color: rgb(90, 3, 172);
+  }
+  
+  .card-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex-grow: 1; /* adicionamos essa propriedade */
+
+  }
+  
+  .card {
+    width: 300px;
+    margin-bottom: 15px;
+    background-color: rgb(105, 6, 151);
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px #93929285;
+    color: #f8f8f8;
+    padding: 8px;
+  }
+  
+  .card-header {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+
+
+  }
+  
+  .card-body {
+    padding: 10px;
+    padding-bottom: 15px;
+    
+}
+  
+  .Elemento {
+    margin-top: 10px;
+  }
+  
+
+  .Vazio{
+    background-color: blueviolet;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #f8f8f8;
+   }
+   
+   @media screen and (max-width: 600px) {
+
+
+  
+  }

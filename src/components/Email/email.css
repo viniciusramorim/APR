@@ -1,0 +1,25 @@
+.emails {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.emails a{
+    background-color: #8a42e7;
+    width: 150px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    color: #fff;
+    margin-top: 0.2em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: ease-in-out .4s;
+}
+
+.emails a:hover{
+    background-color: #6e0dec;
+}
+

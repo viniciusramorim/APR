@@ -1,0 +1,134 @@
+.modal {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 99;
+}
+
+.modal .container {
+  position: fixed;
+  display: flex;
+  max-width: 600px;
+  top: 15%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  padding: 4em 2rem;
+  background-color: #FFF;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  flex-direction: column;
+}
+
+.close {
+  background-color: #f82b2b;
+  border: 0;
+  color: #FFF;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 8px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+
+}
+
+.close svg {
+  margin-right: 5px;
+}
+
+.modal h2 {
+  margin-bottom: 0.5em;
+  font-size: 2em;
+}
+
+.modal span {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #121212;
+}
+
+.modal span i {
+  font-weight: 400;
+  margin-right: 1em;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.row {
+  margin-bottom: 0.2em;
+  width: 100%;
+}
+
+.row textarea {
+  background-color: #e1dada;
+  max-width: 540px;
+  resize: none;
+  width: 100%;
+}
+
+.row select {
+  background-color: #e1dada;
+  max-width: 540px;
+  margin-left: 0.5em;
+  border: 0px;
+}
+
+.row input {
+  background-color: #e1dada;
+  max-width: 540px;
+  margin-left: 0.5em;
+  border: 0px;
+}
+
+.modal p {
+  padding-top: 0.5em;
+  white-space: pre-wrap;
+}
+
+.modal a {
+  background-color:  #43057e;
+  color: white;
+  cursor: pointer;
+  padding: 7px 20px;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 15px;
+  display: flex;
+}
+
+.modal a:hover {
+  background-color: #5900ac;
+  color: white;
+  cursor: pointer;
+}
+
+.modal-body {
+  width: 100%;
+}
+
+.selectOptions{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.8em;
+}
+
+.selectOptions input{
+  margin-left: 0.8em;
+  margin-right: 0.2em;
+}
+
+.titulo-planoacao{
+  color: #43057e;
+}
+
+.btnAcao{
+  align-items: center;
+}

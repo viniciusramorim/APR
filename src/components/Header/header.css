@@ -1,0 +1,194 @@
+.sidebar {
+  margin: 10px;
+  padding: 0;
+  width: 200px;
+  background-color: #f8f8f8a4;
+  position: fixed;
+  height: 96.5%;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.sidebar div {
+  padding-top: 15px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 140px;
+  background-image: url('../../assets/FundoHeader.png');
+}
+
+.ronda div {
+  background-color: #182b72;
+}
+
+.info-user {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.info-user label {
+  text-transform: uppercase;
+  margin-bottom: 0.8em;
+  text-align: center;
+}
+
+.info-user span {
+  text-transform: uppercase;
+  margin-bottom: 0.4em;
+  color: #f8f8f8;
+}
+
+.info-user i {
+  text-transform: capitalize;
+  color: #f8f8f8;
+}
+
+.info-user img {
+  height: 35%;
+  width: 90%;
+  margin-left: 10px;
+  filter: brightness(100);
+  margin-bottom: 0.9em;
+}
+
+.sidebar a {
+  display: block;
+  color: #000;
+  padding: 9px 10px;
+  margin: 0.2em 0.2em;
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  transition: ease-in-out .4s;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.first-patrimonial {
+  border-radius: 8px !important;
+  margin: 0.9em 0.6em !important;
+  padding: 7px 12px !important;
+  color: #FFF !important;
+  background-color: #1fb124;
+}
+
+.first-patrimonial:hover {
+  background-color: #06d322ef !important;
+}
+
+.ronda a:first-of-type {
+  background-color: #330253;
+}
+
+.ronda a:first-of-type:hover {
+  background-color: #06b51ebd;
+}
+
+.sidebar a svg {
+  margin-right: .5em;
+}
+
+.sidebar a:hover {
+  background-color: #35024c13;
+  color: #000;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.content {
+  margin-left: 210px;
+  padding: 1px 16px;
+
+}
+
+.atribuir {
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  color: #f8f8f8;
+}
+
+.dropdown-content {
+  margin: 7px;
+}
+
+.dropdown-content a {
+  transition: transform 0.4s ease-in-out;
+}
+
+.dropdown-content a:hover {
+  transform: scale(1.05);
+}
+
+.menuButton {
+  display: none;
+}
+
+@media screen and (max-width: 700px) {
+  .sidebar {
+    width: 95%;
+    height: auto;
+    position: relative;
+    background-color: #380054de;
+    color: #f8f8f8;
+  }
+
+  .sidebar a:first-of-type {
+    margin: 0.2em 0.2em;
+  }
+
+  div.content {
+    margin-left: 0;
+  }
+
+  .sidebar a {
+    float: left;
+  }
+
+  .sidebar div {
+    display: none;
+  }
+
+  .sidebar a svg {
+    display: none;
+  }
+
+}
+
+
+@media screen and (max-width: 431px) {
+
+  .sidebar a {
+    text-align: center;
+    float: none;
+    color: #f8f8f8;
+  }
+
+  .sidebar a svg {
+    display: block;
+  }
+
+  .menuButton {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    color: #f8f8f8;
+  }
+
+  .dropdown-content {
+    display: none;
+  }
+
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+}

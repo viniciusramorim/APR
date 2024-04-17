@@ -1,0 +1,163 @@
+form {
+    margin-top: 1.5em;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    width: 100%;
+}
+
+.container-perg-open {
+    display: flex;
+    margin-top: 0.5em;
+    margin-bottom: 2.0em;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    flex-direction: column;
+    border: 1px solid #8080804d;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0px;
+}
+
+.siteInfo {
+    max-width: 600px;
+    display: flex;
+    width: 100%;
+    display: flex;
+    text-transform: uppercase;
+    align-items: baseline;
+}
+
+.siteInfo span {
+    font-weight: bold;
+}
+
+.siteInfo li {
+    margin-bottom: 0.5em;
+}
+
+.form-open label {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+    font-weight: bold;
+}
+
+.form-open i {
+    margin-bottom: 0.8em;
+}
+
+.form-open span {
+    margin-bottom: 0.9em;
+}
+
+.form-open .textArea {
+    background-color: rgb(224, 223, 223);
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.form-open span[data-text="Sim"] {
+    content: attr(data-text);
+    background-color: rgb(14, 206, 14);
+    color: white;
+    max-width: 60px;
+    max-height: 50px;
+    text-align: center;
+    padding: 5px;
+    font-weight: bold;
+}
+
+.form-open span[data-text="Não"] {
+    content: attr(data-text);
+    background-color: rgb(228, 54, 23);
+    color: white;
+    max-width: 60px;
+    max-height: 50px;
+    text-align: center;
+    padding: 5px;
+    font-weight: bold;
+}
+
+.form-open span[data-text="Ativar-PA"] {
+    content: attr(data-text);
+    background-color: #e74242;
+    color: white;
+    max-height: 50px;
+    text-align: center;
+    padding: 5px;
+    font-weight: bold;
+}
+
+.form-open span[data-text="Ativar-PA"]:hover {
+    cursor: pointer;
+    background-color: #f70909;
+}
+
+.form-open img {
+    margin-bottom: 0.9em;
+    max-height: 300px;
+    max-width: 300px;
+}
+
+.form-open div {
+    display: flex;
+    margin-top: 0.5em;
+    margin-bottom: 2em;
+    justify-content: space-around;
+    flex-direction: column;
+}
+
+.plano-acao {
+    text-align: right;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.plano-acao a {
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 130px;
+    border-radius: 5px;
+}
+
+.plano-acao a[data-check="Não"] {
+    background-color: rgb(228, 54, 23);
+    color: white;
+}
+
+.plano-acao a[data-check="Sim"] {
+    background-color: rgb(14, 206, 14);
+    color: white;
+}
+
+.form-open #button-area{
+    background-color: rgba(76, 100, 238, 0.973);
+    border: 1px solid rgba(76, 100, 238, 0.973);
+    color: #fff;
+    padding: 0.5em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 0.2em;
+}
+
+.form-open #button-area:hover{
+    background-color: #fff;
+    color: #000;
+    border: 1px solid rgba(76, 100, 238, 0.973);
+}
+
+
+@media screen and (max-width: 600px) {
+    .siteInfo {
+        flex-direction: column;
+    }
+
+    .siteInfo span {
+        font-weight: bold;
+        margin-top: 0.5em;
+    }
+}

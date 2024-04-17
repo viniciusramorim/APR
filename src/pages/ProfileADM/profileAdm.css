@@ -1,0 +1,53 @@
+
+
+.form-profiles img{
+  margin-bottom: 1em;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.form-profiles label{
+  margin-bottom: .5em;
+  font-size: 1.4em;
+}
+
+.form-profiles input, textarea, selct{
+  margin-bottom: 1em;
+  padding: .7em;
+  border:0;
+  border-radius: 5px;
+  max-width: 600px;
+}
+
+.form-profiles input:disabled{
+  cursor: not-allowed;
+}
+
+.form-profiles button{
+  max-width: 600px;
+}
+
+.form-profiles a{
+  cursor: pointer;
+}
+
+
+table td .action {
+  margin-right: 10px;
+}
+
+.table-usuarios svg{
+  margin: 5px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+.indicadores span{
+  margin-right: 0.8em;
+}
+
+.indicadores b{
+  margin-left: 0.2em;
+}
+

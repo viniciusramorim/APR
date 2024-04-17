@@ -1,0 +1,379 @@
+.form-new {
+    margin-top: 1.5em;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    width: 100%;
+}
+
+.form-new button {
+    height: 35px;
+    margin-bottom: 0.5em;
+    border: 0;
+    border-radius: 7px;
+    background-color: #8a42e7;
+    color: #FFF;
+    font-size: 1.3em;
+    transition: ease-in-out .4s;
+}
+
+.form-new button:hover {
+    background-color: #6e06f7;
+}
+
+
+.form-new div {
+    display: flex;
+    margin-top: 0.5em;
+    margin-bottom: 2em;
+    justify-content: space-around;
+    flex-direction: column;
+}
+
+.container-perg {
+    border: 1px solid #8080804d;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 1px 2px 11px #0000003d;
+}
+
+.box-question {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.form-new label {
+    max-width: 600px;
+    margin-right: 0.8em;
+    cursor: pointer;
+    align-items: center;
+    display: flex;
+    margin-bottom: .5em;
+    font-size: 1.2em;
+}
+
+.form-new #button-area {
+    background-color: #6e0dec;
+    border: 1px solid #6e0dec;
+    color: #fff;
+    padding: 0.5em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 0.2em;
+}
+
+.form-new #button-area:hover {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #6e0dec;
+}
+
+.form-new textarea {
+    max-width: 600px;
+    width: 100%;
+    resize: none;
+    height: 100px;
+    background-color: rgb(231, 231, 231);
+}
+
+.form-new input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.form-new input[type="radio"]+svg {
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+}
+
+.form-new input+svg {
+    cursor: pointer;
+}
+
+.form-new svg {
+    margin-right: 0.5em;
+}
+
+.form-new input[class="yes"]:hover+svg,
+input[class="yes"]:checked+svg,
+input[class="yes"]:focus+svg {
+    color: rgb(255, 255, 255);
+    background-color: rgb(10, 231, 40);
+    border-radius: 0.5em;
+}
+
+.form-new input[class="no"]:hover+svg,
+input[class="no"]:checked+svg,
+input[class="no"]:focus+svg {
+    color: rgb(255, 255, 255);
+    background-color: rgb(238, 65, 12);
+    border-radius: 0.5em;
+}
+
+.form-new img {
+    margin-bottom: 1em;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.form-new input,
+.form-new textarea,
+.form-new select {
+    padding: .7em;
+    border: 0;
+    border-radius: 5px;
+    max-width: 600px;
+    margin-bottom: 0.8em;
+}
+
+#selectSite {
+    width: 100%;
+    padding: .7em;
+    border: 0;
+    border-radius: 5px;
+    max-width: 600px;
+}
+
+.form-new a {
+    padding: 10px;
+    text-align: center;
+    max-width: 250px;
+    height: 70px;
+    background-color: #507efb;
+    border-radius: 0.5em;
+    color: white;
+    margin-top: 0.8em;
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-transform: uppercase;
+}
+
+.form-new a:hover {
+    background-color: #082ed8;
+    color: #FFF;
+}
+
+
+.content-items thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.content-items tr {
+    border-bottom: 3px solid #ddd;
+    margin-bottom: .65em;
+}
+
+.content-items td {
+    border-bottom: 2px solid #DDD;
+    display: block;
+    font-size: 0.9em;
+    text-align: right;
+    margin-top: 0.3em;
+}
+
+.content-items td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.content-items td:last-child {
+    border-bottom: 0;
+}
+
+.siteInfo {
+    max-width: 600px;
+    display: flex;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+}
+
+.siteInfo span {
+    font-weight: bold;
+}
+
+.input-file {
+    padding: 0.2em;
+}
+
+.input-file input {
+    display: none;
+}
+
+#container-conclusion {
+    display: flex;
+    flex-direction: column;
+}
+
+#container-conclusion span:first-of-type {
+    padding: 0.8em;
+    background-color: #15d515;
+    border-radius: 9px;
+    color: #fff;
+    margin-bottom: 0.5em;
+}
+
+#container-conclusion span {
+    padding: 0.8em;
+    border-radius: 9px;
+    margin-bottom: 0.5em;
+}
+
+#container-conclusion a {
+    background-color: #8a42e7;
+    color: #fff;
+    border-radius: 9px;
+    margin-bottom: 0.5em;
+    padding: 7px 12px;
+}
+
+#container-conclusion a:hover {
+    background-color: #6e0dec;
+}
+
+.clearQuestion {
+    width: 55px;
+    text-align: center;
+    padding: 0.2em;
+    border-radius: 10px;
+}
+
+.clearQuestion:hover {
+    background-color: #e66060;
+    color: #fff;
+    cursor: pointer;
+}
+
+#upload-photo {
+    opacity: 0;
+    position: absolute;
+    z-index: 99;
+}
+
+.imageList {
+    margin-bottom: 0.8em;
+}
+
+.imageList input {
+    display: none;
+}
+
+
+.imageList li {
+    background-color: #d7d2d2;
+    width: 60px;
+    height: 60px;
+    margin-left: 0.2em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border-radius: 5px;
+}
+
+.imageList label {
+    margin: 0em;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    transition: ease-in-out .4s;
+}
+
+.imageList label:hover {
+    color: white;
+}
+
+
+.imageList svg {
+    margin-right: 0em;
+}
+
+.imageList i {
+    cursor: pointer;
+    background-color: red;
+    color: white;
+    padding: 0.2em;
+    text-align: center;
+    font-style: normal;
+    border-radius: 0px 4px 0px 4px;
+}
+
+.save {
+    max-width: 600px;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    text-transform: uppercase;
+}
+
+.save a {
+    background-color: #430058;
+    color: #fff;
+    width: 45%;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.save a:hover {
+    cursor: pointer;
+    background-color: #52006b;
+}
+
+#photo {
+    height: 100%;
+    width: 100%;
+    margin-bottom: 0em;
+}
+
+.botoesCam {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    padding-bottom: 2.5em;
+}
+
+.botoesCam button{
+    border: 0px;
+    border-radius: 100%;
+    padding: 10px;
+    background-color: rgb(114 117 114);
+    color: white;
+}
+
+.ReactModal__Overlay div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.modalOverlay{
+    background-color: #000;
+    height: 100%;
+}
+
+.webcam {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+

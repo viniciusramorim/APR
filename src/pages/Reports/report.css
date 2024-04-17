@@ -1,0 +1,21 @@
+.reports button{
+    padding: 0.8em;
+    border: 0px;
+    background-color: #380054e8;
+    color: #fff;
+    border-radius: 10px;
+    font-weight: bold;
+    justify-content: center;
+}
+
+.reports button:hover{
+    background-color: #3a077c;
+}
+
+
+.reports{
+    background-color: #f8f8f8a4;
+}
+
+
+

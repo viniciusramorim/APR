@@ -1,0 +1,66 @@
+form {
+    margin-top: 1.5em;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    width: 100%;
+}
+
+.geoloc {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.geoloc label {
+    margin-bottom: 0.5em;
+    font-size: 1.4em;
+}
+
+.geoloc div {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 1.8em;
+    width: 100%;
+    max-width: 600px;
+}
+
+.geoloc button {
+    margin-top: 0.8em;
+    max-width: 200px;
+    height: 35px;
+    border: 0;
+    border-radius: 7px;
+    background-color: #182b72;
+    color: #FFF;
+    font-size: 1.3em;
+    transition: ease-in-out .4s;
+}
+
+.geoloc button:hover {
+    background-color: #2643ad;
+}
+
+.questions-ronda {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 0.5em;
+    flex-direction: column;
+}
+
+.questions-ronda input {
+    text-align: center;
+    margin-right: 0.5em;
+}
+
+.questions-ronda label {
+    margin-left: 0.9em;
+    font-size: 15px;
+    margin-bottom: 0em;
+    display: flex;
+    align-items: center;
+    margin-top: 0.2em;
+}
+
+.questions-ronda svg {
+    margin-right: 0.5em;
+}

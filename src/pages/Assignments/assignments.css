@@ -1,0 +1,16 @@
+.container{
+    background-color: #f8f8f8a4;
+    justify-content: left;
+}
+
+
+table{
+    border-collapse: separate;
+    border-spacing: 0 7px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    table-layout: fixed;
+    overflow-x: scroll;
+}
+

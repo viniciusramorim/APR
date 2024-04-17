@@ -1,0 +1,155 @@
+.container-center {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('../../assets/Cover.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.login {
+  background-color: #ffffff71;
+  width: 450px;
+  height: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 8px;
+}
+
+.login-area {
+ margin-bottom: 10px;
+  text-align: center;
+}
+
+.login-area img {
+  width: 60%;
+}
+
+form {
+  margin-top: 1.5em;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+form h1 {
+  text-align: center;
+  margin-bottom: 0.5em;
+  color: #181c2e;
+}
+
+.login input {
+  margin-bottom: 15px;
+  height: 35px;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px;
+  font-size: 15px;
+  background-color: #FFF;
+}
+
+.login select {
+  margin-bottom: 15px;
+  height: 35px;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px;
+  font-size: 15px;
+  background-color: #FFF;
+}
+
+form button {
+  height: 40px;
+  margin-bottom: 0.5em;
+  margin-top: 13px;
+  border: 0;
+  border-radius: 7px;
+  background-color: #380054;
+  color: #FFF;
+  font-size: 1.3em;
+  transition: ease-in-out .4s;
+}
+
+form button:hover {
+  background-color: #2e0564;
+}
+
+.form-signin {
+  margin-top: 1.5em;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  width: 85%;
+}
+
+.login a {
+  margin: 1.5em 0;
+  color: #000;
+  cursor: pointer;
+}
+
+.password-requisit {
+  padding: 20px;
+  list-style: disc;
+  font-style: italic;
+  font-size: small;
+}
+
+.password-visibily {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.password-visibily svg {
+  margin-bottom: 15px;
+  cursor: pointer;
+  height: 100%;
+}
+
+.password-visibily input {
+  width: 95%;
+}
+
+.login-rodape {
+  padding: 25px;
+}
+
+.login-rodape a {
+  margin-left: 1.0em;
+}
+
+.login-rodape a:hover {
+  color: #8a42e7;
+}
+.label-login{
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 700px) {
+  .container-center {
+    height: 100%;
+    background-position: left;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+
+  .login {
+    background-color: #ffffff71;
+    width: 90%;
+    height: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border-radius: 8px;
+  }
+
+}
