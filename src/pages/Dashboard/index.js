@@ -1,9 +1,7 @@
 
-import { useState, useEffect, useContext } from 'react';
-import { FiMessageSquare, FiSearch, FiX } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { FiMessageSquare } from 'react-icons/fi';
 import { format } from 'date-fns';
-import { BiFilterAlt } from "react-icons/bi";
 
 import { AuthContext } from '../../contexts/auth';
 import Header from '../../components/Header';
@@ -11,14 +9,15 @@ import Title from '../../components/Title';
 import firebase from '../../services/firebaseConnection';
 import './dashboard.css';
 import { toast } from 'react-toastify';
-import ModalLog from '../../components/ModalLogs';
 
-import Autocomplete from '@mui/material/Autocomplete';
-import TextField from '@mui/material/TextField';
+import TableDashboard from './tableDashboard';
+import { Switch } from '@mui/material';
 
-const listRef = firebase.firestore().collection("aprs-producao")
 
 export default function Dashboard() {
+  const base = 'aprs-producao' //aprs-producao
+  const listRef = firebase.firestore().collection(base)
+
   const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,13 +28,14 @@ export default function Dashboard() {
   const [filterTipoSite, setFilterTipoSite] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterNome, setFilterNome] = useState('');
+  const [filterID, setFilterID] = useState('');
 
-  async function loadChamados() {
+  async function loadChamados(props) {
 
     let regional = [];
 
     let query = listRef
-    query = query.orderBy('created', 'desc')
+    query = props === true ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc") : query.orderBy('created', 'desc');
 
     if (user.regional === 'NE') regional = ['PE', 'CE', 'PB', 'RN', 'AL', 'PI', 'BA', 'SE']
     if (user.regional === 'CO_N') regional = ['DF', 'GO', 'TO', 'AC', 'MS', 'MT', 'RO', 'AM', 'AP', 'MA', 'PA', 'RR']
@@ -46,14 +46,17 @@ export default function Dashboard() {
     query = user.nivel === 'aplicador' && user.area !== 'oem' ? query.where('user_id.uid', '==', user.uid) : query
     query = user.nivel === 'supervisor' ? query.where('site_id.Estado', 'in', regional) : query
     query = user.nivel === 'revisor' ? query.where('site_id.Estado', 'in', regional) : query
-    query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area']) : query
+    query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area', 'Revisado']) : query
 
+    query = filterID !== '' ? query.where('apr_id', '==', parseInt(filterID)) : query
     query = filterUF !== '' ? query.where('site_id.Estado', '==', filterUF) : query
     query = filterSigla !== '' ? query.where('site_id.Sigla', '==', filterSigla) : query
     query = filterTipoSite !== '' ? query.where('site_id.tipoSite', '==', filterTipoSite) : query
     query = filterStatus !== '' ? query.where('status', '==', filterStatus) : query
     query = filterNome !== '' ? query.where('user_id.nome', '==', filterNome) : query
-    console.log(filterSigla)
+
+    console.log(filterID)
+
     let lista = [];
 
     setLoading(false)
@@ -94,11 +97,13 @@ export default function Dashboard() {
                   site_id: doc.data().site_id,
                   status: doc.data().status,
                   created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
+                  porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
                 })
               }
             } else {
               lista.push({
                 id: doc.id,
+                apr_id: doc.data().apr_id,
                 nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
                 site_id: doc.data().site_id,
                 status: doc.data().status,
@@ -116,15 +121,18 @@ export default function Dashboard() {
         console.log('Deu algum erro: ', err);
         setLoading(true);
       })
+    setLoading(true);
   }
 
   function elementHiddenAndShow() {
+    let id = document.getElementById('id').style
     let uf = document.getElementById('uf').style
     let sigla = document.getElementById('sigla').style
     let tipo = document.getElementById('tipo').style
     let status = document.getElementById('status').style
     let nome = document.getElementById('nome').style
 
+    id.display === 'block' ? id.display = 'none' : id.display = 'block'
     uf.display === 'block' ? uf.display = 'none' : uf.display = 'block'
     sigla.display === 'block' ? sigla.display = 'none' : sigla.display = 'block'
     tipo.display === 'block' ? tipo.display = 'none' : tipo.display = 'block'
@@ -167,14 +175,13 @@ export default function Dashboard() {
 
         {(user.nivel === "administrador" || user.nivel === "revisor") && (
           <div className="container indicadores-aprs">
-          <div className="grupoCard">
-            <span className='card-aberto'>Em Aberto<b>{contAprs("Em Aberto")}</b></span>
-            <span className='card-cancelado'>Cancelado<b>{contAprs("Cancelado")}</b></span>  
+            <div className="grupoCard">
+              <span className='card-aberto'>Em Aberto<b>{contAprs("Em Aberto")}</b></span>
+              <span className='card-cancelado'>Cancelado<b>{contAprs("Cancelado")}</b></span>
             </div>
             <div className="grupoCard">
-
-            <span className='card-enviado'>Enviado<b>{contAprs("Enviado")}</b></span>
-            <span className='card-respondido'>Respondido pela Area<b>{contAprs("Respondido pela Area")}</b></span>
+              <span className='card-enviado'>Enviado<b>{contAprs("Enviado")}</b></span>
+              <span className='card-respondido'>Respondido pela Area<b>{contAprs("Respondido pela Area")}</b></span>
             </div>
           </div>
         )}
@@ -183,6 +190,7 @@ export default function Dashboard() {
           <div className="filtrosAPRs">
 
             <label><i onClick={() => elementHiddenAndShow()}>Abrir Filtros</i> </label>
+            <input id='id' type='number' placeholder='ID APR' value={filterID} onChange={(e) => setFilterID(e.target.value.toUpperCase().slice(0, 6))} />
             <select id='uf' placeholder='UF' value={filterUF} onChange={(e) => setFilterUF(e.target.value.toUpperCase())}>
               <option value=''>Todas UF</option>
               <option value='AC'>AC</option>
@@ -218,8 +226,12 @@ export default function Dashboard() {
             <select id='tipo' name="select-tipoSite" defaultValue={filterTipoSite} onChange={(e) => setFilterTipoSite(e.target.value)}>
               <option disabled value=''>Tipo de Site</option>
               <option value="ERB-CT">ERB-CT</option>
+              <option value="ERB">ERB</option>
+              <option value="CT">CT</option>
+              <option value="CD">CT</option>
               <option value="PREDIO CORE">PREDIO CORE</option>
               <option value="LOJA">LOJA</option>
+              <option value="LOJA DEALER">LOJA DEALER</option>
               <option value="OUTDOOR">OUTDOOR</option>
               <option value="INDOOR">INDOOR</option>
             </select>
@@ -231,77 +243,23 @@ export default function Dashboard() {
               <option value="Respondido pela Area">Respondido pela Area</option>
               <option value="Com Exceção">Com Exceção</option>
               <option value="Cancelado">Cancelado</option>
+              <option value="Revisado">Revisado</option>
             </select>
 
           </div>
           <div className="btnListar">
             <span>
-              <a onClick={() => loadChamados()} disabled={!loading}>{loading === true ? 'Listar APRs' : 'Carregando APRs...'}</a>
+              <a onClick={() => loadChamados(false)} disabled={!loading}>{loading === true ? 'Listar Todas APRs' : 'Carregando APRs...'}</a>
+            </span>
+          </div>
+          <div className="btnListar">
+            <span>
+              <a style={{ backgroundColor: '#4eb414f5' }} onClick={() => loadChamados(true)} disabled={!loading}>{loading === true ? 'Listar Novas APRs' : 'Carregando APRs...'}</a>
             </span>
           </div>
         </div>
 
-        {chamados.length === 0 ? (
-          <>
-          </>
-        ) : (
-          <>
-            <table className='tableAprs'>
-              <thead>
-                <tr>
-                  <th scope="col">Sigla</th>
-                  <th scope="col">Nome</th>
-                  <th scope="col">Tipo Site</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">Municipio</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Data</th>
-                  <th scope="col">%</th>
-                  <th scope="col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {chamados.map((item, index) => {
-                  return (
-                    <tr key={index}>
-                      <td data-label="Sigla">{item.site_id.Sigla}</td>
-                      <td data-label="Nome">{item.nome}</td>
-                      <td data-label="Tipo Site">{item.site_id.tipoSite}</td>
-                      <td data-label="Estado">{item.site_id.Estado}</td>
-                      <td data-label="Municipio">{item.site_id.Cidade}</td>
-                      <td data-label="Status"><b style={{
-                        backgroundColor: item.status === "Em Aberto" ? "#f50707" :
-                          item.status === "Respondido pela Area" ? "#0c9715" :
-                            item.status === "Enviado" ? "#e7c655" :
-                              item.status === "Com Exceção" ? "#132ed7" : "#898484",
-                        borderRadius: "4px",
-                        padding: "5px"
-                      }}>{item.status}</b></td>
-                      <td data-label="Data">{item.created}</td>
-                      <td data-label="%">{item.porcentagem_resp_area}</td>
-                      <td data-label="">
-                        <Link className="action" style={{ backgroundColor: '#380054ae' }} to={`/open/${item.id}`} >
-                          <FiSearch color="#FFF" size={17} />
-                        </Link>
-                        {(user.nivel === 'administrador' || user.nivel === 'revisor') && (
-                          <a className="action" onClick={() => updateStatus(item.id, index)} style={{ backgroundColor: '#f73737', cursor: 'pointer' }}>
-                            <FiX color="#FFF" size={17} />
-                          </a>
-                        )}
-                        {(user.nivel === 'administrador' || user.nivel === 'revisor') && (
-                          <div className='action-log' style={{ backgroundColor: 'silver', cursor: 'pointer' }}>
-                            <ModalLog chamadoId={item.id} />
-                          </div>
-                        )}
-                      </td>
-
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </>
-        )}
+        <TableDashboard chamados={chamados} user={user} updateStatus={updateStatus}></TableDashboard>
 
       </div>
 

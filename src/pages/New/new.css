@@ -128,7 +128,8 @@ input[class="no"]:focus+svg {
     margin-bottom: 0.8em;
 }
 
-#selectSite {
+#selectSite,
+#selectMotivo {
     width: 100%;
     padding: .7em;
     border: 0;

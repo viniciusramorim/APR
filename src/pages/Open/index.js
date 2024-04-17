@@ -22,6 +22,8 @@ import EmailLink from '../../components/Email/EmailLink';
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 export default function Open() {
+  const base = 'aprs-producao' //aprs-producao
+
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
 
@@ -32,41 +34,14 @@ export default function Open() {
   const [showPostModalLoading, setShowPostModalLoading] = useState(false);
   const [detail, setDetail] = useState();
   const [area, setArea] = useState();
-  
-  
+
+
   useEffect(() => {
-    // async function loadApr() {
-    //   await firebase.firestore().collection('aprs-producao')
-    //     .doc(id)
-    //     .get()
-    //     .then((snapshot) => {
-    //       let apr = snapshot.data();
-    //       apr.checklist.forEach((area, indexA) => {
-    //         area[1].forEach((doc, indexQ) => {
-    //           if (doc.resp === '') {
-    //             delete apr.checklist[indexA][1][indexQ]
-    //           }
-    //           doc.imagesURL.forEach(async (imgs, indexI) => {
-    //             apr.checklist[indexA][1][indexQ].imagesURL[indexI].url = await getBase64ImageFromURL(imgs.url)
-    //           })
-    //         })
-    //       })
-  
-    //       setApr(apr)
-    //       setLoadApr(true);
-    //     })
-    //     .catch((error) => {
-    //       console.log('DEU ALGUM ERRO!', error);
-    //       setLoadApr(false)
-    //     })
-    // }
-    // loadApr()
     ReloadAPR()
   }, [id])
 
-
   async function ReloadAPR() {
-    await firebase.firestore().collection('aprs-producao')
+    await firebase.firestore().collection(base)
       .doc(id)
       .get()
       .then((snapshot) => {
@@ -90,7 +65,7 @@ export default function Open() {
         setLoadApr(false)
       })
   }
-  
+
   // ----------- Download PDF ------------
 
   function getBase64ImageFromURL(url) {
@@ -158,14 +133,26 @@ export default function Open() {
     })
 
     pdf.content.push({
+      margin: [0, 20, 0, 0],
+      table: {
+        widths: [300, 300],
+        body: [
+          ["Motivo: " + apr.motivo_apr,
+          "Classificação " + calculatePontos(apr.peso)],
+        ]
+      },
+      layout: 'noBorders'
+    })
+
+    pdf.content.push({
       margin: [0, 20, 0, 20],
       table: {
         widths: [300, 300],
         body: [
+          ["Sigla-UF: " + apr.site_id.Sigla + '-' + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
           ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
           ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
-          ["UF: " + apr.site_id.Estado, "Longitude: " + apr.site_id.Longitude],
-          ["Criticidade: " + apr.site_id.critical, ''],
+          ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
         ]
       },
       layout: 'noBorders'
@@ -223,7 +210,7 @@ export default function Open() {
 
     console.log(pdf)
 
-    pdfMake.createPdf(pdf).download(`APR Digital ${id}.pdf`);
+    pdfMake.createPdf(pdf).download(`APR Digital ${apr.site_id.Sigla + '_' + apr.site_id.Estado}.pdf`);
 
   };
 
@@ -245,7 +232,7 @@ export default function Open() {
   }
 
   async function alterarPA(indexA, indexQ) {
-    await firebase.firestore().collection('aprs-producao')
+    await firebase.firestore().collection(base)
       .doc(id)
       .get()
       .then(async (doc) => {
@@ -257,7 +244,7 @@ export default function Open() {
           dados.checklist[indexA][1][indexQ].openPA = true;
 
           // Agora, atualize o documento no Firestore
-          await firebase.firestore().collection('aprs-producao')
+          await firebase.firestore().collection(base)
             .doc(id)
             .update(dados)
             .then(() => {
@@ -274,6 +261,18 @@ export default function Open() {
       });
   }
 
+  function calculatePontos(peso) {
+    if (peso < 10) {
+      return `Risco Baixo - RB`
+    } else if (peso >= 10 && peso < 40) {
+      return `Risco Médio - RM`
+    } else if (peso >= 40 && peso < 80) {
+      return `Risco Alto - RA`
+    } else if (peso >= 80) {
+      return `Risco Extremo - RE`
+    }
+  }
+
   return (
     <div>
       <Header />
@@ -288,16 +287,20 @@ export default function Open() {
             <>
               {((user.nivel === 'administrador' || user.nivel === 'revisor') && apr.status !== 'Cancelado') && (
                 <div className='container'>
-                  <EmailLink apr={apr} id={id} logSistem={logSistem}/>
+                  <EmailLink apr={apr} id={id} logSistem={logSistem} />
                 </div>
               )}
               <div className='container'>
                 <div className='siteInfo'>
                   <ul>
-                    <li style={{textTransform: 'capitalize'}}><span>ID APR: </span>{id}</li>
+                    <li><span>SIGLA: </span>{apr.site_id.Sigla + '-' + apr.site_id.Estado}</li>
+                    <li style={{ textTransform: 'none' }}><span>ID APR: </span>{apr.apr_id ? apr.apr_id : id}</li>
+                    <li><span>Classificação: </span>{apr.status !== 'Com Exceção' && calculatePontos(apr.peso)}</li>
                   </ul>
                   <ul>
                     <li><span>STATUS: </span>{apr.status}</li>
+                    <li><span>MOTIVO: </span>{apr.motivo_apr}</li>
+                    <li><span>TIPO DE SITE: </span>{apr.site_id.tipoSite}</li>
                   </ul>
                 </div>
               </div>
@@ -356,15 +359,15 @@ export default function Open() {
               {apr.justificativa ? (
                 <div className='container'>
                   <div className='siteInfo'>
-                  <ul>
-                    <li><span>APR NÃO REALIZADA E JUSTIFICADA</span></li>
-                    <li><span>MOTIVO: </span>{apr.justificativa.motivo}</li>
-                    <li style={{display: apr.justificativa.motivo === 'Site Desativado' ? 'block' : 'none'}}>
-                      <span>DATA INATIVADO: </span>{format(apr.justificativa.data_inativo.toDate(), 'dd/MM/yyyy')}
-                    </li>
-                    <li><span>DESCRIÇÃO: </span>{apr.justificativa.desc}</li>
-                  </ul>
-                </div>
+                    <ul>
+                      <li><span>APR NÃO REALIZADA E JUSTIFICADA</span></li>
+                      <li><span>MOTIVO: </span>{apr.justificativa.motivo}</li>
+                      <li style={{ display: apr.justificativa.motivo === 'Site Desativado' ? 'block' : 'none' }}>
+                        <span>DATA INATIVADO: </span>{apr.justificativa.data_inativo && format(apr.justificativa.data_inativo.toDate(), 'dd/MM/yyyy')}
+                      </li>
+                      <li><span>DESCRIÇÃO: </span>{apr.justificativa.desc}</li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <div className='container'>
@@ -407,9 +410,10 @@ export default function Open() {
                                                 <FiCheck size={20} />Plano de Ação
                                               </a>
                                             ) : (
-                                              <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>Plano de Ação</a>
+                                              <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>
+                                                Plano de Ação
+                                              </a>
                                             )}
-
                                           </label>
                                         </>
                                       ) : (
@@ -426,6 +430,55 @@ export default function Open() {
                                     </div>
                                   )
                                 }
+                              } else if (user.nivel === 'revisor' || user.nivel === 'administrador') {
+                                return (
+                                  <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
+                                    <label>{doc.questionId} - {doc.question}</label>
+                                    Resposta:
+                                    <span data-text={doc.resp}>{doc.resp}</span>
+                                    {doc.respTextArea && (
+                                      <>
+                                        Comentario:
+                                        <span className='textArea' data-text={doc.respTextArea}>{doc.respTextArea}</span>
+                                      </>
+                                    )}
+                                    {doc.imagesURL && (
+                                      <>
+                                        Anexos:
+                                        {doc.imagesURL.map((imgs, indexImg) => {
+                                          return (
+                                            <img key={indexImg} src={imgs.url ? imgs.url : imgs} />
+                                          )
+                                        })}
+                                      </>
+                                    )}
+                                    {(doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user) ? (
+                                      <>
+                                        <label className='plano-acao'>
+                                          {doc.plano_acao.comentario ? (
+                                            <a data-check='Sim' onClick={() => togglePostModal(doc, indexA)}>
+                                              <FiCheck size={20} />Plano de Ação
+                                            </a>
+                                          ) : (
+                                            <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>
+                                              Plano de Ação
+                                            </a>
+                                          )}
+                                        </label>
+                                      </>
+                                    ) : (
+                                      <>
+                                        {(doc.plano_acao.tempo || doc.plano_acao.comentario) && (
+                                          <>
+                                            <label>Plano de Ação:</label>
+                                            Tempo: <i>{doc.plano_acao.tempo}</i>
+                                            Comentario: <i>{doc.plano_acao.comentario}</i>
+                                          </>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )
                               } else {
                                 return (
                                   <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
@@ -448,31 +501,15 @@ export default function Open() {
                                         })}
                                       </>
                                     )}
-                                    {(doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user) ? (
-                                      <>
-                                        <label className='plano-acao'>
-                                          {doc.plano_acao.comentario ? (
-                                            <a data-check='Sim' onClick={() => togglePostModal(doc, indexA)}>
-                                              <FiCheck size={20} />Plano de Ação
-                                            </a>
-                                          ) : (
-                                            <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>Plano de Ação</a>
-                                          )}
-
-                                        </label>
-                                      </>
-                                    ) : (
-                                      <>
-                                        {(doc.plano_acao.tempo || doc.plano_acao.comentario) && (
-                                          <>
-                                            <label>Plano de Ação:</label>
-                                            Tempo: <i>{doc.plano_acao.tempo}</i>
-                                            Comentario: <i>{doc.plano_acao.comentario}</i>
-                                          </>
-                                        )}
-                                      </>
+                                    {(doc.openPA === true && doc.resp !== doc.respGabarito && doc.plano_acao.comentario) && (
+                                      <label className='plano-acao'>
+                                        <a data-check='Sim' onClick={() => togglePostModal(doc, indexA)}>
+                                          <FiCheck size={20} />Plano de Ação
+                                        </a>
+                                      </label>
                                     )}
-                                    {((user.nivel === 'administrador' ||  user.nivel === 'revisor') &&  doc.resp !== doc.respGabarito && doc.openPA === false) && (
+
+                                    {((user.nivel === 'administrador' || user.nivel === 'revisor') && doc.resp !== doc.respGabarito && doc.openPA === false) && (
                                       <span data-text='Ativar-PA' onClick={() => alterarPA(indexA, indexQ)}>
                                         Ativar PA
                                       </span>

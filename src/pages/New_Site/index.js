@@ -1,6 +1,6 @@
 
-import { useContext, useState } from 'react';
-import { AuthContext } from '../../contexts/auth';
+import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { useState, useEffect, useContext } from 'react';
 import { FiMapPin } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as geofire from 'geofire-common';
@@ -11,149 +11,163 @@ import './new_site.css'
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
+import { format } from 'date-fns';
+import ModalInfoSite from '../../components/Modal_InfoSite';
+import { AuthContext } from '../../contexts/auth';
 
 export default function New_Site() {
-  const { user } = useContext(AuthContext);
 
-  const [cep, setCep] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [estado, setEstado] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [sigla, setSigla] = useState('');
-  const [tipoSite, setTipoSite] = useState('');
-  const [critical, setCritical] = useState('');
+  const { user, logSistem } = useContext(AuthContext);
 
   const [file, setFile] = useState();
+  const [sitesAprovacao, setSitesAprovacao] = useState([]);
 
+  useEffect(() => {
+    loadSitesAprovacao()
+  }, [])
 
-  async function submit(e) {
-    e.preventDefault();
-
-    let hash = geofire.geohashForLocation([parseFloat(latitude), parseFloat(longitude)]);
-
-    await firebase.firestore().collection('sites')
-      .add({
-        CEP: cep,
-        Cidade: cidade,
-        Complemento: '',
-        Endereco: endereco,
-        Estado: estado,
-        Latitude: parseFloat(latitude),
-        Longitude: parseFloat(longitude),
-        Sigla: sigla,
-        Nome: sigla + '_' + estado + '_' + endereco,
-        Numero: '',
-        tipoSite: tipoSite,
-        critical: critical,
-        geohash: hash,
+  async function loadSitesAprovacao() {
+    await firebase.firestore().collection('sites-aprovacao')
+      .get()
+      .then((result) => {
+        let sites = [];
+        result.forEach(doc => {
+          sites.push({
+            id: doc.id,
+            ...doc.data()
+          })
+        })
+        setSitesAprovacao(sites)
       })
-      .then(() => {
-        toast.success('Site cadastrado com sucesso !');
-      })
+      .catch((error) => console.log(error))
   }
+
+  // async function submit(e) {
+  //   e.preventDefault();
+
+  //   let hash = geofire.geohashForLocation([parseFloat(latitude), parseFloat(longitude)]);
+
+  //   await firebase.firestore().collection('sites')
+  //     .add({
+  //       CEP: cep,
+  //       Cidade: cidade,
+  //       Complemento: '',
+  //       Endereco: endereco,
+  //       Estado: estado,
+  //       Latitude: parseFloat(latitude),
+  //       Longitude: parseFloat(longitude),
+  //       Sigla: sigla,
+  //       Nome: sigla + '_' + estado + '_' + endereco,
+  //       Numero: '',
+  //       tipoSite: tipoSite,
+  //       critical: critical,
+  //       geohash: hash,
+  //     })
+  //     .then(() => {
+  //       toast.success('Site cadastrado com sucesso !');
+  //     })
+  // }
 
   async function submitAllXlsx() {
     onLoadXLSX()
-    .then((file) => {
-      console.log(file)
-      file.forEach(async (item, index) => {
-        if(index < 1) return; 
-  
-        let hash = geofire.geohashForLocation([parseFloat(item[10]), parseFloat(item[11])]);
-  
-        let doc = [{
-          Estado: item[0] === undefined ? '' : item[0],
-          Nome: item[1] === undefined ? '' : item[1].toString(),
-          Sigla: item[2] === undefined ? '' : item[2],
-          Sigla_GVT: item[3] === undefined ? '' : item[3],
-          Situacao: item[4] === undefined ? '' : item[4],
-          Cidade: item[5] === undefined ? '' : item[5],
-          Bairro: item[6] === undefined ? '' : item[6],
-          Endereco: item[7] === undefined ? '' : item[7],
-          Complemento: item[8] === undefined ? '' : item[8],
-          CEP: item[9] === undefined ? '' : item[9],
-          Latitude: parseFloat(item[10]) === undefined ? 0 : item[10].toString(),
-          Longitude: parseFloat(item[11]) === undefined ? 0 : item[11].toString(),
-          tipoContrato: item[12] === undefined ? '' : item[12],
-          critical: item[13] === undefined ? '' : item[13],
-          geohash: hash === undefined ? '' : hash,
-          tipoSite: item[14] === undefined ? '' : item[14],
-          Detentora: item[15] === undefined ? '' : item[15],
-        }]
-  
-        await firebase.firestore().collection('sites')
-          .add(doc[0])
-          .then(() => {
-            console.log('Site cadastrado com sucesso ! - ' + index + "/" + file.length);
-          })
+      .then((file) => {
+        console.log(file)
+        file.forEach(async (item, index) => {
+          if (index < 1) return;
+
+          let hash = geofire.geohashForLocation([parseFloat(item[10]), parseFloat(item[11])]);
+
+          let doc = [{
+            Estado: item[0] === undefined ? '' : item[0],
+            Nome: item[1] === undefined ? '' : item[1].toString(),
+            Sigla: item[2] === undefined ? '' : item[2],
+            Sigla_GVT: item[3] === undefined ? '' : item[3],
+            Situacao: item[4] === undefined ? '' : item[4],
+            Cidade: item[5] === undefined ? '' : item[5],
+            Bairro: item[6] === undefined ? '' : item[6],
+            Endereco: item[7] === undefined ? '' : item[7],
+            Complemento: item[8] === undefined ? '' : item[8],
+            CEP: item[9] === undefined ? '' : item[9],
+            Latitude: parseFloat(item[10]) === undefined ? 0 : item[10].toString(),
+            Longitude: parseFloat(item[11]) === undefined ? 0 : item[11].toString(),
+            tipoContrato: item[12] === undefined ? '' : item[12],
+            critical: item[13] === undefined ? '' : item[13],
+            geohash: hash === undefined ? '' : hash,
+            tipoSite: item[14] === undefined ? '' : item[14],
+            Detentora: item[15] === undefined ? '' : item[15],
+          }]
+
+          await firebase.firestore().collection('sites')
+            .add(doc[0])
+            .then(() => {
+              console.log('Site cadastrado com sucesso ! - ' + index + "/" + file.length);
+            })
+        })
       })
-    })
-    .catch(err => {
-      console.log('Erro ao carregar dados.')
-    })
+      .catch(err => {
+        console.log('Erro ao carregar dados.')
+      })
   }
 
   async function removeAllXlsx() {
     onLoadXLSX()
-    .then((file) => {
-      console.log(file)
-      file.forEach(async (item, index) => {
-        if(index < 1) return; 
-  
-        console.log(item[0])
-  
-        await firebase.firestore().collection('sites')
-          .doc(item[0])
-          .delete()
-          .then(() => {
-            console.log('Site removido com sucesso ! - ' + index + "/" + file.length - 1);
-          })
-          
+      .then((file) => {
+        console.log(file)
+        file.forEach(async (item, index) => {
+          if (index < 1) return;
+
+          console.log(item[0])
+
+          await firebase.firestore().collection('sites')
+            .doc(item[0])
+            .delete()
+            .then(() => {
+              console.log('Site removido com sucesso ! - ' + index + "/" + file.length - 1);
+            })
+
+        })
       })
-    })
   }
 
   async function updateAllXlsx() {
     onLoadXLSX()
-    .then((file) => {
-      console.log(file)
-      file.forEach(async (item, index) => {
-        if(index < 1) return; 
-  
-        let hash = geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])])
-        console.log(hash)
-        let doc = [{
-          CEP: item[1],
-          Cidade: item[2],
-          Complemento: item[3],
-          Endereco: item[4],
-          Estado: item[5],
-          Latitude: item[6].toString().replace('.',','),
-          Longitude: item[7].toString().replace('.',','),
-          Sigla: item[9],
-          Sigla_GVT: item[10],
-          Situacao: item[11],
-          Nome: item[8].toString(),
-          tipoSite: item[12],
-          critical: item[13],
-          geohash: geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])]),
-          tipoContrato: item[15],
-          Detentora: item[16],
-        }]
-  
-        await firebase.firestore().collection('sites')
-          .doc(item[0])
-          .update(doc[0])
-          .then(() => {
-            console.log('Site atualizado com sucesso ! - ' + index + "/" + file.length);
-          })
-          .catch(err => {
-            console.log('Site não atualizado ! - ' + index + "/" + file.length);
-          })
+      .then((file) => {
+        console.log(file)
+        file.forEach(async (item, index) => {
+          if (index < 1) return;
+
+          let hash = geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])])
+          console.log(hash)
+          let doc = [{
+            CEP: item[1],
+            Cidade: item[2],
+            Complemento: item[3],
+            Endereco: item[4],
+            Estado: item[5],
+            Latitude: item[6].toString().replace('.', ','),
+            Longitude: item[7].toString().replace('.', ','),
+            Sigla: item[9],
+            Sigla_GVT: item[10],
+            Situacao: item[11],
+            Nome: item[8].toString(),
+            tipoSite: item[12],
+            critical: item[13],
+            geohash: geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])]),
+            tipoContrato: item[15],
+            Detentora: item[16],
+          }]
+
+          await firebase.firestore().collection('sites')
+            .doc(item[0])
+            .update(doc[0])
+            .then(() => {
+              console.log('Site atualizado com sucesso ! - ' + index + "/" + file.length);
+            })
+            .catch(err => {
+              console.log('Site não atualizado ! - ' + index + "/" + file.length);
+            })
+        })
       })
-    })
   }
 
   function handleFileSelect(evt) {
@@ -184,15 +198,15 @@ export default function New_Site() {
       for (i = 0, f = file[i]; i != file.length; ++i) {
         let reader = new FileReader();
         let name = f.name;
-  
+
         reader.onload = function (evt) {
           let data = evt.target.result;
           let workbook = XLSX.read(data);
-  
+
           sheet_data = XLSX.utils.sheet_to_json(
             workbook.Sheets['sites'], {
-              header: 1
-            }
+            header: 1
+          }
           );
           setFile(sheet_data)
           resolve(sheet_data)
@@ -277,21 +291,62 @@ export default function New_Site() {
       <Header />
 
       <div className="content">
-        <Title name="Cadastrar Novo Site">
-          <FiMapPin size={25} />
+        <Title name="Aprovação de Novos Sites">
+          <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
         </Title>
 
-        <div className='container inputfile'>
-          <label id='arquive'>Selecionar arquivo
-            <input id='inputXLSX' type='file' accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => handleFileSelect(e)} />
-          </label>
-          <a onClick={() => submitAllXlsx()} >Enviar</a>
-          <a onClick={() => removeAllXlsx()} >Remover</a>
-          <a onClick={() => updateAllXlsx()} >Update</a>
-          <a onClick={() => downloadModelo()} >Baixar Modelo</a>
-          <a onClick={() => downloadExcel()} >Baixar Todos Sites</a>
-        </div>
+        {user.uid === 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2' && (
+          <div className='container inputfile'>
+            <label id='arquive'>Selecionar arquivo
+              <input id='inputXLSX' type='file' accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => handleFileSelect(e)} />
+            </label>
+            <a onClick={() => submitAllXlsx()} >Enviar</a>
+            <a onClick={() => removeAllXlsx()} >Remover</a>
+            <a onClick={() => updateAllXlsx()} >Update</a>
+            <a onClick={() => downloadModelo()} >Baixar Modelo</a>
+            <a onClick={() => downloadExcel()} >Baixar Todos Sites</a>
+          </div>
+        )}
 
+        <Grid container className='container'>
+          <TableContainer component={Paper}>
+            <Table size="small" aria-label="a dense table">
+              <TableHead>
+                <TableRow style={{color: '#FFF'}}>
+                  <TableCell align="center">Sigla</TableCell>
+                  <TableCell align="center">UF</TableCell>
+                  <TableCell align="center">Municipio</TableCell>
+                  <TableCell align="center">Lat</TableCell>
+                  <TableCell align="center">Lng</TableCell>
+                  <TableCell align="center">Data</TableCell>
+                  <TableCell align="center"></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sitesAprovacao.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell align="center">{row.Sigla}</TableCell>
+                    <TableCell align="center">{row.Estado}</TableCell>
+                    <TableCell align="center">{row.Cidade}</TableCell>
+                    <TableCell align="center">{row.Latitude}</TableCell>
+                    <TableCell align="center">{row.Longitude}</TableCell>
+                    <TableCell align="center">{format(row.created.toDate(), "dd/MM/yyyy HH:mm")}</TableCell>
+                    <TableCell align="center">
+                      <ModalInfoSite
+                        site={row}
+                        loadSites={loadSitesAprovacao}
+                        logSistem={logSistem}>
+                      </ModalInfoSite>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
       </div>
     </div>
   )

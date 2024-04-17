@@ -1,0 +1,55 @@
+.ReactModal__Overlay div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.modalJustify{
+    background-color: #c0c0c028;
+    height: 100%;
+}
+
+.modalJustify div{
+    max-width: 600px;
+    width: 90%;
+    background-color: rgb(152, 68, 231);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border-radius: 15px;
+}
+
+.modalJustify select,
+.modalJustify textarea,
+.modalJustify input{
+    width: 100%;
+}
+
+.modalJustify label:first-of-type{
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.modalJustify label{
+    width: 100%;
+    padding: 10px;
+}
+
+.modalJustify a{
+    margin: 10px;
+    cursor: pointer;
+}
+
+.modalJustify button{
+    padding: 5px;
+    color: #fff;
+    text-transform: uppercase;
+    margin: 10px;
+    border: 2px solid #fff;
+    background-color: rgb(152, 68, 231);
+}

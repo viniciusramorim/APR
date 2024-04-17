@@ -15,6 +15,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'O estacionamento de veículos no local é controlado no acesso por alguma forma de segurança (Portaria com Pessoal, Portaria com Sistema Automático, Cancela e/ou Monitoramento na entrada do Veículo por CFTV)?',
         answers: ["Sim", "Não"],
@@ -31,6 +32,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Há monitoramento na área de deslocamento e estacionamento de veículos, por alguma forma de segurança (Pessoal colaboradores/funcionários do local, Agentes de Segurança e/ou VH), cancela, vagas demarcadas, e/ou monitoria por CFTV)?',
         answers: ["Sim", "Não"],
@@ -47,6 +49,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Portaria/Recepção para acesso ao condomínio, galeria ou shopping, tem recursos de segurança específicos como, por exemplo, portas, portões, tipo de VH e Agentes de Segurança, CFTV, Sistema de Alarme e de Comunicação com autoridades e interno com os condôminos, conforme cada caso?',
         answers: ["Sim", "Não"],
@@ -63,6 +66,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Existe Central de Segurança para o local com sistema de monitoria de segurança (CFTV) e alarmes 24 horas/dia, para ambientes internos e externos do condomínio, notadamente os de proteção de perímetro do condomínio, bem como sistema de comunicação de emergência, incidentes e/ou pânico internos e/ou direto com PM / PC local, Times de Resposta a Emergências(Segurança Patrimonial, VH Armada, Brigada de Incêndio, etc)?',
         answers: ["Sim", "Não"],
@@ -79,6 +83,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Existe sistema de monitoramento interno do condomínio, cobrindo áreas de acesso comuns, como vias de acesso e recepções comuns, como sistema de CFTV, alarmes, sensores de perímetro, iluminação abrangente, recursos especiais como Câmeras Dome 360, PTZ ou afins, em quantidade, posicionamento, angulação, qualidade de imagens, forma e prazo de preservação, política de manutenção, etc, adequados?',
         answers: ["Sim", "Não"],
@@ -95,6 +100,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Existe monitoramento humano dos ambientes internos e externo do condomínio através de Agentes de Segurança e/ou VH em pontos fixos e/ou em rondas?',
         answers: ["Sim", "Não"],
@@ -111,6 +117,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Agentes de Segurança / VH do condomínio tem recursos de controle de pessoas e/ou de comunicação para solicitação de apoio ou ações especiais?',
         answers: ["Sim", "Não"],
@@ -127,6 +134,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Existe análise e medidas de proteção de acordo com os tipos de empresas existentes no condomínio e seus riscos e vulnerabilidades que possam impactar o site, distância do mesmo, seus principais recursos de segurança e resposta a incidentes, etc?',
         answers: ["Sim", "Não"],
@@ -143,6 +151,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Há portaria, portões, cancelas, eclusas, garras de tigres e/ou sistemas similares de segurança complementando o conjunto de segurança perimetral do Outdoor/Indoor?',
         answers: ["Sim", "Não"],
@@ -159,6 +168,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }],
     'Segurança Estrutural Indoor':[{
         question: 'Há restrição de acesso?',
@@ -176,6 +186,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Na porta de acesso ao indoor, foi identificada avarias que necessitem de manutenção?',
         answers: ["Sim", "Não"],
@@ -189,11 +200,12 @@ const questions_indoor = [{
         respGabarito: 'Não',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 14,
     }, {
-        question: 'Há sistema de trancamento na porta de acesso ao comodato?',
+        question: 'Há sistema de trancamento na porta de acesso ao comodato?(Descrever o tipo de trancamento no campo comentários)',
         answers: ["Sim", "Não"],
         textarea: true,
         selectOptions: true,
@@ -205,9 +217,10 @@ const questions_indoor = [{
         respGabarito: 'Sim',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 14,
     }, {
         question: 'Foi identificado no piso elevado, placas soltas, que possam causar acidente aos usuários, ou risco a continuidade da prestação de serviços?',
         answers: ["Sim", "Não"],
@@ -221,9 +234,10 @@ const questions_indoor = [{
         respGabarito: 'Não',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 7,
     }, {
         question: 'Na porta de acesso aos equipamentos, foi identificada avarias que necessitem de manutenção?',
         answers: ["Sim", "Não"],
@@ -237,9 +251,10 @@ const questions_indoor = [{
         respGabarito: 'Não',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 14,
     }, {
         question: 'A fechadura da porta de acesso aos equipamentos está em bom estado?',
         answers: ["Sim", "Não"],
@@ -253,9 +268,10 @@ const questions_indoor = [{
         respGabarito: 'Sim',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 14,
     }, {
         question: 'No momento da vistoria o banco de baterias estava completo?',
         answers: ["Sim", "Não"],
@@ -272,6 +288,7 @@ const questions_indoor = [{
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'No banco de baterias é utilizado módulos Box?',
         answers: ["Sim", "Não"],
@@ -282,12 +299,13 @@ const questions_indoor = [{
         area: 'Segurança Estrutural Indoor',
         resp: '',
         respTextArea: '',
-        respGabarito: 'Ambas',
+        respGabarito: 'Sim',
         images: [],
         plano_acao: [],
         openPA: false,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }, {
         question: 'Há Monitoramento pela Central de Segurança da Vivo (CMC), por sistema de CFTV e alarmes 24 horas/dia, para ambientes internos e externos do Indoor? (EXECUTAR TESTE)',
         answers: ["Sim", "Não"],
@@ -298,12 +316,13 @@ const questions_indoor = [{
         area: 'Segurança Estrutural Indoor',
         resp: '',
         respTextArea: '',
-        respGabarito: 'Ambas',
+        respGabarito: 'Sim',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 12,
     }, {
         question: 'Há automação do Sistema de Iluminação Interna (lâmpadas de emergência), abrangente para todos os ambientes do Indoor?',
         answers: ["Sim", "Não"],
@@ -314,12 +333,13 @@ const questions_indoor = [{
         area: 'Segurança Estrutural Indoor',
         resp: '',
         respTextArea: '',
-        respGabarito: 'Ambas',
+        respGabarito: 'Sim',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 12,
     }, {
         question: 'Foi observado no Indoor há rachaduras nas paredes, infiltrações de água em paredes, teto ou piso?',
         answers: ["Sim", "Não"],
@@ -333,9 +353,10 @@ const questions_indoor = [{
         respGabarito: 'Não',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 7,
     }, {
         question: 'A limpeza e conservação do local é satisfatória?',
         answers: ["Sim", "Não"],
@@ -349,9 +370,10 @@ const questions_indoor = [{
         respGabarito: 'Sim',
         images: [],
         plano_acao: [],
-        openPA: false,
+        openPA: true,
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 12,
     }]
 }]
 

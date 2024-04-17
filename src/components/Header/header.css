@@ -1,7 +1,7 @@
 .sidebar {
-  margin: 10px;
+  margin: 15px 5px;
   padding: 0;
-  width: 200px;
+  width: 178px;
   background-color: #f8f8f8a4;
   position: fixed;
   height: 96.5%;
@@ -46,10 +46,10 @@
 }
 
 .info-user img {
-  height: 35%;
+  height: 40%;
   width: 90%;
   margin-left: 10px;
-  filter: brightness(100);
+  /* filter: brightness(100); */
   margin-bottom: 0.9em;
 }
 
@@ -99,7 +99,7 @@
 }
 
 .content {
-  margin-left: 210px;
+  margin-left: 178px;
   padding: 1px 16px;
 
 }

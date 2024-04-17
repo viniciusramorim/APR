@@ -65,7 +65,7 @@ export default function Profile(){
             <button className="logout-btn" onClick={ () => redefinirPassword() } >
                Trocar Senha
             </button>
-            <button className="logout-btn" onClick={ () => redefinirEmail() } disabled >
+            <button className="logout-btn" onClick={ () => redefinirEmail() } >
                Alterar E-mail
             </button>
         </div>

@@ -16,15 +16,15 @@ export default function Header() {
     <div className={"sidebar " + user.area}>
 
       <div className='info-user' data-color={user.area}>
-        
+
         {user.area === 'ronda' && (
           <img src={logoRonda} alt="Logo da Vivo Ronda Digital" />
         )}
         {(user.area === 'patrimonial' || user.area === 'oem') && (
-          <img src={logo} alt="LogoF da Vivo APR Digital" />
+          <img src={logo} alt="Logo da Vivo APR Digital" />
         )}
         <span>{user.nome}</span>
-        <i>{user.area}</i>
+        <i>{user.area === 'patrimonial' ? 'empresarial' : user.area}</i>
       </div>
 
       <span className="dropdown">
@@ -39,7 +39,7 @@ export default function Header() {
               </Link>
 
               <Link to="/dashboardrondas" >
-                <FiHome  size={24} />
+                <FiHome size={24} />
                 Rondas Realizadas
               </Link>
             </>
@@ -53,33 +53,40 @@ export default function Header() {
               </Link>
 
               <Link to="/dashboard" >
-                <FiHome  size={21} />
+                <FiHome size={21} />
                 APRs
               </Link>
 
               <Link to="/assignments" >
-                <MdOutlineAssignmentLate  size={21} />
+                <MdOutlineAssignmentLate size={21} />
                 APRs Atribuidas
               </Link>
             </>
           )}
 
+          {(user.area === 'oem') && (
+            <Link to="/dashboard" >
+              <FiHome size={21} />
+              APRs
+            </Link>
+          )}
+
           {user.nivel === 'administrador' && (
             <>
               <Link to="/new_site" >
-                <FiMapPin  size={21} />
+                <FiMapPin size={21} />
                 Novo Site
               </Link>
               <Link to="/profileadm" >
-                <FiUsers  size={21} />
+                <FiUsers size={21} />
                 Gerenciar Perfis
               </Link>
               <Link to="/reports" >
-                <FiFileText  size={21} />
+                <FiFileText size={21} />
                 Relatorio
               </Link>
               <Link to="/register" >
-                <FiUsers  size={21} />
+                <FiUsers size={21} />
                 Registrar Usuario
               </Link>
             </>
@@ -87,9 +94,9 @@ export default function Header() {
 
           {user.nivel === 'revisor' && (
             <>
-             
+
               <Link to="/reports" >
-                <FiFileText  size={21} />
+                <FiFileText size={21} />
                 Relatorio
               </Link>
             </>
@@ -97,8 +104,8 @@ export default function Header() {
 
 
           <Link to="/profile" >
-            <FiUser  size={21} />
-           Meu Perfil
+            <FiUser size={21} />
+            Meu Perfil
           </Link>
         </p>
       </span>

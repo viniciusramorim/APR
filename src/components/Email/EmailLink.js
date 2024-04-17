@@ -6,8 +6,10 @@ import stateRecipients from './statateRecipient';
 import './email.css'
 
 const EmailLink = ({ apr, id, logSistem }) => {
+  const base = 'aprs-producao'
+
   var cc = 'Pedro.Oliveira@telefonica.com; priscila.mirancos.ext@telefonica.com'
-  
+
   const recipient = stateRecipients[apr.site_id.Estado] || "Destinatário padrão";
 
   const subject = `APR Vivo Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`;
@@ -35,15 +37,15 @@ APR Vivo Digital`;
   )}&body=${encodedBody}`;
 
   async function updateAPR(id) {
-    await firebase.firestore().collection('aprs-producao')
+    await firebase.firestore().collection(base)
       .doc(id)
       .update({
-        status: 'Enviado',
+        status: 'Revisado',
         data_alteracao: new Date()
       })
       .then(() => {
         toast.success('Status apr atualizado com sucesso!');
-        logSistem('APR enviada para a área responsável', id)
+        logSistem('APR Revisada', id)
       })
       .catch((error) => {
         toast.error('Erro ao atualizar status da apr:', error);
@@ -51,15 +53,14 @@ APR Vivo Digital`;
       });
   }
 
-  return (
+  return apr.status === 'Em Aberto' && (
     <div className='emails'>
       <p>
-        Clique no link abaixo para abrir seu cliente de e-mail:
+        Clique no botão abaixo para confirmar que APR esta corretamente preechida:
       </p>
-      <a href={mailtoLink}>Enviar E-mail</a>
-      <a onClick={() => updateAPR(id)}>Atualizar Status</a>
+      <a onClick={() => updateAPR(id)}>Confirmar Revisão</a>
     </div>
-  );
+  )
 };
 
 export default EmailLink;

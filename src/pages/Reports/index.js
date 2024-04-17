@@ -32,6 +32,19 @@ export default function Reports() {
                 console.log('Deu algum erro: ', err);
             })
     }
+
+    function calculatePontos(peso) {
+        if (peso < 10) {
+            return `Risco Baixo - RB`
+        } else if (peso >= 10 && peso < 40) {
+            return `Risco Médio - RM`
+        } else if (peso >= 40 && peso < 80) {
+            return `Risco Alto - RA`
+        } else if (peso >= 80) {
+            return `Risco Extremo - RE`
+        }
+    }
+
     //faz busca do banco de chamados
     async function updateState(snapshot) {
         let relatorioApr = [];
@@ -46,6 +59,9 @@ export default function Reports() {
                                     ID: doc.id,
                                     DATA: format(doc.created.toDate(), 'dd/MM/yyyy HH:mm:ss'),
                                     STATUS: doc.status,
+                                    MOTIVO: doc.motivo_apr,
+                                    CLASSIFICACAO: calculatePontos(doc.peso),
+                                    PESO: doc.peso,
 
                                     QUESTIONS: question.question,
                                     QUESTIONS_RESP: question.resp,

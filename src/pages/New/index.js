@@ -17,33 +17,39 @@ import ModalLoading from '../../components/Modal_Loading';
 import Modal_Justificativa from '../../components/Modal_Justificativa';
 import CameraComponent from './CameraComponent';
 
-import questions_erb_ct from './Questions/erb-ct'
+import questions_erb from './Questions/erb'
 import questions_predio_core from './Questions/predio_core'
 import question_outdoor from './Questions/outdoor'
 import questions_indoor from './Questions/indoor'
 import questions_llpp from './Questions/llpp'
 import questions_ldealer from './Questions/ldealer';
+import questions_cd from './Questions/cd';
+import questions_ct from './Questions/ct';
 
 export default function New() {
+  const base = 'aprs-producao' //aprs-producao
+  const storage = 'images' //images
+
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
   const { id_assign } = useParams();
 
-
   const [questions, setQuestions] = useState([]);
-  
+  const [motivoAPR, setMotivoAPR] = useState('');
+
   const [siteInfo, setSiteInfo] = useState([]);
   const [showPostModal, setShowPostModal] = useState(false);
-  
+
   const [location, setLocation] = useState([]);
   const [inicio, setInicio] = useState('');
   const [areaResp, setAreaResp] = useState('');
   const [lastAPR, setLastAPR] = useState('');
-  
+
   const [loadingImages, setLoadingImages] = useState('');
-  
+
   const [justificativa, setJustificativa] = useState();
   const [openModalJust, setOpenModalJust] = useState(false);
+
   useEffect(() => {
 
     async function loadSite() {
@@ -81,8 +87,10 @@ export default function New() {
           document.getElementById('container-questions').style.display = 'flex';
           siteInfo.tipoSite = snapshot
 
-          if (snapshot === "ERB-CT") {
-            question = questions_erb_ct.filter(Boolean);
+          if (snapshot === "ERB") {
+            question = questions_erb.filter(Boolean);
+          } else if (snapshot === "CT") {
+            question = questions_ct.filter(Boolean);
           } else if (snapshot === "PREDIO CORE") {
             question = questions_predio_core.filter(Boolean);
           } else if (snapshot === "OUTDOOR") {
@@ -93,6 +101,8 @@ export default function New() {
             question = questions_llpp.filter(Boolean);
           } else if (snapshot === "LOJA DEALER") {
             question = questions_ldealer.filter(Boolean);
+          } else if (snapshot === "CD") {
+            question = questions_cd.filter(Boolean);
           }
           setQuestions(Object.entries(question[0]));
         }
@@ -192,7 +202,7 @@ export default function New() {
     setShowPostModal(!showPostModal) //trocando de true pra false
   }
 
-  function submit(e) {
+  function submit() {
     let notBlankChecklist = 0;
 
     questions.forEach(async (area) => {
@@ -204,11 +214,11 @@ export default function New() {
     })
 
     if (notBlankChecklist <= 0) {
-      if (justificativa == null || justificativa == "" || justificativa.motivo === '' || justificativa.desc === '' ) {
+      if (justificativa == null || justificativa == "" || justificativa.motivo === '' || justificativa.desc === '') {
         setOpenModalJust(true)
         console.log('Insira uma justificativa')
         return
-      } 
+      }
       console.log(justificativa)
     }
 
@@ -217,7 +227,7 @@ export default function New() {
         if (item.state === 'granted') {
           getPerimetro(location.latitude, location.longitude).then(async perimeter => {
             togglePostModal(); //abre modal de loading
-            insertDatabase(perimeter);
+            insertData(perimeter);
           }).catch(err => {
             alert('Erro na geolocation, contate um administrador')
             console.log('Erro na geolocation, contate um administrador' + err)
@@ -229,146 +239,173 @@ export default function New() {
       })
   }
 
-  async function insertDatabase(perimeter) {
-    let checklist = []
-    let concluido = false;
+  async function incrementID() {
+    try {
+      const snapshot = await firebase.firestore().collection('incrementID').doc('currentID').get();
+      const currentID = snapshot.data().ID;
 
-    let qtdImages = 0
-    let imagesCompleted = 0
+      await firebase.firestore().collection('incrementID').doc('currentID').update({
+        ID: currentID + 1
+      });
+
+      return currentID;
+    } catch (error) {
+      console.error('Erro:', error);
+      throw error;  // Lança o erro para que possa ser tratado fora da função se necessário
+    }
+  }
+
+  async function insertData(perimeter) {
+    let checklist = [];
+
+    let qtdImages = 0;
+    let imagesCompleted = 0;
 
     saveIndexedDB();
 
-    await firebase.firestore().collection('aprs-producao')
-      .add({
-        user_id: user,
-        site_id: siteInfo,
-        created: new Date(),
-        status: justificativa ? 'Com Exceção' : 'Em Aberto',
-        justificativa: justificativa ? justificativa : '',
-        locationCreated: {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          perimetro: perimeter,
-        },
-        tempoConclusao: {
-          inicio: inicio === undefined ? new Date() : inicio,
-          conclusao: new Date(),
-        }
-      })
-      .then(async (index) => {
+    const result_peso = calculatePontos();
 
-        let containsImage = verifyContainsImage()
-
-        questions.forEach(async (area, indexA) => {
-          checklist.push({
-            0: area[0],
-            1: []
-          })
-          area[1].forEach(async (question, indexQ) => {
-
-            checklist[indexA][1].push(
-              {
-                imagesURL: [],
-                resp: question.resp,
-                respTextArea: question.respTextArea,
-                questionId: question.questionId,
-                question: question.question,
-                plano_acao: question.plano_acao,
-                openPA: question.openPA,
-                areaResposavel: question.areaResposavel,
-                respGabarito: question.respGabarito,
-              }
-            )
-
-            //Verifica antes de carregar no banco se contem resposta
-            if (question.resp !== '') {
-              let imageList = [] // criar uma lista de imagem e reseta a cada questao
-              //inserção de dados no banco OBS: se contem imagem ou não
-              if (containsImage === true) {
-                question.images.forEach(async file => {
-                  let imgName = file.name
-                  let imgPath = `images/${index.id}/${indexA}/${question.questionId}/${imgName}`
-
-                  let storageRef = await firebase.storage().ref(imgPath)
-                  let upload = storageRef.put(file)
-
-                  qtdImages = qtdImages + 1
-
-                  let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
-                    trackUpload(upload).then(() => {
-                      storageRef.getDownloadURL()
-                        .then((downloadUrl) => {
-                          imageList.push({
-                            url: downloadUrl,
-                            ref: storageRef.fullPath
-                          })
-                          try {
-                            console.log(indexA + "-" + indexQ)
-                            checklist[indexA][1][indexQ].imagesURL = imageList; //define a lista em uma pergunta
-                          } catch (error) {
-                            console.log(indexA + "-" + indexQ)
-                            console.log('Erro ao obter url da imagem' + error)
-                          }
-                          imagesCompleted = imagesCompleted + 1 // conta quantos imagens foi obtida a url
-                          // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                          console.log(imagesCompleted + ' / ' + qtdImages); // mostra o status de imagens concluida vs pendentes
-                          setLoadingImages(imagesCompleted + ' / ' + qtdImages)
-                          if (imagesCompleted === qtdImages) { // retorna como concluido apenas quantos os valores estiverem ok
-                            resolve()
-                          }
-                        }).catch(err => {
-                          console.log("Erro ao obter URL" + err)
-                        })
-                    }).catch((err) => {
-                      console.log("Erro no upload: " + err)
-                    })
-                  })
-
-                  uploadCompleted.then(async () => {
-                    await firebase.firestore().collection('aprs-producao')
-                      .doc(index.id)
-                      .update({
-                        checklist: checklist,
-                      })
-                      .then(() => {
-                        console.log('Completed')
-                        logSistem('A APR foi criada', index.id)
-                        conclusionApr(index.id)
-                      })
-                      .catch((err) => {
-                        console.log(err)
-                      })
-                  })
-                })
-              }
+    incrementID()
+      .then(async result => {
+        console.log('ID Atual:', result);
+        await firebase.firestore().collection(base)
+          .add({
+            user_id: user,
+            apr_id: result,
+            site_id: siteInfo,
+            created: new Date(),
+            motivo_apr: motivoAPR,
+            status: justificativa ? 'Com Exceção' : 'Em Aberto',
+            peso: result_peso,
+            justificativa: justificativa ? justificativa : '',
+            locationCreated: {
+              latitude: location.latitude,
+              longitude: location.longitude,
+              perimetro: perimeter,
+            },
+            tempoConclusao: {
+              inicio: inicio === undefined ? new Date() : inicio,
+              conclusao: new Date(),
             }
           })
-        })
+          .then(async (index) => {
 
-        if (containsImage === false) {
-          await firebase.firestore().collection('aprs-producao')
-            .doc(index.id)
-            .update({
-              checklist: checklist,
-            })
-            .then(async () => {
-              console.log('Completed not contains Image')
-              logSistem('A APR foi criado', index.id)
-              conclusionApr(index.id)
-            })
-            .catch((err) => {
-              console.log('Erro ao inserir APR (sem imagens)')
-            })
-        }
+            let containsImage = verifyContainsImage()
 
-        if (id_assign !== undefined) {
-          updateAssignments();
-        }
+            questions.forEach(async (area, indexA) => {
+              checklist.push({
+                0: area[0],
+                1: []
+              })
+              area[1].forEach(async (question, indexQ) => {
 
+                checklist[indexA][1].push(
+                  {
+                    imagesURL: [],
+                    resp: question.resp,
+                    respTextArea: question.respTextArea,
+                    questionId: question.questionId,
+                    question: question.question,
+                    plano_acao: question.plano_acao,
+                    openPA: question.openPA,
+                    areaResposavel: question.areaResposavel,
+                    respGabarito: question.respGabarito,
+                  }
+                )
+
+                //Verifica antes de carregar no banco se contem resposta
+                if (question.resp !== '') {
+                  let imageList = [] // criar uma lista de imagem e reseta a cada questao
+                  //inserção de dados no banco OBS: se contem imagem ou não
+                  if (containsImage === true) {
+                    question.images.forEach(async file => {
+                      let imgName = file.name
+                      let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
+
+                      let storageRef = await firebase.storage().ref(imgPath)
+                      let upload = storageRef.put(file)
+
+                      qtdImages = qtdImages + 1
+
+                      let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
+                        trackUpload(upload).then(() => {
+                          storageRef.getDownloadURL()
+                            .then((downloadUrl) => {
+                              imageList.push({
+                                url: downloadUrl,
+                                ref: storageRef.fullPath
+                              })
+                              try {
+                                console.log(indexA + "-" + indexQ)
+                                checklist[indexA][1][indexQ].imagesURL = imageList; //define a lista em uma pergunta
+                              } catch (error) {
+                                console.log(indexA + "-" + indexQ)
+                                console.log('Erro ao obter url da imagem' + error)
+                              }
+                              imagesCompleted = imagesCompleted + 1 // conta quantos imagens foi obtida a url
+                              // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
+                              console.log(imagesCompleted + ' / ' + qtdImages); // mostra o status de imagens concluida vs pendentes
+                              setLoadingImages(imagesCompleted + ' / ' + qtdImages)
+                              if (imagesCompleted === qtdImages) { // retorna como concluido apenas quantos os valores estiverem ok
+                                resolve()
+                              }
+                            }).catch(err => {
+                              console.log("Erro ao obter URL" + err)
+                            })
+                        }).catch((err) => {
+                          console.log("Erro no upload: " + err)
+                        })
+                      })
+
+                      uploadCompleted.then(async () => {
+                        await firebase.firestore().collection(base)
+                          .doc(index.id)
+                          .update({
+                            checklist: checklist,
+                          })
+                          .then(() => {
+                            console.log('Completed')
+                            logSistem('A APR foi criada', index.id)
+                            conclusionApr(index.id)
+                          })
+                          .catch((err) => {
+                            console.log(err)
+                          })
+                      })
+                    })
+                  }
+                }
+
+              })
+            })
+
+            if (containsImage === false) {
+              await firebase.firestore().collection(base)
+                .doc(index.id)
+                .update({
+                  checklist: checklist,
+                })
+                .then(async () => {
+                  console.log('Completed not contains Image')
+                  logSistem('A APR foi criado', index.id)
+                  conclusionApr(index.id)
+                })
+                .catch((err) => {
+                  console.log('Erro ao inserir APR (sem imagens)')
+                })
+            }
+
+            if (id_assign !== undefined) {
+              updateAssignments();
+            }
+
+          })
+          .catch(err => [
+            console.log(err)
+          ])
       })
-      .catch(err => [
-        console.log(err)
-      ])
+      .catch(err => console.log('Erro ao inserir ID: ' + err))
+
   }
   // função de monitoramento de upload de imagens
   function trackUpload(upload) {
@@ -405,6 +442,20 @@ export default function New() {
     return containsImage
   }
 
+  function calculatePontos() {
+    let peso = 0;
+    questions.forEach(async (area) => {
+      area[1].forEach(async (question) => {
+        // verifica se contem imagem
+        if (question.resp !== '' && (question.resp !== question.respGabarito)) {
+          peso = peso + question.peso;
+        }
+      })
+    })
+
+    return peso
+  }
+
   async function getPerimetro(lat, lng) {
     const center = [parseFloat(lat), parseFloat(lng)];
     const radiusInM = 1 * 1000
@@ -426,16 +477,32 @@ export default function New() {
     document.getElementById('container-conclusion').style.display = 'flex';
     document.getElementById('container-questions').style.display = 'none';
     document.getElementById('container-save').style.display = 'none';
+    document.getElementById('container-motivo').style.display = 'none';
     document.getElementById('container').style.display = 'none';
     document.getElementById('modalLoading').style.display = 'none'
 
     var container = document.getElementById('container-conclusion');
     var root = createRoot(container);
 
+    let peso = calculatePontos();
+    let classificacao = ''
+
+    if (peso < 10) {
+      classificacao = `Risco Baixo - RB`
+    } else if (peso >= 10 && peso < 40) {
+      classificacao = `Risco Médio - RM`
+    } else if (peso >= 40 && peso < 80) {
+      classificacao = `Risco Alto - RA`
+    } else if (peso >= 80) {
+      classificacao = `Risco Extremo - RE`
+    }
+
     return root.render(
       <>
         <span>APR Finalizada com Sucesso !</span>
         <span>ID da sua APR : <i>{id}</i></span>
+        <span>Classificação : <i>{classificacao}</i></span>
+
         <a href={'/dashboard'} >Ir Pagina Inicial</a>
         <a href={`/open/${id}`} >Ir APR Criada</a>
       </>
@@ -479,14 +546,17 @@ export default function New() {
             setInicio(date)
             document.getElementById('selectSite').value = objeto.tipo_site
             siteInfo.tipoSite = objeto.tipo_site
+            setMotivoAPR(objeto.motivo_apr)
             delete objeto.id
             delete objeto.inicio
             delete objeto.tipo_site
+            delete objeto.motivo_apr
             Object.entries(objeto).forEach((doc, index) => {
               newObj.push(doc[1])
             })
             setQuestions(newObj)
             document.getElementById('container-questions').style.display = 'flex';
+            document.getElementById('container').style.display = 'flex';
           } else {
             alert('Voce nao tem nenhuma APR salva.');
             console.log('Usuario não possui APR Salva')
@@ -511,6 +581,7 @@ export default function New() {
     let questiosSave = {
       id: 1,
       inicio: inicio,
+      motivo_apr: motivoAPR,
       tipo_site: siteInfo.tipoSite,
       ...questions
     };
@@ -574,13 +645,15 @@ export default function New() {
     };
   }
 
-  function getQuestion(params) {
-    questions.forEach((value, index) => {
-      console.log(value[0])
-      value[1].forEach((value) => {
-        console.log(value.questionId + " - " + value.question)
-      })
-    })
+  function selectMotivoAPR(e) {
+    let value = e.target.value
+    if (value !== undefined || value !== '') {
+      setMotivoAPR(value)
+      document.getElementById('container').style.display = 'flex'
+    } else {
+      setMotivoAPR(value)
+      document.getElementById('container').style.display = 'none'
+    }
   }
 
   return (
@@ -589,7 +662,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => getQuestion()} />
+          <FiClipboard size={25} onClick={() => console.log(siteInfo)} />
         </Title>
 
         <div className='container'>
@@ -616,15 +689,28 @@ export default function New() {
           </div>
         </div>
 
-        <div className='container' id='container'>
-          <select id='selectSite' onChange={e => getQuestions(e.target.value)}>
-            <option value={'0'}>Selecione um tipo de site...</option>
-            <option value={'ERB-CT'}>ERB-CT</option>
+        <div className='container' id='container-motivo'>
+          <select id='selectMotivo' value={motivoAPR} onChange={e => selectMotivoAPR(e)}>
+            <option disabled value={''}>Selecione uma opção...</option>
+            <option value={'Mapa de Calor'}>Mapa de Calor</option>
+            <option value={'Retrofit'}>Retrofit</option>
+            <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
+            <option value={'Projeto Veneza'}>Projeto Veneza</option>
+            <option value={'Não Opinada'}>Não Opinada</option>
+          </select>
+        </div>
+
+        <div className='container' id='container' style={{ display: 'none' }}>
+          <select id='selectSite' defaultValue={'0'} onChange={e => getQuestions(e.target.value)}>
+            <option disabled value={'0'}>Selecione um tipo de site...</option>
+            <option value={'ERB'}>ERB</option>
+            <option value={'CT'}>CT</option>
             <option value={'PREDIO CORE'}>PREDIO CORE</option>
-            <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
-            <option value={'INDOOR'}>ARMARIO INDOOR</option>
             <option value={'LOJA'}>LOJA</option>
             <option value={'LOJA DEALER'}>LOJA DEALER</option>
+            <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
+            <option value={'INDOOR'}>ARMARIO INDOOR</option>
+            {/* <option value={'CD'}>CD</option> */}
           </select>
         </div>
 
@@ -713,7 +799,7 @@ export default function New() {
         <div className='container' id='container-conclusion' style={{ display: 'none' }}>
         </div>
 
-        <Modal_Justificativa openModal={openModalJust} setModal={setOpenModalJust} setJustificativa={setJustificativa}/>
+        <Modal_Justificativa openModal={openModalJust} setModal={setOpenModalJust} setJustificativa={setJustificativa} />
 
         {showPostModal && (
           <ModalLoading

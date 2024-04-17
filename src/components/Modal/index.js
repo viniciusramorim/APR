@@ -6,8 +6,10 @@ import { AuthContext } from '../../contexts/auth';
 import planoAcao from './PlanoAcao/planoAcao';
 import './modal.css';
 import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 
 export default function Modal({ checklist, firebase, conteudo, close, area, tipoSite, loadApr }) {
+  const base = 'aprs-producao'
 
   const [tempo, setTempo] = useState('');
   const [comentario, setComentario] = useState('');
@@ -24,7 +26,7 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
 
   const index = checklist[area][1].findIndex(object => {
     if (object !== undefined) {
-      return object.questionId === conteudo.questionId;
+      return object.question === conteudo.question;
     }
   });
 
@@ -54,7 +56,7 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
 
   async function alterarPA(indexA, indexQ) {
     console.log(indexA + ' - ' + indexQ)
-    await firebase.firestore().collection('aprs-producao')
+    await firebase.firestore().collection(base)
       .doc(id)
       .get()
       .then(async (doc) => {
@@ -101,47 +103,11 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
 
           console.log(dados)
           // Agora, atualize o documento no Firestore
-          await firebase.firestore().collection('aprs-producao')
+          await firebase.firestore().collection(base)
             .doc(id)
             .update(dados)
             .then(() => {
               updateAPR(id)
-              toast.success('PA atualizado com sucesso!');
-              loadApr()
-              close()
-            })
-            .catch((error) => {
-              console.log('Erro ao atualizar valor:', error);
-              close()
-            });
-        } else {
-          console.log('O documento não existe.');
-        }
-      })
-      .catch(err => {
-        console.log('Error ao inserir update!' + err)
-        close()
-      });
-  }
-
-  async function updatePA(indexA, indexQ) {
-    await firebase.firestore().collection('aprs-producao')
-      .doc(id)
-      .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          const dados = doc.data();
-
-          dados.checklist[area][1][index].resp_pa_selectedOption = conteudo.plano_acao.selected_option;
-          dados.checklist[area][1][index].resp_pa_data = new Date(conteudo.plano_acao.data.toDate());
-          dados.checklist[area][1][index].resp_pa_user_name = conteudo.plano_acao.user_name;
-          dados.checklist[area][1][index].resp_pa_user_id = conteudo.plano_acao.user_id
-
-          // Agora, atualize o documento no Firestore
-          await firebase.firestore().collection('aprs-producao')
-            .doc(id)
-            .update(dados)
-            .then(() => {
               toast.success('PA atualizado com sucesso!');
               loadApr()
               close()
@@ -167,7 +133,7 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
   }
 
   async function updateAPR(id) {
-    await firebase.firestore().collection('aprs-producao')
+    await firebase.firestore().collection(base)
       .doc(id)
       .update({
         status: 'Respondido pela Area',
@@ -187,7 +153,7 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
       <div className="container">
         <button className="close" onClick={close}>
           <FiX size={23} color="#FFF" />
-  
+
         </button>
 
         <h2 className='titulo-planoacao'>Plano de Ação</h2>
@@ -229,6 +195,7 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
               Sugestão de Proteção:
               <select value={tempo} onChange={(e) => setPlanoAcaoAtual(cardapio[e.target.value])}>
                 {cardapio.map((item, index) => {
+                  console.log(item)
                   return (
                     <option key={index} value={index}>{item ? item.nomeTecnico + '-' + item.apicabilidade : 'Sem Aplicabilidade'}</option>
                   )
@@ -351,10 +318,22 @@ export default function Modal({ checklist, firebase, conteudo, close, area, tipo
             </div>
           )}
         </div>
-        <div className="btnAcao">
-        {(conteudo.plano_acao.length === 0 && selectedOption) && (
-          <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
+
+        {conteudo.resp_pa_user_name && (
+          <div>
+            <div className="row">
+              <span>Nome: {conteudo.resp_pa_user_name}</span>
+            </div>
+            <div className="row">
+              <span>Data: {format(conteudo.resp_pa_data.toDate(), "dd/MM/yyyy HH:mm")}</span>
+            </div>
+          </div>
         )}
+
+        <div className="btnAcao">
+          {(conteudo.plano_acao.length === 0 && selectedOption) && (
+            <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
+          )}
         </div>
       </div>
     </div>

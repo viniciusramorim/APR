@@ -12,7 +12,8 @@ import Title from '../../components/Title';
 import ModalLoading from '../../components/Modal_Loading';
 
 import './prenew.css'
-import { id } from 'date-fns/locale';
+import ModalNovoSite from '../../components/Modal_NovoSite';
+import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 
 export default function PreNew() {
 
@@ -28,6 +29,10 @@ export default function PreNew() {
     const [newLat, setNewLat] = useState('')
     const [newLng, setNewLng] = useState('')
     const [newDetentora, setNewDetentora] = useState('')
+
+    //Busca
+    const [sigla, setSigla] = useState('');
+    const [uf, setUf] = useState('Todos');
 
     const [showPostModal, setShowPostModal] = useState(false);
 
@@ -99,16 +104,13 @@ export default function PreNew() {
     }
 
     async function handleSearch() {
-        let searchInput = document.getElementById('searchSite').value
-        let searchEstado = document.getElementById('searchEstado').value
-
-        if (searchInput === '') {
-            return alert('Digite uma sigla de site ou endereço para buscar...')
+        if (sigla === '') {
+            return toast.error('Digite uma sigla de site ou endereço para buscar...')
         }
 
-        query = searchInput !== '' && query.where("Sigla", ">=", searchInput.toUpperCase())
-            .where("Sigla", "<=", searchInput.toUpperCase() + "\uf8ff")
-        query = searchEstado !== '0' ? query.where("Estado", "==", searchEstado.toUpperCase()) : query
+        query = sigla !== '' && query.where("Sigla", ">=", sigla.toUpperCase())
+            .where("Sigla", "<=", sigla.toUpperCase() + "\uf8ff")
+        query = uf !== 'Todos' ? query.where("Estado", "==", uf.toUpperCase()) : query
 
         let filteredData = []
         await query
@@ -170,7 +172,7 @@ export default function PreNew() {
         setSiteSelect(filteredData)
         setNewLat(filteredData[0].latitude)
         setNewLng(filteredData[0].longitude)
-        setNewDetentora(filteredData[0].detentora !== undefined ?  filteredData[0].detentora : '')
+        setNewDetentora(filteredData[0].detentora !== undefined ? filteredData[0].detentora : '')
         document.getElementById("info-site").style.display = "flex";
     }
 
@@ -215,41 +217,67 @@ export default function PreNew() {
                     <FiClipboard size={25} onClick={() => console.log(site)} />
                 </Title>
 
-               
-
-                <div className='container filter-site'>
-                    <input id='searchSite' type='text' placeholder='Digite a sigla do site que deseja buscar...' />
-                    <select id='searchEstado'>
-                        <option value="0">Todas UF</option>
-                        <option value='AC'>AC</option>
-                        <option value='AL'>AL</option>
-                        <option value='AM'>AM</option>
-                        <option value='AP'>AP</option>
-                        <option value='BA'>BA</option>
-                        <option value='CE'>CE</option>
-                        <option value='DF'>DF</option>
-                        <option value='ES'>ES</option>
-                        <option value='GO'>GO</option>
-                        <option value='MA'>MA</option>
-                        <option value='MG'>MG</option>
-                        <option value='MS'>MS</option>
-                        <option value='MT'>MT</option>
-                        <option value='PA'>PA</option>
-                        <option value='PB'>PB</option>
-                        <option value='PE'>PE</option>
-                        <option value='PI'>PI</option>
-                        <option value='PR'>PR</option>
-                        <option value='RJ'>RJ</option>
-                        <option value='RN'>RN</option>
-                        <option value='RO'>RO</option>
-                        <option value='RR'>RR</option>
-                        <option value='RS'>RS</option>
-                        <option value='SC'>SC</option>
-                        <option value='SE'>SE</option>
-                        <option value='SP'>SP</option>
-                        <option value='TO'>TO</option>
-                    </select>
-                    <a onClick={() => handleSearch()}>Buscar</a>
+                <div className='container'>
+                    <Grid container spacing={2} maxWidth={600}>
+                        <Grid item xs={12} md={4.5}>
+                            <TextField
+                                size='small'
+                                color="secondary"
+                                id="outlined-basic"
+                                label="Sigla Movel do Site..."
+                                variant="outlined"
+                                value={sigla}
+                                onChange={(e) => setSigla(e.target.value)}
+                                fullWidth />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <FormControl size='small' color="secondary" fullWidth>
+                                <InputLabel id="demo-simple-select-label">UF</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    label="UF"
+                                    value={uf}
+                                    onChange={(e) => setUf(e.target.value)}
+                                >
+                                    <MenuItem value='Todos'>Todos</MenuItem>
+                                    <MenuItem value='AC'>AC</MenuItem>
+                                    <MenuItem value='AL'>AL</MenuItem>
+                                    <MenuItem value='AM'>AM</MenuItem>
+                                    <MenuItem value='AP'>AP</MenuItem>
+                                    <MenuItem value='BA'>BA</MenuItem>
+                                    <MenuItem value='CE'>CE</MenuItem>
+                                    <MenuItem value='DF'>DF</MenuItem>
+                                    <MenuItem value='ES'>ES</MenuItem>
+                                    <MenuItem value='GO'>GO</MenuItem>
+                                    <MenuItem value='MA'>MA</MenuItem>
+                                    <MenuItem value='MG'>MG</MenuItem>
+                                    <MenuItem value='MS'>MS</MenuItem>
+                                    <MenuItem value='MT'>MT</MenuItem>
+                                    <MenuItem value='PA'>PA</MenuItem>
+                                    <MenuItem value='PB'>PB</MenuItem>
+                                    <MenuItem value='PE'>PE</MenuItem>
+                                    <MenuItem value='PI'>PI</MenuItem>
+                                    <MenuItem value='PR'>PR</MenuItem>
+                                    <MenuItem value='RJ'>RJ</MenuItem>
+                                    <MenuItem value='RN'>RN</MenuItem>
+                                    <MenuItem value='RO'>RO</MenuItem>
+                                    <MenuItem value='RR'>RR</MenuItem>
+                                    <MenuItem value='RS'>RS</MenuItem>
+                                    <MenuItem value='SC'>SC</MenuItem>
+                                    <MenuItem value='SE'>SE</MenuItem>
+                                    <MenuItem value='SP'>SP</MenuItem>
+                                    <MenuItem value='TO'>TO</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6} md={2} textAlign={'right'}>
+                            <Button sx={{width: "100%"}} color="secondary" variant="outlined" onClick={() => handleSearch()}>Buscar</Button>
+                        </Grid>
+                        <Grid item xs={6} md={2.5} textAlign={'right'}>
+                            <ModalNovoSite user={user}/>
+                        </Grid>
+                    </Grid>
                 </div>
 
                 <div id='list-sites' className='container listsites' style={{ display: 'none' }}>

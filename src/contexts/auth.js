@@ -63,7 +63,6 @@ function AuthProvider({ children }) {
           let data = {
             uid: uid,
             nome: userProfile.data().nome,
-            avatarUrl: userProfile.data().avatarUrl,
             email: value.user.email,
             area: userProfile.data().area,
             nivel: userProfile.data().nivel,
@@ -154,7 +153,6 @@ function AuthProvider({ children }) {
               nivel: nivel,
               uf: estado,
               status: status,
-              avatarUrl: null,
             })
             .then(() => {
               setLoadingAuth(false);
@@ -244,13 +242,40 @@ function AuthProvider({ children }) {
           email: user.email,
         })
         .then(() => {
-          toast.success("email atualizado com sucesso!")
+          toast.success("email atualizado com sucesso! Entre no seu e-mail e confirme a troca.")
           signOut()
         })
     }).catch((error) => {
-      toast.error("Erro ao atualziar email!")
       console.log(error)
-    });
+      switch (error.code) {
+        case "ERROR_EMAIL_ALREADY_IN_USE":
+        case "account-exists-with-different-credential":
+        case "auth/email-already-in-use":
+          return toast.error("E-mail já utilizado. Vá para a página de login.");
+          break;
+        case "ERROR_WRONG_PASSWORD":
+        case "auth/wrong-password":
+          return toast.error("E-mail / Senha incorretos !");
+          break;
+        case "ERROR_USER_NOT_FOUND":
+        case "auth/user-not-found":
+          return toast.error("E-mail inserido não cadastrado !");
+          break;
+        case "auth/invalid-email":
+          return toast.error("E-mail invalido !");
+          break;
+        case "ERROR_USER_DISABLED":
+        case "auth/user-disabled":
+          return toast.error("Usuario desabilitado !");
+          break;
+        case "auth/requires-recent-login":
+          return toast.error("Renove seu login e tente novamente.");
+          break;
+        default:
+          return toast.error(error.code);
+          break;
+      };
+    })
   }
 
   async function currentUsers() {
@@ -258,7 +283,7 @@ function AuthProvider({ children }) {
     console.log(curentUsers)
   }
 
-  async function logSistem(evento, chamado){
+  async function logSistem(evento, chamado) {
     let xhttp = new XMLHttpRequest();
     var ip = 'null'
     let nome = 'null'
@@ -274,12 +299,12 @@ function AuthProvider({ children }) {
 
     try {
       nome = user.nome
-    } catch {}
+    } catch { }
 
     await firebase.firestore().collection('log').add({
       event: evento,
       user: nome,
-      chamado: chamado ? chamado: '',
+      chamado: chamado ? chamado : '',
       ip: ip,
       data: new Date(),
     }).then(() => {

@@ -30,7 +30,7 @@
 
 th {
   background-color: #380054e8;
-  color: #f8f8f8;
+  color: #f8f8f8 !important;
 }
 
 .grupoCard {
@@ -55,22 +55,6 @@ th {
   margin-right: 0.8em;
 
 }
-
-
-/*
-.card-aberto{
-  box-shadow: 1px 1px 7px #be0704ce;
-}
-.card-cancelado{
-  box-shadow: 1px 1px 7px #000000ce;
-}
-.card-enviado{
-  box-shadow: 1px 1px 7px #ffeb13ce;
-}
-.card-respondido{
-  box-shadow: 1px 1px 7px #029f1cce;
-}
-*/
 
 .filtrosAPRs {
   display: flex;
@@ -200,7 +184,7 @@ table td .action {
   ;
 }
 
-table td .action svg {
+.table-dashbaord svg {
   vertical-align: middle;
 }
 
@@ -239,7 +223,6 @@ table td .badge {
 @media screen and (max-width: 700px) {
   table {
     border: 0;
-
   }
 
   table caption {
@@ -265,17 +248,17 @@ table td .badge {
   }
 
   table td {
-    border-bottom: 1px solid #DDD;
-    display: block;
-    font-size: .8em;
-    text-align: right;
+    border-bottom: 1px solid #DDD !important;
+    display: block !important;
+    font-size: .8em !important;
+    text-align: right !important;
   }
 
   table td::before {
-    content: attr(data-label);
-    float: left;
-    font-weight: bold;
-    text-transform: uppercase;
+    content: attr(data-label) !important;
+    float: left !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
   }
 
   table td:last-child {
