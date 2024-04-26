@@ -59,6 +59,7 @@ APR Vivo Digital`;
         Clique no botão abaixo para confirmar que APR esta corretamente preechida:
       </p>
       <a onClick={() => updateAPR(id)}>Confirmar Revisão</a>
+      <a href={mailtoLink}>Enviar E-mail</a>
     </div>
   )
 };

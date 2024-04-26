@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, TextField, Modal, Button, Box, MenuItem, InputLabel, Select, FormControl } from '@mui/material';
+import { Grid, TextField, Modal, Button, Box } from '@mui/material';
 import { toast } from 'react-toastify';
 import firebase from '../../services/firebaseConnection';
 import { FiSearch } from 'react-icons/fi';
@@ -61,9 +61,9 @@ export default function ModalInfoSite(props) {
         CEP: site.CEP,
         Nome: site.Nome
       })
-      .then(() => {
+      .then((result) => {
         toast.success('Site para aprovação cadastrado com sucesso.');
-        logSistem('APROVADO-SITE-APROVAÇÃO', site.id);
+        logSistem('APROVADO-SITE-APROVAÇÃO', result.id);
         removeSite();
       })
       .catch((err) => toast('Erro ao remover site. ' + err))

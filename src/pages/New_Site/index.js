@@ -42,32 +42,6 @@ export default function New_Site() {
       .catch((error) => console.log(error))
   }
 
-  // async function submit(e) {
-  //   e.preventDefault();
-
-  //   let hash = geofire.geohashForLocation([parseFloat(latitude), parseFloat(longitude)]);
-
-  //   await firebase.firestore().collection('sites')
-  //     .add({
-  //       CEP: cep,
-  //       Cidade: cidade,
-  //       Complemento: '',
-  //       Endereco: endereco,
-  //       Estado: estado,
-  //       Latitude: parseFloat(latitude),
-  //       Longitude: parseFloat(longitude),
-  //       Sigla: sigla,
-  //       Nome: sigla + '_' + estado + '_' + endereco,
-  //       Numero: '',
-  //       tipoSite: tipoSite,
-  //       critical: critical,
-  //       geohash: hash,
-  //     })
-  //     .then(() => {
-  //       toast.success('Site cadastrado com sucesso !');
-  //     })
-  // }
-
   async function submitAllXlsx() {
     onLoadXLSX()
       .then((file) => {
@@ -144,8 +118,8 @@ export default function New_Site() {
             Complemento: item[3],
             Endereco: item[4],
             Estado: item[5],
-            Latitude: item[6].toString().replace('.', ','),
-            Longitude: item[7].toString().replace('.', ','),
+            Latitude: item[6].toString(),
+            Longitude: item[7].toString(),
             Sigla: item[9],
             Sigla_GVT: item[10],
             Situacao: item[11],
@@ -155,6 +129,8 @@ export default function New_Site() {
             geohash: geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])]),
             tipoContrato: item[15],
             Detentora: item[16],
+            lastUpdate: new Date(),
+            userLastUpdate: user.name
           }]
 
           await firebase.firestore().collection('sites')
