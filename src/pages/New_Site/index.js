@@ -130,7 +130,7 @@ export default function New_Site() {
             tipoContrato: item[15],
             Detentora: item[16],
             lastUpdate: new Date(),
-            userLastUpdate: user.name
+            userLastUpdate: user.nome
           }]
 
           await firebase.firestore().collection('sites')
@@ -314,7 +314,9 @@ export default function New_Site() {
                       <ModalInfoSite
                         site={row}
                         loadSites={loadSitesAprovacao}
-                        logSistem={logSistem}>
+                        logSistem={logSistem}
+                        user={user}
+                        >
                       </ModalInfoSite>
                     </TableCell>
                   </TableRow>

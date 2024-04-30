@@ -18,7 +18,7 @@ const style = {
 
 export default function ModalInfoSite(props) {
 
-  const { site, loadSites, logSistem } = props
+  const { site, loadSites, logSistem, user } = props
 
   const [open, setOpen] = useState(false);
 
@@ -52,14 +52,15 @@ export default function ModalInfoSite(props) {
         critical: site.critical,
         created: site.created,
         Complemento: site.Complemento,
-        user_uid: site.user_uid,
         Longitude: site.Longitude,
         Latitude: site.Latitude,
         tipoContrato: site.tipoContrato,
         Sigla_GVT: site.Sigla_GVT,
         user_nome: site.user_nome,
         CEP: site.CEP,
-        Nome: site.Nome
+        Nome: site.Nome,
+        lastUpdate: new Date(),
+        userLastUpdate: user.nome
       })
       .then((result) => {
         toast.success('Site para aprovação cadastrado com sucesso.');

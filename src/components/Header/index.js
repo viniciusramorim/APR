@@ -56,11 +56,6 @@ export default function Header() {
                 <FiHome size={21} />
                 APRs
               </Link>
-
-              <Link to="/assignments" >
-                <MdOutlineAssignmentLate size={21} />
-                APRs Atribuidas
-              </Link>
             </>
           )}
 
