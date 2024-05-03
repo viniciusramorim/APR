@@ -10,7 +10,7 @@ const EmailLink = ({ apr, id, logSistem }) => {
 
   var cc = 'Pedro.Oliveira@telefonica.com; priscila.mirancos.ext@telefonica.com'
 
-  const recipient = stateRecipients[apr.site_id.Estado] || "Destinatário padrão";
+  const recipient = stateRecipients[apr.site_id.Estado][apr.site_id.Cidade.toUpperCase()] || "Destinatário padrão";
 
   const subject = `APR Vivo Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`;
 
