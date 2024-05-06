@@ -7,10 +7,15 @@ import './email.css'
 
 const EmailLink = ({ apr, id, logSistem }) => {
   const base = 'aprs-producao'
+  var emails = stateRecipients[apr.site_id.Estado][apr.site_id.Cidade.toUpperCase()]
+
+  if (emails !== undefined && emails.length > 1) {
+    emails = emails.toString().replace(',',';')
+  }
 
   var cc = 'Pedro.Oliveira@telefonica.com; priscila.mirancos.ext@telefonica.com'
 
-  const recipient = stateRecipients[apr.site_id.Estado][apr.site_id.Cidade.toUpperCase()] || "Destinatário padrão";
+  const recipient = emails || "Destinatário padrão";
 
   const subject = `APR Vivo Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`;
 
@@ -40,12 +45,12 @@ APR Vivo Digital`;
     await firebase.firestore().collection(base)
       .doc(id)
       .update({
-        status: 'Revisado',
+        status: 'Enviado',
         data_alteracao: new Date()
       })
       .then(() => {
         toast.success('Status apr atualizado com sucesso!');
-        logSistem('APR Revisada', id)
+        logSistem('APR Enviada', id)
       })
       .catch((error) => {
         toast.error('Erro ao atualizar status da apr:', error);
