@@ -18,21 +18,20 @@ export default function ModalLog(props) {
     const customStyles = {
         content: {
             top: isMobile ? '50%' : '0%',
-            left: isMobile ? '180px' : '75%',
+            left: isMobile ? '220px' : '70%',
             bottom: isMobile ? 'auto' : '0%',
             right: isMobile ? '-150px' : '0',
             marginRight: '0px',
             transform: isMobile ? 'translate(-50%, -50%)' : 'translate(0%, 0%)',
             backgroundColor: '#F6F2FA',
             border: '1px solid #ddd',
-            borderRadius: '15px 0px 0px 15px',
             boxShadow: '-8px 0px 10px -5px rgba(0,0,0,0.09)'
         },
     };
 
     const fetchLogs = async () => {
         try {
-            const snapshot = await firebase.firestore().collection('log').where('chamado', '==', chamadoId).get();
+            const snapshot = await firebase.firestore().collection('log').orderBy('data', 'asc').where('chamado', '==', chamadoId).get();
             let logsList = [];
             snapshot.forEach((doc) => {
                 logsList.push(doc.data());

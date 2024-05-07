@@ -17,6 +17,7 @@ import Modal from '../../components/Modal';
 import ModalLoading from '../../components/Modal_Loading';
 import telefonicaLogo from '../../assets/telefonica-logo.png'
 import EmailLink from '../../components/Email/EmailLink';
+import ModalEdit from '../../components/Modal_Edit';
 
 // Importar as fontes do pdfmake 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -28,6 +29,7 @@ export default function Open() {
   const { id } = useParams();
 
   const [apr, setApr] = useState([]);
+  const [aprCompleta, setAprCompleta] = useState([]);
   const [loadApr, setLoadApr] = useState(false);
   //modal
   const [showPostModal, setShowPostModal] = useState(false);
@@ -46,6 +48,7 @@ export default function Open() {
       .get()
       .then((snapshot) => {
         let apr = snapshot.data();
+        setAprCompleta(snapshot.data())
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             if (doc.resp === '') {
@@ -290,6 +293,7 @@ export default function Open() {
                   <EmailLink apr={apr} id={id} logSistem={logSistem} />
                 </div>
               )}
+
               <div className='container'>
                 <div className='siteInfo'>
                   <ul>
@@ -433,6 +437,16 @@ export default function Open() {
                               } else if (user.nivel === 'revisor' || user.nivel === 'administrador') {
                                 return (
                                   <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
+                                    {(apr.status === 'Em Aberto') && (
+                                      <ModalEdit 
+                                        areaIndex={indexA}
+                                        questionIndex={indexQ} 
+                                        checklistCompleto={aprCompleta.checklist}
+                                        logSistem={logSistem} 
+                                        id={id}
+                                        loadApr={ReloadAPR}
+                                      ></ModalEdit>
+                                    )}
                                     <label>{doc.questionId} - {doc.question}</label>
                                     Resposta:
                                     <span data-text={doc.resp}>{doc.resp}</span>
@@ -452,30 +466,18 @@ export default function Open() {
                                         })}
                                       </>
                                     )}
-                                    {(doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user) ? (
-                                      <>
-                                        <label className='plano-acao'>
-                                          {doc.plano_acao.comentario ? (
-                                            <a data-check='Sim' onClick={() => togglePostModal(doc, indexA)}>
-                                              <FiCheck size={20} />Plano de Ação
-                                            </a>
-                                          ) : (
-                                            <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>
-                                              Plano de Ação
-                                            </a>
-                                          )}
-                                        </label>
-                                      </>
-                                    ) : (
-                                      <>
-                                        {(doc.plano_acao.tempo || doc.plano_acao.comentario) && (
-                                          <>
-                                            <label>Plano de Ação:</label>
-                                            Tempo: <i>{doc.plano_acao.tempo}</i>
-                                            Comentario: <i>{doc.plano_acao.comentario}</i>
-                                          </>
+                                    {(doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user) && (
+                                      <label className='plano-acao'>
+                                        {doc.plano_acao.comentario ? (
+                                          <a data-check='Sim' onClick={() => togglePostModal(doc, indexA)}>
+                                            <FiCheck size={20} />Plano de Ação
+                                          </a>
+                                        ) : (
+                                          <a data-check='Não' onClick={() => togglePostModal(doc, indexA)}>
+                                            Plano de Ação
+                                          </a>
                                         )}
-                                      </>
+                                      </label>
                                     )}
                                   </div>
                                 )
