@@ -129,6 +129,9 @@ export default function New_Site() {
             geohash: geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])]),
             tipoContrato: item[15],
             Detentora: item[16],
+            NonStop: item[17],
+            CtCritica: item[18],
+            ErbCritica: item[19],
             lastUpdate: new Date(),
             userLastUpdate: user.nome
           }]
@@ -248,6 +251,9 @@ export default function New_Site() {
         Geohash: doc.data().geohash,
         Tipo_Contrato: doc.data().tipoContrato,
         Detentora: doc.data().Detentora,
+        NonStop: doc.data().NonStop,
+        CtCritica: doc.data().CtCritica,
+        ErbCritica: doc.data().ErbCritica,
       })
     })
     exportExcel(relatorioApr);
@@ -288,7 +294,7 @@ export default function New_Site() {
           <TableContainer component={Paper}>
             <Table size="small" aria-label="a dense table">
               <TableHead>
-                <TableRow style={{color: '#FFF'}}>
+                <TableRow style={{ color: '#FFF' }}>
                   <TableCell align="center">Sigla</TableCell>
                   <TableCell align="center">UF</TableCell>
                   <TableCell align="center">Municipio</TableCell>
@@ -316,7 +322,7 @@ export default function New_Site() {
                         loadSites={loadSitesAprovacao}
                         logSistem={logSistem}
                         user={user}
-                        >
+                      >
                       </ModalInfoSite>
                     </TableCell>
                   </TableRow>
