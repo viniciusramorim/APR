@@ -137,8 +137,8 @@ export default function PreNew() {
                             sigla: doc.data().Sigla,
                             tipo_contrato: doc.data().tipoContrato,
                             detentora: doc.data().Detentora,
-                            userLastUpdate: doc.data().userLastUpdate,
-                            lastUpdate: format(doc.data().lastUpdate.toDate(), 'dd/MM/yyyy HH:mm'),
+                            userLastUpdate: doc.data().userLastUpdate ? doc.data().userLastUpdate : '-',
+                            lastUpdate: doc.data().lastUpdate ? format(doc.data().lastUpdate.toDate(), 'dd/MM/yyyy HH:mm') : '-',
                         })
                     }
                 })
@@ -300,7 +300,7 @@ export default function PreNew() {
                                         <td data-label="Municipio">{siteSelect[0].cidade ? siteSelect[0].cidade : '-'}</td>
                                         <td data-label="CEP">{siteSelect[0].cep ? siteSelect[0].cep : '-'}</td>
                                         <td data-label="Endereço">{siteSelect[0].endereco ? siteSelect[0].endereco : '-'}</td>
-                                        <td data-label="Data Update">{siteSelect[0].lastUpdate.toString()}</td>
+                                        <td data-label="Data Update">{siteSelect[0].lastUpdate}</td>
                                         <td data-label="Ultimo Update">{siteSelect[0].userLastUpdate}</td>
                                         {user.nivel === 'administrador' ? (
                                             <>
