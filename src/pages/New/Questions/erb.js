@@ -614,7 +614,43 @@ const questions_erb = [{
         critical: ['Médio', 'Alto'],
         peso: 4,
 
-    }]
+    }, {
+        question: 'Site é compartilhado com outra operadora? (Descreva a o nome da operadora nos comentários)',
+         answers: ["Sim", "Não"],
+         textarea: true,
+         selectOptions: true,
+         inputImages: true,
+         questionId: '5',
+         area: 'Segurança no acesso a Torre e Proteção de cabos',
+         resp: '',
+         respTextArea: '',
+         respGabarito: 'Sim',
+         images: [],
+         plano_acao: [],
+         openPA: false,
+         areaResposavel: ['oem'],
+         critical: ['Médio', 'Alto'],
+         peso: 3,
+ 
+     }, {
+        question: 'Há proteção de segurança física nos equipamentos e cabos das outras operadoras?',
+         answers: ["Sim", "Não"],
+         textarea: true,
+         selectOptions: true,
+         inputImages: true,
+         questionId: '6',
+         area: 'Segurança no acesso a Torre e Proteção de cabos',
+         resp: '',
+         respTextArea: '',
+         respGabarito: 'Sim',
+         images: [],
+         plano_acao: [],
+         openPA: false,
+         areaResposavel: ['oem'],
+         critical: ['Médio', 'Alto'],
+         peso: 3,
+ 
+     }]
 }]
 
 export default questions_erb;

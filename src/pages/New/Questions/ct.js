@@ -734,6 +734,23 @@ const questions_ct = [{
         areaResposavel: [],
         critical: ['Alto'],
         peso: 3,
+    }, {
+        question: 'As caixas de passagem de cabos de energia subterrânea, estavam lacradas e/ou possuem proteção?',
+        answers: ["Sim", "Não"],
+        textarea: true,
+        selectOptions: true,
+        inputImages: true,
+        questionId: '6',
+        area: 'Segurança da Torre e Proteção de Cabos',
+        resp: '',
+        respTextArea: '',
+        respGabarito: 'Sim',
+        images: [],
+        plano_acao: [],
+        openPA: true,
+        areaResposavel: [],
+        critical: ['Alto'],
+        peso: 4,
     }]
 }]
 
