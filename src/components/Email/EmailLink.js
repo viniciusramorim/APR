@@ -58,13 +58,15 @@ APR Vivo Digital`;
       });
   }
 
-  return apr.status === 'Em Aberto' && (
+  return (
     <div className='emails'>
       <p>
-        Clique no botão abaixo para confirmar que APR esta corretamente preechida:
+        Siga o seguintes passos: <br/><br/>
+        1 - Clique em "Enviar E-mail" para enviar da sua caixa de e-mail aos destinatarios responsaveis. <br/>
+        2 - Clique em confirmar Envio. <br/>
       </p>
-      <a onClick={() => updateAPR(id)}>Confirmar Revisão</a>
       <a href={mailtoLink}>Enviar E-mail</a>
+      <a onClick={() => updateAPR(id)}>Confirmar Envio</a>
     </div>
   )
 };

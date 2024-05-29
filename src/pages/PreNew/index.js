@@ -327,7 +327,6 @@ export default function PreNew() {
                             </table>
 
                             <a onClick={() => { getPerimetro() }}>
-                                {/* to={"/new/" + siteSelect[0].id} */}
                                 Avançar
                             </a>
                         </>

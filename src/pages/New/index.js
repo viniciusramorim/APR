@@ -25,6 +25,8 @@ import questions_llpp from './Questions/llpp'
 import questions_ldealer from './Questions/ldealer';
 import questions_cd from './Questions/cd';
 import questions_ct from './Questions/ct';
+import questions_pgr_movel from './Questions/pgr_movel';
+import questions_pgr_fixa from './Questions/pgr_fixa';
 
 export default function New() {
   const base = 'aprs-producao' //aprs-producao
@@ -42,13 +44,17 @@ export default function New() {
 
   const [location, setLocation] = useState([]);
   const [inicio, setInicio] = useState('');
-  const [areaResp, setAreaResp] = useState('');
   const [lastAPR, setLastAPR] = useState('');
 
   const [loadingImages, setLoadingImages] = useState('');
 
   const [justificativa, setJustificativa] = useState();
   const [openModalJust, setOpenModalJust] = useState(false);
+
+  //PGR
+  const [valorArmazenamento, setValorArmazenamento] = useState('');
+  const [valorTransporte, setValorTransporte] = useState('');
+
 
   useEffect(() => {
 
@@ -103,6 +109,10 @@ export default function New() {
             question = questions_ldealer.filter(Boolean);
           } else if (snapshot === "CD") {
             question = questions_cd.filter(Boolean);
+          } else if (snapshot === "PGR FIXA") {
+            question = questions_pgr_fixa.filter(Boolean);
+          } else if (snapshot === "PGR MOVEL") {
+            question = questions_pgr_movel.filter(Boolean);
           }
           setQuestions(Object.entries(question[0]));
         }
@@ -275,6 +285,8 @@ export default function New() {
             site_id: siteInfo,
             created: new Date(),
             motivo_apr: motivoAPR,
+            valor_armazenamento: valorArmazenamento,
+            valor_transporte: valorTransporte,
             status: justificativa ? 'Com Exceção' : 'Em Aberto',
             peso: result_peso,
             justificativa: justificativa ? justificativa : '',
@@ -478,6 +490,7 @@ export default function New() {
     document.getElementById('container-questions').style.display = 'none';
     document.getElementById('container-save').style.display = 'none';
     document.getElementById('container-motivo').style.display = 'none';
+    document.getElementById('container-pgr').style.display = 'none';
     document.getElementById('container').style.display = 'none';
     document.getElementById('modalLoading').style.display = 'none'
 
@@ -710,9 +723,18 @@ export default function New() {
             <option value={'LOJA DEALER'}>LOJA DEALER</option>
             <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
             <option value={'INDOOR'}>ARMARIO INDOOR</option>
+            <option value={'PGR MOVEL'} disabled>PGR MOVEL</option>
+            <option value={'PGR FIXA'} disabled>PGR FIXA</option>
             {/* <option value={'CD'}>CD</option> */}
           </select>
         </div>
+
+        {(siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && (
+          <div className='container' id='container-pgr'>
+            <input id='selectValorArmazenamento' type='number' value={valorArmazenamento} onChange={e => setValorArmazenamento(e.target.value)} placeholder='Valor de Armazenamento'></input>
+            <input id='selectValorTransporte' type='number' value={valorTransporte} onChange={e => setValorTransporte(e.target.value)} placeholder='Valor de Transporte'></input>
+          </div>
+        )}
 
         <div className='container' id='container-questions' style={{ display: 'none' }}>
           <div id='checklist' className="form-new">
@@ -722,7 +744,16 @@ export default function New() {
                   <i id='button-area' onClick={() => dropdownArea(indexA)}>{area[0]}</i>
                   <span id={`container-${indexA}`} style={{ display: 'block' }}>
                     {area[1].map((doc, indexDoc) => {
-                      return ( // (doc.critical[0] === siteInfo.critical || doc.critical[1] === siteInfo.critical || doc.critical[2] === siteInfo.critical) &&
+                      let exibition = false
+                      if ((siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && 
+                          doc.estados.includes(siteInfo.Estado) &&
+                            (
+                              doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) || 
+                              doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte))
+                            )
+                          ) exibition = true
+                      if (siteInfo.tipoSite !== 'PGR FIXA' && siteInfo.tipoSite !== 'PGR MOVEL') exibition = true
+                      if (exibition === true ) return ( 
                         <div key={indexDoc} className='container-perg'>
                           {doc.questionId} - {doc.question}
                           <div>
@@ -742,7 +773,7 @@ export default function New() {
                                 </label>
                               </>
                             )}
-                            {doc.inputImages === true && ( // className='input-file'
+                            {doc.inputImages === true && ( 
                               <ul className='imageList' id={"inputimg_" + doc.questionId + "_" + indexA} style={{ display: doc.resp !== '' && doc.resp !== doc.respGabarito ? 'flex' : 'none' }}>
                                 <li className='notremove'>
                                   <CameraComponent
@@ -779,11 +810,6 @@ export default function New() {
                               />
                             )}
                           </div>
-                          {/* <select key={doc.questionId} style={{ textAlign: 'right' }} value={doc.areaResposavel} onChange={(e) => handleSelectArea(doc, indexA, e)}>
-                            <option value={'oem'}>O&M</option>
-                            <option value={'patrimonial'}>Segurança Patrimonial</option>
-                            <option value={'predial'}>Gerencia de Operações Predial</option>
-                          </select> */}
                           <i className='clearQuestion' onClick={(() => clearQuestion(doc, indexA))}> Limpar </i>
                         </div>
                       )

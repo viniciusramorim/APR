@@ -34,16 +34,18 @@ export default function Reports() {
     }
 
     function calculatePontos(peso) {
-        if (peso < 10) {
-            return `Risco Baixo - RB`
-        } else if (peso >= 10 && peso < 40) {
-            return `Risco Médio - RM`
-        } else if (peso >= 40 && peso < 80) {
-            return `Risco Alto - RA`
-        } else if (peso >= 80) {
-            return `Risco Extremo - RE`
+        if (peso <= 10) {
+          return `Risco Muito Baixo`
+        } else if (peso >= 11 && peso <= 30) {
+          return `Risco Baixo`
+        } else if (peso >= 31 && peso <= 50) {
+          return `Risco Médio`
+        } else if (peso >= 51 && peso <= 70) {
+          return `Risco Alto`
+        } else if (peso >= 71) {
+          return `Risco Muito Alto`
         }
-    }
+      }
 
     //faz busca do banco de chamados
     async function updateState(snapshot) {

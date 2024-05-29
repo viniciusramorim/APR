@@ -96,6 +96,7 @@ export default function Dashboard() {
                   nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
                   site_id: doc.data().site_id,
                   status: doc.data().status,
+                  motivo_apr: doc.data().motivo_apr,
                   created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
                   porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
                 })
@@ -107,6 +108,7 @@ export default function Dashboard() {
                 nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
                 site_id: doc.data().site_id,
                 status: doc.data().status,
+                motivo_apr: doc.data().motivo_apr,
                 created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
                 porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
               })
@@ -170,7 +172,7 @@ export default function Dashboard() {
 
       <div className="content">
         <Title name="APRs">
-          <FiMessageSquare size={25} onClick={() => console.log(chamados)} />
+          <FiMessageSquare size={25} onClick={() => console.log('')} />
         </Title>
 
         {(user.nivel === "administrador" || user.nivel === "revisor") && (

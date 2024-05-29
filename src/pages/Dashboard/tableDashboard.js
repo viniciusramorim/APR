@@ -106,6 +106,7 @@ export default function CustomPaginationActionsTable(props) {
                 <TableHead>
                     <TableRow>
                         <TableCell align='center'>APR ID</TableCell>
+                        <TableCell align='center'>MOTIVO</TableCell>
                         <TableCell align='center'>Sigla-UF</TableCell>
                         <TableCell align='center'>Nome</TableCell>
                         <TableCell align='center'>Tipo Site</TableCell>
@@ -122,8 +123,11 @@ export default function CustomPaginationActionsTable(props) {
                         : chamados
                     ).map((row, index) => (
                         <TableRow key={row.id}>
-                            <TableCell data-label="Sigla-UF" align="center">
+                            <TableCell data-label="ID" align="center">
                                 {row.apr_id}
+                            </TableCell>
+                            <TableCell data-label="Motivo APR" align="center">
+                                {row.motivo_apr}
                             </TableCell>
                             <TableCell data-label="Sigla-UF" align="center">
                                 {row.site_id.Sigla} - {row.site_id.Estado}

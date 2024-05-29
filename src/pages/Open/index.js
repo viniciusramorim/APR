@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../contexts/auth';
 import { FiClipboard, FiCheck } from 'react-icons/fi';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -27,6 +27,8 @@ export default function Open() {
 
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
+  const history = useHistory();
+
 
   const [apr, setApr] = useState([]);
   const [aprCompleta, setAprCompleta] = useState([]);
@@ -265,15 +267,36 @@ export default function Open() {
   }
 
   function calculatePontos(peso) {
-    if (peso < 10) {
-      return `Risco Baixo - RB`
-    } else if (peso >= 10 && peso < 40) {
-      return `Risco Médio - RM`
-    } else if (peso >= 40 && peso < 80) {
-      return `Risco Alto - RA`
-    } else if (peso >= 80) {
-      return `Risco Extremo - RE`
+    if (peso <= 10) {
+      return `Risco Muito Baixo`
+    } else if (peso >= 11 && peso <= 30) {
+      return `Risco Baixo`
+    } else if (peso >= 31 && peso <= 50) {
+      return `Risco Médio`
+    } else if (peso >= 51 && peso <= 70) {
+      return `Risco Alto`
+    } else if (peso >= 71) {
+      return `Risco Muito Alto`
     }
+  }
+
+  async function updateRevisor(e, id) {
+    e.preventDefault()
+    await firebase.firestore().collection(base)
+      .doc(id)
+      .update({
+        status: 'Revisado',
+        data_alteracao: new Date()
+      })
+      .then(() => {
+        toast.success('Status apr atualizado com sucesso!');
+        logSistem('APR Revisada', id)
+        history.push("/dashboard");
+      })
+      .catch((error) => {
+        toast.error('Erro ao atualizar status da apr:', error);
+        console.log('Erro ao atualizar status da apr:', error);
+      });
   }
 
   return (
@@ -288,7 +311,7 @@ export default function Open() {
 
           {loadApr ? (
             <>
-              {((user.nivel === 'administrador' || user.nivel === 'revisor') && apr.status !== 'Cancelado') && (
+              {((user.nivel === 'administrador') && apr.status === 'Revisado') && (
                 <div className='container'>
                   <EmailLink apr={apr} id={id} logSistem={logSistem} />
                 </div>
@@ -526,6 +549,9 @@ export default function Open() {
                     })}
 
                     <button onClick={generatePDF}>Gerar PDF</button>
+                    {(apr.status === 'Em Aberto' && user.nivel === 'revisor') && (
+                      <button onClick={(e) => updateRevisor(e, id)}>Confirmar Revisão</button>
+                    )}
                   </form>
                 </div>
               )}
