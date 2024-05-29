@@ -490,7 +490,9 @@ export default function New() {
     document.getElementById('container-questions').style.display = 'none';
     document.getElementById('container-save').style.display = 'none';
     document.getElementById('container-motivo').style.display = 'none';
-    document.getElementById('container-pgr').style.display = 'none';
+    (siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && (
+      document.getElementById('container-pgr').style.display = 'none'
+    )
     document.getElementById('container').style.display = 'none';
     document.getElementById('modalLoading').style.display = 'none'
 
@@ -745,15 +747,15 @@ export default function New() {
                   <span id={`container-${indexA}`} style={{ display: 'block' }}>
                     {area[1].map((doc, indexDoc) => {
                       let exibition = false
-                      if ((siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && 
-                          doc.estados.includes(siteInfo.Estado) &&
-                            (
-                              doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) || 
-                              doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte))
-                            )
-                          ) exibition = true
+                      if ((siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') &&
+                        doc.estados.includes(siteInfo.Estado) &&
+                        (
+                          doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) ||
+                          doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte))
+                        )
+                      ) exibition = true
                       if (siteInfo.tipoSite !== 'PGR FIXA' && siteInfo.tipoSite !== 'PGR MOVEL') exibition = true
-                      if (exibition === true ) return ( 
+                      if (exibition === true) return (
                         <div key={indexDoc} className='container-perg'>
                           {doc.questionId} - {doc.question}
                           <div>
@@ -773,7 +775,7 @@ export default function New() {
                                 </label>
                               </>
                             )}
-                            {doc.inputImages === true && ( 
+                            {doc.inputImages === true && (
                               <ul className='imageList' id={"inputimg_" + doc.questionId + "_" + indexA} style={{ display: doc.resp !== '' && doc.resp !== doc.respGabarito ? 'flex' : 'none' }}>
                                 <li className='notremove'>
                                   <CameraComponent
