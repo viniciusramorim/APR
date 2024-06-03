@@ -169,7 +169,7 @@ export default function CustomPaginationActionsTable(props) {
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={9} />
+                            <TableCell colSpan={10} />
                         </TableRow>
                     )}
                 </TableBody>
@@ -177,7 +177,7 @@ export default function CustomPaginationActionsTable(props) {
                     <TableRow>
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 50, { label: 'Todos', value: -1 }]}
-                            colSpan={9}
+                            colSpan={10}
                             count={chamados.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
