@@ -725,9 +725,8 @@ export default function New() {
             <option value={'LOJA DEALER'}>LOJA DEALER</option>
             <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
             <option value={'INDOOR'}>ARMARIO INDOOR</option>
-            <option value={'PGR MOVEL'} disabled={user.nivel !== 'administrador'}>PGR MOVEL</option>
-            <option value={'PGR FIXA'} disabled={user.nivel !== 'administrador'}>PGR FIXA</option>
-            {/* <option value={'CD'}>CD</option> */}
+            <option value={'PGR MOVEL'}>PGR MOVEL</option>
+            <option value={'PGR FIXA'}>PGR FIXA</option>
           </select>
         </div>
 

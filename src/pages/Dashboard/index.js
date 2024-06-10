@@ -149,6 +149,9 @@ export default function Dashboard() {
   }
 
   function updateStatus(id, index) {
+    let confirm = window.confirm("Press a button!");
+    if (confirm === false) return 
+
     listRef.doc(id)
       .update({
         status: 'Cancelado'
