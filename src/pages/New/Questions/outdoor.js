@@ -374,6 +374,23 @@ const question_outdoor = [{
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
         peso: 10,
+    }, {
+        question: 'Há proteção para equipamento de FIBRA OLT GPON, roteadores, rádios ou similares?',
+        answers: ["Sim", "Não"],
+        textarea: true,
+        selectOptions: true,
+        inputImages: true,
+        questionId: '13',
+        area: 'Segurança Estrutural Outdoor',
+        resp: '',
+        respTextArea: '',
+        respGabarito: 'Sim',
+        images: [],
+        plano_acao: [],
+        openPA: false,
+        areaResposavel: ['oem'],
+        critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 4,
     }]
 }]
 
