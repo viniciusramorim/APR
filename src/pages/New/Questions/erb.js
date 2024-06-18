@@ -222,7 +222,7 @@ const questions_erb = [{
         critical: ['Baixo', 'Médio', 'Alto'],
         peso: 0,
     }, {
-        question: 'Os gabinetes são providos de proteção anti furto/vandalismo (APM30, 3012 ou Similar)? Descrever no campo comentários.',
+        question: 'Os gabinetes são providos de proteção externa antifurto/vandalismo (APM30, 3012 ou Similar)?',
         answers: ["Sim", "Não"],
         textarea: true,
         selectOptions: true,
