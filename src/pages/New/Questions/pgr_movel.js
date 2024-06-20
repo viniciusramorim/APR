@@ -582,7 +582,7 @@ const questions_pgr_movel = [{
     'Transporte Movel': [
         // Pergunta Gerais
         {
-            question: 'Os motociclistas e veículos estão devidamente cadastrados, com dados completos e fotos?',
+            question: 'Registro de informação de dados do Transporte.',
             answers: ["Sim", "Não"],
             textarea: true,
             selectOptions: true,
@@ -604,12 +604,34 @@ const questions_pgr_movel = [{
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
-            question: 'Os motociclistas e/ou motoristas, estão registrados em regime CLT ou outra forma regulamentada por lei?',
+            question: 'Os motociclistas e veículos estão devidamente cadastrados, com dados completos e fotos?',
             answers: ["Sim", "Não"],
             textarea: true,
             selectOptions: true,
             inputImages: true,
             questionId: '2',
+            area: 'Transporte Movel',
+            resp: '',
+            respTextArea: '',
+            respGabarito: 'Sim',
+            images: [],
+            plano_acao: [],
+            openPA: false,
+            areaResposavel: ['oem'],
+            critical: ['Baixo', 'Médio', 'Alto'],
+            peso: 0,
+            valorTransporte: {
+                min: 0,
+                max: 99999999
+            },
+            estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
+        }, {
+            question: 'Os motociclistas e/ou motoristas, estão registrados em regime CLT ou outra forma regulamentada por lei?',
+            answers: ["Sim", "Não"],
+            textarea: true,
+            selectOptions: true,
+            inputImages: true,
+            questionId: '3',
             area: 'Transporte Movel',
             resp: '',
             respTextArea: '',
