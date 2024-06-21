@@ -17,7 +17,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 2000000,
                 max: 99999999
@@ -39,7 +39,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -61,7 +61,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -83,7 +83,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -105,7 +105,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 500000,
                 max: 2000000
@@ -127,7 +127,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 500000,
                 max: 2000000
@@ -149,7 +149,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -173,7 +173,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -195,7 +195,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -217,7 +217,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -239,7 +239,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 100000
@@ -261,7 +261,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 500000
@@ -283,7 +283,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 100000,
                 max: 500000
@@ -305,7 +305,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -327,7 +327,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 500000,
                 max: 99999999
@@ -349,7 +349,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 100000,
                 max: 99999999
@@ -371,7 +371,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 100000,
                 max: 99999999
@@ -393,7 +393,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 100000,
                 max: 99999999
@@ -415,7 +415,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 500000,
                 max: 99999999
@@ -437,7 +437,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorArmazenado: {
                 min: 500000,
                 max: 99999999
@@ -459,7 +459,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 1500000,
                 max: 99999999
@@ -481,7 +481,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorArmazenado: {
                 min: 1500000,
                 max: 99999999
@@ -505,7 +505,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 100000,
                 max: 99999999
@@ -527,7 +527,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 0,
                 max: 99999999
@@ -549,7 +549,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 500000,
                 max: 99999999
@@ -571,7 +571,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorArmazenado: {
                 min: 500000,
                 max: 99999999
@@ -597,7 +597,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -619,7 +619,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -641,7 +641,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -663,7 +663,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -685,7 +685,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -707,7 +707,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -729,7 +729,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -751,7 +751,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -773,7 +773,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 2,
             valorTransporte: {
                 min: 0,
                 max: 99999999
@@ -797,7 +797,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 1500000
@@ -819,7 +819,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 60000,
                 max: 1500000
@@ -841,7 +841,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 200000,
                 max: 1500000
@@ -863,7 +863,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 600000,
                 max: 1500000
@@ -885,7 +885,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1200000,
                 max: 1500000
@@ -907,7 +907,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1500000,
                 max: 99999999
@@ -931,7 +931,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 1400000
@@ -953,7 +953,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 60000,
                 max: 1400000
@@ -975,7 +975,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 200000,
                 max: 1400000
@@ -997,7 +997,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 500000,
                 max: 1400000
@@ -1019,7 +1019,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1100000,
                 max: 1400000
@@ -1041,7 +1041,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1400000,
                 max: 99999999
@@ -1065,7 +1065,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 1300000
@@ -1087,7 +1087,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 60000,
                 max: 1300000
@@ -1109,7 +1109,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 200000,
                 max: 1300000
@@ -1131,7 +1131,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 400000,
                 max: 1300000
@@ -1153,7 +1153,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1000000,
                 max: 1300000
@@ -1175,7 +1175,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1300000,
                 max: 99999999
@@ -1199,7 +1199,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 350000
@@ -1221,7 +1221,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 60000,
                 max: 350000
@@ -1243,7 +1243,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 100000,
                 max: 350000
@@ -1265,7 +1265,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 200000,
                 max: 350000
@@ -1287,7 +1287,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 200000,
                 max: 350000
@@ -1309,7 +1309,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 350000,
                 max: 99999999
@@ -1333,7 +1333,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 0,
                 max: 1500000
@@ -1355,7 +1355,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 60000,
                 max: 1500000
@@ -1377,7 +1377,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 3,
             valorTransporte: {
                 min: 60000,
                 max: 1500000
@@ -1399,7 +1399,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 100000,
                 max: 1500000
@@ -1421,7 +1421,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 400000,
                 max: 1300000
@@ -1443,7 +1443,7 @@ const questions_pgr_movel = [{
             openPA: false,
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
-            peso: 0,
+            peso: 4,
             valorTransporte: {
                 min: 1000000,
                 max: 1500000
