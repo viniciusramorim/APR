@@ -109,9 +109,9 @@ export default function New() {
             question = questions_ldealer.filter(Boolean);
           } else if (snapshot === "CD") {
             question = questions_cd.filter(Boolean);
-          } else if (snapshot === "PGR FIXA") {
+          } else if (snapshot === "AUDIT PGR FIXA") {
             question = questions_pgr_fixa.filter(Boolean);
-          } else if (snapshot === "PGR MOVEL") {
+          } else if (snapshot === "AUDIT PGR MOVEL") {
             question = questions_pgr_movel.filter(Boolean);
           }
           setQuestions(Object.entries(question[0]));
@@ -490,7 +490,7 @@ export default function New() {
     document.getElementById('container-questions').style.display = 'none';
     document.getElementById('container-save').style.display = 'none';
     document.getElementById('container-motivo').style.display = 'none';
-    (siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && (
+    (siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
       document.getElementById('container-pgr').style.display = 'none'
     )
     document.getElementById('container').style.display = 'none';
@@ -725,12 +725,12 @@ export default function New() {
             <option value={'LOJA DEALER'}>LOJA DEALER</option>
             <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
             <option value={'INDOOR'}>ARMARIO INDOOR</option>
-            <option value={'PGR MOVEL'}>PGR MOVEL</option>
-            <option value={'PGR FIXA'}>PGR FIXA</option>
+            <option value={'AUDIT PGR MOVEL'}>AUDIT PGR MOVEL</option>
+            <option value={'AUDIT PGR FIXA'}>AUDIT PGR FIXA</option>
           </select>
         </div>
 
-        {(siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') && (
+        {(siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
           <div className='container' id='container-pgr'>
             <input id='selectValorArmazenamento' type='number' value={valorArmazenamento} onChange={e => setValorArmazenamento(e.target.value)} placeholder='Valor de Armazenamento'></input>
             <input id='selectValorTransporte' type='number' value={valorTransporte} onChange={e => setValorTransporte(e.target.value)} placeholder='Valor de Transporte'></input>
@@ -746,14 +746,14 @@ export default function New() {
                   <span id={`container-${indexA}`} style={{ display: 'block' }}>
                     {area[1].map((doc, indexDoc) => {
                       let exibition = false
-                      if ((siteInfo.tipoSite === 'PGR FIXA' || siteInfo.tipoSite === 'PGR MOVEL') &&
+                      if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') &&
                         doc.estados.includes(siteInfo.Estado) &&
                         (
                           doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) ||
                           doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte))
                         )
                       ) exibition = true
-                      if (siteInfo.tipoSite !== 'PGR FIXA' && siteInfo.tipoSite !== 'PGR MOVEL') exibition = true
+                      if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
                       if (exibition === true) return (
                         <div key={indexDoc} className='container-perg'>
                           {doc.questionId} - {doc.question}
