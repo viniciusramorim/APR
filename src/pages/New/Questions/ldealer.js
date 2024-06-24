@@ -562,8 +562,6 @@ const questions_ldealer = [{
         critical: ['Baixo', 'Médio', 'Alto'],
         peso: 3,
     }, {
-        
-    }, {
         question: 'Existe sistema de alarme com proteção em todos os aparelhos expostos nos balcões de degustação e está operante?',
         answers: ["Sim", "Não"],
         textarea: true,

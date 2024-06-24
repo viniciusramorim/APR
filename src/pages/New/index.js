@@ -311,7 +311,7 @@ export default function New() {
               })
               area[1].forEach(async (question, indexQ) => {
 
-                checklist[indexA][1].push(
+                question.question && checklist[indexA][1].push(
                   {
                     imagesURL: [],
                     resp: question.resp,
@@ -330,7 +330,7 @@ export default function New() {
                   let imageList = [] // criar uma lista de imagem e reseta a cada questao
                   //inserção de dados no banco OBS: se contem imagem ou não
                   if (containsImage === true) {
-                    question.images.forEach(async file => {
+                    question.images && question.images.forEach(async file => {
                       let imgName = file.name
                       let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
 
@@ -445,9 +445,9 @@ export default function New() {
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
         // verifica se contem imagem
-        if (question.images.length > 0) {
+        if (question.images && question.images.length > 0) {
           containsImage = true
-        }
+        } 
       })
     })
 
@@ -677,7 +677,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(siteInfo)} />
+          <FiClipboard size={25} onClick={() => console.log(questions)} />
         </Title>
 
         <div className='container'>
