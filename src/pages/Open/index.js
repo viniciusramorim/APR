@@ -299,6 +299,26 @@ export default function Open() {
       });
   }
 
+  async function updateMotivoAPR(e, id) {
+    e.preventDefault()
+    let confirm = window.confirm("Deseja realmente alterar o motivo da APR?");
+    if (confirm === false) return 
+    await firebase.firestore().collection(base)
+      .doc(id)
+      .update({
+        motivo_apr: e.target.value,
+      })
+      .then(() => {
+        toast.success('Motivo da apr atualizado com sucesso!');
+        logSistem(`Motivo APR Atualizado para ${e.target.value}`, id);
+        ReloadAPR();
+      })
+      .catch((error) => {
+        toast.error('Erro ao atualizar status da apr:', error);
+        console.log('Erro ao atualizar status da apr:', error);
+      });
+  }
+
   return (
     <div>
       <Header />
@@ -326,7 +346,19 @@ export default function Open() {
                   </ul>
                   <ul>
                     <li><span>STATUS: </span>{apr.status}</li>
-                    <li><span>MOTIVO: </span>{apr.motivo_apr}</li>
+                    <li><span>MOTIVO: </span>
+                      {(user.nivel === 'Administrador' || user.nivel === 'Revisor') && apr.status === 'Em Aberto' ? (
+                        <select value={apr.motivo_apr} onChange={e => updateMotivoAPR(e, id)}>
+                          <option value={'Mapa de Calor'}>Mapa de Calor</option>
+                          <option value={'Retrofit'}>Retrofit</option>
+                          <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
+                          <option value={'Projeto Veneza'}>Projeto Veneza</option>
+                          <option value={'Não Opinada'}>Não Opinada</option>
+                        </select>
+                      ) : (
+                        apr.motivo_apr
+                      )} 
+                    </li>
                     <li><span>TIPO DE SITE: </span>{apr.site_id.tipoSite}</li>
                   </ul>
                 </div>
@@ -461,11 +493,11 @@ export default function Open() {
                                 return (
                                   <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
                                     {(apr.status === 'Em Aberto') && (
-                                      <ModalEdit 
+                                      <ModalEdit
                                         areaIndex={indexA}
-                                        questionIndex={indexQ} 
+                                        questionIndex={indexQ}
                                         checklistCompleto={aprCompleta.checklist}
-                                        logSistem={logSistem} 
+                                        logSistem={logSistem}
                                         id={id}
                                         loadApr={ReloadAPR}
                                       ></ModalEdit>

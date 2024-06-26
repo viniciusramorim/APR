@@ -149,7 +149,7 @@ export default function Dashboard() {
   }
 
   function updateStatus(id, index) {
-    let confirm = window.confirm("Press a button!");
+    let confirm = window.confirm("Deseja realmente alterar o status da APR?");
     if (confirm === false) return 
 
     listRef.doc(id)
