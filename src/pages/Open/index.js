@@ -39,6 +39,16 @@ export default function Open() {
   const [detail, setDetail] = useState();
   const [area, setArea] = useState();
 
+  
+  const formatarValor = (valor) => {
+    // Verifica se o valor é um número
+    if (typeof valor !== 'number') {
+      return 'R$ 0,00';
+    }
+
+    // Formata o valor para o padrão brasileiro
+    return `R$ ${valor.toFixed(2).replace('.', ',')}`;
+  };
 
   useEffect(() => {
     ReloadAPR()
@@ -319,6 +329,7 @@ export default function Open() {
       });
   }
 
+
   return (
     <div>
       <Header />
@@ -414,6 +425,15 @@ export default function Open() {
                     {apr.locationCreated.perimetro}</span>
                 </div>
               </div>
+
+              {(apr.valor_armazenamento && apr.valor_transporte) && (
+                <div className='container'>
+                  <div className='siteInfo'>
+                    <span>Valor Armazenamento:</span> {formatarValor(parseInt(apr.valor_armazenamento))}
+                    <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_transporte))}
+                  </div>
+                </div>
+              )}
 
               {apr.justificativa ? (
                 <div className='container'>
