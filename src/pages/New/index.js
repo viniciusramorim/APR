@@ -711,6 +711,7 @@ export default function New() {
             <option value={'Retrofit'}>Retrofit</option>
             <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
             <option value={'Projeto Veneza'}>Projeto Veneza</option>
+            <option value={'Estoque Avançado'}>Estoque Avançado</option>
             <option value={'Não Opinada'}>Não Opinada</option>
           </select>
         </div>
