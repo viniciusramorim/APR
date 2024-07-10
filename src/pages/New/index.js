@@ -710,7 +710,7 @@ export default function New() {
             <option value={'Mapa de Calor'}>Mapa de Calor</option>
             <option value={'Retrofit'}>Retrofit</option>
             <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
-            <option value={'Projeto Veneza'}>Projeto Veneza</option>
+            <option value={'Projeto Veneza'}>Projeto Veneza (internalização Loja Dealer)</option>
             <option value={'Estoque Avançado'}>Estoque Avançado</option>
             <option value={'Não Opinada'}>Não Opinada</option>
           </select>
