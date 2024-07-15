@@ -54,6 +54,7 @@ export default function New() {
   //PGR
   const [valorArmazenamento, setValorArmazenamento] = useState('');
   const [valorTransporte, setValorTransporte] = useState('');
+  const [valorSinistro, setValorSinistro] = useState('');
 
 
   useEffect(() => {
@@ -287,6 +288,7 @@ export default function New() {
             motivo_apr: motivoAPR,
             valor_armazenamento: valorArmazenamento,
             valor_transporte: valorTransporte,
+            valor_sinistro: valorSinistro,
             status: justificativa ? 'Com Exceção' : 'Em Aberto',
             peso: result_peso,
             justificativa: justificativa ? justificativa : '',
@@ -735,6 +737,7 @@ export default function New() {
           <div className='container' id='container-pgr'>
             <input id='selectValorArmazenamento' type='number' value={valorArmazenamento} onChange={e => setValorArmazenamento(e.target.value)} placeholder='Valor de Armazenamento'></input>
             <input id='selectValorTransporte' type='number' value={valorTransporte} onChange={e => setValorTransporte(e.target.value)} placeholder='Valor de Transporte'></input>
+            <input id='selectValorSinistro' type='number' value={valorSinistro} onChange={e => setValorSinistro(e.target.value)} placeholder='Valor do Sinistro'></input>
           </div>
         )}
 
@@ -751,7 +754,8 @@ export default function New() {
                         doc.estados.includes(siteInfo.Estado) &&
                         (
                           doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) ||
-                          doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte))
+                          doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte)) ||
+                          doc.valorSinistro && ((valorSinistro > doc.valorSinistro.min) && (doc.valorSinistro.max >= valorSinistro))
                         )
                       ) exibition = true
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true

@@ -20,7 +20,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 2000000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -42,7 +42,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -64,7 +64,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -86,7 +86,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -152,7 +152,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         },
@@ -176,7 +176,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR'],
         }, {
@@ -198,7 +198,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -220,7 +220,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -242,7 +242,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -264,7 +264,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR'],
         }, {
@@ -286,7 +286,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 100000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         },
@@ -310,7 +310,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 100000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -332,7 +332,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorArmazenado: {
                 min: 100000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         },
@@ -358,7 +358,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -380,7 +380,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -402,7 +402,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -424,7 +424,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -446,7 +446,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -468,7 +468,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -490,7 +490,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -512,7 +512,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -534,7 +534,7 @@ const questions_pgr_fixa = [{
             peso: 2,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         },
@@ -558,7 +558,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP'],
         }, {
@@ -580,7 +580,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 300000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP'],
         },
@@ -604,7 +604,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -626,7 +626,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -648,7 +648,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -670,7 +670,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -692,7 +692,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -714,7 +714,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 1500000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         }, {
@@ -736,7 +736,7 @@ const questions_pgr_fixa = [{
             peso: 4,
             valorTransporte: {
                 min: 3000000,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'ES', 'MG', 'PR', 'SC', 'RS', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'TO', 'DF', 'GO', 'MT', 'MS', 'AC', 'RO', 'AM', 'RR', 'AP', 'PA', 'MA'],
         },
@@ -759,9 +759,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -781,9 +781,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -803,9 +803,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -825,9 +825,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -847,9 +847,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -869,9 +869,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -891,9 +891,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -913,9 +913,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -935,9 +935,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -957,9 +957,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -979,9 +979,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1001,9 +1001,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1023,9 +1023,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1045,9 +1045,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1067,9 +1067,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1089,9 +1089,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1111,9 +1111,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1133,9 +1133,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1155,9 +1155,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1177,9 +1177,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }, {
@@ -1199,9 +1199,9 @@ const questions_pgr_fixa = [{
             areaResposavel: ['oem'],
             critical: ['Baixo', 'Médio', 'Alto'],
             peso: 0,
-            valorArmazenado: {
+            valorSinistro: {
                 min: 0,
-                max: 99999999
+                max: 99999999999
             },
             estados: ['SP', 'RJ', 'RS', 'MG', 'ES', 'PR', "AC", "AL", "AP", "AM", "BA", "CE", "DF", "GO", "MA", "MT", "MS", "PA", "PB", "PE", "PI", "RN", "RO", "RR", "SC", "SE", "TO"],
         }
