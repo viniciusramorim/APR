@@ -290,7 +290,7 @@ const question_outdoor = [{
         critical: ['Baixo', 'Médio', 'Alto'],
         peso: 12,
     }, {
-        question: 'As portas são dotadas de sensores de intrusão, com reporte para a CMC em caso de acesso indevido? (EXECUTAR TESTE)',
+        question: 'Foi identificado a presença de sensor de porta?',
         answers: ["Sim", "Não"],
         textarea: true,
         selectOptions: true,
@@ -391,6 +391,23 @@ const question_outdoor = [{
         areaResposavel: ['oem'],
         critical: ['Baixo', 'Médio', 'Alto'],
         peso: 4,
+    }, {
+        question: 'Caso haja sensor de porta, foi identificado sinais de vandalismo?',
+        answers: ["Sim", "Não"],
+        textarea: true,
+        selectOptions: true,
+        inputImages: true,
+        questionId: '14',
+        area: 'Segurança Estrutural Outdoor',
+        resp: '',
+        respTextArea: '',
+        respGabarito: 'Sim',
+        images: [],
+        plano_acao: [],
+        openPA: false,
+        areaResposavel: ['oem'],
+        critical: ['Baixo', 'Médio', 'Alto'],
+        peso: 0,
     }]
 }]
 
