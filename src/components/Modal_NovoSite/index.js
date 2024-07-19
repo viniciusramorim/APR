@@ -89,6 +89,17 @@ export default function ModalNovoSite(props) {
     })
   }
 
+  const handleTipoSite = (event) => {
+    let value = event.target.value;
+
+    if(value === 'LOJA DEALER') setSigla('LOJA DEALER')
+    else if(value === 'LOJA VIVO') setSigla('LOJA VIVO')
+    else if(value === 'CROSS DOCKING') setSigla('CROSS DOCKING')
+    else setSigla('')
+
+    setTipoSite(value)
+  }
+
   function submit() {
     if (nomeSite === '') return toast.error('Voce precisa preencher um nome de site.')
     if (sigla === '') return toast.error('Voce precisa preencher uma sigla.')
@@ -165,27 +176,38 @@ export default function ModalNovoSite(props) {
               />
             </Grid>
             <Grid item xs={6} md={6}>
+              <FormControl variant="filled" fullWidth>
+                <InputLabel id="demo-simple-select-filled-label">Tipo de Site</InputLabel>
+                <Select
+                  labelId="demo-simple-select-standard-label"
+                  id="demo-simple-select-standard"
+                  value={tipoSite}
+                  onChange={handleTipoSite}
+                  label="Tipo de Site"
+                >
+                  <MenuItem value={'ERB'}>ERB</MenuItem>
+                  <MenuItem value={'CT'}>CT</MenuItem>
+                  <MenuItem value={'LOJA VIVO'}>LOJA VIVO</MenuItem>
+                  <MenuItem value={'LOJA DEALER'}>LOJA DEALER</MenuItem>
+                  <MenuItem value={'OUTDOOR'}>OUTDOOR</MenuItem>
+                  <MenuItem value={'INDOOR'}>INDOOR</MenuItem>
+                  <MenuItem value={'PREDIO CORE'}>PREDIO CORE</MenuItem>
+                  <MenuItem value={'CD'}>CD</MenuItem>
+                  <MenuItem value={'CROSS DOCKING'}>CROSS DOCKING</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={6} md={6}>
               <TextField
                 size="small"
                 id="filled-basic"
                 label="Sigla Movel"
                 variant="filled"
                 fullWidth
+                disabled={['LOJA DEALER', 'LOJA VIVO', 'CROSS DOCKING'].includes(tipoSite)}
                 value={sigla}
                 onChange={handleSiglaChange}
                 inputProps={{ maxLength: 3, pattern: '[A-Z]*' }}
-              />
-            </Grid>
-            <Grid item xs={6} md={6}>
-              <TextField
-                size="small"
-                id="filled-basic"
-                label="UF"
-                variant="filled"
-                fullWidth
-                value={uf}
-                onChange={handleUfChange}
-                inputProps={{ maxLength: 2, pattern: '[A-Z]*' }}
               />
             </Grid>
             <Grid item xs={5} md={5}>
@@ -271,6 +293,18 @@ export default function ModalNovoSite(props) {
               />
             </Grid>
             <Grid item xs={6} md={6}>
+              <TextField
+                size="small"
+                id="filled-basic"
+                label="UF"
+                variant="filled"
+                fullWidth
+                value={uf}
+                onChange={handleUfChange}
+                inputProps={{ maxLength: 2, pattern: '[A-Z]*' }}
+              />
+            </Grid>
+            <Grid item xs={6} md={6}>
               <FormControl variant="filled" fullWidth>
                 <InputLabel id="demo-simple-select-filled-label">Criticidade</InputLabel>
                 <Select
@@ -286,27 +320,7 @@ export default function ModalNovoSite(props) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={6} md={6}>
-              <FormControl variant="filled" fullWidth>
-                <InputLabel id="demo-simple-select-filled-label">Tipo de Site</InputLabel>
-                <Select
-                  labelId="demo-simple-select-standard-label"
-                  id="demo-simple-select-standard"
-                  value={tipoSite}
-                  onChange={(e) => setTipoSite(e.target.value)}
-                  label="Tipo de Site"
-                >
-                  <MenuItem value={'ERB'}>ERB</MenuItem>
-                  <MenuItem value={'CT'}>CT</MenuItem>
-                  <MenuItem value={'LOJA'}>LOJA</MenuItem>
-                  <MenuItem value={'LOJA DEALER'}>LOJA DEALER</MenuItem>
-                  <MenuItem value={'OUTDOOR'}>OUTDOOR</MenuItem>
-                  <MenuItem value={'INDOOR'}>INDOOR</MenuItem>
-                  <MenuItem value={'PREDIO CORE'}>PREDIO CORE</MenuItem>
-                  <MenuItem value={'CD'}>CD</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+            
             <Grid item xs={12} md={12}>
               <TextField
                 size="small"
