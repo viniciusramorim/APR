@@ -233,10 +233,11 @@ export default function Dashboard() {
               <option value="ERB-CT">ERB-CT</option>
               <option value="ERB">ERB</option>
               <option value="CT">CT</option>
-              <option value="CD">CT</option>
+              <option value="CD">CD</option>
               <option value="PREDIO CORE">PREDIO CORE</option>
               <option value="LOJA">LOJA</option>
               <option value="LOJA DEALER">LOJA DEALER</option>
+              <option value="CROSS DOCKING">CROSS DOCKING</option>
               <option value="OUTDOOR">OUTDOOR</option>
               <option value="INDOOR">INDOOR</option>
             </select>
