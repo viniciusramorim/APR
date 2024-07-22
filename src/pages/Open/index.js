@@ -431,6 +431,7 @@ export default function Open() {
                   <div className='siteInfo'>
                     <span>Valor Armazenamento:</span> {formatarValor(parseInt(apr.valor_armazenamento))}
                     <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_transporte))}
+                    <span>Valor Sinistro:</span> {apr.valor_sinistro ? formatarValor(parseInt(apr.valor_sinistro)) : 'R$ 0'}
                   </div>
                 </div>
               )}
