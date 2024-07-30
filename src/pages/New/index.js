@@ -66,7 +66,10 @@ export default function New() {
         .then((snapshot) => {
           setSiteInfo(snapshot.data());
           if (snapshot.data().last_apr !== undefined) {
-            setLastAPR(format(snapshot.data().last_apr.toDate(), 'dd/MM/yyyy HH:mma'))
+            setLastAPR({
+              data: format(snapshot.data().last_apr.toDate(), 'dd/MM/yyyy HH:mm'),
+              motivo: snapshot.data().last_motivo
+            })
           }
           setInicio(new Date());
         })
@@ -266,6 +269,17 @@ export default function New() {
     }
   }
 
+  async function setSite(id, motivo) {
+    const querySnapshot = await firebase.firestore().collection('sites')
+      .doc(id)
+      .update({
+        last_apr: new Date(),
+        last_motivo: motivo
+      });
+
+    return querySnapshot;
+  }
+
   async function insertData(perimeter) {
     let checklist = [];
 
@@ -278,145 +292,148 @@ export default function New() {
 
     incrementID()
       .then(async result => {
-        console.log('ID Atual:', result);
-        await firebase.firestore().collection(base)
-          .add({
-            user_id: user,
-            apr_id: result,
-            site_id: siteInfo,
-            created: new Date(),
-            motivo_apr: motivoAPR,
-            valor_armazenamento: valorArmazenamento,
-            valor_transporte: valorTransporte,
-            valor_sinistro: valorSinistro,
-            status: justificativa ? 'Com Exceção' : 'Em Aberto',
-            peso: result_peso,
-            justificativa: justificativa ? justificativa : '',
-            locationCreated: {
-              latitude: location.latitude,
-              longitude: location.longitude,
-              perimetro: perimeter,
-            },
-            tempoConclusao: {
-              inicio: inicio === undefined ? new Date() : inicio,
-              conclusao: new Date(),
-            }
-          })
-          .then(async (index) => {
-
-            let containsImage = verifyContainsImage()
-
-            questions.forEach(async (area, indexA) => {
-              checklist.push({
-                0: area[0],
-                1: []
-              })
-              area[1].forEach(async (question, indexQ) => {
-
-                question.question && checklist[indexA][1].push(
-                  {
-                    imagesURL: [],
-                    resp: question.resp,
-                    respTextArea: question.respTextArea,
-                    questionId: question.questionId,
-                    question: question.question,
-                    plano_acao: question.plano_acao,
-                    openPA: question.openPA,
-                    areaResposavel: question.areaResposavel,
-                    respGabarito: question.respGabarito,
-                  }
-                )
-
-                //Verifica antes de carregar no banco se contem resposta
-                if (question.resp !== '') {
-                  let imageList = [] // criar uma lista de imagem e reseta a cada questao
-                  //inserção de dados no banco OBS: se contem imagem ou não
-                  if (containsImage === true) {
-                    question.images && question.images.forEach(async file => {
-                      let imgName = file.name
-                      let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
-
-                      let storageRef = await firebase.storage().ref(imgPath)
-                      let upload = storageRef.put(file)
-
-                      qtdImages = qtdImages + 1
-
-                      let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
-                        trackUpload(upload).then(() => {
-                          storageRef.getDownloadURL()
-                            .then((downloadUrl) => {
-                              imageList.push({
-                                url: downloadUrl,
-                                ref: storageRef.fullPath
+        setSite(id, motivoAPR).then(async () => {
+          console.log('ID Atual:', result);
+  
+          await firebase.firestore().collection(base)
+            .add({
+              user_id: user,
+              apr_id: result,
+              site_id: siteInfo,
+              created: new Date(),
+              motivo_apr: motivoAPR,
+              valor_armazenamento: valorArmazenamento,
+              valor_transporte: valorTransporte,
+              valor_sinistro: valorSinistro,
+              status: justificativa ? 'Com Exceção' : 'Em Aberto',
+              peso: result_peso,
+              justificativa: justificativa ? justificativa : '',
+              locationCreated: {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                perimetro: perimeter,
+              },
+              tempoConclusao: {
+                inicio: inicio === undefined ? new Date() : inicio,
+                conclusao: new Date(),
+              }
+            })
+            .then(async (index) => {
+  
+              let containsImage = verifyContainsImage()
+  
+              questions.forEach(async (area, indexA) => {
+                checklist.push({
+                  0: area[0],
+                  1: []
+                })
+                area[1].forEach(async (question, indexQ) => {
+  
+                  question.question && checklist[indexA][1].push(
+                    {
+                      imagesURL: [],
+                      resp: question.resp,
+                      respTextArea: question.respTextArea,
+                      questionId: question.questionId,
+                      question: question.question,
+                      plano_acao: question.plano_acao,
+                      openPA: question.openPA,
+                      areaResposavel: question.areaResposavel,
+                      respGabarito: question.respGabarito,
+                    }
+                  )
+  
+                  //Verifica antes de carregar no banco se contem resposta
+                  if (question.resp !== '') {
+                    let imageList = [] // criar uma lista de imagem e reseta a cada questao
+                    //inserção de dados no banco OBS: se contem imagem ou não
+                    if (containsImage === true) {
+                      question.images && question.images.forEach(async file => {
+                        let imgName = file.name
+                        let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
+  
+                        let storageRef = await firebase.storage().ref(imgPath)
+                        let upload = storageRef.put(file)
+  
+                        qtdImages = qtdImages + 1
+  
+                        let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
+                          trackUpload(upload).then(() => {
+                            storageRef.getDownloadURL()
+                              .then((downloadUrl) => {
+                                imageList.push({
+                                  url: downloadUrl,
+                                  ref: storageRef.fullPath
+                                })
+                                try {
+                                  console.log(indexA + "-" + indexQ)
+                                  checklist[indexA][1][indexQ].imagesURL = imageList; //define a lista em uma pergunta
+                                } catch (error) {
+                                  console.log(indexA + "-" + indexQ)
+                                  console.log('Erro ao obter url da imagem' + error)
+                                }
+                                imagesCompleted = imagesCompleted + 1 // conta quantos imagens foi obtida a url
+                                // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
+                                console.log(imagesCompleted + ' / ' + qtdImages); // mostra o status de imagens concluida vs pendentes
+                                setLoadingImages(imagesCompleted + ' / ' + qtdImages)
+                                if (imagesCompleted === qtdImages) { // retorna como concluido apenas quantos os valores estiverem ok
+                                  resolve()
+                                }
+                              }).catch(err => {
+                                console.log("Erro ao obter URL" + err)
                               })
-                              try {
-                                console.log(indexA + "-" + indexQ)
-                                checklist[indexA][1][indexQ].imagesURL = imageList; //define a lista em uma pergunta
-                              } catch (error) {
-                                console.log(indexA + "-" + indexQ)
-                                console.log('Erro ao obter url da imagem' + error)
-                              }
-                              imagesCompleted = imagesCompleted + 1 // conta quantos imagens foi obtida a url
-                              // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                              console.log(imagesCompleted + ' / ' + qtdImages); // mostra o status de imagens concluida vs pendentes
-                              setLoadingImages(imagesCompleted + ' / ' + qtdImages)
-                              if (imagesCompleted === qtdImages) { // retorna como concluido apenas quantos os valores estiverem ok
-                                resolve()
-                              }
-                            }).catch(err => {
-                              console.log("Erro ao obter URL" + err)
+                          }).catch((err) => {
+                            console.log("Erro no upload: " + err)
+                          })
+                        })
+  
+                        uploadCompleted.then(async () => {
+                          await firebase.firestore().collection(base)
+                            .doc(index.id)
+                            .update({
+                              checklist: checklist,
                             })
-                        }).catch((err) => {
-                          console.log("Erro no upload: " + err)
+                            .then(() => {
+                              console.log('Completed')
+                              logSistem('A APR foi criada', index.id)
+                              conclusionApr(index.id)
+                            })
+                            .catch((err) => {
+                              console.log(err)
+                            })
                         })
                       })
-
-                      uploadCompleted.then(async () => {
-                        await firebase.firestore().collection(base)
-                          .doc(index.id)
-                          .update({
-                            checklist: checklist,
-                          })
-                          .then(() => {
-                            console.log('Completed')
-                            logSistem('A APR foi criada', index.id)
-                            conclusionApr(index.id)
-                          })
-                          .catch((err) => {
-                            console.log(err)
-                          })
-                      })
-                    })
+                    }
                   }
-                }
-
+  
+                })
               })
+  
+              if (containsImage === false) {
+                await firebase.firestore().collection(base)
+                  .doc(index.id)
+                  .update({
+                    checklist: checklist,
+                  })
+                  .then(async () => {
+                    console.log('Completed not contains Image')
+                    logSistem('A APR foi criado', index.id)
+                    conclusionApr(index.id)
+                  })
+                  .catch((err) => {
+                    console.log('Erro ao inserir APR (sem imagens)')
+                  })
+              }
+  
+              if (id_assign !== undefined) {
+                updateAssignments();
+              }
+  
             })
-
-            if (containsImage === false) {
-              await firebase.firestore().collection(base)
-                .doc(index.id)
-                .update({
-                  checklist: checklist,
-                })
-                .then(async () => {
-                  console.log('Completed not contains Image')
-                  logSistem('A APR foi criado', index.id)
-                  conclusionApr(index.id)
-                })
-                .catch((err) => {
-                  console.log('Erro ao inserir APR (sem imagens)')
-                })
-            }
-
-            if (id_assign !== undefined) {
-              updateAssignments();
-            }
-
-          })
-          .catch(err => [
-            console.log(err)
-          ])
+            .catch(err => [
+              console.log(err)
+            ])
+        }).catch(err => console.log('Erro ao inserir informações no SITE: ' + err))
       })
       .catch(err => console.log('Erro ao inserir ID: ' + err))
 
@@ -449,7 +466,7 @@ export default function New() {
         // verifica se contem imagem
         if (question.images && question.images.length > 0) {
           containsImage = true
-        } 
+        }
       })
     })
 
@@ -679,7 +696,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(questions)} />
+          <FiClipboard size={25} onClick={() => setSite(id, motivoAPR)} />
         </Title>
 
         <div className='container'>
@@ -694,7 +711,16 @@ export default function New() {
               <li><span>Cidade: </span>{siteInfo.Cidade}</li>
               <li><span>Latitude: </span>{siteInfo.Latitude}</li>
               <li><span>Longitude: </span>{siteInfo.Longitude}</li>
-              <li><span>Ultima APR: </span>{lastAPR}</li>
+            </ul>
+          </div>
+        </div>
+        <div className='container'>
+          <div className='siteInfo'>
+            <ul>
+              <li><span>Ultima APR: </span>{lastAPR.data}</li>
+            </ul>
+            <ul>
+              <li><span>Ultima APR Motivo: </span>{lastAPR.motivo}</li>
             </ul>
           </div>
         </div>

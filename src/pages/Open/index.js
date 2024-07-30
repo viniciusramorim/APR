@@ -39,7 +39,6 @@ export default function Open() {
   const [detail, setDetail] = useState();
   const [area, setArea] = useState();
 
-  
   const formatarValor = (valor) => {
     // Verifica se o valor é um número
     if (typeof valor !== 'number') {
@@ -66,9 +65,9 @@ export default function Open() {
             if (doc.resp === '') {
               delete apr.checklist[indexA][1][indexQ]
             }
-            doc.imagesURL.forEach(async (imgs, indexI) => {
-              apr.checklist[indexA][1][indexQ].imagesURL[indexI].url = await getBase64ImageFromURL(imgs.url)
-            })
+            // doc.imagesURL.forEach(async (imgs, indexI) => {
+            //   apr.checklist[indexA][1][indexQ].imagesURL[indexI].url = await getBase64ImageFromURL(imgs.url)
+            // })
           })
         })
 
@@ -192,6 +191,9 @@ export default function Open() {
         fontSize: 18
       })
       area[1].forEach((doc, indexQ) => {
+        doc.imagesURL.forEach(async (imgs, indexI) => {
+          apr.checklist[indexA][1][indexQ].imagesURL[indexI].url = await getBase64ImageFromURL(imgs.url)
+        })
         pdf.content.push({
           text: `${doc.questionId} - ${doc.question}`,
           margin: [0, 20, 0, 0]
@@ -312,7 +314,7 @@ export default function Open() {
   async function updateMotivoAPR(e, id) {
     e.preventDefault()
     let confirm = window.confirm("Deseja realmente alterar o motivo da APR?");
-    if (confirm === false) return 
+    if (confirm === false) return
     await firebase.firestore().collection(base)
       .doc(id)
       .update({
@@ -337,7 +339,7 @@ export default function Open() {
       <div className="content">
         <div id='exportContent'>
           <Title name="APR Digital">
-            <FiClipboard size={25} onClick={() => console.log(apr)} />
+            <FiClipboard size={25} onClick={() => console.log()} />
           </Title>
 
           {loadApr ? (
@@ -368,7 +370,7 @@ export default function Open() {
                         </select>
                       ) : (
                         apr.motivo_apr
-                      )} 
+                      )}
                     </li>
                     <li><span>TIPO DE SITE: </span>{apr.site_id.tipoSite}</li>
                   </ul>
