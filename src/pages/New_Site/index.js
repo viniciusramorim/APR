@@ -132,6 +132,7 @@ export default function New_Site() {
             NonStop: item[17],
             CtCritica: item[18],
             ErbCritica: item[19],
+            MapaCalor: item[21],
             lastUpdate: new Date(),
             userLastUpdate: user.nome
           }]
