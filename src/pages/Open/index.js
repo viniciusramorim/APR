@@ -360,7 +360,7 @@ export default function Open() {
                   <ul>
                     <li><span>STATUS: </span>{apr.status}</li>
                     <li><span>MOTIVO: </span>
-                      {(user.nivel === 'administrador' || user.nivel === 'revisor') && apr.status === 'Em Aberto' ? (
+                      {user.nivel === 'administrador' || (user.nivel === 'revisor' && apr.status === 'Em Aberto') ? (
                         <select value={apr.motivo_apr} onChange={e => updateMotivoAPR(e, id)}>
                           <option value={'Mapa de Calor'}>Mapa de Calor</option>
                           <option value={'Retrofit'}>Retrofit</option>
