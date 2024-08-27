@@ -46,6 +46,7 @@ export default function Dashboard() {
     query = user.nivel === 'aplicador' && user.area !== 'oem' ? query.where('user_id.uid', '==', user.uid) : query
     query = user.nivel === 'supervisor' ? query.where('site_id.Estado', 'in', regional) : query
     query = user.nivel === 'revisor' ? query.where('site_id.Estado', 'in', regional) : query
+    query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR MOVEL', 'AUDIT PGR FIXA']) : query
     query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area', 'Revisado']) : query
 
     query = filterID !== '' ? query.where('apr_id', '==', parseInt(filterID)) : query
@@ -54,8 +55,6 @@ export default function Dashboard() {
     query = filterTipoSite !== '' ? query.where('site_id.tipoSite', '==', filterTipoSite) : query
     query = filterStatus !== '' ? query.where('status', '==', filterStatus) : query
     query = filterNome !== '' ? query.where('user_id.nome', '==', filterNome) : query
-
-    console.log(filterID)
 
     let lista = [];
 

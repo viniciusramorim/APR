@@ -45,13 +45,22 @@ export default function Header() {
             </>
           )}
 
-          {(user.area === 'patrimonial') && (
+          {(user.area === 'patrimonial' && user.nivel !== 'auditor') && (
             <>
-              <Link className={'first-patrimonial'} to="/new" >
+              <Link className={'first-patrimonial'} to="/new">
                 <MdPlayCircleFilled color="#fff" size={21} />
                 Aplicar APR
               </Link>
 
+              <Link to="/dashboard" >
+                <FiHome size={21} />
+                APRs
+              </Link>
+            </>
+          )}
+
+          {(user.nivel === 'auditor') && (
+            <>
               <Link to="/dashboard" >
                 <FiHome size={21} />
                 APRs
@@ -88,15 +97,11 @@ export default function Header() {
           )}
 
           {user.nivel === 'revisor' && (
-            <>
-
-              <Link to="/reports" >
-                <FiFileText size={21} />
-                Relatorio
-              </Link>
-            </>
+            <Link to="/reports" >
+              <FiFileText size={21} />
+              Relatorio
+            </Link>
           )}
-
 
           <Link to="/profile" >
             <FiUser size={21} />

@@ -173,6 +173,7 @@ export default function ProfileADM() {
                         <option value={'supervisor'}>Supervisor</option>
                         <option value={'aplicador'}>Aplicador</option>
                         <option value={'revisor'}>Revisor</option>
+                        <option value={'auditor'}>Auditor</option>
                       </select>
                       <select key={'regional-' + index} value={item.regional !== undefined ? item.regional : "0"} onChange={(e) => updateRegional(item.id_user, e.target.value)} style={{ marginBottom: '0px', width: '100%' }}>
                         <option disabled value={'0'}>Regional</option>
