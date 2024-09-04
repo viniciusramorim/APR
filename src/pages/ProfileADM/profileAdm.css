@@ -88,11 +88,8 @@ ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul li button{
     align-items: stretch
 }
 
-.table-users table tr {
-  display:flex;
-  flex-direction:column;
-  align-content: space-between;
-  align-items: flex-start;
+.table-usuarios .css-quj9j6-MuiTable-root {
+  min-width: 100%;
 }
 
 .table-users table tr td:before {
@@ -100,6 +97,6 @@ ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul li button{
 }
 
 .table-usuarios .level-users {
-  width: 260px;
+  width: 100%;
 }
 }

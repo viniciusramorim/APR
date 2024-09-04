@@ -26,7 +26,9 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        style={{color:'#fff', borderWidth:'1px', borderBlockStyle:'solid', borderRadius:'15px', marginLeft:'15px', backgroundColor:'#380054de'}}
       >
+        <p>Menu</p>
         <MenuOutlined />
       </Button>
       <Menu
@@ -69,7 +71,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         {user.nivel === "administrador" && (
           <Box>
             <MenuItem onClick={handleClose}>
-              <Link to="/new_site">
+              <Link to="/new-site">
                 <a id="label-menu">Novo Site</a>
               </Link>
             </MenuItem>

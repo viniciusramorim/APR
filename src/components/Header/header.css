@@ -1,7 +1,7 @@
 .sidebar {
   margin: 15px 5px;
   padding: 0;
-  width: 178px;
+  width: 50px;
   background-color: #fff;
   box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px;  position: fixed;
   height: 96.5%;
@@ -95,8 +95,8 @@
 }
 
 .content {
-  max-width:96%;
-  width: 100%;
+  max-width: 100%;
+  width: 96%;
   position: absolute;
   right: 0px;
   padding: 1px 16px;
@@ -138,12 +138,20 @@
 }
 
 @media screen and (max-width: 700px) {
-
-  #sidebar-menu .css-1pqm26d-MuiAvatar-img {
-    width:50%;
+  .sidebar div {
+    padding: 15px;
+    background:#f8f8f8c2;
   }
+
+  div#logo-apr {
+    display: none;
+}
   .show .MuiButtonBase-root {
     display: block;
+  }
+  .content {
+    max-width: 100%;
+    width: 100%;
   }
   .sidebar {
     width: 97%;
