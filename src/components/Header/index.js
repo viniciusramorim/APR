@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../contexts/auth";
 import logoRonda from "../../assets/logoRondaDigital-removebg.png";
 import logo from "../../assets/logoaprdigital-removebg.png";
+import logoMobile from "../../assets/logoaprdigital-removebg-mobile.png"
 
 import { Link } from "react-router-dom";
 import {
@@ -36,7 +37,7 @@ export default function Header() {
     document.getElementById("sidebar-menu").style.width =
       width >= 170 ? "50px" : "170px";
     document.getElementById("logo-apr").style.width =
-      width >= 170 ? "120px" : "170px";
+      width >= 170 ? "50px" : "170px";
 
 
     for (let i of queryObj) {
