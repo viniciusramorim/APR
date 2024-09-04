@@ -278,7 +278,7 @@ export default function New_Site() {
           <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
         </Title>
 
-        {user.uid === 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2' && (
+        {user.uid === 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' && (
           <div className='container inputfile'>
             <label id='arquive'>Selecionar arquivo
               <input id='inputXLSX' type='file' accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => handleFileSelect(e)} />
