@@ -26,7 +26,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
-        style={{color:'#fff', borderWidth:'1px', borderBlockStyle:'solid', borderRadius:'15px', marginLeft:'15px', backgroundColor:'#380054de'}}
+        style={{color:'#fff'}}
       >
         <p>Menu</p>
         <MenuOutlined />
