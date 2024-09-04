@@ -389,3 +389,8 @@ input[class="no"]:focus+svg {
     height: auto;
   }
 
+/* Busca de sites */
+
+div#list-sites ul li {
+    padding: 15px 0px;
+}

@@ -70,14 +70,14 @@
     padding: .7em;
     border: 0;
     border-radius: 5px;
-    max-width: 600px;
+    max-width: 100%;
 }
 
 .info-site a{
     padding: .7em;
-    max-width: 600px;
+    max-width: 98%;
     padding: 0.8em;
-    margin-top: 1em;
+    margin: 0 auto;
     background-color: #8a42e7;
     border-radius: 0.5em;
     width: 100%;
@@ -162,7 +162,7 @@
 .container-atribuir a {
     padding: 0.8em;
     margin-bottom: 1em;
-    max-width: 600px;
+    max-width: 98%;
     width: 100%;
     text-align: center;
     background-color: #8a42e7;
@@ -179,7 +179,7 @@
     padding: .7em;
     border: 0;
     border-radius: 5px;
-    max-width: 600px;
+    max-width: 98%;
 }
 
 .container-atribuir label {
@@ -235,12 +235,12 @@
 }
 
 .listsites ul{
-    max-width: 600px;
+    max-width: 100%;
     width: 100%;
 }
 
 .listsites li{
-    padding: 0.2em;
+    padding: 15px 9pxem;
     border-bottom: 1px solid #6e0dec;
     border-radius: 5px;
 }

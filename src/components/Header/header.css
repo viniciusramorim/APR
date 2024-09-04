@@ -2,25 +2,21 @@
   margin: 15px 5px;
   padding: 0;
   width: 178px;
-  background-color: #f8f8f8a4;
-  position: fixed;
+  background-color: #fff;
+  box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px;  position: fixed;
   height: 96.5%;
   border-radius: 8px;
   overflow: auto;
+  z-index: 999;
 }
 
 .sidebar div {
   padding-top: 15px;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  height: 140px;
-  background-image: url('../../assets/FundoHeader.png');
+  height: fit-content;
+  width:100%;
+  background:#380054e8;
 }
 
-.ronda div {
-  background-color: #182b72;
-}
 
 .info-user {
   display: flex;
@@ -49,7 +45,7 @@
   height: 40%;
   width: 90%;
   margin-left: 10px;
-  /* filter: brightness(100); */
+  filter: brightness(100);
   margin-bottom: 0.9em;
 }
 
@@ -99,7 +95,10 @@
 }
 
 .content {
-  margin-left: 178px;
+  max-width:96%;
+  width: 100%;
+  position: absolute;
+  right: 0px;
   padding: 1px 16px;
 
 }
@@ -129,14 +128,26 @@
   transform: scale(1.05);
 }
 
-.menuButton {
+/* avatar */
+.css-1rl2a4t-MuiAvatar-root {
+  border-radius:0px
+}
+
+.show .MuiButtonBase-root {
   display: none;
 }
 
 @media screen and (max-width: 700px) {
+
+  #sidebar-menu .css-1pqm26d-MuiAvatar-img {
+    width:50%;
+  }
+  .show .MuiButtonBase-root {
+    display: block;
+  }
   .sidebar {
-    width: 95%;
-    height: auto;
+    width: 97%;
+    height: 100%;
     position: relative;
     background-color: #380054de;
     color: #f8f8f8;
@@ -154,9 +165,9 @@
     float: left;
   }
 
-  .sidebar div {
-    display: none;
-  }
+  #sidebar-menu > #menu {
+    display:none;
+}
 
   .sidebar a svg {
     display: none;

@@ -33,119 +33,31 @@ th {
   color: #f8f8f8 !important;
 }
 
-.grupoCard {
-  display: flex;
-  width: -webkit-fill-available;
-  color: #f8f8f8;
+/* background kpis */
+.apr-digital .MuiGrid-root.MuiGrid-container.css-fitckq-MuiGrid-root {
+  padding: 7px 0px;
   border-radius: 8px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-around;
+  background:#f8f8f8a4!important
 }
 
-
-.grupoCard span {
-  background-color: #380054e8;
-  padding: 0.8em;
+.apr-digital .container.filter{
   display: flex;
   flex-direction: column;
-  text-align: center;
-  width: -webkit-fill-available;
-  border-radius: 8px;
-  margin-right: 0.8em;
-
-}
-
-.filtrosAPRs {
-  display: flex;
+  align-items: stretch;
   flex-wrap: wrap;
   margin-right: 10px;
   padding-left: 7px;
-  background-color: #38005459;
   border-radius: 8px;
 }
 
-.filter {
-  justify-content: space-around;
+@media (max-width:767px) {
+  .container.filter .filtrosAPRs .MuiGrid-root{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    max-width:100%;
+  }  
 }
-
-.filter a {
-  background-color: #51006cf5;
-  color: white;
-  padding: 0.7em;
-  margin-right: 0.5em;
-  margin-bottom: 0.5em;
-  border-radius: 8px;
-
-}
-
-.filter a:hover {
-  background-color: #5c13bb;
-  cursor: pointer;
-}
-
-.filter input {
-  border: 1px solid #6e0dec4d;
-  padding: 0.5em;
-  margin-right: 0.5em;
-  margin-bottom: 1.2em;
-  border-radius: 8px;
-  display: none;
-}
-
-.filter select {
-  border: 1px solid #6e0dec4d;
-  padding: 0.5em;
-  margin-right: 0.5em;
-  margin-bottom: 1.2em;
-  border-radius: 8px;
-  display: none;
-
-}
-
-.filter input:focus {
-  border: 1px solid #6e0dec;
-}
-
-.filter select:focus {
-  border: 1px solid #6e0dec;
-}
-
-.container.filter {
-  background-color: #f8f8f8a4;
-}
-
-.container.indicadores-aprs {
-  background-color: #f8f8f8a4;
-
-}
-
-.filter label {
-  width: 100%;
-  padding: 0.7em;
-  font-weight: bold;
-  background-size: contain;
-  border-radius: 8px;
-  color: #f8f8f8;
-
-}
-
-.filter span {
-  width: 100%;
-}
-
-.filter i {
-  text-align: center;
-  font-style: normal;
-}
-
-.filter i:hover {
-  color: rgb(131, 7, 148);
-  cursor: pointer;
-}
-
-
-
 
 table caption {
   font-size: 1.5em;
@@ -270,11 +182,6 @@ table td .badge {
     flex-direction: column;
   }
 
-  .grupoCard span {
-    margin: 5px;
-    align-items: center;
-    font-size: 12px;
-  }
 
   .filtrosAPRs {
     display: flex;

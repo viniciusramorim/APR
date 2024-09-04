@@ -1,115 +1,147 @@
+import "./header.css";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/auth";
+import logoRonda from "../../assets/logoRondaDigital-removebg.png";
+import logo from "../../assets/logoaprdigital-removebg.png";
+import { MdPlayCircleFilled } from "react-icons/md";
 
-import { useContext } from 'react';
-import './header.css';
-import { AuthContext } from '../../contexts/auth';
-
-import { Link } from 'react-router-dom';
-import { FiHome, FiUser, FiMapPin, FiFileText, FiUsers } from "react-icons/fi";
-import { MdPlayCircleFilled, MdOutlineAssignmentLate, MdMenu } from "react-icons/md";
-import logo from '../../assets/logoaprdigital-removebg.png';
-import logoRonda from '../../assets/logoRondaDigital-removebg.png';
+import { Link } from "react-router-dom";
+import {
+  FiHome,
+  FiUsers,
+  FiLogOut,
+  FiUser,
+  FiLock,
+  FiMapPin,
+  FiFileText,
+  
+} from "react-icons/fi";
+import { Avatar, Tooltip } from "@mui/material";
+import MenuMobile from "./MenuMobile";
 
 export default function Header() {
-  const { user } = useContext(AuthContext);
+  const { user, signOut, redefinirPassword } = useContext(AuthContext);
+
+  function expandMenu() {
+    let element = document.getElementById("sidebar-menu");
+    let width = element.offsetWidth;
+    let queryObj = document.querySelectorAll("#label-menu");
+
+    document.getElementById("sidebar-menu").style.width =
+      width >= 170 ? "50px" : "170px";
+    document.getElementById("logo-apr").style.width =
+      width >= 170 ? "120px" : "170px";
+
+    for (let i of queryObj) {
+      i.hidden = width >= 170 ? true : false;
+    }
+  }
 
   return (
-    <div className={"sidebar " + user.area}>
+    <div id="sidebar-menu" className="sidebar">
+      <Avatar id={'logo-apr'} variant="rounded" src={logo} onClick={() => expandMenu()}>
+      </Avatar>
+      <MenuMobile
+        className="menu-mobile"
+        user={user}
+        signOut={signOut}
+        redefinirPassword={redefinirPassword}
+      />
 
-      <div className='info-user' data-color={user.area}>
-
-        {user.area === 'ronda' && (
-          <img src={logoRonda} alt="Logo da Vivo Ronda Digital" />
+      <section id="menu">
+        {user.area === "ronda" && (
+          <>
+            <Tooltip title="Aplicar Ronda" placement="right" arrow>
+              <Link to="/newronda">
+                <MdPlayCircleFilled color="#000" size={20} />
+                <i id="label-menu">Aplicar Ronda</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Rondas Realizadas" placement="right" arrow>
+              <Link to="/dashboardrondas">
+                <FiHome color="#000" size={20} />
+                <i id="label-menu">Rondas Realizadas</i>
+              </Link>
+            </Tooltip>
+          </>
         )}
-        {(user.area === 'patrimonial' || user.area === 'oem') && (
-          <img src={logo} alt="Logo da Vivo APR Digital" />
+
+        {(user.area === "patrimonial" || user.area === "oem") && (
+          <>
+            <Tooltip title="Aplicar APR" placement="right" arrow>
+              <Link to="/new">
+                <MdPlayCircleFilled color="#000" size={20} />
+                <i id="label-menu">Aplicar APR</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="APRs" placement="right" arrow>
+              <Link to="/dashboard">
+                <FiHome color="#000" size={20} />
+                <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
+          </>
         )}
-        <span>{user.nome}</span>
-        <i>{user.area === 'patrimonial' ? 'empresarial' : user.area}</i>
-      </div>
 
-      <span className="dropdown">
-        <span className='menuButton'><MdMenu size={25} /> Menu</span>
-
-        <p className='dropdown-content'>
-          {user.area === 'ronda' && (
-            <>
-              <Link className={'firs-ronda'} to="/newronda" >
-                <MdPlayCircleFilled color="#fff" size={26} />
-                Aplicar Ronda
+        {user.nivel === "administrador" && (
+          <>
+            <Tooltip title="Novo Site" placement="right" arrow>
+              <Link to="/new_site">
+                <FiMapPin color="#000" size={20} />
+                <i id="label-menu">Novo Site</i>
               </Link>
-
-              <Link to="/dashboardrondas" >
-                <FiHome size={24} />
-                Rondas Realizadas
+            </Tooltip>
+            <Tooltip title="Gerenciar Perfis" placement="right" arrow>
+              <Link to="/profileadm">
+                <FiUsers color="#000" size={20} />
+                <i id="label-menu">Gerenciar Perfis</i>
               </Link>
-            </>
-          )}
-
-          {(user.area === 'patrimonial' && user.nivel !== 'auditor') && (
-            <>
-              <Link className={'first-patrimonial'} to="/new">
-                <MdPlayCircleFilled color="#fff" size={21} />
-                Aplicar APR
+            </Tooltip>
+            <Tooltip title="Relatório" placement="right" arrow>
+              <Link to="/reports">
+                <FiFileText color="#000" size={20} />
+                <i id="label-menu">Relatório</i>
               </Link>
-
-              <Link to="/dashboard" >
-                <FiHome size={21} />
-                APRs
+            </Tooltip>
+            <Tooltip title="Registrar Usuário" placement="right" arrow>
+              <Link to="/register">
+                <FiUsers color="#000" size={20} />
+                <i id="label-menu">Registrar Usuário</i>
               </Link>
-            </>
-          )}
+            </Tooltip>
+          </>
+        )}
 
-          {(user.nivel === 'auditor') && (
-            <>
-              <Link to="/dashboard" >
-                <FiHome size={21} />
-                APRs
-              </Link>
-            </>
-          )}
-
-          {(user.area === 'oem') && (
-            <Link to="/dashboard" >
-              <FiHome size={21} />
-              APRs
+        {user.nivel === "revisor" && (
+          <Tooltip title="Relatório" placement="right" arrow>
+            <Link to="/reports">
+              <FiFileText color="#000" size={20} />
+              <i id="label-menu">Relatório</i>
             </Link>
-          )}
+          </Tooltip>
+        )}
 
-          {user.nivel === 'administrador' && (
-            <>
-              <Link to="/new_site" >
-                <FiMapPin size={21} />
-                Novo Site
-              </Link>
-              <Link to="/profileadm" >
-                <FiUsers size={21} />
-                Gerenciar Perfis
-              </Link>
-              <Link to="/reports" >
-                <FiFileText size={21} />
-                Relatorio
-              </Link>
-              <Link to="/register" >
-                <FiUsers size={21} />
-                Registrar Usuario
-              </Link>
-            </>
-          )}
-
-          {user.nivel === 'revisor' && (
-            <Link to="/reports" >
-              <FiFileText size={21} />
-              Relatorio
-            </Link>
-          )}
-
-          <Link to="/profile" >
-            <FiUser size={21} />
-            Meu Perfil
+        <Tooltip title="Meu Perfil" placement="right" arrow>
+          <Link to="/profile">
+            <FiUser color="#000" size={20} />
+            <i id="label-menu">Meu Perfil</i>
           </Link>
-        </p>
-      </span>
+        </Tooltip>
 
+        <Tooltip title="Trocar Senha" placement="right" arrow>
+          <a onClick={() => redefinirPassword()}>
+            <FiLock color="#000" size={20} />
+            <i id="label-menu">Trocar Senha</i>
+          </a>
+        </Tooltip>
+
+        <Tooltip title="Sair" placement="right" arrow>
+          <a onClick={() => signOut()}>
+            <FiLogOut color="#000" size={20} />
+            <i id="label-menu">Sair</i>
+          </a>
+        </Tooltip>
+      </section>
     </div>
-  )
+  );
 }
