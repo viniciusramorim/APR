@@ -69,12 +69,15 @@ export default function New_Site() {
             geohash: hash === undefined ? '' : hash,
             tipoSite: item[14] === undefined ? '' : item[14],
             Detentora: item[15] === undefined ? '' : item[15],
+            lastUpdate: new Date(),
+            userLastUpdate: user.nome
           }]
 
           await firebase.firestore().collection('sites')
             .add(doc[0])
             .then(() => {
               console.log('Site cadastrado com sucesso ! - ' + index + "/" + file.length);
+              logSistem(`CADASTRADO-SITES-XLSX`, item[0]);
             })
         })
       })
@@ -97,6 +100,7 @@ export default function New_Site() {
             .delete()
             .then(() => {
               console.log('Site removido com sucesso ! - ' + index + "/" + file.length - 1);
+              logSistem(`REMOVIDO-SITES-XLSX`, item[0]);
             })
 
         })
@@ -142,6 +146,7 @@ export default function New_Site() {
             .update(doc[0])
             .then(() => {
               console.log('Site atualizado com sucesso ! - ' + index + "/" + file.length);
+              logSistem(`UPDATE-SITES-XLSX`, item[0]);
             })
             .catch(err => {
               console.log('Site não atualizado ! - ' + index + "/" + file.length);
@@ -278,7 +283,7 @@ export default function New_Site() {
           <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
         </Title>
 
-        {user.uid === 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' && (
+        {user.uid === ('wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2') && (
           <div className='container inputfile'>
             <label id='arquive'>Selecionar arquivo
               <input id='inputXLSX' type='file' accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => handleFileSelect(e)} />
@@ -291,47 +296,49 @@ export default function New_Site() {
           </div>
         )}
 
-        <Grid container className='container'>
-          <TableContainer component={Paper}>
-            <Table size="small" aria-label="a dense table">
-              <TableHead>
-                <TableRow style={{ color: '#FFF' }}>
-                  <TableCell align="center">Sigla</TableCell>
-                  <TableCell align="center">UF</TableCell>
-                  <TableCell align="center">Municipio</TableCell>
-                  <TableCell align="center">Lat</TableCell>
-                  <TableCell align="center">Lng</TableCell>
-                  <TableCell align="center">Data</TableCell>
-                  <TableCell align="center"></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sitesAprovacao.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell align="center">{row.Sigla}</TableCell>
-                    <TableCell align="center">{row.Estado}</TableCell>
-                    <TableCell align="center">{row.Cidade}</TableCell>
-                    <TableCell align="center">{row.Latitude}</TableCell>
-                    <TableCell align="center">{row.Longitude}</TableCell>
-                    <TableCell align="center">{format(row.created.toDate(), "dd/MM/yyyy HH:mm")}</TableCell>
-                    <TableCell align="center">
-                      <ModalInfoSite
-                        site={row}
-                        loadSites={loadSitesAprovacao}
-                        logSistem={logSistem}
-                        user={user}
-                      >
-                      </ModalInfoSite>
-                    </TableCell>
+        {user.uid === ('wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' || 'WN0EtV44xnV0V87n5wBBXT87QXI2' || '5WBRPLgGmzUSLzrthSs9e9qnSnb2') && (
+          <Grid container className='container'>
+            <TableContainer component={Paper}>
+              <Table size="small" aria-label="a dense table">
+                <TableHead>
+                  <TableRow style={{ color: '#FFF' }}>
+                    <TableCell align="center">Sigla</TableCell>
+                    <TableCell align="center">UF</TableCell>
+                    <TableCell align="center">Municipio</TableCell>
+                    <TableCell align="center">Lat</TableCell>
+                    <TableCell align="center">Lng</TableCell>
+                    <TableCell align="center">Data</TableCell>
+                    <TableCell align="center"></TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
+                </TableHead>
+                <TableBody>
+                  {sitesAprovacao.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell align="center">{row.Sigla}</TableCell>
+                      <TableCell align="center">{row.Estado}</TableCell>
+                      <TableCell align="center">{row.Cidade}</TableCell>
+                      <TableCell align="center">{row.Latitude}</TableCell>
+                      <TableCell align="center">{row.Longitude}</TableCell>
+                      <TableCell align="center">{format(row.created.toDate(), "dd/MM/yyyy HH:mm")}</TableCell>
+                      <TableCell align="center">
+                        <ModalInfoSite
+                          site={row}
+                          loadSites={loadSitesAprovacao}
+                          logSistem={logSistem}
+                          user={user}
+                        >
+                        </ModalInfoSite>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+        )}
       </div>
     </div>
   )

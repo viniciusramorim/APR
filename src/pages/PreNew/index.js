@@ -15,6 +15,7 @@ import './prenew.css'
 import ModalNovoSite from '../../components/Modal_NovoSite';
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import { format } from 'date-fns';
+import ModalLog from '../../components/Modal_Logs';
 
 export default function PreNew() {
 
@@ -314,6 +315,7 @@ export default function PreNew() {
                                                     <input value={newLng} onChange={(e) => setNewLng(e.target.value)}></input>
                                                 </td>
                                                 <td data-label=""><button onClick={() => salvarAlterSite()}>Salvar Alteração</button></td>
+                                                <ModalLog chamadoId={siteSelect[0].id} />
                                             </>
                                         ) : (
                                             <>
