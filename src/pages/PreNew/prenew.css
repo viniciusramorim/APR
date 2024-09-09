@@ -250,3 +250,41 @@
     color: white;
     cursor: pointer;
 }
+
+/* new page */
+
+.container.content-apr {
+    flex-direction: column;
+    gap:5px
+}
+
+.site-item-content {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0px;
+    min-width:100%;
+    width: fit-content;
+    border-bottom-style:solid;
+    border-bottom-width:1px;
+    border-color:#6e0dec;
+    padding:10px px;
+}
+
+.site-item-content p {
+    padding: 0px 10px
+}
+
+.site-item-content:hover {
+    background:#6e0dec;
+    transition:0.2s ease;
+    color:#fff;
+    cursor:pointer;
+    border-radius:8px;
+}
+
+p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}

@@ -1,9 +1,9 @@
+import "./prenew.css";
 import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
 import { FiClipboard } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
@@ -22,7 +22,7 @@ import {
 import { format } from "date-fns";
 
 export default function PreNew() {
-  const { user } = useContext(AuthContext);
+  const [user, setUser] = useState(null);
   const history = useHistory();
 
   const [site, setSite] = useState([]);
@@ -41,8 +41,7 @@ export default function PreNew() {
 
   // Paginação
   const [page, setPage] = useState(0);
-  const [resultsPerPage, setResultsPerPage] = useState(5);
-
+  const [resultsPerPage, setResultsPerPage] = useState(10);
   const [showPostModal, setShowPostModal] = useState(false);
   const [selectedSite, setSelectedSite] = useState(null);
 
@@ -99,39 +98,39 @@ export default function PreNew() {
     setSelectedAplicador(e.target.value);
   }
 
-  async function atribuir() {
-    if (selectedAplicador !== "0") {
-      let aplicadorEmailAndName = [];
-      aplicador
-        .filter((user) => user.uid === selectedAplicador)
-        .map(
-          (filtered) =>
-            (aplicadorEmailAndName = {
-              email: filtered.email,
-              nome: filtered.nome,
-            })
-        );
+  // async function atribuir() {
+  //   if (selectedAplicador !== "0") {
+  //     let aplicadorEmailAndName = [];
+  //     aplicador
+  //       .filter((user) => user.uid === selectedAplicador)
+  //       .map(
+  //         (filtered) =>
+  //           (aplicadorEmailAndName = {
+  //             email: filtered.email,
+  //             nome: filtered.nome,
+  //           })
+  //       );
 
-      await firebase
-        .firestore()
-        .collection("atribuicoes")
-        .add({
-          solicitante: user.uid,
-          atribuido_id: selectedAplicador,
-          created: new Date(),
-          link: "/new/" + siteSelect[0].id,
-          status: "Solicitado",
-        })
-        .then(() => {
-          toast.success("APR Atribuida");
-        })
-        .catch((err) => {
-          console.log("ops deu um erro: " + err);
-        });
-    } else {
-      toast.error("Você precisa selecionar um Aplicador e(ou) APR");
-    }
-  }
+  //     await firebase
+  //       .firestore()
+  //       .collection("atribuicoes")
+  //       .add({
+  //         solicitante: user.uid,
+  //         atribuido_id: selectedAplicador,
+  //         created: new Date(),
+  //         link: "/new/" + siteSelect[0].id,
+  //         status: "Solicitado",
+  //       })
+  //       .then(() => {
+  //         toast.success("APR Atribuida");
+  //       })
+  //       .catch((err) => {
+  //         console.log("ops deu um erro: " + err);
+  //       });
+  //   } else {
+  //     toast.error("Você precisa selecionar um Aplicador e(ou) APR");
+  //   }
+  // }
 
   function togglePostModal() {
     setShowPostModal(!showPostModal); // Trocando de true pra false
@@ -194,6 +193,7 @@ export default function PreNew() {
 
   function handlePaginationChange(event) {
     setResultsPerPage(parseInt(event.target.value));
+    setPage(0); 
   }
 
   function handlePageChange(newPage) {
@@ -214,7 +214,7 @@ export default function PreNew() {
     <div>
       <Header />
       <div className="content">
-        <Title name="Cadastro de Sites">
+        <Title name="Aplicar APR">
           <FiClipboard size={25} />
         </Title>
         <div className="container">
@@ -232,7 +232,7 @@ export default function PreNew() {
             <Grid item xs={12} md={4}>
               <FormControl
                 variant="outlined"
-                style={{ minWidth: "50%" }}
+                style={{ minWidth: "100%" }}
                 size="small"
               >
                 <InputLabel id="uf-select-label">UF</InputLabel>
@@ -279,36 +279,15 @@ export default function PreNew() {
                 variant="contained"
                 color="primary"
                 onClick={handleSearch}
-                style={{ marginTop: "16px" }}
+                style={{ backgroundColor: "#6e0dec" }}
               >
                 Buscar
               </Button>
-            </Grid>
-          </Grid>
-          <div className="site-list">
-            {/*  */}
-          </div>
-          <Grid container spacing={2} justifyContent="center">
-            <Grid item>
-              <Button
+              <FormControl
                 variant="outlined"
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 0}
+                size="small"
+                style={{ width: "30%", marginLeft: "15px" }}
               >
-                Anterior
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="outlined"
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
-              >
-                Próximo
-              </Button>
-            </Grid>
-            <Grid item>
-              <FormControl variant="outlined" size="small">
                 <InputLabel id="results-per-page-label">
                   Resultados por Página
                 </InputLabel>
@@ -326,6 +305,7 @@ export default function PreNew() {
               </FormControl>
             </Grid>
           </Grid>
+          <div className="site-list">{/*  */}</div>
           {showPostModal && (
             <SiteDetailModal
               open={showPostModal}
@@ -335,24 +315,46 @@ export default function PreNew() {
             />
           )}
         </div>
-        <div className="container content-site">
-        {paginatedSites.map((item) => (
-              <div
-                key={item.id}
-                className="site-item"
-                onClick={() => handleList([item])}
+        <div className="container content-apr">
+          {paginatedSites.map((item) => (
+            <div
+              key={item.id}
+              className="site-item-content"
+              onClick={() => handleList([item])}
+            >
+              <p>
+                <strong> {item.sigla} - {item.nome}</strong> - {item.estado} -  {" "} 
+                {item.cidade}
+              </p>
+            </div>
+          ))}
+          <Grid
+            container
+            spacing={2}
+            justifyContent="right"
+            style={{ marginTop: "10px" }}
+          >
+            <Grid item>
+              <Button
+                variant="outlined"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 0}
+                style={{ borderColor: "#6e0dec" }}
               >
-                <p>
-                  <strong>Sigla:</strong> {item.sigla}
-                </p>
-                <p>
-                  <strong>Nome:</strong> {item.nome}
-                </p>
-                <p>
-                  <strong>Endereço:</strong> {item.endereco}
-                </p>
-              </div>
-            ))}
+                Anterior
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="outlined"
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
+                style={{ borderColor: "#6e0dec", color: "#6e0dec" }}
+              >
+                Próximo
+              </Button>
+            </Grid>
+          </Grid>
         </div>
       </div>
     </div>

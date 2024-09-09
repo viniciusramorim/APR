@@ -71,7 +71,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         {user.nivel === "administrador" && (
           <Box>
             <MenuItem onClick={handleClose}>
-              <Link to="/new-site">
+              <Link to="/new_site">
                 <a id="label-menu">Novo Site</a>
               </Link>
             </MenuItem>
