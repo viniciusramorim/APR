@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import "./prenew.css";
 import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
@@ -21,7 +21,6 @@ import {
   TextField,
 } from "@mui/material";
 import { format } from "date-fns";
-=======
 import { useEffect, useState, useContext } from 'react';
 import * as geofire from 'geofire-common';
 import { FiClipboard } from 'react-icons/fi';
@@ -40,7 +39,6 @@ import ModalNovoSite from '../../components/Modal_NovoSite';
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import { format } from 'date-fns';
 import ModalLog from '../../components/Modal_Logs';
->>>>>>> c374cad92413b3c08623f8784407b5ad5905cb19
 
 export default function PreNew() {
   const [user, setUser] = useState(null);
