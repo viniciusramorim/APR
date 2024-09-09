@@ -21,24 +21,8 @@ import {
   TextField,
 } from "@mui/material";
 import { format } from "date-fns";
-import { useEffect, useState, useContext } from 'react';
-import * as geofire from 'geofire-common';
-import { FiClipboard } from 'react-icons/fi';
-import { toast } from 'react-toastify';
-import { createRoot } from 'react-dom/client';
-import { useHistory } from 'react-router-dom';
-
-import { AuthContext } from '../../contexts/auth';
-import firebase from '../../services/firebaseConnection';
-import Header from '../../components/Header';
-import Title from '../../components/Title';
-import ModalLoading from '../../components/Modal_Loading';
 
 import './prenew.css'
-import ModalNovoSite from '../../components/Modal_NovoSite';
-import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
-import { format } from 'date-fns';
-import ModalLog from '../../components/Modal_Logs';
 
 export default function PreNew() {
   const [user, setUser] = useState(null);
@@ -212,7 +196,7 @@ export default function PreNew() {
 
   function handlePaginationChange(event) {
     setResultsPerPage(parseInt(event.target.value));
-    setPage(0); 
+    setPage(0);
   }
 
   function handlePageChange(newPage) {
@@ -342,7 +326,7 @@ export default function PreNew() {
               onClick={() => handleList([item])}
             >
               <p>
-                <strong> {item.sigla} - {item.nome}</strong> - {item.estado} -  {" "} 
+                <strong> {item.sigla} - {item.nome}</strong> - {item.estado} -  {" "}
                 {item.cidade}
               </p>
             </div>
