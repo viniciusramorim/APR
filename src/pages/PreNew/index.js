@@ -1,25 +1,20 @@
-import "./prenew.css";
-import { useEffect, useState, useContext } from "react";
-import * as geofire from "geofire-common";
-import { FiClipboard } from "react-icons/fi";
-import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
-import { AuthContext } from "../../contexts/auth";
-import firebase from "../../services/firebaseConnection";
-import Header from "../../components/Header";
-import Title from "../../components/Title";
-import ModalLoading from "../../components/Modal_Loading";
-import SiteDetailModal from "../../components/SiteDetailModal";
-import {
-  Button,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
-import { format } from "date-fns";
+import { useEffect, useState, useContext } from 'react';
+import * as geofire from 'geofire-common';
+import { FiClipboard } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import { createRoot } from 'react-dom/client';
+import { useHistory } from 'react-router-dom';
+
+import { AuthContext } from '../../contexts/auth';
+import firebase from '../../services/firebaseConnection';
+import Header from '../../components/Header';
+import Title from '../../components/Title';
+import ModalLoading from '../../components/Modal_Loading';
+
+import './prenew.css'
+import ModalNovoSite from '../../components/Modal_NovoSite';
+import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { format } from 'date-fns';
 
 export default function PreNew() {
   const [user, setUser] = useState(null);
@@ -210,122 +205,152 @@ export default function PreNew() {
     page * resultsPerPage + resultsPerPage
   );
 
-  return (
-    <div>
-      <Header />
-      <div className="content">
-        <Title name="Aplicar APR">
-          <FiClipboard size={25} />
-        </Title>
-        <div className="container">
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                fullWidth
-                label="Sigla do Site"
-                variant="outlined"
-                value={sigla}
-                onChange={(e) => setSigla(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl
-                variant="outlined"
-                style={{ minWidth: "100%" }}
-                size="small"
-              >
-                <InputLabel id="uf-select-label">UF</InputLabel>
-                <Select
-                  labelId="uf-select-label"
-                  id="uf-select"
-                  value={uf}
-                  onChange={(e) => setUf(e.target.value)}
-                  label="UF"
-                >
-                  <MenuItem value="Todos">Todos</MenuItem>
-                  <MenuItem value="AC">AC</MenuItem>
-                  <MenuItem value="AL">AL</MenuItem>
-                  <MenuItem value="AM">AM</MenuItem>
-                  <MenuItem value="AP">AP</MenuItem>
-                  <MenuItem value="BA">BA</MenuItem>
-                  <MenuItem value="CE">CE</MenuItem>
-                  <MenuItem value="DF">DF</MenuItem>
-                  <MenuItem value="ES">ES</MenuItem>
-                  <MenuItem value="GO">GO</MenuItem>
-                  <MenuItem value="MA">MA</MenuItem>
-                  <MenuItem value="MG">MG</MenuItem>
-                  <MenuItem value="MS">MS</MenuItem>
-                  <MenuItem value="MT">MT</MenuItem>
-                  <MenuItem value="PA">PA</MenuItem>
-                  <MenuItem value="PB">PB</MenuItem>
-                  <MenuItem value="PE">PE</MenuItem>
-                  <MenuItem value="PI">PI</MenuItem>
-                  <MenuItem value="PR">PR</MenuItem>
-                  <MenuItem value="RJ">RJ</MenuItem>
-                  <MenuItem value="RN">RN</MenuItem>
-                  <MenuItem value="RO">RO</MenuItem>
-                  <MenuItem value="RR">RR</MenuItem>
-                  <MenuItem value="RS">RS</MenuItem>
-                  <MenuItem value="SC">SC</MenuItem>
-                  <MenuItem value="SE">SE</MenuItem>
-                  <MenuItem value="SP">SP</MenuItem>
-                  <MenuItem value="TO">TO</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSearch}
-                style={{ backgroundColor: "#6e0dec" }}
-              >
-                Buscar
-              </Button>
-              <FormControl
-                variant="outlined"
-                size="small"
-                style={{ width: "30%", marginLeft: "15px" }}
-              >
-                <InputLabel id="results-per-page-label">
-                  Resultados por Página
-                </InputLabel>
-                <Select
-                  labelId="results-per-page-label"
-                  id="results-per-page"
-                  value={resultsPerPage}
-                  onChange={handlePaginationChange}
-                  label="Resultados por Página"
-                >
-                  <MenuItem value={5}>5</MenuItem>
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={20}>20</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-          <div className="site-list">{/*  */}</div>
-          {showPostModal && (
-            <SiteDetailModal
-              open={showPostModal}
-              onClose={() => setShowPostModal(false)}
-              site={selectedSite[0]}
-              getPerimetro={getPerimetro}
-            />
-          )}
-        </div>
-        <div className="container content-apr">
-          {paginatedSites.map((item) => (
-            <div
-              key={item.id}
-              className="site-item-content"
-              onClick={() => handleList([item])}
-            >
-              <p>
-                <strong> {item.sigla} - {item.nome}</strong> - {item.estado} -  {" "} 
-                {item.cidade}
-              </p>
+    return (
+        <div>
+            <Header />
+
+            <div className="content">
+                <Title name="Aplicar APR">
+                    <FiClipboard size={25} onClick={() => console.log(site)} />
+                </Title>
+
+                <div className='container'>
+                    <Grid container spacing={2} maxWidth={600}>
+                        <Grid item xs={12} md={4.5}>
+                            <TextField
+                                size='small'
+                                color="secondary"
+                                id="outlined-basic"
+                                label="Sigla Movel do Site..."
+                                variant="outlined"
+                                value={sigla}
+                                onChange={(e) => setSigla(e.target.value)}
+                                fullWidth />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <FormControl size='small' color="secondary" fullWidth>
+                                <InputLabel id="demo-simple-select-label">UF</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    label="UF"
+                                    value={uf}
+                                    onChange={(e) => setUf(e.target.value)}
+                                >
+                                    <MenuItem value='Todos'>Todos</MenuItem>
+                                    <MenuItem value='AC'>AC</MenuItem>
+                                    <MenuItem value='AL'>AL</MenuItem>
+                                    <MenuItem value='AM'>AM</MenuItem>
+                                    <MenuItem value='AP'>AP</MenuItem>
+                                    <MenuItem value='BA'>BA</MenuItem>
+                                    <MenuItem value='CE'>CE</MenuItem>
+                                    <MenuItem value='DF'>DF</MenuItem>
+                                    <MenuItem value='ES'>ES</MenuItem>
+                                    <MenuItem value='GO'>GO</MenuItem>
+                                    <MenuItem value='MA'>MA</MenuItem>
+                                    <MenuItem value='MG'>MG</MenuItem>
+                                    <MenuItem value='MS'>MS</MenuItem>
+                                    <MenuItem value='MT'>MT</MenuItem>
+                                    <MenuItem value='PA'>PA</MenuItem>
+                                    <MenuItem value='PB'>PB</MenuItem>
+                                    <MenuItem value='PE'>PE</MenuItem>
+                                    <MenuItem value='PI'>PI</MenuItem>
+                                    <MenuItem value='PR'>PR</MenuItem>
+                                    <MenuItem value='RJ'>RJ</MenuItem>
+                                    <MenuItem value='RN'>RN</MenuItem>
+                                    <MenuItem value='RO'>RO</MenuItem>
+                                    <MenuItem value='RR'>RR</MenuItem>
+                                    <MenuItem value='RS'>RS</MenuItem>
+                                    <MenuItem value='SC'>SC</MenuItem>
+                                    <MenuItem value='SE'>SE</MenuItem>
+                                    <MenuItem value='SP'>SP</MenuItem>
+                                    <MenuItem value='TO'>TO</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6} md={2} textAlign={'right'}>
+                            <Button sx={{width: "100%"}} color="secondary" variant="outlined" onClick={() => handleSearch()}>Buscar</Button>
+                        </Grid>
+                        <Grid item xs={6} md={2.5} textAlign={'right'}>
+                            <ModalNovoSite user={user}/>
+                        </Grid>
+                    </Grid>
+                </div>
+
+                <div id='list-sites' className='container listsites' style={{ display: 'none' }}>
+                </div>
+
+                <div id='info-site' className='container info-site'>
+                    {siteSelect.length > 0 && (
+                        <>
+                            <table id='chamado-status' className='content-items' style={{ display: 'table' }}>
+                                <tbody>
+                                    <tr>
+                                        <td data-label="ID">{siteSelect[0].id}</td>
+                                        <td data-label="UF">{siteSelect[0].estado ? siteSelect[0].estado : '-'}</td>
+                                        <td data-label="Tipo Site">{siteSelect[0].tipoSite ? siteSelect[0].tipoSite : '-'}</td>
+                                        <td data-label="Tipo Contrato">{siteSelect[0].tipo_contrato ? siteSelect[0].tipo_contrato : '-'}</td>
+                                        <td data-label="Criticidade">{siteSelect[0].critical ? siteSelect[0].critical : '-'}</td>
+                                        <td data-label="Municipio">{siteSelect[0].cidade ? siteSelect[0].cidade : '-'}</td>
+                                        <td data-label="CEP">{siteSelect[0].cep ? siteSelect[0].cep : '-'}</td>
+                                        <td data-label="Endereço">{siteSelect[0].endereco ? siteSelect[0].endereco : '-'}</td>
+                                        <td data-label="Data Update">{siteSelect[0].lastUpdate}</td>
+                                        <td data-label="Ultimo Update">{siteSelect[0].userLastUpdate}</td>
+                                        {user.nivel === 'administrador' ? (
+                                            <>
+                                                <td data-label="Detentora">
+                                                    <input value={newDetentora} onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}></input>
+                                                </td>
+                                                <td data-label="Latitude">
+                                                    <input value={newLat} onChange={(e) => setNewLat(e.target.value)}></input>
+                                                </td>
+                                                <td data-label="Longitude">
+                                                    <input value={newLng} onChange={(e) => setNewLng(e.target.value)}></input>
+                                                </td>
+                                                <td data-label=""><button onClick={() => salvarAlterSite()}>Salvar Alteração</button></td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td data-label="Detentora">{siteSelect[0].detentora ? siteSelect[0].detentora : '-'}</td>
+                                                <td data-label="Latitude">{siteSelect[0].latitude}</td>
+                                                <td data-label="Longitude">{siteSelect[0].longitude}</td>
+                                            </>
+                                        )}
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <a onClick={() => { getPerimetro() }}>
+                                Avançar
+                            </a>
+                        </>
+                    )}
+                </div>
+
+                {user.nivel === 'administrador' && siteSelect.length > 0 && (
+                    <div className='container-atribuir'>
+
+                        <label>Atribuir APR</label>
+
+                        <select value={selectedAplicador} onChange={selectAplicador}>
+                            <option disabled value="0">Selecione um Aplicador...</option>
+                            {aplicador.map((item, index) => {
+                                return (
+                                    <option key={index} value={item.uid}>{item.nome} - {item.uf}</option>
+                                )
+                            })}
+                        </select>
+
+                        <a onClick={() => atribuir()}>Atribuir</a>
+                    </div>
+                )}
+
+                {showPostModal && (
+                    <ModalLoading
+                        close={togglePostModal}
+                    />
+                )}
+
             </div>
           ))}
           <Grid
