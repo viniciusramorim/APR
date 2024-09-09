@@ -226,53 +226,10 @@ export default function PreNew() {
     setShowPostModal(true);
   }
 
-<<<<<<< HEAD
   const paginatedSites = site.slice(
     page * resultsPerPage,
     page * resultsPerPage + resultsPerPage
   );
-=======
-                <div id='info-site' className='container info-site'>
-                    {siteSelect.length > 0 && (
-                        <>
-                            <table id='chamado-status' className='content-items' style={{ display: 'table' }}>
-                                <tbody>
-                                    <tr>
-                                        <td data-label="ID">{siteSelect[0].id}</td>
-                                        <td data-label="UF">{siteSelect[0].estado ? siteSelect[0].estado : '-'}</td>
-                                        <td data-label="Tipo Site">{siteSelect[0].tipoSite ? siteSelect[0].tipoSite : '-'}</td>
-                                        <td data-label="Tipo Contrato">{siteSelect[0].tipo_contrato ? siteSelect[0].tipo_contrato : '-'}</td>
-                                        <td data-label="Criticidade">{siteSelect[0].critical ? siteSelect[0].critical : '-'}</td>
-                                        <td data-label="Municipio">{siteSelect[0].cidade ? siteSelect[0].cidade : '-'}</td>
-                                        <td data-label="CEP">{siteSelect[0].cep ? siteSelect[0].cep : '-'}</td>
-                                        <td data-label="Endereço">{siteSelect[0].endereco ? siteSelect[0].endereco : '-'}</td>
-                                        <td data-label="Data Update">{siteSelect[0].lastUpdate}</td>
-                                        <td data-label="Ultimo Update">{siteSelect[0].userLastUpdate}</td>
-                                        {user.nivel === 'administrador' ? (
-                                            <>
-                                                <td data-label="Detentora">
-                                                    <input value={newDetentora} onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}></input>
-                                                </td>
-                                                <td data-label="Latitude">
-                                                    <input value={newLat} onChange={(e) => setNewLat(e.target.value)}></input>
-                                                </td>
-                                                <td data-label="Longitude">
-                                                    <input value={newLng} onChange={(e) => setNewLng(e.target.value)}></input>
-                                                </td>
-                                                <td data-label=""><button onClick={() => salvarAlterSite()}>Salvar Alteração</button></td>
-                                                <ModalLog chamadoId={siteSelect[0].id} />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td data-label="Detentora">{siteSelect[0].detentora ? siteSelect[0].detentora : '-'}</td>
-                                                <td data-label="Latitude">{siteSelect[0].latitude}</td>
-                                                <td data-label="Longitude">{siteSelect[0].longitude}</td>
-                                            </>
-                                        )}
-                                    </tr>
-                                </tbody>
-                            </table>
->>>>>>> c374cad92413b3c08623f8784407b5ad5905cb19
 
   return (
     <div>
