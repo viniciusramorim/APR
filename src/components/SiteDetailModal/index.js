@@ -5,7 +5,7 @@ import "../SiteDetailModal/SiteDetailModal.css";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const SiteDetailModal = ({ open, onClose, site }) => {
+const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
   const [editSite, setEditSite] = useState(null);
   const [newEstado, setNewEstado] = useState("");
   const [newTipoSite, setNewTipoSite] = useState("");
@@ -20,19 +20,19 @@ const SiteDetailModal = ({ open, onClose, site }) => {
   const history = useHistory();
 
   useEffect(() => {
-    if (site) {
-      setEditSite({ ...site });
-      setNewEstado(site.estado);
-      setNewTipoSite(site.tipoSite);
-      setNewTipo_contrato(site.tipo_contrato);
-      setNewCritical(site.critical);
-      setNewCidade(site.cidade);
-      setNewCep(site.cep);
-      setNewDetentora(site.detentora);
-      setNewLat(site.latitude);
-      setNewLng(site.longitude);
+    if (site[0]) {
+      setEditSite({ ...site[0] });
+      setNewEstado(site[0].estado);
+      setNewTipoSite(site[0].tipoSite);
+      setNewTipo_contrato(site[0].tipo_contrato);
+      setNewCritical(site[0].critical);
+      setNewCidade(site[0].cidade);
+      setNewCep(site[0].cep);
+      setNewDetentora(site[0].detentora);
+      setNewLat(site[0].latitude);
+      setNewLng(site[0].longitude);
     }
-  }, [site]);
+  }, [site[0]]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,18 +60,19 @@ const SiteDetailModal = ({ open, onClose, site }) => {
           .collection("sites")
           .doc(updatedSite.id)
           .update({
-            estado: updatedSite.estado,
+            Estado: updatedSite.estado,
             tipoSite: updatedSite.tipoSite,
-            tipo_contrato: updatedSite.tipo_contrato,
+            tipoContrato: updatedSite.tipo_contrato,
             critical: updatedSite.critical,
-            municio: updatedSite.cidade,
-            cep: updatedSite.cep,
-            detentora: updatedSite.detentora,
-            latitude: updatedSite.latitude,
-            longitude: updatedSite.longitude,
+            Cidade: updatedSite.cidade,
+            CEP: updatedSite.cep,
+            Detentora: updatedSite.detentora,
+            Latitude: updatedSite.latitude,
+            Longitude: updatedSite.longitude,
           });
         toast.success("Site atualizado com sucesso!");
         onClose();
+        handleSearch();
       } catch (error) {
         console.error("Erro ao atualizar site:", error);
         toast.error("Erro ao atualizar site!");

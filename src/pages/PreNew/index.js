@@ -1,15 +1,13 @@
 
 import "./prenew.css";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import * as geofire from "geofire-common";
 import { FiClipboard } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
-import ModalLoading from "../../components/Modal_Loading";
 import SiteDetailModal from "../../components/SiteDetailModal";
 import {
   Button,
@@ -188,6 +186,7 @@ export default function PreNew() {
           }
         });
         setSite(filteredData);
+        console.log(filteredData)
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
@@ -313,7 +312,8 @@ export default function PreNew() {
             <SiteDetailModal
               open={showPostModal}
               onClose={() => setShowPostModal(false)}
-              site={selectedSite[0]}
+              site={selectedSite}
+              handleSearch={handleSearch}
               getPerimetro={getPerimetro}
             />
           )}
