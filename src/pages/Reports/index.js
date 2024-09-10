@@ -1,244 +1,422 @@
 import { FiFileText } from "react-icons/fi";
-import { format } from 'date-fns';
-import * as XLSX from 'xlsx'
-
-import firebase from '../../services/firebaseConnection';
-import Header from '../../components/Header';
-import Title from '../../components/Title';
-
-import './report.css'
+import { format } from "date-fns";
+import * as XLSX from "xlsx";
+import firebase from "../../services/firebaseConnection";
+import Header from "../../components/Header";
+import Title from "../../components/Title";
+import "./report.css";
 import { useState } from "react";
+import {
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
+
+// Função para calcular a classificação de risco
+function calculatePontos(peso) {
+  if (peso <= 10) return "Risco Muito Baixo";
+  if (peso <= 30) return "Risco Baixo";
+  if (peso <= 50) return "Risco Médio";
+  if (peso <= 70) return "Risco Alto";
+  return "Risco Muito Alto";
+}
+
+// Função para processar o APRworksheet
+function v0(apr) {
+  if (!apr.peso || typeof apr.peso !== "number") return "-";
+  return calculatePontos(apr.peso);
+}
 
 export default function Reports() {
+  const [chamados, setChamados] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [filterDate, setFilterDate] = useState({ startDate: "", endDate: "" });
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterMotivo, setFilterMotivo] = useState("");
+  const [filterTipoSite, setFilterTipoSite] = useState("");
+  const [includeQuestions, setIncludeQuestions] = useState(false);
 
-    const [chamados, setChamados] = useState([])
-    const [loading, setLoading] = useState(false);
+  async function loadChamados() {
+    setLoading(true);
+    try {
+      let query = firebase.firestore().collection("aprs-producao");
 
-    async function loadChamados() {
-        setLoading(true)
-        await firebase.firestore().collection('aprs-producao')
-            .get()
-            .then((snapshot) => {
-                let list = []
+      // Filtro por Data
+      if (filterDate.startDate && filterDate.endDate) {
+        const start = new Date(filterDate.startDate);
+        const end = new Date(filterDate.endDate);
+        end.setDate(end.getDate() + 1); // Inclui o dia final
+        query = query.where("created", ">=", start).where("created", "<", end);
+      }
 
-                snapshot.forEach(docs => {
-                    list.push({
-                        id: docs.id,
-                        ...docs.data()
-                    })
-                })
+      // Filtro por Status
+      if (filterStatus) {
+        query = query.where("status", "==", filterStatus);
+      }
 
-                setChamados(list)
-                setLoading(false)
-            })
-            .catch((err) => {
-                console.log('Deu algum erro: ', err);
-                setLoading(false)
-            })
+      // Filtro por Motivo
+      if (filterMotivo && filterMotivo !== "Todos") {
+        query = query.where("motivo_apr", "==", filterMotivo);
+      }
+
+      // Filtro por Tipo de Site
+      if (filterTipoSite && filterTipoSite !== "todos") {
+        query = query.where("site_id.tipoSite", "==", filterTipoSite);
+      }
+
+      const snapshot = await query.get();
+      const list = [];
+
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+
+      setChamados(list);
+    } catch (err) {
+      console.error("Deu algum erro: ", err);
     }
+    setLoading(false);
+  }
 
-    function calculatePontos(peso) {
-        if (peso <= 10) {
-            return `Risco Muito Baixo`
-        } else if (peso >= 11 && peso <= 30) {
-            return `Risco Baixo`
-        } else if (peso >= 31 && peso <= 50) {
-            return `Risco Médio`
-        } else if (peso >= 51 && peso <= 70) {
-            return `Risco Alto`
-        } else if (peso >= 71) {
-            return `Risco Muito Alto`
+  async function updateState() {
+    setLoading(true);
+
+    const relatorioApr = [];
+
+    const promises = chamados.map(async (doc) => {
+      if (doc.created !== undefined) {
+        const result = v0(doc);
+
+        if (includeQuestions) {
+          if (doc.checklist && doc.status !== "Com Exceção") {
+            doc.checklist.forEach((blocoQuestion) => {
+              blocoQuestion[1].forEach((question) => {
+                if (question.resp !== "") {
+                  relatorioApr.push({
+                    ID: doc.id,
+                    DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+                    STATUS: doc.status,
+                    MOTIVO: doc.motivo_apr,
+                    CLASSIFICACAO: calculatePontos(doc.peso),
+                    PESO: doc.peso,
+                    QUESTIONS: question.question,
+                    QUESTIONS_RESP: question.resp,
+                    QUESTIONS_RESPGABARITO: question.respGabarito,
+                    QUESTIONS_PA: question.openPA,
+                    QUESTION_PA_DATA: question.resp_pa_data
+                      ? format(
+                          question.resp_pa_data.toDate(),
+                          "dd/MM/yyyy HH:mm:ss"
+                        )
+                      : "",
+                    QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
+                    QUESTION_PA_NOME: question.resp_pa_user_name || "",
+                    SIGLA: doc.site_id.Sigla,
+                    SIGLA_GVT: doc.site_id.Sigla_GVT,
+                    TIPO_SITE: doc.site_id.tipoSite,
+                    NOME_SITE: doc.site_id.Nome,
+                    LAT_SITE: doc.site_id.Latitude,
+                    LNG_SITE: doc.site_id.Longitude,
+                    UF_SITE: doc.site_id.Estado,
+                    END_SITE: doc.site_id.Endereco,
+                    MUNICIPIO_SITE: doc.site_id.Cidade,
+                    BAIRRO_SITE: doc.site_id.Bairro,
+                    CEP_SITE: doc.site_id.CEP,
+                    CRITICIDADE_SITE: doc.site_id.critical,
+                    ABERTURA_LAT: doc.locationCreated.latitude,
+                    ABERTURA_LNG: doc.locationCreated.logitude,
+                    ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
+                    TEMP_INCIO: format(
+                      doc.tempoConclusao.inicio.toDate(),
+                      "dd/MM/yyyy HH:mm:ss"
+                    ),
+                    TEMP_TERMINO: format(
+                      doc.tempoConclusao.conclusao.toDate(),
+                      "dd/MM/yyyy HH:mm:ss"
+                    ),
+                    TEMP_EFETUADO: Math.ceil(
+                      (doc.tempoConclusao.conclusao.toDate() -
+                        doc.tempoConclusao.inicio.toDate()) /
+                        (1000 * 60)
+                    ),
+                    USER_ID: doc.user_id.uid,
+                    USER_NOME: doc.user_id.nome,
+                    USER_UF: doc.user_id.uf,
+                    V0: result,
+                  });
+                }
+              });
+            });
+          } else if (doc.status === "Com Exceção") {
+            relatorioApr.push({
+              ID: doc.id,
+              DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+              STATUS: doc.status,
+              SIGLA: doc.site_id.Sigla,
+              SIGLA_GVT: doc.site_id.Sigla_GVT,
+              TIPO_SITE: doc.site_id.tipoSite,
+              NOME_SITE: doc.site_id.Nome,
+              LAT_SITE: doc.site_id.Latitude,
+              LNG_SITE: doc.site_id.Longitude,
+              UF_SITE: doc.site_id.Estado,
+              END_SITE: doc.site_id.Endereco,
+              MUNICIPIO_SITE: doc.site_id.Cidade,
+              BAIRRO_SITE: doc.site_id.Bairro,
+              CEP_SITE: doc.site_id.CEP,
+              CRITICIDADE_SITE: doc.site_id.critical,
+              ABERTURA_LAT: doc.locationCreated.latitude,
+              ABERTURA_LNG: doc.locationCreated.logitude,
+              ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
+              TEMP_INCIO: format(
+                doc.tempoConclusao.inicio.toDate(),
+                "dd/MM/yyyy HH:mm:ss"
+              ),
+              TEMP_TERMINO: format(
+                doc.tempoConclusao.conclusao.toDate(),
+                "dd/MM/yyyy HH:mm:ss"
+              ),
+              TEMP_EFETUADO: Math.ceil(
+                (doc.tempoConclusao.conclusao.toDate() -
+                  doc.tempoConclusao.inicio.toDate()) /
+                  (1000 * 60)
+              ),
+              USER_ID: doc.user_id.uid,
+              USER_NOME: doc.user_id.nome,
+              USER_UF: doc.user_id.uf,
+              V0: "-",
+            });
+          }
+        } else {
+          relatorioApr.push({
+            ID: doc.id,
+            DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+            STATUS: doc.status,
+            MOTIVO: doc.motivo_apr,
+            CLASSIFICACAO: calculatePontos(doc.peso),
+            PESO: doc.peso,
+            SIGLA: doc.site_id.Sigla,
+            SIGLA_GVT: doc.site_id.Sigla_GVT,
+            TIPO_SITE: doc.site_id.tipoSite,
+            NOME_SITE: doc.site_id.Nome,
+            LAT_SITE: doc.site_id.Latitude,
+            LNG_SITE: doc.site_id.Longitude,
+            UF_SITE: doc.site_id.Estado,
+            END_SITE: doc.site_id.Endereco,
+            MUNICIPIO_SITE: doc.site_id.Cidade,
+            BAIRRO_SITE: doc.site_id.Bairro,
+            CEP_SITE: doc.site_id.CEP,
+            CRITICIDADE_SITE: doc.site_id.critical,
+            ABERTURA_LAT: doc.locationCreated.latitude,
+            ABERTURA_LNG: doc.locationCreated.logitude,
+            ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
+            TEMP_INCIO: format(
+              doc.tempoConclusao.inicio.toDate(),
+              "dd/MM/yyyy HH:mm:ss"
+            ),
+            TEMP_TERMINO: format(
+              doc.tempoConclusao.conclusao.toDate(),
+              "dd/MM/yyyy HH:mm:ss"
+            ),
+            TEMP_EFETUADO: Math.ceil(
+              (doc.tempoConclusao.conclusao.toDate() -
+                doc.tempoConclusao.inicio.toDate()) /
+                (1000 * 60)
+            ),
+            USER_ID: doc.user_id.uid,
+            USER_NOME: doc.user_id.nome,
+            USER_UF: doc.user_id.uf,
+            V0: result,
+          });
         }
-    }
-
-    async function updateState(snapshot) {
-        setLoading(true)
-        const relatorioApr = [];
-
-        const promises = snapshot.map(doc => {
-            // Verifica se o documento tem a propriedade 'created'
-            if (doc.created !== undefined) {
-                return v0(doc).then(result => {
-                    if (doc.checklist && doc.status !== 'Com Exceção') {
-                        doc.checklist.map((blocoQuestion) => {
-                            blocoQuestion[1].map(question => {
-                                if (question.resp !== "") {
-                                    relatorioApr.push({
-                                        ID: doc.id,
-                                        DATA: format(doc.created.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                                        STATUS: doc.status,
-                                        MOTIVO: doc.motivo_apr,
-                                        CLASSIFICACAO: calculatePontos(doc.peso),
-                                        PESO: doc.peso,
-                                        QUESTIONS: question.question,
-                                        QUESTIONS_RESP: question.resp,
-                                        QUESTIONS_RESPGABARITO: question.respGabarito,
-                                        QUESTIONS_PA: question.openPA,
-                                        QUESTION_PA_DATA: question.resp_pa_data ? format(question.resp_pa_data.toDate(), 'dd/MM/yyyy HH:mm:ss') : '',
-                                        QUESTION_PA_RESP: question.resp_pa_selectedOption ? question.resp_pa_selectedOption : '',
-                                        QUESTION_PA_NOME: question.resp_pa_user_name ? question.resp_pa_user_name : '',
-                                        SIGLA: doc.site_id.Sigla,
-                                        SIGLA_GVT: doc.site_id.Sigla_GVT,
-                                        TIPO_SITE: doc.site_id.tipoSite,
-                                        NOME_SITE: doc.site_id.Nome,
-                                        LAT_SITE: doc.site_id.Latitude,
-                                        LNG_SITE: doc.site_id.Longitude,
-                                        UF_SITE: doc.site_id.Estado,
-                                        END_SITE: doc.site_id.Endereco,
-                                        MUNICIPIO_SITE: doc.site_id.Cidade,
-                                        BAIRRO_SITE: doc.site_id.Bairro,
-                                        CEP_SITE: doc.site_id.CEP,
-                                        CRITICIDADE_SITE: doc.site_id.critical,
-                                        ABERTURA_LAT: doc.locationCreated.latitude,
-                                        ABERTURA_LNG: doc.locationCreated.logitude,
-                                        ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-                                        TEMP_INCIO: format(doc.tempoConclusao.inicio.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                                        TEMP_TERMINO: format(doc.tempoConclusao.conclusao.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                                        TEMP_EFETUADO: Math.ceil((doc.tempoConclusao.conclusao.toDate() - doc.tempoConclusao.inicio.toDate()) / (1000 * 60)),
-                                        USER_ID: doc.user_id.uid,
-                                        USER_NOME: doc.user_id.nome,
-                                        USER_UF: doc.user_id.uf,
-                                        V0: result,
-                                    });
-                                }
-                            });
-                        });
-                    } else if (doc.status === 'Com Exceção') {
-                        relatorioApr.push({
-                            ID: doc.id,
-                            DATA: format(doc.created.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                            STATUS: doc.status,
-                            SIGLA: doc.site_id.Sigla,
-                            SIGLA_GVT: doc.site_id.Sigla_GVT,
-                            TIPO_SITE: doc.site_id.tipoSite,
-                            NOME_SITE: doc.site_id.Nome,
-                            LAT_SITE: doc.site_id.Latitude,
-                            LNG_SITE: doc.site_id.Longitude,
-                            UF_SITE: doc.site_id.Estado,
-                            END_SITE: doc.site_id.Endereco,
-                            MUNICIPIO_SITE: doc.site_id.Cidade,
-                            BAIRRO_SITE: doc.site_id.Bairro,
-                            CEP_SITE: doc.site_id.CEP,
-                            CRITICIDADE_SITE: doc.site_id.critical,
-                            ABERTURA_LAT: doc.locationCreated.latitude,
-                            ABERTURA_LNG: doc.locationCreated.logitude,
-                            ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-                            TEMP_INCIO: format(doc.tempoConclusao.inicio.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                            TEMP_TERMINO: format(doc.tempoConclusao.conclusao.toDate(), 'dd/MM/yyyy HH:mm:ss'),
-                            TEMP_EFETUADO: Math.ceil((doc.tempoConclusao.conclusao.toDate() - doc.tempoConclusao.inicio.toDate()) / (1000 * 60)),
-                            USER_ID: doc.user_id.uid,
-                            USER_NOME: doc.user_id.nome,
-                            USER_UF: doc.user_id.uf,
-                            V0: '-',
-                        });
-                    }
-                });
-            } else {
-                return Promise.resolve(); // Retorna uma promise resolvida para documentos sem 'created'
-            }
-        });
-        
-        // Aguarda a resolução de todas as Promises
-        Promise.all(promises).then(() => {
-            console.log(relatorioApr);
-            downloadExcel(relatorioApr);
-            setLoading(false)
-        }).catch(error => {
-            console.error("Erro ao processar documentos:", error);
-            setLoading(false)
-        });
-        
-    }
+      }
+    });
 
     function downloadExcel(data) {
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "aprs");
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "aprs");
 
-        const options = {
-            compression: "DEFLATE", // Configurar o nível de compressão
-            bookSST: false,
-            type: "blob",
-        };
+      const options = {
+        compression: "DEFLATE", // Configura o nível de compressão
+        bookSST: false,
+        type: "blob",
+      };
 
-        XLSX.writeFile(workbook, "apr-digital.xlsx", options);
+      XLSX.writeFile(workbook, "apr-digital.xlsx", options);
     }
 
-    async function v0(apr) {
-        if (!apr.peso) return "-";
+    // Aguarda a resolução de todas as Promises
+    Promise.all(promises)
+      .then(() => {
+        console.log(relatorioApr);
 
-        try {
-            // Fetch the site document based on apr.site_id
-            const querySnapshot = await firebase.firestore().collection('sites')
-                .where("Sigla", "==", apr.site_id.Sigla)
-                .where("Estado", "==", apr.site_id.Estado)
-                .get();
+        downloadExcel(relatorioApr);
 
-            if (querySnapshot.empty) {
-                console.log("Nenhum documento encontrado.");
-                return;
-            }
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Erro ao processar documentos:", error);
 
-            const site = querySnapshot.docs[0].data();
-            const classif = calculatePontos(apr.peso);
+        setLoading(false);
+      });
+  }
 
-            // Verifying site values
-            if (site.CtCritica !== '-' || site.NonStop !== '-' || site.ErbCritica !== '-') return "v0";
-
-            // Determine the return value based on classification and site criticality
-            switch (classif) {
-                case "Risco Muito Baixo":
-                    return site.critical === "Baixo" ? "v4"
-                        : site.critical === "Médio" ? "v4"
-                            : "v3";
-                case "Risco Baixo":
-                    return site.critical === "Baixo" ? "v4"
-                        : site.critical === "Médio" ? "v3"
-                            : "v3";
-                case "Risco Médio":
-                    return site.critical === "Baixo" ? "v3"
-                        : site.critical === "Médio" ? "v3"
-                            : "v2";
-                case "Risco Alto":
-                    return site.critical === "Baixo" ? "v3"
-                        : site.critical === "Médio" ? "v2"
-                            : "v1";
-                case "Risco Muito Alto":
-                    return site.critical === "Baixo" ? "v2"
-                        : site.critical === "Médio" ? "v1"
-                            : "v0";
-                default:
-                    return "-";
-            }
-        } catch (error) {
-            console.error("Erro ao consultar o Firestore:", error);
-            return "-";
-        }
-    }
-
-    return (
-        <div>
-            <Header />
-            <div className="content">
-                <Title name="Relatorios">
-                    <FiFileText size={25} onClick={() => console.log(chamados)} />
-                </Title>
-                <div className={"container reports"}>
-                    <button onClick={() => loadChamados()} disabled={loading}>
-                        {!loading ? "Carregar Relatorio APR" : "Carregando..."}
-                    </button>
-                </div>
-                <div className="container reports">
-                    <i>APR`s carregadas {chamados.length}</i>
-                </div>
-                {chamados.length > 0 && (
-                    <div className={"container reports"}>
-                        <button onClick={() => updateState(chamados)} disabled={loading}>
-                            {!loading ? "Download" : "Carregando..."}
-                        </button>
-                    </div>
-                )}
-            </div>
+  return (
+    <div>
+      <Header />
+      <div className="content">
+        <Title name="Relatórios">
+          <FiFileText size={25} onClick={() => console.log(chamados)} />
+        </Title>
+        <div className="filter-reports-container">
+          <div className="filter-reports">
+            <Grid container spacing={2}>
+              <Grid item xs={2} sx={12}>
+                <TextField
+                  id="startDate"
+                  type="date"
+                  label=""
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  value={filterDate.startDate}
+                  onChange={(e) =>
+                    setFilterDate({ ...filterDate, startDate: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={2} sx={12}>
+                <TextField
+                  id="endDate"
+                  type="date"
+                  label=""
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  value={filterDate.endDate}
+                  onChange={(e) =>
+                    setFilterDate({ ...filterDate, endDate: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={2} sx={12}>
+                <FormControl variant="outlined" fullWidth>
+                  <InputLabel id="status-label" size="small">Status</InputLabel>
+                  <Select
+                    id="status"
+                    labelId="status-label"
+                    label="Status"
+                    size="small"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <MenuItem value="Todos">Todos</MenuItem>
+                    <MenuItem value="Cancelado">Cancelado</MenuItem>
+                    <MenuItem value="Com Exceção">Com Exceção</MenuItem>
+                    <MenuItem value="Em Aberto">Em Aberto</MenuItem>
+                    <MenuItem value="Enviado">Enviado</MenuItem>
+                    <MenuItem value="Respondido">Respondido pela Área</MenuItem>
+                    <MenuItem value="Revisado">Revisado</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={1}>
+                <FormControl variant="outlined" fullWidth>
+                  <InputLabel id="motivo-label" size="small">Motivo</InputLabel>
+                  <Select
+                    id="apr-motivo"
+                    labelId="motivo-label"
+                    label="Motivo"
+                    size="small"
+                    value={filterMotivo}
+                    onChange={(e) => setFilterMotivo(e.target.value)}
+                  >
+                    <MenuItem value="Todos">Todos</MenuItem>
+                    <MenuItem value="Estoque Avançado">
+                      Estoque Avançado
+                    </MenuItem>
+                    <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
+                    <MenuItem value="Não Opinada">Não Opinada</MenuItem>
+                    <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
+                    <MenuItem value="Retrofit">Retrofit</MenuItem> 
+                    <MenuItem value="Rota Critica DWDM">Rota Crítica DWDM</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={1}>
+                <FormControl variant="outlined" fullWidth>
+                  <InputLabel id="tipo-de-site-label" size="small">Tipo de Site</InputLabel>
+                  <Select
+                    id="tipo-de-site"
+                    labelId="tipo-de-site-label"
+                    label="Tipo de Site"
+                    size="small"
+                    value={filterTipoSite}
+                    onChange={(e) => setFilterTipoSite(e.target.value)}
+                  >
+                    <MenuItem value="todos">Todos</MenuItem>
+                    <MenuItem value="audit-pgr-fixa">AUDIT PGR FIXA</MenuItem>
+                    <MenuItem value="audit-pgr-movel">AUDIT PGR MÓVEL</MenuItem>
+                    <MenuItem value="cd">CD</MenuItem>
+                    <MenuItem value="ct">CT</MenuItem>
+                    <MenuItem value="erb">ERB</MenuItem>
+                    <MenuItem value="erb-ct">ERB CT</MenuItem>
+                    <MenuItem value="indoor">INDOOR</MenuItem>
+                    <MenuItem value="loja">LOJA</MenuItem>
+                    <MenuItem value="loja-dealer">LOJA DEALER</MenuItem>
+                    <MenuItem value="outdoor">OUTDOOR</MenuItem>
+                    <MenuItem value="predio-core">PRÉDIO CORE</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={2}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={includeQuestions}
+                      onChange={(e) => setIncludeQuestions(e.target.checked)}
+                    />
+                  }
+                  label="Incluir Perguntas"
+                />
+              </Grid>
+              <Grid item xs={2}>
+                <FormControl>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={loadChamados}
+                    disabled={loading}
+										style={{borderColor:"#380054e8", color:"#380054e8"}}
+                  >
+                    {loading ? "Carregando..." : "Filtrar"}
+                  </Button>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </div>
         </div>
-    )
+
+        <div className={"container reports"}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={updateState}
+            disabled={loading || chamados.length === 0}
+          >
+            {loading ? "Carregando..." : "Download"}
+          </Button>
+        </div>
+        <div className="container reports">
+          <i>APR´s carregadas: {chamados.length}</i>
+        </div>
+      </div>
+    </div>
+  );
 }

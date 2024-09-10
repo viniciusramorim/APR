@@ -356,7 +356,7 @@ export default function Dashboard() {
               </Grid>
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="uf-label">UF</InputLabel>
+                  <InputLabel id="uf-label" size="small">UF</InputLabel>
                   <Select
                     id="uf"
                     labelId="uf-label"
@@ -425,7 +425,7 @@ export default function Dashboard() {
 
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="tipo-label">Tipo de Site</InputLabel>
+                  <InputLabel id="tipo-label" size="small">Tipo de Site</InputLabel>
                   <Select
                     id="tipo"
                     labelId="tipo-label"
@@ -453,7 +453,7 @@ export default function Dashboard() {
 
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="status-label">Status</InputLabel>
+                  <InputLabel id="status-label" size="small">Status</InputLabel>
                   <Select
                     id="status"
                     labelId="status-label"
