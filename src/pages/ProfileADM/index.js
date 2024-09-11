@@ -11,7 +11,9 @@ import PaginationItem from "@mui/material/PaginationItem";
 import Stack from "@mui/material/Stack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import SyncLockIcon from "@mui/icons-material/SyncLock";
 import {
+  Chip,
   colors,
   FormControl,
   InputLabel,
@@ -38,6 +40,9 @@ export default function ProfileADM() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
+
+  const permissionMaster = ['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2']
+
 
   useEffect(() => {
     loadUsers();
@@ -247,6 +252,9 @@ export default function ProfileADM() {
               <TableHead>
                 <TableRow>
                   <TableCell>Nome</TableCell>
+                  {permissionMaster.includes(user.uid) && (
+                  <TableCell align="center">Trocar Senha</TableCell>
+                  )}
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Área</TableCell>
@@ -258,6 +266,16 @@ export default function ProfileADM() {
                   return (
                     <TableRow key={index}>
                       <TableCell data-label="Usuario">{item.nome}</TableCell>
+                      {/* {permissionMaster.includes(user.uid) && ( */}
+                        <TableCell align="center">
+                          <Chip
+                            label={<FiLock size={15}></FiLock>}
+                            color="secondary"
+                            size="small"
+                            onClick={() => trocaSenha(item.id_user)}
+                          />
+                        </TableCell>
+                      {/* )} */}
                       <TableCell data-label="Status">
                         <Switch
                           checked={item.status}
