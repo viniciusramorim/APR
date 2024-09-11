@@ -288,3 +288,11 @@ p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
     justify-content: space-between;
     align-items: center;
 }
+
+.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-4.css-1lj5egr-MuiGrid-root {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    justify-content: space-evenly;
+    align-items: center;
+}
