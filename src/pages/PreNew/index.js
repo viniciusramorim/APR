@@ -1,4 +1,3 @@
-
 import "./prenew.css";
 import { useEffect, useState } from "react";
 import * as geofire from "geofire-common";
@@ -9,6 +8,7 @@ import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
 import SiteDetailModal from "../../components/SiteDetailModal";
+import ModalNovoSite from "../../components/Modal_NovoSite/index.js";
 import {
   Button,
   FormControl,
@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { format } from "date-fns";
 
-import './prenew.css'
+import "./prenew.css";
 
 export default function PreNew() {
   const [user, setUser] = useState(null);
@@ -186,7 +186,7 @@ export default function PreNew() {
           }
         });
         setSite(filteredData);
-        console.log(filteredData)
+        console.log(filteredData);
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
@@ -281,7 +281,7 @@ export default function PreNew() {
                 variant="contained"
                 color="primary"
                 onClick={handleSearch}
-                style={{ backgroundColor: "#6e0dec" }}
+                style={{ backgroundColor: "#380054e8" }}
               >
                 Buscar
               </Button>
@@ -305,6 +305,9 @@ export default function PreNew() {
                   <MenuItem value={20}>20</MenuItem>
                 </Select>
               </FormControl>
+              <Grid item xs={2} md={4} textAlign={"right"}>
+                <ModalNovoSite user={user} />
+              </Grid>
             </Grid>
           </Grid>
           <div className="site-list">{/*  */}</div>
@@ -326,8 +329,11 @@ export default function PreNew() {
               onClick={() => handleList([item])}
             >
               <p>
-                <strong> {item.sigla} - {item.nome}</strong> - {item.estado} -  {" "}
-                {item.cidade}
+                <strong>
+                  {" "}
+                  {item.sigla} - {item.nome}
+                </strong>{" "}
+                - {item.estado} - {item.cidade}
               </p>
             </div>
           ))}
@@ -342,7 +348,7 @@ export default function PreNew() {
                 variant="outlined"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 0}
-                style={{ borderColor: "#6e0dec" }}
+                style={{ borderColor: "#380054e8" }}
               >
                 Anterior
               </Button>
@@ -352,7 +358,7 @@ export default function PreNew() {
                 variant="outlined"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
-                style={{ borderColor: "#6e0dec", color: "#6e0dec" }}
+                style={{ borderColor: "#380054e8", color: "#380054e8" }}
               >
                 Próximo
               </Button>
