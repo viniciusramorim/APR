@@ -316,7 +316,7 @@ export default function Reports() {
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                   >
-                    <MenuItem value="Todos">Todos</MenuItem>
+                    <MenuItem value="">Todos</MenuItem>
                     <MenuItem value="Cancelado">Cancelado</MenuItem>
                     <MenuItem value="Com Exceção">Com Exceção</MenuItem>
                     <MenuItem value="Em Aberto">Em Aberto</MenuItem>
@@ -337,7 +337,7 @@ export default function Reports() {
                     value={filterMotivo}
                     onChange={(e) => setFilterMotivo(e.target.value)}
                   >
-                    <MenuItem value="Todos">Todos</MenuItem>
+                    <MenuItem value="">Todos</MenuItem>
                     <MenuItem value="Estoque Avançado">
                       Estoque Avançado
                     </MenuItem>
@@ -360,7 +360,7 @@ export default function Reports() {
                     value={filterTipoSite}
                     onChange={(e) => setFilterTipoSite(e.target.value)}
                   >
-                    <MenuItem value="todos">Todos</MenuItem>
+                    <MenuItem value="">Todos</MenuItem>
                     <MenuItem value="audit-pgr-fixa">AUDIT PGR FIXA</MenuItem>
                     <MenuItem value="audit-pgr-movel">AUDIT PGR MÓVEL</MenuItem>
                     <MenuItem value="cd">CD</MenuItem>

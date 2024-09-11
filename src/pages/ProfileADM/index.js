@@ -41,7 +41,7 @@ export default function ProfileADM() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
 
-  const permissionMaster = ['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2']
+  const permissionMaster = ['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2', 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2']
 
 
   useEffect(() => {
@@ -253,7 +253,7 @@ export default function ProfileADM() {
                 <TableRow>
                   <TableCell>Nome</TableCell>
                   {permissionMaster.includes(user.uid) && (
-                  <TableCell align="center">Trocar Senha</TableCell>
+                    <TableCell align="center">Trocar Senha</TableCell>
                   )}
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Email</TableCell>
@@ -266,7 +266,7 @@ export default function ProfileADM() {
                   return (
                     <TableRow key={index}>
                       <TableCell data-label="Usuario">{item.nome}</TableCell>
-                      {/* {permissionMaster.includes(user.uid) && ( */}
+                      {permissionMaster.includes(user.uid) && (
                         <TableCell align="center">
                           <Chip
                             label={<FiLock size={15}></FiLock>}
@@ -275,7 +275,7 @@ export default function ProfileADM() {
                             onClick={() => trocaSenha(item.id_user)}
                           />
                         </TableCell>
-                      {/* )} */}
+                      )}
                       <TableCell data-label="Status">
                         <Switch
                           checked={item.status}
@@ -290,9 +290,9 @@ export default function ProfileADM() {
                               },
                             },
                             "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                              {
-                                backgroundColor: "#0deb0d",
-                              },
+                            {
+                              backgroundColor: "#0deb0d",
+                            },
                           }}
                         />
                       </TableCell>
