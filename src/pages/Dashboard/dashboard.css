@@ -131,6 +131,13 @@ table td .badge {
   color: #FFF;
   font-size: 1.1em;
 }
+/* Z-index log */
+.ReactModal__Overlay.ReactModal__Overlay--after-open {
+  z-index: 1;
+}
+body.ReactModal__Body--open div#sidebar-menu {
+  z-index:-1!important;
+}
 
 @media screen and (max-width: 700px) {
   table {

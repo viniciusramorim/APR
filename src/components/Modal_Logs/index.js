@@ -6,6 +6,7 @@ import { FiInfo } from 'react-icons/fi';
 import './ModalLogs.css'
 import { IconButton } from '@mui/material';
 import { Info } from '@mui/icons-material';
+import zIndex from '@mui/material/styles/zIndex';
 
 Modal.setAppElement('#root');
 
@@ -25,7 +26,8 @@ export default function ModalLog(props) {
             transform: isMobile ? 'translate(-50%, -50%)' : 'translate(0%, 0%)',
             backgroundColor: '#F6F2FA',
             border: '1px solid #ddd',
-            boxShadow: '-8px 0px 10px -5px rgba(0,0,0,0.09)'
+            boxShadow: '-8px 0px 10px -5px rgba(0,0,0,0.09)',
+            zIndex: '999'
         },
     };
 

@@ -83,13 +83,13 @@ export default function Header() {
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">
                 <PlaylistAddCheckSharpIcon color="#000" size={20} />
-                <i id="label-menu">Aplicar APR</i>
+                {/* <i id="label-menu">Aplicar APR</i> */}
               </Link>
             </Tooltip>
             <Tooltip title="APRs" placement="right" arrow>
               <Link to="/dashboard">
                 <FileDownloadDoneSharpIcon color="#000" size={20} />
-                <i id="label-menu">APRs</i>
+                {/* <i id="label-menu">APRs</i> */}
               </Link>
             </Tooltip>
           </>
@@ -100,25 +100,25 @@ export default function Header() {
             <Tooltip title="Novo Site" placement="right" arrow>
               <Link to="/new_site">
                 <PlaylistAddSharpIcon color="#000" size={20} />
-                <i id="label-menu">Novo Site</i>
+                {/* <i id="label-menu">Novo Site</i> */}
               </Link>
             </Tooltip>
             <Tooltip title="Gerenciar Perfis" placement="right" arrow>
               <Link to="/profileadm">
                 <PersonOutlineSharpIcon color="#000" size={20} />
-                <i id="label-menu">Gerenciar Perfis</i>
+                {/* <i id="label-menu">Gerenciar Perfis</i> */}
               </Link>
             </Tooltip>
             <Tooltip title="Relatório" placement="right" arrow>
               <Link to="/reports">
                 <ContentPasteSearchSharpIcon color="#000" size={20} />
-                <i id="label-menu">Relatório</i>
+                {/* <i id="label-menu">Relatório</i> */}
               </Link>
             </Tooltip>
             <Tooltip title="Registrar Usuário" placement="right" arrow>
               <Link to="/register">
                 <PersonAddSharpIcon color="#000" size={20} />
-                <i id="label-menu">Registrar Usuário</i>
+                {/* <i id="label-menu">Registrar Usuário</i> */}
               </Link>
             </Tooltip>
           </>
@@ -128,7 +128,7 @@ export default function Header() {
           <Tooltip title="Relatório" placement="right" arrow>
             <Link to="/reports">
               <ContentPasteSearchSharpIcon color="#000" size={20} />
-              <i id="label-menu">Relatório</i>
+              {/* <i id="label-menu">Relatório</i> */}
             </Link>
           </Tooltip>
         )}
@@ -136,21 +136,21 @@ export default function Header() {
         <Tooltip title="Meu Perfil" placement="right" arrow>
           <Link to="/profile">
             <PersonOutlineSharpIcon color="#000" size={20} />
-            <i id="label-menu">Meu Perfil</i>
+            {/* <i id="label-menu">Meu Perfil</i> */}
           </Link>
         </Tooltip>
 
         <Tooltip title="Trocar Senha" placement="right" arrow>
           <a onClick={() => redefinirPassword()}>
             <LockResetSharpIcon color="#000" size={20} />
-            <i id="label-menu">Trocar Senha</i>
+            {/* <i id="label-menu">Trocar Senha</i> */}
           </a>
         </Tooltip>
 
         <Tooltip title="Sair" placement="right" arrow>
           <a onClick={() => signOut()}>
             <ExitToAppSharpIcon color="#000" size={20} />
-            <i id="label-menu">Sair</i>
+            {/* <i id="label-menu">Sair</i> */}
           </a>
         </Tooltip>
       </section>
