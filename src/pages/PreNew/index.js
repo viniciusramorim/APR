@@ -1,5 +1,5 @@
 import "./prenew.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useContext } from "react";
 import * as geofire from "geofire-common";
 import { FiClipboard } from "react-icons/fi";
 import { toast } from "react-toastify";
@@ -9,6 +9,7 @@ import Header from "../../components/Header";
 import Title from "../../components/Title";
 import SiteDetailModal from "../../components/SiteDetailModal";
 import ModalNovoSite from "../../components/Modal_NovoSite/index.js";
+import { AuthContext } from '../../contexts/auth';
 import {
   Button,
   FormControl,
@@ -23,7 +24,7 @@ import { format } from "date-fns";
 import "./prenew.css";
 
 export default function PreNew() {
-  const [user, setUser] = useState(null);
+  const { user, logSistem } = useContext(AuthContext);
   const history = useHistory();
 
   const [site, setSite] = useState([]);
