@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Box, Typography, Button, Grid } from "@mui/material";
 import firebase from "../../services/firebaseConnection";
-import "../SiteDetailModal/SiteDetailModal.css";
+import "./SiteDetailModal.css";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
