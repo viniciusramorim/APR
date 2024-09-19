@@ -26,7 +26,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
-        style={{color:'#fff'}}
+        style={{ color: '#fff' }}
       >
         <p>Menu</p>
         <MenuOutlined />
@@ -41,68 +41,70 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
         }}
       >
         {user.area === "ronda" && (
-          <MenuItem onClick={handleClose}>
-            <Link to="/newronda">
-              <i id="label-menu" hidden>
-                Aplicar Ronda
-              </i>
-            </Link>
-            <Link to="/dashboardrondas">
-              <i id="label-menu" hidden>
-                Rondas Realizadas
-              </i>
-            </Link>
-          </MenuItem>
+          <Box>
+            <MenuItem>
+              <Link to="/newronda">
+                <i id="label-menu" hidden>
+                  Aplicar Ronda
+                </i>
+              </Link>
+            </MenuItem>
+            <MenuItem>
+              <Link to="/dashboardrondas">
+                <a id="label-menu" hidden>
+                  Rondas Realizadas
+                </a>
+              </Link>
+            </MenuItem>
+          </Box>
         )}
 
         {(user.area === "patrimonial" || user.area === "oem") && (
-          <MenuItem onClick={handleClose}>
-            <Link to="/new">
-              <a id="label-menu">Aplicar APR</a>
-            </Link>
-            <Link to="/dashboard">
-              <i id="label-menu" hidden>
-                APRs
-              </i>
-            </Link>
-          </MenuItem>
+          <Box>
+            <MenuItem>
+              <Link to="/new">
+                <a id="label-menu">Aplicar APR</a>
+              </Link>
+            </MenuItem>
+
+            <MenuItem>
+              <Link to="/dashboard">
+                <a id="label-menu">
+                  APRs
+                </a>
+              </Link>
+            </MenuItem>
+          </Box>
         )}
 
-        {user.nivel === "administrador" && (
+        {(user.nivel === "administrador") && (
           <Box>
-            <MenuItem onClick={handleClose}>
+            <MenuItem >
               <Link to="/new_site">
                 <a id="label-menu">Novo Site</a>
               </Link>
             </MenuItem>
 
-            <MenuItem onClick={handleClose}>
+            <MenuItem >
               <Link to="/profileadm">
                 <a id="label-menu">Gerenciar Perfis</a>
               </Link>
             </MenuItem>
 
-            <MenuItem onClick={handleClose}>
+            <MenuItem>
               <Link to="/reports">
                 <a id="label-menu">Relatório</a>
               </Link>
             </MenuItem>
 
-            <MenuItem onClick={handleClose}>
+            <MenuItem>
               <Link to="/register">Registrar Usuário</Link>
             </MenuItem>
           </Box>
         )}
-        <MenuItem onClick={handleClose}>
+
+        <MenuItem >
           <Link to="/profile">Configurações</Link>
-        </MenuItem>
-
-        <MenuItem onClick={handleClose}>
-          <a onClick={() => redefinirPassword()}>Trocar Senha</a>
-        </MenuItem>
-
-        <MenuItem onClick={handleClose}>
-          <a onClick={() => signOut()}>Sair</a>
         </MenuItem>
       </Menu>
     </div>

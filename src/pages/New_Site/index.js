@@ -110,7 +110,6 @@ export default function New_Site() {
   async function updateAllXlsx() {
     onLoadXLSX()
       .then((file) => {
-        console.log(file)
         file.forEach(async (item, index) => {
           if (index < 1) return;
 
@@ -140,6 +139,8 @@ export default function New_Site() {
             lastUpdate: new Date(),
             userLastUpdate: user.nome
           }]
+
+          console.log(doc[0])
 
           await firebase.firestore().collection('sites')
             .doc(item[0])
@@ -260,6 +261,7 @@ export default function New_Site() {
         NonStop: doc.data().NonStop,
         CtCritica: doc.data().CtCritica,
         ErbCritica: doc.data().ErbCritica,
+        MapaCalor: doc.data().MapaCalor,
       })
     })
     exportExcel(relatorioApr);
@@ -296,7 +298,7 @@ export default function New_Site() {
           </div>
         )}
 
-        {user.uid === ('wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' || 'WN0EtV44xnV0V87n5wBBXT87QXI2' || '5WBRPLgGmzUSLzrthSs9e9qnSnb2') || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' && (
+        {user.uid === ('wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2' || 'WN0EtV44xnV0V87n5wBBXT87QXI2' || '5WBRPLgGmzUSLzrthSs9e9qnSnb2') && (
           <Grid container className='container'>
             <TableContainer component={Paper}>
               <Table size="small" aria-label="a dense table">

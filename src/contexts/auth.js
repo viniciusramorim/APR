@@ -284,18 +284,8 @@ function AuthProvider({ children }) {
   }
 
   async function logSistem(evento, chamado) {
-    let xhttp = new XMLHttpRequest();
     var ip = 'null'
     let nome = 'null'
-
-    xhttp.open("GET", "https://api.ipify.org/?format=json", true);
-    xhttp.send();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState === 4 && this.status === 200) {
-        ip = JSON.parse(this.responseText).ip;
-        console.log(ip)
-      }
-    };
 
     try {
       nome = user.nome

@@ -139,20 +139,6 @@ export default function Header() {
             <i id="label-menu">Meu Perfil</i>
           </Link>
         </Tooltip>
-
-        <Tooltip title="Trocar Senha" placement="right" arrow>
-          <a onClick={() => redefinirPassword()}>
-            <LockResetSharpIcon color="#000" size={20} />
-            <i id="label-menu">Trocar Senha</i>
-          </a>
-        </Tooltip>
-
-        <Tooltip title="Sair" placement="right" arrow>
-          <a onClick={() => signOut()}>
-            <ExitToAppSharpIcon color="#000" size={20} />
-            <i id="label-menu">Sair</i>
-          </a>
-        </Tooltip>
       </section>
     </div>
   );
