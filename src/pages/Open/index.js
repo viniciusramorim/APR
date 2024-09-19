@@ -40,13 +40,12 @@ export default function Open() {
   const [area, setArea] = useState();
 
   const formatarValor = (valor) => {
-    // Verifica se o valor é um número
-    if (typeof valor !== 'number') {
-      return 'R$ 0,00';
-    }
+    let result = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(valor / 100)
 
-    // Formata o valor para o padrão brasileiro
-    return `R$ ${valor.toFixed(2).replace('.', ',')}`;
+    return result
   };
 
   useEffect(() => {
@@ -428,12 +427,21 @@ export default function Open() {
                 </div>
               </div>
 
-              {(apr.valor_armazenamento && apr.valor_transporte) && (
+              {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
+                <div className='container'>
+                  <div className='siteInfo' style={{flexDirection: 'column'}}>
+                    <span>Valor Armazenamento:</span> {apr.valor_armazenamento ? formatarValor(parseInt(apr.valor_armazenamento)) : 'R$ 0'}
+                    <span>Valor Transporte:</span> {apr.valor_transporte ? formatarValor(parseInt(apr.valor_transporte)) : 'R$ 0'}
+                    <span>Valor Sinistro:</span> {apr.valor_sinistro ? formatarValor(parseInt(apr.valor_sinistro)) : 'R$ 0'}
+                  </div>
+                </div>
+              )}
+
+              {(apr.valor_estoque && apr.tipo_loja) && (
                 <div className='container'>
                   <div className='siteInfo'>
-                    <span>Valor Armazenamento:</span> {formatarValor(parseInt(apr.valor_armazenamento))}
-                    <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_transporte))}
-                    <span>Valor Sinistro:</span> {apr.valor_sinistro ? formatarValor(parseInt(apr.valor_sinistro)) : 'R$ 0'}
+                    <span>Tipo de Loja:</span> {apr.tipo_loja}
+                    <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_estoque))}
                   </div>
                 </div>
               )}

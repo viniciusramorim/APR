@@ -139,13 +139,24 @@ input[class="no"]:focus+svg {
 
 #selectValorArmazenamento,
 #selectValorTransporte,
-#selectValorSinistro{
+#selectValorSinistro,
+#selectValorEstoque{
     width: 100%;
     padding: .7em;
     border: 0;
     border-radius: 5px;
     margin-right: 5px;
     max-width: 195px;
+}
+
+#selectValorEstoque,
+#selectTipoLoja{
+    width: 100%;
+    padding: .7em;
+    border: 0;
+    border-radius: 5px;
+    margin-right: 5px;
+    max-width: 295px;
 }
 
 .form-new a {

@@ -21,8 +21,6 @@ import {
 } from "@mui/material";
 import { format } from "date-fns";
 
-import "./prenew.css";
-
 export default function PreNew() {
   const { user, logSistem } = useContext(AuthContext);
   const history = useHistory();
@@ -319,6 +317,7 @@ export default function PreNew() {
               site={selectedSite}
               handleSearch={handleSearch}
               getPerimetro={getPerimetro}
+              user={user}
             />
           )}
         </div>

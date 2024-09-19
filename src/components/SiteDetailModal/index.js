@@ -5,7 +5,7 @@ import "../SiteDetailModal/SiteDetailModal.css";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
+const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
   const [editSite, setEditSite] = useState(null);
   const [newEstado, setNewEstado] = useState("");
   const [newTipoSite, setNewTipoSite] = useState("");
@@ -141,6 +141,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>UF:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="estado"
                 value={editSite.estado}
                 onChange={handleChange}
@@ -158,6 +159,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>Tipo de Site:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="tipoSite"
                 value={editSite.tipoSite}
                 onChange={handleChange}
@@ -175,6 +177,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>Tipo de Contrato:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="tipoContrato"
                 value={editSite.tipo_contrato}
                 onChange={handleChange}
@@ -192,6 +195,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>Criticidade:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="critical"
                 value={editSite.critical}
                 onChange={handleChange}
@@ -209,6 +213,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>Municipio:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="cidade"
                 value={editSite.cidade}
                 onChange={handleChange}
@@ -226,6 +231,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>CEP:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 name="cep"
                 value={editSite.cep}
                 onChange={handleChange}
@@ -253,6 +259,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>DETENTORA:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 value={newDetentora}
                 onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}
                 style={{
@@ -269,6 +276,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>LATITUDE:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 value={newLat}
                 onChange={(e) => setNewLat(e.target.value)}
                 style={{
@@ -285,6 +293,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
             <Typography variant="body1">
               <strong>LONGITUDE:</strong>
               <input
+                disabled={user.nivel !== 'administrador'}
                 value={newLng}
                 onChange={(e) => setNewLng(e.target.value)}
                 style={{
@@ -299,14 +308,16 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch }) => {
           </Grid>
 
           <Grid item xs={12}>
-            <Button
-              onClick={handleSave}
-              variant="contained"
-              style={{ backgroundColor: "#6e0dec", borderColor: "#6e0dec" }}
-              sx={{ mt: 2 }}
-            >
-              Salvar Alteração
-            </Button>
+            {user.nivel === 'administrador' && (
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                style={{ backgroundColor: "#6e0dec", borderColor: "#6e0dec" }}
+                sx={{ mt: 2 }}
+              >
+                Salvar Alteração
+              </Button>
+            )}
             <Button
               onClick={handleAdvance}
               variant="outlined"

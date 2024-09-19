@@ -55,6 +55,19 @@ export default function New() {
   const [valorArmazenamento, setValorArmazenamento] = useState('');
   const [valorTransporte, setValorTransporte] = useState('');
   const [valorSinistro, setValorSinistro] = useState('');
+  //Loja
+  const [tipoLoja, setTipoLoja] = useState('');
+  const [valorEstoque, setValorEstoque] = useState('');
+
+  const handleValorEstoqueChange = (e) => {
+    // Formata o valor para moeda BRL
+    let valor = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(e.target.value.replace(/\D/g, '') / 100); // Divida por 100 para obter os centavos
+
+    setValorEstoque(valor);
+  };
 
 
   useEffect(() => {
@@ -294,7 +307,7 @@ export default function New() {
       .then(async result => {
         setSite(id, motivoAPR).then(async () => {
           console.log('ID Atual:', result);
-  
+
           await firebase.firestore().collection(base)
             .add({
               user_id: user,
@@ -305,6 +318,8 @@ export default function New() {
               valor_armazenamento: valorArmazenamento,
               valor_transporte: valorTransporte,
               valor_sinistro: valorSinistro,
+              valor_estoque: valorEstoque,
+              tipo_loja: tipoLoja, 
               status: justificativa ? 'Com Exceção' : 'Em Aberto',
               peso: result_peso,
               justificativa: justificativa ? justificativa : '',
@@ -319,16 +334,16 @@ export default function New() {
               }
             })
             .then(async (index) => {
-  
+
               let containsImage = verifyContainsImage()
-  
+
               questions.forEach(async (area, indexA) => {
                 checklist.push({
                   0: area[0],
                   1: []
                 })
                 area[1].forEach(async (question, indexQ) => {
-  
+
                   question.question && checklist[indexA][1].push(
                     {
                       imagesURL: [],
@@ -342,7 +357,7 @@ export default function New() {
                       respGabarito: question.respGabarito,
                     }
                   )
-  
+
                   //Verifica antes de carregar no banco se contem resposta
                   if (question.resp !== '') {
                     let imageList = [] // criar uma lista de imagem e reseta a cada questao
@@ -351,12 +366,12 @@ export default function New() {
                       question.images && question.images.forEach(async file => {
                         let imgName = file.name
                         let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
-  
+
                         let storageRef = await firebase.storage().ref(imgPath)
                         let upload = storageRef.put(file)
-  
+
                         qtdImages = qtdImages + 1
-  
+
                         let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
                           trackUpload(upload).then(() => {
                             storageRef.getDownloadURL()
@@ -386,7 +401,7 @@ export default function New() {
                             console.log("Erro no upload: " + err)
                           })
                         })
-  
+
                         uploadCompleted.then(async () => {
                           await firebase.firestore().collection(base)
                             .doc(index.id)
@@ -405,10 +420,10 @@ export default function New() {
                       })
                     }
                   }
-  
+
                 })
               })
-  
+
               if (containsImage === false) {
                 await firebase.firestore().collection(base)
                   .doc(index.id)
@@ -424,11 +439,11 @@ export default function New() {
                     console.log('Erro ao inserir APR (sem imagens)')
                   })
               }
-  
+
               if (id_assign !== undefined) {
                 updateAssignments();
               }
-  
+
             })
             .catch(err => [
               console.log(err)
@@ -511,6 +526,9 @@ export default function New() {
     document.getElementById('container-motivo').style.display = 'none';
     (siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
       document.getElementById('container-pgr').style.display = 'none'
+    )
+    (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
+      document.getElementById('container-loja').style.display = 'none'
     )
     document.getElementById('container').style.display = 'none';
     document.getElementById('modalLoading').style.display = 'none'
@@ -696,7 +714,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => setSite(id, motivoAPR)} />
+          <FiClipboard size={25} onClick={() => console.log(valorEstoque, tipoLoja)} />
         </Title>
 
         <div className='container'>
@@ -761,9 +779,43 @@ export default function New() {
 
         {(siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
           <div className='container' id='container-pgr'>
-            <input id='selectValorArmazenamento' type='number' value={valorArmazenamento} onChange={e => setValorArmazenamento(e.target.value)} placeholder='Valor de Armazenamento'></input>
-            <input id='selectValorTransporte' type='number' value={valorTransporte} onChange={e => setValorTransporte(e.target.value)} placeholder='Valor de Transporte'></input>
-            <input id='selectValorSinistro' type='number' value={valorSinistro} onChange={e => setValorSinistro(e.target.value)} placeholder='Valor do Sinistro'></input>
+            <input id='selectValorArmazenamento' type='text' value={
+              new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(valorArmazenamento / 100)
+            } onChange={e => setValorArmazenamento(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Armazenamento'></input>
+            <input id='selectValorTransporte' type='text' value={new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
+            <input id='selectValorSinistro' type='text' value={new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
+          </div>
+        )}
+
+        {(siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
+          <div className='container' id='container-loja'>
+            <select id='selectTipoLoja' defaultValue={''} value={tipoLoja} onChange={e => setTipoLoja(e.target.value)}>
+              <option disabled value={''}>Selecione um tipo de loja...</option>
+              <option value={'LOJA RUA'}>LOJA RUA</option>
+              <option value={'LOJA GALERIA'}>LOJA GALERIA</option>
+              <option value={'LOJA SHOP TERREO'}>LOJA SHOP TERREO</option>
+              <option value={'LOJA SHOP 1° PISO'}>LOJA SHOP 1° PISO</option>
+              <option value={'LOJA SHOP ELITE'}>LOJA SHOP ELITE</option>
+            </select>
+            <input
+              id='selectValorEstoque'
+              type='text'
+              value={new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(valorEstoque / 100)}
+              onChange={(e) => setValorEstoque(e.target.value.replace(/\D/g, ''))}
+              placeholder='Valor de Estoque'
+            />
           </div>
         )}
 
@@ -779,9 +831,9 @@ export default function New() {
                       if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') &&
                         doc.estados.includes(siteInfo.Estado) &&
                         (
-                          doc.valorArmazenado && ((valorArmazenamento > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= valorArmazenamento)) ||
-                          doc.valorTransporte && ((valorTransporte > doc.valorTransporte.min) && (doc.valorTransporte.max >= valorTransporte)) ||
-                          doc.valorSinistro && ((valorSinistro > doc.valorSinistro.min) && (doc.valorSinistro.max >= valorSinistro))
+                          doc.valorArmazenado && (((valorArmazenamento/100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento/100))) ||
+                          doc.valorTransporte && (((valorTransporte/100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte/100))) ||
+                          doc.valorSinistro && (((valorSinistro/100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro/100)))
                         )
                       ) exibition = true
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
