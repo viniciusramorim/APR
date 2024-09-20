@@ -20,6 +20,8 @@ import {
   TextField,
 } from "@mui/material";
 import { format } from "date-fns";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
+
 
 export default function PreNew() {
   const { user, logSistem } = useContext(AuthContext);
@@ -66,6 +68,7 @@ export default function PreNew() {
   }
 
   useEffect(() => {
+    addBodyClass('page-apply-apr');
     async function loadUsers() {
       await firebase
         .firestore()

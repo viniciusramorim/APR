@@ -1,44 +1,44 @@
-.container-perg {
+.page-apply-apr .container-perg {
     border: 1px solid #8080804d;
     border-radius: 5px;
     padding: 10px;
     box-shadow: 1px 2px 11px #0000003d;
 }
 
-.form-prenew div {
+.page-apply-apr .form-prenew div {
     display: flex;
     margin-top: 0.5em;
     margin-bottom: 2em;
     justify-content: space-around;
 }
 
-.box-question {
+.page-apply-apr .box-question {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
 }
 
-.form-prenew input,
-.form-prenew textarea,
-.form-prenew select {
+.page-apply-apr .form-prenew input,
+.page-apply-apr .form-prenew textarea,
+.page-apply-apr .form-prenew select {
     padding: .7em;
     border: 0;
     border-radius: 5px;
     max-width: 600px;
 }
 
-.form-prenew{
+.page-apply-apr .form-prenew{
     margin-top: 0.5em;
 }
 
-.form-prenew label{
+.page-apply-apr .form-prenew label{
     padding: .7em;
     border: 0;
     border-radius: 5px;
     max-width: 600px;
 }
 
-.form-prenew a {
+.page-apply-apr .form-prenew a {
     padding: 10px;
     text-align: center;
     max-width: 100%;
@@ -55,25 +55,25 @@
     text-transform: uppercase;
 }
 
-.form-prenew a:hover {
+.page-apply-apr .form-prenew a:hover {
     background-color: #082ed8;
     color: #FFF;
 }
 
-.info-site{
+.page-apply-apr .info-site{
     display: none;
     flex-direction: column;
     align-items: flex-start;
 }
 
-.info-site table{
+.page-apply-apr .info-site table{
     padding: .7em;
     border: 0;
     border-radius: 5px;
     max-width: 100%;
 }
 
-.info-site a{
+.page-apply-apr .info-site a{
     padding: .7em;
     max-width: 98%;
     padding: 0.8em;
@@ -87,11 +87,11 @@
     transition: all 0.2s;
 }
 
-.info-site a:hover{
+.page-apply-apr .info-site a:hover{
     background-color: #6e0dec;
 }
 
-.content-items thead {
+.page-apply-apr .content-items thead {
     border: none;
     clip: rect(0 0 0 0);
     height: 1px;
@@ -102,12 +102,12 @@
     width: 1px;
 }
 
-.content-items tr {
+.page-apply-apr .content-items tr {
     border-bottom: 3px solid #ddd;
     margin-bottom: .65em;
 }
 
-.content-items td {
+.page-apply-apr .content-items td {
     border-bottom: 2px solid #DDD;
     display: block;
     font-size: 0.9em;
@@ -115,18 +115,18 @@
     margin-top: 0.3em;
 }
 
-.content-items td::before {
+.page-apply-apr .content-items td::before {
     content: attr(data-label);
     float: left;
     font-weight: bold;
     text-transform: uppercase;
 }
 
-.content-items td:last-child {
+.page-apply-apr .content-items td:last-child {
     border-bottom: 0;
 }
 
-.siteInfo {
+.page-apply-apr .siteInfo {
     max-width: 600px;
     display: flex;
     width: 100%;
@@ -135,11 +135,11 @@
     text-transform: uppercase;
 }
 
-.siteInfo span {
+.page-apply-apr .siteInfo span {
     font-weight: bold;
 }
 
-.container-atribuir {
+.page-apply-apr .container-atribuir {
     display: flex;
     background-color: #f8f8f8;
     border-radius: 5px;
@@ -149,7 +149,7 @@
     flex-direction: column;
 }
 
-.container-atribuir {
+.page-apply-apr .container-atribuir {
     display: flex;
     background-color: #f8f8f8;
     border-radius: 5px;
@@ -159,7 +159,7 @@
     flex-direction: column;
 }
 
-.container-atribuir a {
+.page-apply-apr .container-atribuir a {
     padding: 0.8em;
     margin-bottom: 1em;
     max-width: 98%;
@@ -172,7 +172,7 @@
     transition: all 0.2s;
 }
 
-.container-atribuir select {
+.page-apply-apr .container-atribuir select {
     margin-left: 0px;
     padding-left: 0px;
     width: 100%;
@@ -182,12 +182,12 @@
     max-width: 98%;
 }
 
-.container-atribuir label {
+.page-apply-apr .container-atribuir label {
     margin-bottom: 0.5em;
     font-size: 1.4em;
 }
 
-.container-atribuir a:hover {
+.page-apply-apr .container-atribuir a:hover {
     padding: 0.8em;
     margin-bottom: 1em;
     background-color: #6e0dec;
@@ -196,12 +196,12 @@
     cursor: pointer;
 }
 
-.filter-site {
+.page-apply-apr .filter-site {
     align-items: flex-start;
     justify-content: flex-start;
 }
 
-.filter-site input {
+.page-apply-apr .filter-site input {
     max-width: 430px;
     width: 100%;
     border: 1px solid #6e0dec;
@@ -210,18 +210,18 @@
     border-radius: 8px;
 }
 
-.filter-site select {
+.page-apply-apr .filter-site select {
     border: 1px solid #6e0dec;
     padding: 0.5em;
     margin-right: 0.5em;
     border-radius: 8px;
 }
 
-.filter-site input:focus {
+.page-apply-apr .filter-site input:focus {
     border: 1px solid #6e0dec;
 }
 
-.filter-site a {
+.page-apply-apr .filter-site a {
     background-color: #8a42e7;
     color: white;
     padding: 0.5em;
@@ -229,23 +229,23 @@
     border-radius: 8px;
 }
 
-.filter-site a:hover {
+.page-apply-apr .filter-site a:hover {
     background-color: #6e0dec;
     cursor: pointer;
 }
 
-.listsites ul{
+.page-apply-apr .listsites ul{
     max-width: 100%;
     width: 100%;
 }
 
-.listsites li{
+.page-apply-apr .listsites li{
     padding: 15px 9pxem;
     border-bottom: 1px solid #6e0dec;
     border-radius: 5px;
 }
 
-.listsites li:hover{
+.page-apply-apr .listsites li:hover{
     background-color: #6e0dec;
     color: white;
     cursor: pointer;
@@ -253,12 +253,12 @@
 
 /* new page */
 
-.container.content-apr {
+.page-apply-apr .container.content-apr {
     flex-direction: column;
     gap:5px
 }
 
-.site-item-content {
+.page-apply-apr .site-item-content {
     display: flex;
     gap: 10px;
     padding: 10px 0px;
@@ -270,11 +270,11 @@
     padding:10px px;
 }
 
-.site-item-content p {
+.page-apply-apr .modal-details .site-item-content p {
     padding: 0px 10px
 }
 
-.site-item-content:hover {
+.page-apply-apr .modal-details .site-item-content:hover {
     background:#6e0dec;
     transition:0.2s ease;
     color:#fff;
@@ -282,14 +282,14 @@
     border-radius:8px;
 }
 
-p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
+.page-apply-apr .modal-details p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
 }
 
-.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-4.css-1lj5egr-MuiGrid-root {
+.page-apply-apr .modal-details .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-4.css-1lj5egr-MuiGrid-root {
     display: flex;
     width: 100%;
     gap: 10px;

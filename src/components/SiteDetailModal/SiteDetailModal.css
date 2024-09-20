@@ -1,6 +1,6 @@
 /* Site Modal */
 
-.MuiBox-root.css-1aphimm p {
+.modal-details .MuiBox-root.css-1aphimm p {
     /* background: red; */
     display: flex;
     justify-content: space-between;
@@ -9,23 +9,23 @@
 
 /* mobile */
 @media(max-width:767px) {
-p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
+.modal-details p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
     flex-direction:column;
     align-items: flex-start;
 }
 
-.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root {
+.modal-details .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root {
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 10px;
 }
 
-.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root > * {
+.modal-details .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root > * {
     margin:0px;
 }
 
-p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root input {
+.modal-details p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root input {
     width:100%!important;
 }
 }

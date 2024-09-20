@@ -5,6 +5,7 @@ import "./SiteDetailModal.css";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
+
 const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
   const [editSite, setEditSite] = useState(null);
   const [newEstado, setNewEstado] = useState("");
@@ -93,7 +94,8 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
     <Modal
       open={open}
       onClose={onClose}
-      aria-labelledby="modal-sites"
+      className="modal-site-details"
+      aria-labelledby="modal-sites-details"
       aria-describedby="modal-description"
       style={{ borderRadius: "8px" }}
     >
@@ -118,7 +120,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
         <Typography id="modal-title" variant="h6" component="h2" sx={{ pb: 2 }}>
           Detalhes do Site - {editSite.sigla} - {editSite.nome}
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} className="modal-details">
           <Grid item xs={12}>
             <Typography variant="body1">
               <strong>ID:</strong>
@@ -141,7 +143,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>UF:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="estado"
                 value={editSite.estado}
                 onChange={handleChange}
@@ -159,7 +161,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>Tipo de Site:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="tipoSite"
                 value={editSite.tipoSite}
                 onChange={handleChange}
@@ -177,7 +179,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>Tipo de Contrato:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="tipoContrato"
                 value={editSite.tipo_contrato}
                 onChange={handleChange}
@@ -195,7 +197,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>Criticidade:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="critical"
                 value={editSite.critical}
                 onChange={handleChange}
@@ -213,7 +215,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>Municipio:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="cidade"
                 value={editSite.cidade}
                 onChange={handleChange}
@@ -231,7 +233,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>CEP:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 name="cep"
                 value={editSite.cep}
                 onChange={handleChange}
@@ -259,7 +261,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>DETENTORA:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 value={newDetentora}
                 onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}
                 style={{
@@ -276,7 +278,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>LATITUDE:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 value={newLat}
                 onChange={(e) => setNewLat(e.target.value)}
                 style={{
@@ -293,7 +295,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
             <Typography variant="body1">
               <strong>LONGITUDE:</strong>
               <input
-                disabled={user.nivel !== 'administrador'}
+                disabled={user.nivel !== "administrador"}
                 value={newLng}
                 onChange={(e) => setNewLng(e.target.value)}
                 style={{
@@ -308,7 +310,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
           </Grid>
 
           <Grid item xs={12}>
-            {user.nivel === 'administrador' && (
+            {user.nivel === "administrador" && (
               <Button
                 onClick={handleSave}
                 variant="contained"
