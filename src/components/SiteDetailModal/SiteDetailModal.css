@@ -1,6 +1,6 @@
 /* Site Modal */
 
-.modal-details .MuiBox-root.css-1aphimm p {
+.MuiTypography-root {
     /* background: red; */
     display: flex;
     justify-content: space-between;
@@ -9,23 +9,23 @@
 
 /* mobile */
 @media(max-width:767px) {
-.modal-details p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
-    flex-direction:column;
-    align-items: flex-start;
-}
+    .MuiTypography-root {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-.modal-details .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-}
+    .MuiTypography-root {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
 
-.modal-details .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-1idn90j-MuiGrid-root > * {
-    margin:0px;
-}
+    .MuiTypography-root>* {
+        margin: 0px;
+    }
 
-.modal-details p.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root input {
-    width:100%!important;
-}
+    .MuiTypography-root input {
+        width: 100% !important;
+    }
 }

@@ -1,5 +1,5 @@
 import "./prenew.css";
-import { useEffect, useState,useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
 import { FiClipboard } from "react-icons/fi";
 import { toast } from "react-toastify";
@@ -31,11 +31,6 @@ export default function PreNew() {
   const [siteSelect, setSiteSelect] = useState([]);
   const [aplicador, setAplicador] = useState([]);
   const [selectedAplicador, setSelectedAplicador] = useState("0");
-
-  //alterar informações do site
-  const [newLat, setNewLat] = useState("");
-  const [newLng, setNewLng] = useState("");
-  const [newDetentora, setNewDetentora] = useState("");
 
   //Busca
   const [sigla, setSigla] = useState("");
@@ -278,38 +273,19 @@ export default function PreNew() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={2}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleSearch}
                 style={{ backgroundColor: "#380054e8" }}
+                fullWidth
               >
                 Buscar
               </Button>
-              <FormControl
-                variant="outlined"
-                size="small"
-                style={{ width: "30%", marginLeft: "15px" }}
-              >
-                <InputLabel id="results-per-page-label">
-                  Resultados por Página
-                </InputLabel>
-                <Select
-                  labelId="results-per-page-label"
-                  id="results-per-page"
-                  value={resultsPerPage}
-                  onChange={handlePaginationChange}
-                  label="Resultados por Página"
-                >
-                  <MenuItem value={5}>5</MenuItem>
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={20}>20</MenuItem>
-                </Select>
-              </FormControl>
-              <Grid item xs={2} md={4} textAlign={"right"}>
-                <ModalNovoSite user={user} />
-              </Grid>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <ModalNovoSite user={user} />
             </Grid>
           </Grid>
           <div className="site-list">{/*  */}</div>
@@ -346,22 +322,46 @@ export default function PreNew() {
             justifyContent="right"
             style={{ marginTop: "10px" }}
           >
-            <Grid item>
+            <Grid item xs={12} md={2.3} textAlign={'right'}>
+              <FormControl
+                variant="outlined"
+                size="small"
+                fullWidth
+              >
+                <InputLabel id="results-per-page-label">
+                  Resultados por Página
+                </InputLabel>
+                <Select
+                  labelId="results-per-page-label"
+                  id="results-per-page"
+                  value={resultsPerPage}
+                  onChange={handlePaginationChange}
+                  label="Resultados por Página"
+                >
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={1.5} textAlign={'right'}>
               <Button
                 variant="outlined"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 0}
                 style={{ borderColor: "#380054e8" }}
+                fullWidth
               >
                 Anterior
               </Button>
             </Grid>
-            <Grid item>
+            <Grid item xs={12} md={1.5} textAlign={'right'}>
               <Button
                 variant="outlined"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
                 style={{ borderColor: "#380054e8", color: "#380054e8" }}
+                fullWidth
               >
                 Próximo
               </Button>
@@ -369,6 +369,6 @@ export default function PreNew() {
           </Grid>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
