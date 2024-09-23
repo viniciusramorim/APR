@@ -8,6 +8,7 @@ import firebase from "../../services/firebaseConnection";
 import "./dashboard.css";
 import { toast } from "react-toastify";
 import TableDashboard from "./tableDashboard";
+import QuestionnaireForm from "../../components/Question/QuestionnaireForm";
 import {
   Switch,
   Grid,
@@ -265,7 +266,11 @@ export default function Dashboard() {
       gap: "10px",
     },
   };
+  const [open, setOpen] = useState(false);
 
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  
   return (
     <div className="apr-digital">
       <Header />
@@ -273,6 +278,13 @@ export default function Dashboard() {
         <Title name="APRs">
           <FiMessageSquare size={25} onClick={() => console.log("")} />
         </Title>
+        <div>
+          <Button variant="contained" onClick={handleOpen}>
+            Abrir Modal
+          </Button>
+          <QuestionnaireForm open={open} handleClose={handleClose} />
+        </div>
+        <div></div>
 
         {(user.nivel === "administrador" || user.nivel === "revisor") && (
           <Grid
@@ -356,7 +368,9 @@ export default function Dashboard() {
               </Grid>
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="uf-label" size="small">UF</InputLabel>
+                  <InputLabel id="uf-label" size="small">
+                    UF
+                  </InputLabel>
                   <Select
                     id="uf"
                     labelId="uf-label"
@@ -425,7 +439,9 @@ export default function Dashboard() {
 
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="tipo-label" size="small">Tipo de Site</InputLabel>
+                  <InputLabel id="tipo-label" size="small">
+                    Tipo de Site
+                  </InputLabel>
                   <Select
                     id="tipo"
                     labelId="tipo-label"
@@ -453,7 +469,9 @@ export default function Dashboard() {
 
               <Grid item xs={2}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel id="status-label" size="small">Status</InputLabel>
+                  <InputLabel id="status-label" size="small">
+                    Status
+                  </InputLabel>
                   <Select
                     id="status"
                     labelId="status-label"

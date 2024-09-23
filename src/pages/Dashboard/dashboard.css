@@ -207,3 +207,9 @@ body.ReactModal__Body--open div#sidebar-menu {
     margin: 15px;
   }
 }
+
+.MuiBox-root.css-vtxhf1 {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 600px!important;
+}
