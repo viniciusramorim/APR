@@ -266,10 +266,6 @@ export default function Dashboard() {
       gap: "10px",
     },
   };
-  const [open, setOpen] = useState(false);
-
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
   
   return (
     <div className="apr-digital">
@@ -279,10 +275,6 @@ export default function Dashboard() {
           <FiMessageSquare size={25} onClick={() => console.log("")} />
         </Title>
         <div>
-          <Button variant="contained" onClick={handleOpen}>
-            Abrir Modal
-          </Button>
-          <QuestionnaireForm open={open} handleClose={handleClose} />
         </div>
         <div></div>
 

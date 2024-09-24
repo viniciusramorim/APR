@@ -2,27 +2,44 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  IconButton,
   List,
   ListItem,
   ListItemText,
-  Collapse,
-  IconButton,
-  Paper,
+  ListItemSecondaryAction,
   Container,
+  Switch,
 } from "@mui/material";
 import {
-  ExpandLess,
-  ExpandMore,
-  DragIndicator,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
   ArrowUpward,
   ArrowDownward,
+  ToggleOn,
+  ToggleOff,
 } from "@mui/icons-material";
 import firebase from "../../services/firebaseConnection";
+import Header from "../../components/Header";
+import "../../pages/Questionarios/Question.css";
+import Title from "../../components/Title";
+import { FiMessageSquare } from "react-icons/fi";
+import AddChecklist from "../../components/Question/AddCheck";
+import AddBlock from "../../components/Question/AddBlock";
+import QuestionnaireForm from "../../components/Question/QuestionnaireForm";
 
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});
-  const [expandedChecklist, setExpandedChecklist] = useState(null);
-  const [expandedBloco, setExpandedBloco] = useState(null);
+  const [selectedChecklist, setSelectedChecklist] = useState(null);
+  const [selectedBloco, setSelectedBloco] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [openBlockModal, setOpenBlockModal] = useState(false); // Modal for adding block
+  const [openQuestionModal, setOpenQuestionModal] = useState(false); // Modal for adding questions
+  const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
     const fetchChecklists = async () => {
@@ -43,152 +60,167 @@ const ChecklistManager = () => {
   }, []);
 
   const handleChecklistClick = (checklistId) => {
-    setExpandedChecklist(
-      expandedChecklist === checklistId ? null : checklistId
-    );
-    setExpandedBloco(null);
+    setSelectedChecklist(checklistId);
+    setSelectedBloco(null);
   };
 
   const handleBlocoClick = (blocoId) => {
-    setExpandedBloco(expandedBloco === blocoId ? null : blocoId);
+    setSelectedBloco(blocoId);
   };
 
-  const moveQuestion = async (
-    checklistId,
-    blocoId,
-    currentIndex,
-    direction
-  ) => {
-    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-    const questions = [...checklists[checklistId][blocoId]];
+  const handleEditQuestion = (question) => {
+    setEditingQuestion(question);
+    setOpenModal(true);
+  };
 
-    if (newIndex < 0 || newIndex >= questions.length) return;
-
-    const [movedQuestion] = questions.splice(currentIndex, 1);
-    questions.splice(newIndex, 0, movedQuestion);
-
-    const newChecklists = {
-      ...checklists,
-      [checklistId]: {
-        ...checklists[checklistId],
-        [blocoId]: questions,
-      },
-    };
-
-    setChecklists(newChecklists);
-
+  const handleDeleteQuestion = async (checklistId, blocoId, questionId) => {
     try {
+      const updatedQuestions = checklists[checklistId][blocoId].filter(
+        (q) => q.questionId !== questionId
+      );
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
       await checklistRef.update({
-        [blocoId]: questions,
+        [blocoId]: updatedQuestions,
       });
+
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [checklistId]: {
+          ...prevChecklists[checklistId],
+          [blocoId]: updatedQuestions,
+        },
+      }));
     } catch (error) {
-      console.error("Error updating question order:", error);
-      setChecklists(checklists);
+      console.error("Error deleting question:", error);
     }
   };
 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setOpenBlockModal(false); // Close block modal
+    setOpenQuestionModal(false); // Close question modal
+    setEditingQuestion(null);
+  };
+
   return (
-    <Container maxWidth="md">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Gerenciador de Checklists
-        </Typography>
-        <Paper elevation={3}>
-          <List>
-            {Object.entries(checklists).map(([checklistId, checklist]) => (
-              <React.Fragment key={checklistId}>
-                <ListItem
-                  button
-                  onClick={() => handleChecklistClick(checklistId)}
-                >
-                  <ListItemText primary={checklistId} />
-                  {expandedChecklist === checklistId ? (
-                    <ExpandLess />
-                  ) : (
-                    <ExpandMore />
+    <div className="apr-digital">
+      <Header />
+      <div className="content">
+        <Title name="Gerenciamento de Checklist">
+          <FiMessageSquare size={25} onClick={() => console.log("")} />
+        </Title>
+        <div className="container">
+          <Container maxWidth="md">
+            <Box sx={{ mt: 4, mb: 4 }}>
+              <Title name="Qual Checklist deseja editar?">
+                <FiMessageSquare size={25} onClick={() => console.log("")} />
+              </Title>
+              {!selectedChecklist ? (
+                <Grid container spacing={2}>
+                  {Object.entries(checklists).map(
+                    ([checklistId, checklist]) => (
+                      <Grid item xs={12} sm={6} md={4} key={checklistId}>
+                        <Card>
+                          <CardContent>
+                            <Typography variant="h6">{checklistId}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {Object.keys(checklist).length} blocos
+                            </Typography>
+                          </CardContent>
+                          <CardActions>
+                            <Button
+                              size="small"
+                              onClick={() => handleChecklistClick(checklistId)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    )
                   )}
-                </ListItem>
-                <Collapse
-                  in={expandedChecklist === checklistId}
-                  timeout="auto"
-                  unmountOnExit
-                >
-                  <List component="div" disablePadding>
-                    {Object.entries(checklist).map(([blocoId, questions]) => (
-                      <React.Fragment key={blocoId}>
-                        <ListItem
-                          button
-                          sx={{ pl: 4 }}
-                          onClick={() => handleBlocoClick(blocoId)}
-                        >
-                          <ListItemText primary={blocoId} />
-                          {expandedBloco === blocoId ? (
-                            <ExpandLess />
-                          ) : (
-                            <ExpandMore />
-                          )}
-                        </ListItem>
-                        <Collapse
-                          in={expandedBloco === blocoId}
-                          timeout="auto"
-                          unmountOnExit
-                        >
-                          <List component="div" disablePadding>
-                            {questions.map((question, index) => (
-                              <ListItem
-                                key={question.questionId}
-                                sx={{ pl: 6 }}
+                  <AddChecklist />
+                </Grid>
+              ) : !selectedBloco ? (
+                <Box>
+                  <Button onClick={() => setSelectedChecklist(null)} sx={{ mb: 2 }}>
+                    Voltar para Checklists
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOpenBlockModal(true)}
+                    sx={{ mb: 2 }}
+                  >
+                    Adicionar Novo Bloco
+                  </Button>
+                  <div className="nav-header"></div>
+                  <Typography variant="h5" gutterBottom>
+                    {selectedChecklist}
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {Object.entries(checklists[selectedChecklist]).map(
+                      ([blocoId, questions]) => (
+                        <Grid item xs={12} sm={6} md={4} key={blocoId}>
+                          <Card>
+                            <CardContent>
+                              <Typography variant="h6">{blocoId}</Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
                               >
-                                <IconButton size="small" sx={{ mr: 1 }}>
-                                  <DragIndicator />
-                                </IconButton>
-                                <ListItemText primary={question.question} />
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    moveQuestion(
-                                      checklistId,
-                                      blocoId,
-                                      index,
-                                      "up"
-                                    )
-                                  }
-                                  disabled={index === 0}
-                                >
-                                  <ArrowUpward />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    moveQuestion(
-                                      checklistId,
-                                      blocoId,
-                                      index,
-                                      "down"
-                                    )
-                                  }
-                                  disabled={index === questions.length - 1}
-                                >
-                                  <ArrowDownward />
-                                </IconButton>
-                              </ListItem>
-                            ))}
-                          </List>
-                        </Collapse>
-                      </React.Fragment>
-                    ))}
-                  </List>
-                </Collapse>
-              </React.Fragment>
-            ))}
-          </List>
-        </Paper>
-      </Box>
-    </Container>
+                                {questions.length} perguntas
+                              </Typography>
+                            </CardContent>
+                            <CardActions>
+                              <Button
+                                size="small"
+                                onClick={() => handleBlocoClick(blocoId)}
+                              >
+                                Ver Perguntas
+                              </Button>
+                            </CardActions>
+                          </Card>
+                        </Grid>
+                      )
+                    )}
+                  </Grid>
+                </Box>
+              ) : (
+                <Box>
+                  <Button onClick={() => setSelectedBloco(null)} sx={{ mb: 2 }}>
+                    Voltar para Blocos
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOpenQuestionModal(true)}
+                    sx={{ mb: 2 }}
+                  >
+                    Criar Pergunta
+                  </Button>
+                  <Typography variant="h5" gutterBottom>
+                    {selectedChecklist} - {selectedBloco}
+                  </Typography>
+                  {/* Render active and inactive questions here */}
+                </Box>
+              )}
+            </Box>
+          </Container>
+        </div>
+      </div>
+
+      {/* Modals for adding blocks and questions */}
+      <AddBlock open={openBlockModal} handleClose={handleCloseModal} />
+      <QuestionnaireForm
+        open={openQuestionModal}
+        handleClose={handleCloseModal}
+        selectedChecklist={selectedChecklist}
+        selectedBloco={selectedBloco}
+      />
+    </div>
   );
 };
 
