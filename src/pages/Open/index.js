@@ -330,6 +330,70 @@ export default function Open() {
       });
   }
 
+  function matrizRiscoLoja(valor, tipo) {
+    if (tipo === "LOJA RUA") {
+      if (valor === 0) {
+        return 'Muito Baixo'
+      } else if (valor > 0 && valor <= 30000000) {
+        return 'Baixo'
+      } else if (valor > 30000000 && valor <= 70000000) {
+        return 'Alto'
+      } else if (valor > 70000000 && valor <= 150000000) {
+        return 'Muito Alto'
+      } else if (valor > 150000000) {
+        return 'Muito Alto'
+      }
+    } else if (tipo === "LOJA GALERIA") {
+      if (valor === 0) {
+        return 'Muito Baixo'
+      } else if (valor > 0 && valor <= 30000000) {
+        return 'Baixo'
+      } else if (valor > 30000000 && valor <= 70000000) {
+        return 'Alto'
+      } else if (valor > 70000000 && valor <= 150000000) {
+        return 'Muito Alto'
+      } else if (valor > 150000000) {
+        return 'Muito Alto'
+      }
+    } else if (tipo === "LOJA SHOP TERREO") {
+      if (valor === 0) {
+        return 'Muito Baixo'
+      } else if (valor > 0 && valor <= 30000000) {
+        return 'Baixo'
+      } else if (valor > 30000000 && valor <= 70000000) {
+        return 'Médio'
+      } else if (valor > 70000000 && valor <= 150000000) {
+        return 'Alto'
+      } else if (valor > 150000000) {
+        return 'Muito Alto'
+      }
+    } else if (tipo === "LOJA SHOP 1° PISO") {
+      if (valor === 0) {
+        return 'Muito Baixo'
+      } else if (valor > 0 && valor <= 30000000) {
+        return 'Muito Baixo'
+      } else if (valor > 30000000 && valor <= 70000000) {
+        return 'Médio'
+      } else if (valor > 70000000 && valor <= 150000000) {
+        return 'Alto'
+      } else if (valor > 150000000) {
+        return 'Muito Alto'
+      }
+    } else if (tipo === "LOJA SHOP ELITE") {
+      if (valor === 0) {
+        return 'Muito Baixo'
+      } else if (valor > 0 && valor <= 30000000) {
+        return 'Muito Baixo'
+      } else if (valor > 30000000 && valor <= 70000000) {
+        return 'Médio'
+      } else if (valor > 70000000 && valor <= 150000000) {
+        return 'Médio'
+      } else if (valor > 150000000) {
+        return 'Alto'
+      }
+    }
+  }
+
 
   return (
     <div>
@@ -338,7 +402,7 @@ export default function Open() {
       <div className="content">
         <div id='exportContent'>
           <Title name="APR Digital">
-            <FiClipboard size={25} onClick={() => console.log()} />
+            <FiClipboard size={25} onClick={() => console.log(apr)} />
           </Title>
 
           {loadApr ? (
@@ -429,7 +493,7 @@ export default function Open() {
 
               {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
                 <div className='container'>
-                  <div className='siteInfo' style={{flexDirection: 'column'}}>
+                  <div className='siteInfo' style={{ flexDirection: 'column' }}>
                     <span>Valor Armazenamento:</span> {apr.valor_armazenamento ? formatarValor(parseInt(apr.valor_armazenamento)) : 'R$ 0'}
                     <span>Valor Transporte:</span> {apr.valor_transporte ? formatarValor(parseInt(apr.valor_transporte)) : 'R$ 0'}
                     <span>Valor Sinistro:</span> {apr.valor_sinistro ? formatarValor(parseInt(apr.valor_sinistro)) : 'R$ 0'}
@@ -438,12 +502,19 @@ export default function Open() {
               )}
 
               {(apr.valor_estoque && apr.tipo_loja) && (
-                <div className='container'>
-                  <div className='siteInfo'>
-                    <span>Tipo de Loja:</span> {apr.tipo_loja}
-                    <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_estoque))}
+                <>
+                  <div className='container'>
+                    <div className='siteInfo'>
+                      <span>Tipo de Loja:</span> {apr.tipo_loja}
+                      <span>Valor Transporte:</span> {formatarValor(parseInt(apr.valor_estoque))}
+                    </div>
                   </div>
-                </div>
+                  <div className='container'>
+                    <div className='siteInfo'>
+                      <span>Classificação Loja:</span> {matrizRiscoLoja(parseInt(apr.valor_estoque), apr.tipo_loja)}
+                    </div>
+                  </div>
+                </>
               )}
 
               {apr.justificativa ? (

@@ -57,7 +57,7 @@ export default function New() {
   const [valorSinistro, setValorSinistro] = useState('');
   //Loja
   const [tipoLoja, setTipoLoja] = useState('');
-  const [valorEstoque, setValorEstoque] = useState('');
+  const [valorEstoque, setValorEstoque] = useState('0');
 
   const handleValorEstoqueChange = (e) => {
     // Formata o valor para moeda BRL
@@ -308,6 +308,9 @@ export default function New() {
         setSite(id, motivoAPR).then(async () => {
           console.log('ID Atual:', result);
 
+          console.log(tipoLoja)
+          console.log(valorEstoque)
+
           await firebase.firestore().collection(base)
             .add({
               user_id: user,
@@ -319,7 +322,7 @@ export default function New() {
               valor_transporte: valorTransporte,
               valor_sinistro: valorSinistro,
               valor_estoque: valorEstoque,
-              tipo_loja: tipoLoja, 
+              tipo_loja: tipoLoja,
               status: justificativa ? 'Com Exceção' : 'Em Aberto',
               peso: result_peso,
               justificativa: justificativa ? justificativa : '',
@@ -527,9 +530,9 @@ export default function New() {
     (siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
       document.getElementById('container-pgr').style.display = 'none'
     )
-    (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
-      document.getElementById('container-loja').style.display = 'none'
-    )
+      (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
+        document.getElementById('container-loja').style.display = 'none'
+      )
     document.getElementById('container').style.display = 'none';
     document.getElementById('modalLoading').style.display = 'none'
 
@@ -732,6 +735,7 @@ export default function New() {
             </ul>
           </div>
         </div>
+
         <div className='container'>
           <div className='siteInfo'>
             <ul>
@@ -786,13 +790,13 @@ export default function New() {
               }).format(valorArmazenamento / 100)
             } onChange={e => setValorArmazenamento(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Armazenamento'></input>
             <input id='selectValorTransporte' type='text' value={new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
+              style: 'currency',
+              currency: 'BRL',
+            }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
             <input id='selectValorSinistro' type='text' value={new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
+              style: 'currency',
+              currency: 'BRL',
+            }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
           </div>
         )}
 
@@ -831,9 +835,9 @@ export default function New() {
                       if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') &&
                         doc.estados.includes(siteInfo.Estado) &&
                         (
-                          doc.valorArmazenado && (((valorArmazenamento/100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento/100))) ||
-                          doc.valorTransporte && (((valorTransporte/100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte/100))) ||
-                          doc.valorSinistro && (((valorSinistro/100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro/100)))
+                          doc.valorArmazenado && (((valorArmazenamento / 100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento / 100))) ||
+                          doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
+                          doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
                         )
                       ) exibition = true
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
