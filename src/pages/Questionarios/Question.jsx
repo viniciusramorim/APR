@@ -13,32 +13,25 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Container,
-  Switch,
 } from "@mui/material";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   ArrowUpward,
   ArrowDownward,
-  ToggleOn,
-  ToggleOff,
 } from "@mui/icons-material";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
+import MyModal from "../../components/Question/QuestionnaireForm";
 import "../../pages/Questionarios/Question.css";
 import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
-import AddChecklist from "../../components/Question/AddCheck";
-import AddBlock from "../../components/Question/AddBlock";
-import QuestionnaireForm from "../../components/Question/QuestionnaireForm";
 
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});
   const [selectedChecklist, setSelectedChecklist] = useState(null);
   const [selectedBloco, setSelectedBloco] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [openBlockModal, setOpenBlockModal] = useState(false); // Modal for adding block
-  const [openQuestionModal, setOpenQuestionModal] = useState(false); // Modal for adding questions
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
@@ -69,7 +62,11 @@ const ChecklistManager = () => {
   };
 
   const handleEditQuestion = (question) => {
-    setEditingQuestion(question);
+    setEditingQuestion({
+      ...question,
+      selectedChecklist,
+      selectedBloco
+    });
     setOpenModal(true);
   };
 
@@ -99,11 +96,99 @@ const ChecklistManager = () => {
     }
   };
 
+  const moveQuestion = async (
+    checklistId,
+    blocoId,
+    currentIndex,
+    direction
+  ) => {
+    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    const questions = [...checklists[checklistId][blocoId]];
+
+    if (newIndex < 0 || newIndex >= questions.length) return;
+
+    const [movedQuestion] = questions.splice(currentIndex, 1);
+    questions.splice(newIndex, 0, movedQuestion);
+
+    const newChecklists = {
+      ...checklists,
+      [checklistId]: {
+        ...checklists[checklistId],
+        [blocoId]: questions,
+      },
+    };
+
+    setChecklists(newChecklists);
+
+    try {
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(checklistId);
+      await checklistRef.update({
+        [blocoId]: questions,
+      });
+    } catch (error) {
+      console.error("Error updating question order:", error);
+      setChecklists(checklists);
+    }
+  };
+
   const handleCloseModal = () => {
     setOpenModal(false);
-    setOpenBlockModal(false); // Close block modal
-    setOpenQuestionModal(false); // Close question modal
     setEditingQuestion(null);
+  };
+
+  const handleModalSubmit = async (updatedData) => {
+    try {
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(selectedChecklist);
+
+      if (editingQuestion) {
+        // Update existing question
+        const updatedQuestions = checklists[selectedChecklist][
+          selectedBloco
+        ].map((q) =>
+          q.questionId === editingQuestion.questionId ? updatedData : q
+        );
+        await checklistRef.update({
+          [selectedBloco]: updatedQuestions,
+        });
+      } else {
+        // Add new question
+        await checklistRef.update({
+          [selectedBloco]:
+            firebase.firestore.FieldValue.arrayUnion(updatedData),
+        });
+      }
+
+      // Update local state
+      setChecklists((prevChecklists) => {
+        const newChecklists = { ...prevChecklists };
+        if (editingQuestion) {
+          newChecklists[selectedChecklist][selectedBloco] = newChecklists[
+            selectedChecklist
+          ][selectedBloco].map((q) =>
+            q.questionId === editingQuestion.questionId ? updatedData : q
+          );
+        } else {
+          if (!newChecklists[selectedChecklist]) {
+            newChecklists[selectedChecklist] = {};
+          }
+          if (!newChecklists[selectedChecklist][selectedBloco]) {
+            newChecklists[selectedChecklist][selectedBloco] = [];
+          }
+          newChecklists[selectedChecklist][selectedBloco].push(updatedData);
+        }
+        return newChecklists;
+      });
+
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error updating/adding question:", error);
+    }
   };
 
   return (
@@ -116,6 +201,14 @@ const ChecklistManager = () => {
         <div className="container">
           <Container maxWidth="md">
             <Box sx={{ mt: 4, mb: 4 }}>
+              <Button
+                color="success"
+                variant="outlined"
+                onClick={() => setOpenModal(true)}
+                sx={{ mb: 2 }}
+              >
+                Adicionar Nova Pergunta
+              </Button>
               <Title name="Qual Checklist deseja editar?">
                 <FiMessageSquare size={25} onClick={() => console.log("")} />
               </Title>
@@ -143,21 +236,19 @@ const ChecklistManager = () => {
                       </Grid>
                     )
                   )}
-                  <AddChecklist />
                 </Grid>
               ) : !selectedBloco ? (
                 <Box>
-                  <Button onClick={() => setSelectedChecklist(null)} sx={{ mb: 2 }}>
-                    Voltar para Checklists
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => setOpenBlockModal(true)}
-                    sx={{ mb: 2 }}
-                  >
-                    Adicionar Novo Bloco
-                  </Button>
-                  <div className="nav-header"></div>
+                  <div className="nav-header">
+                    <Button
+                      color="success"
+                      variant="outlined"
+                      onClick={() => setSelectedChecklist(null)}
+                      sx={{ mb: 2 }}
+                    >
+                      Voltar para Checklists
+                    </Button>
+                  </div>
                   <Typography variant="h5" gutterBottom>
                     {selectedChecklist}
                   </Typography>
@@ -194,31 +285,92 @@ const ChecklistManager = () => {
                   <Button onClick={() => setSelectedBloco(null)} sx={{ mb: 2 }}>
                     Voltar para Blocos
                   </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => setOpenQuestionModal(true)}
-                    sx={{ mb: 2 }}
-                  >
-                    Criar Pergunta
-                  </Button>
                   <Typography variant="h5" gutterBottom>
                     {selectedChecklist} - {selectedBloco}
                   </Typography>
-                  {/* Render active and inactive questions here */}
+                  <List>
+                    {checklists[selectedChecklist][selectedBloco].map(
+                      (question, index) => (
+                        <ListItem
+                          className="listQuest"
+                          key={question.questionId}
+                        >
+                          <ListItemText primary={index + 1} />
+                          <ListItemText secondary={question.question} />
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              edge="end"
+                              aria-label="edit"
+                              onClick={() => handleEditQuestion(question)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="delete"
+                              onClick={() =>
+                                handleDeleteQuestion(
+                                  selectedChecklist,
+                                  selectedBloco,
+                                  question.questionId
+                                )
+                              }
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="move up"
+                              onClick={() =>
+                                moveQuestion(
+                                  selectedChecklist,
+                                  selectedBloco,
+                                  index,
+                                  "up"
+                                )
+                              }
+                              disabled={index === 0}
+                            >
+                              <ArrowUpward />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="move down"
+                              onClick={() =>
+                                moveQuestion(
+                                  selectedChecklist,
+                                  selectedBloco,
+                                  index,
+                                  "down"
+                                )
+                              }
+                              disabled={
+                                index ===
+                                checklists[selectedChecklist][selectedBloco]
+                                  .length -
+                                  1
+                              }
+                            >
+                              <ArrowDownward />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                      )
+                    )}
+                  </List>
                 </Box>
               )}
             </Box>
           </Container>
         </div>
       </div>
-
-      {/* Modals for adding blocks and questions */}
-      <AddBlock open={openBlockModal} handleClose={handleCloseModal} />
-      <QuestionnaireForm
-        open={openQuestionModal}
+      <MyModal
+        open={openModal}
         handleClose={handleCloseModal}
+        editingQuestion={editingQuestion}
         selectedChecklist={selectedChecklist}
         selectedBloco={selectedBloco}
+        onSubmit={handleModalSubmit}
       />
     </div>
   );
