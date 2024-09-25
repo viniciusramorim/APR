@@ -107,3 +107,20 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
   top:10px
 }
 
+@media(max-width:787px) {
+  .css-518kzi-MuiListItemSecondaryAction-root {
+    position: absolute;
+    top:calc(100% + 20px)!important;
+}
+.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-hcmkxp-MuiListItem-root {
+    width: 100%;
+    padding: 0px;
+}
+
+.css-h4y409-MuiList-root {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+ }

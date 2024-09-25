@@ -4,3 +4,10 @@ h6.MuiTypography-root.MuiTypography-subtitle1.MuiTypography-gutterBottom.css-1wn
   border-radius: 8px;
   color: #fff;
 }
+
+@media(max-width:767px) {
+  .css-10bu1ee {
+      width:90%!important
+  }
+     
+ }
