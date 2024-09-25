@@ -1,6 +1,6 @@
 
 import { useContext, useEffect, useState } from 'react';
-import { FiClipboard, FiCheck, FiX } from 'react-icons/fi';
+import { FiClipboard, FiCheck, FiX, FiUpload } from 'react-icons/fi';
 import { useParams } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'react-toastify';
@@ -27,6 +27,8 @@ import questions_cd from './Questions/cd';
 import questions_ct from './Questions/ct';
 import questions_pgr_movel from './Questions/pgr_movel';
 import questions_pgr_fixa from './Questions/pgr_fixa';
+import questions_tag from './Questions/tag';
+import InputComponent from './InputComponent';
 
 export default function New() {
   const base = 'aprs-producao' //aprs-producao
@@ -130,6 +132,8 @@ export default function New() {
             question = questions_pgr_fixa.filter(Boolean);
           } else if (snapshot === "AUDIT PGR MOVEL") {
             question = questions_pgr_movel.filter(Boolean);
+          } else if (snapshot === "SMARTTAG2") {
+            question = questions_tag.filter(Boolean);
           }
           setQuestions(Object.entries(question[0]));
         }
@@ -762,6 +766,7 @@ export default function New() {
             <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
             <option value={'Projeto Veneza'}>Projeto Veneza (internalização Loja Dealer)</option>
             <option value={'Estoque Avançado'}>Estoque Avançado</option>
+            <option value={'Instalação Tag'}>Instalação Tag</option>
             <option value={'Não Opinada'}>Não Opinada</option>
           </select>
         </div>
@@ -778,6 +783,7 @@ export default function New() {
             <option value={'INDOOR'}>ARMARIO INDOOR</option>
             <option value={'AUDIT PGR MOVEL'}>AUDIT PGR MOVEL</option>
             <option value={'AUDIT PGR FIXA'}>AUDIT PGR FIXA</option>
+            <option value={'SMARTTAG2'}>SMARTTAG</option>
           </select>
         </div>
 
@@ -863,7 +869,7 @@ export default function New() {
                             )}
                             {doc.inputImages === true && (
                               <ul className='imageList' id={"inputimg_" + doc.questionId + "_" + indexA} style={{ display: doc.resp !== '' && doc.resp !== doc.respGabarito ? 'flex' : 'none' }}>
-                                <li className='notremove'>
+                                <li className='notremove' style={{marginRight: 10}}>
                                   <CameraComponent
                                     saveIndexedDB={saveIndexedDB}
                                     questions={questions}
@@ -871,6 +877,16 @@ export default function New() {
                                     indexA={indexA}
                                   />
                                 </li>
+                                {doc.inputImagesLibrary === true && (
+                                  <li className='notremove'>
+                                    <InputComponent
+                                      saveIndexedDB={saveIndexedDB}
+                                      questions={questions}
+                                      doc={doc}
+                                      indexA={indexA}
+                                    />
+                                  </li>
+                                )}
                                 {doc.images.length > 0 && (
                                   doc.images.map((img, indexImg) => {
                                     return (

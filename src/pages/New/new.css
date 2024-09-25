@@ -7,8 +7,7 @@
 }
 
 .form-new button {
-    height: 35px;
-    margin-bottom: 0.5em;
+    height: 100%;
     border: 0;
     border-radius: 7px;
     background-color: #8a42e7;
