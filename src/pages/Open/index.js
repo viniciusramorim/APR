@@ -296,7 +296,7 @@ export default function Open() {
     await firebase.firestore().collection(base)
       .doc(id)
       .update({
-        status: 'Revisado',
+        status: apr.site_id.tipoSite === 'SMARTTAG2' ? 'Concluido' : 'Revisado',
         data_alteracao: new Date()
       })
       .then(() => {
@@ -407,7 +407,7 @@ export default function Open() {
 
           {loadApr ? (
             <>
-              {((user.nivel === 'administrador') && apr.status === 'Revisado') && (
+              {(user.nivel === 'administrador' && apr.status === 'Revisado') && (
                 <div className='container'>
                   <EmailLink apr={apr} id={id} logSistem={logSistem} />
                 </div>
