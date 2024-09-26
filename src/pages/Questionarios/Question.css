@@ -1,6 +1,7 @@
 .MuiContainer-root.MuiContainer-maxWidthMd.css-xdmu94-MuiContainer-root {
   border: 1px solid #fff;
-  border-radius:5px
+  border-radius:5px;
+  margin:0px;
 }
 
 .nav-header {
@@ -123,4 +124,10 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
   gap: 50px;
 }
 
- }
+}
+
+@media (min-width: 900px) {
+  .css-xdmu94-MuiContainer-root {
+      max-width: 1920px!important;
+  }
+}

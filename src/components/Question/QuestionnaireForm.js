@@ -55,12 +55,13 @@ const MyModal = ({ open, handleClose }) => {
     user: user ? user.nome : "",
     lastUpdate: new Date(),
     status: true,
+    peso: 0,
+    inputImagesLibrary:false
   });
 
   const [checklistOptions, setChecklistOptions] = useState([]);
   const [selectedChecklist, setSelectedChecklist] = useState("");
   const [newChecklist, setNewChecklist] = useState("");
-  const [users, setUsers] = useState([]);
 
   const [blocoOptions, setBlocoOptions] = useState([]);
   const [selectedBloco, setSelectedBloco] = useState("");
@@ -205,6 +206,12 @@ const MyModal = ({ open, handleClose }) => {
     }));
 
     setError(null);
+
+    // Scroll to the newly added question
+    const blockElement = document.getElementById(`block-${selectedBloco}`);
+    if (blockElement) {
+      blockElement.scrollIntoView({ behavior: "smooth" });
+    }
   }, [formData, selectedChecklist, selectedBloco, hierarchicalData]);
 
   const handleSubmit = useCallback(async () => {
@@ -348,6 +355,21 @@ const MyModal = ({ open, handleClose }) => {
         </Typography>
         <Divider sx={{ my: 2 }} />
 
+        <TextField
+          type="number"
+          label="Peso"
+          name="peso"
+          value={formData.peso}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              peso: parseInt(e.target.value),
+            })
+          }
+          fullWidth
+          margin="normal"
+        />
+
         <FormControlLabel
           control={
             <Checkbox
@@ -489,7 +511,7 @@ const MyModal = ({ open, handleClose }) => {
         <Divider sx={{ my: 2 }} />
 
         <TextField
-          label={formData.user}
+          label="Criado por"
           name="user"
           value={formData.user}
           fullWidth
@@ -524,7 +546,7 @@ const MyModal = ({ open, handleClose }) => {
             <List>
               {Object.keys(hierarchicalData[selectedChecklist] || {}).map(
                 (bloco, index) => (
-                  <ListItem key={index}>
+                  <ListItem key={index} id={`block-${bloco}`}>
                     <ListItemText
                       primary={bloco}
                       secondary={`${hierarchicalData[selectedChecklist][bloco].length} pergunta(s)`}

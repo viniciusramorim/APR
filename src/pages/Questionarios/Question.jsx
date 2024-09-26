@@ -15,7 +15,6 @@ import {
   Container,
 } from "@mui/material";
 import {
-  Edit as EditIcon,
   Delete as DeleteIcon,
   ArrowUpward,
   ArrowDownward,
@@ -65,7 +64,7 @@ const ChecklistManager = () => {
     setEditingQuestion({
       ...question,
       selectedChecklist,
-      selectedBloco
+      selectedBloco,
     });
     setOpenModal(true);
   };
@@ -96,12 +95,7 @@ const ChecklistManager = () => {
     }
   };
 
-  const moveQuestion = async (
-    checklistId,
-    blocoId,
-    currentIndex,
-    direction
-  ) => {
+  const moveQuestion = async (checklistId, blocoId, currentIndex, direction) => {
     const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
     const questions = [...checklists[checklistId][blocoId]];
 
@@ -191,6 +185,34 @@ const ChecklistManager = () => {
     }
   };
 
+  const handleDeleteBloco = async (blocoId) => {
+    try {
+      // Obtém a referência do checklist no Firebase
+      const checklistRef = firebase.firestore().collection("question").doc(selectedChecklist);
+  
+      // Atualiza o estado local removendo o bloco
+      const updatedBlocos = { ...checklists[selectedChecklist] };
+      delete updatedBlocos[blocoId];
+  
+      // Atualiza o documento no Firebase, removendo apenas o bloco específico
+      await checklistRef.update({
+        [blocoId]: firebase.firestore.FieldValue.delete(),
+      });
+  
+      // Atualiza o estado local removendo o bloco
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [selectedChecklist]: updatedBlocos,
+      }));
+  
+      // Se o bloco selecionado for o deletado, deseleciona
+      setSelectedBloco(null);
+    } catch (error) {
+      console.error("Error deleting bloco:", error);
+    }
+  };
+  
+
   return (
     <div className="apr-digital">
       <Header />
@@ -214,28 +236,34 @@ const ChecklistManager = () => {
               </Title>
               {!selectedChecklist ? (
                 <Grid container spacing={2}>
-                  {Object.entries(checklists).map(
-                    ([checklistId, checklist]) => (
-                      <Grid item xs={12} sm={6} md={4} key={checklistId}>
-                        <Card>
-                          <CardContent>
-                            <Typography variant="h6">{checklistId}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {Object.keys(checklist).length} blocos
-                            </Typography>
-                          </CardContent>
-                          <CardActions>
-                            <Button
+                  {Object.entries(checklists).map(([checklistId, checklist]) => (
+                    <Grid item xs={12} sm={6} md={4} key={checklistId}>
+                      <Card>
+                        <CardContent>
+                          <Typography variant="h6">
+                            {checklist.title || checklistId}
+                            <IconButton
                               size="small"
-                              onClick={() => handleChecklistClick(checklistId)}
+                              onClick={() => handleDeleteBloco(checklistId)}
                             >
-                              Ver Detalhes
-                            </Button>
-                          </CardActions>
-                        </Card>
-                      </Grid>
-                    )
-                  )}
+                              <DeleteIcon />
+                            </IconButton>
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {Object.keys(checklist).filter(key => key !== 'title').length} blocos
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            size="small"
+                            onClick={() => handleChecklistClick(checklistId)}
+                          >
+                            Ver Detalhes
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
                 </Grid>
               ) : !selectedBloco ? (
                 <Box>
@@ -250,15 +278,24 @@ const ChecklistManager = () => {
                     </Button>
                   </div>
                   <Typography variant="h5" gutterBottom>
-                    {selectedChecklist}
+                    {checklists[selectedChecklist].title || selectedChecklist}
                   </Typography>
                   <Grid container spacing={2}>
-                    {Object.entries(checklists[selectedChecklist]).map(
-                      ([blocoId, questions]) => (
+                    {Object.entries(checklists[selectedChecklist])
+                      .filter(([key]) => key !== "title") // Remove "title" from being displayed as a bloco
+                      .map(([blocoId, questions]) => (
                         <Grid item xs={12} sm={6} md={4} key={blocoId}>
                           <Card>
                             <CardContent>
-                              <Typography variant="h6">{blocoId}</Typography>
+                              <Typography variant="h6">
+                                {blocoId}
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeleteBloco(blocoId)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Typography>
                               <Typography
                                 variant="body2"
                                 color="text.secondary"
@@ -276,8 +313,7 @@ const ChecklistManager = () => {
                             </CardActions>
                           </Card>
                         </Grid>
-                      )
-                    )}
+                      ))}
                   </Grid>
                 </Box>
               ) : (
@@ -286,7 +322,8 @@ const ChecklistManager = () => {
                     Voltar para Blocos
                   </Button>
                   <Typography variant="h5" gutterBottom>
-                    {selectedChecklist} - {selectedBloco}
+                    {checklists[selectedChecklist].title || selectedChecklist} -{" "}
+                    {selectedBloco}
                   </Typography>
                   <List>
                     {checklists[selectedChecklist][selectedBloco].map(
@@ -298,13 +335,6 @@ const ChecklistManager = () => {
                           <ListItemText primary={index + 1} />
                           <ListItemText secondary={question.question} />
                           <ListItemSecondaryAction>
-                            <IconButton
-                              edge="end"
-                              aria-label="edit"
-                              onClick={() => handleEditQuestion(question)}
-                            >
-                              <EditIcon />
-                            </IconButton>
                             <IconButton
                               edge="end"
                               aria-label="delete"
@@ -347,8 +377,7 @@ const ChecklistManager = () => {
                               disabled={
                                 index ===
                                 checklists[selectedChecklist][selectedBloco]
-                                  .length -
-                                  1
+                                  .length - 1
                               }
                             >
                               <ArrowDownward />
