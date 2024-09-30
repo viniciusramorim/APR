@@ -56,7 +56,7 @@ const MyModal = ({ open, handleClose }) => {
     lastUpdate: new Date(),
     status: true,
     peso: 0,
-    inputImagesLibrary:false
+    inputImagesLibrary: false,
   });
 
   const [checklistOptions, setChecklistOptions] = useState([]);
@@ -75,6 +75,7 @@ const MyModal = ({ open, handleClose }) => {
   const [hierarchicalData, setHierarchicalData] = useState({});
   const [error, setError] = useState(null);
 
+  // Carrega os checklists e blocos do Firebase
   const loadData = useCallback(async () => {
     try {
       const checklistsRef = firebase.firestore().collection("question");
@@ -88,6 +89,7 @@ const MyModal = ({ open, handleClose }) => {
       const checklistNames = Object.keys(data);
       setChecklistOptions(checklistNames);
 
+      // Inicializa o checklist e bloco selecionados
       if (checklistNames.length > 0) {
         setSelectedChecklist(checklistNames[0]);
         const blocoNames = Object.keys(data[checklistNames[0]] || {});
@@ -102,17 +104,19 @@ const MyModal = ({ open, handleClose }) => {
     }
   }, []);
 
+  // Carrega os dados quando o modal é aberto
   useEffect(() => {
     if (open) {
       loadData();
     }
   }, [open, loadData]);
 
+  // Atualiza o usuário no formulário
   useEffect(() => {
     if (user) {
       setFormData((prevData) => ({
         ...prevData,
-        user: user.name,
+        user: user.nome,
       }));
     }
   }, [user]);
@@ -207,7 +211,6 @@ const MyModal = ({ open, handleClose }) => {
 
     setError(null);
 
-    // Scroll to the newly added question
     const blockElement = document.getElementById(`block-${selectedBloco}`);
     if (blockElement) {
       blockElement.scrollIntoView({ behavior: "smooth" });
@@ -312,28 +315,25 @@ const MyModal = ({ open, handleClose }) => {
                 {option}
               </MenuItem>
             ))}
+            <MenuItem value="newBloco">Adicionar novo Bloco</MenuItem>
           </Select>
         </FormControl>
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="subtitle1" gutterBottom>
-          Voce também pode criar um novo bloco se preferir
-        </Typography>
-        <Divider sx={{ my: 2 }} />
 
-        <TextField
-          label="Nome do Novo Bloco"
-          value={newBloco}
-          onChange={(e) => setNewBloco(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <Button
-          variant="outlined"
-          onClick={handleNewBloco}
-          disabled={!selectedChecklist || selectedChecklist === "addNew"}
-        >
-          Adicionar Novo Bloco
-        </Button>
+        {selectedBloco === "newBloco" && (
+          <>
+            <TextField
+              label="Novo Bloco"
+              value={newBloco}
+              onChange={(e) => setNewBloco(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <Button variant="outlined" onClick={handleNewBloco}>
+              Adicionar Bloco
+            </Button>
+          </>
+        )}
+
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           Insira aqui a pergunta que deseja adicionar ao bloco
@@ -547,9 +547,11 @@ const MyModal = ({ open, handleClose }) => {
               {Object.keys(hierarchicalData[selectedChecklist] || {}).map(
                 (bloco, index) => (
                   <ListItem key={index} id={`block-${bloco}`}>
-                    <ListItemText
+                                        <ListItemText
                       primary={bloco}
-                      secondary={`${hierarchicalData[selectedChecklist][bloco].length} pergunta(s)`}
+                      secondary={`${
+                        hierarchicalData[selectedChecklist][bloco].length
+                      } pergunta(s)`}
                     />
                   </ListItem>
                 )
@@ -567,3 +569,4 @@ const MyModal = ({ open, handleClose }) => {
 };
 
 export default MyModal;
+
