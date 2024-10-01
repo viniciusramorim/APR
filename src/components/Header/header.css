@@ -212,3 +212,44 @@
     display: block;
   }
 }
+
+
+.my-account,
+.my-account div{
+    background:none;
+    color:#000!important;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    padding:0px 0px 0px 12px;
+    cursor:pointer;
+}
+.my-account div button {
+    color:#000!important;
+    font-weight:bold;
+    font-style:italic;
+    padding:0px;
+}
+
+.sidebar div.my-account,
+.sidebar div.my-account button {
+  background:none!important;
+}
+
+section#menu button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root div {
+  background:none;
+  padding:0px 0px 0px 10px;
+}
+
+section#menu button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root div *{
+  color:#000!important;
+}
+
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root svg {
+  margin-left:5px;
+}
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root {
+  display: flex;
+  align-items: center;
+  align-content: center;
+}

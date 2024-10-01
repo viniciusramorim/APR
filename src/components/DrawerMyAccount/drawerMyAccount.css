@@ -1,0 +1,53 @@
+.container-drawer,
+.container-button {
+  padding: 20px;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-profile {
+  input,
+  textarea,
+  select {
+    margin-bottom: 1em;
+    padding: 0.7em 0px;
+    border: 0;
+    border-radius: 5px;
+    max-width: 600px;
+  }
+
+  input:disabled {
+    cursor: not-allowed;
+  }
+
+  button {
+    max-width: 600px;
+  }
+
+  button:hover {
+    background-color: var($hover-color);
+  }
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  background-color: transparent;
+  border: 1px solid var($primary-color);
+  border-radius: 5px;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 0.8em;
+}
+
+.btn-salvar {
+  background-color: var($primary-color);
+}
+
+.css-1e6y48t-MuiButtonBase-root-MuiButton-root {
+  color:#fff!important;
+  text-transform:capitalize!important;
+}

@@ -4,18 +4,11 @@ import { AuthContext } from "../../contexts/auth";
 import logoRonda from "../../assets/logoRondaDigital-removebg.png";
 import logo from "../../assets/logoaprdigital-removebg.png";
 import logoMobile from "../../assets/logoaprdigital-removebg-mobile.png";
+import DrawerMyAccount from "../../components/DrawerMyAccount/DrawerMyAccount";
 
 import { Link } from "react-router-dom";
-import {
-  FiHome,
-  FiUsers,
-  FiLogOut,
-  FiUser,
-  FiLock,
-  FiMapPin,
-  FiFileText,
-} from "react-icons/fi";
-import { Avatar, Tooltip } from "@mui/material";
+import { FiHome } from "react-icons/fi";
+import { Avatar, IconButton, Tooltip } from "@mui/material";
 import MenuMobile from "./MenuMobile";
 import PlaylistAddCheckSharpIcon from "@mui/icons-material/PlaylistAddCheckSharp";
 import FileDownloadDoneSharpIcon from "@mui/icons-material/FileDownloadDoneSharp";
@@ -23,8 +16,6 @@ import PlaylistAddSharpIcon from "@mui/icons-material/PlaylistAddSharp";
 import PersonOutlineSharpIcon from "@mui/icons-material/PersonOutlineSharp";
 import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchSharp";
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
-import LockResetSharpIcon from "@mui/icons-material/LockResetSharp";
-import ExitToAppSharpIcon from "@mui/icons-material/ExitToAppSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 
 export default function Header() {
@@ -118,6 +109,7 @@ export default function Header() {
             <Tooltip title="Questionarios" placement="right" arrow>
               <Link to="/questions">
                 <ContentPasteIcon />
+                <i id="label-menu">Questionário</i>
               </Link>
             </Tooltip>
             <Tooltip title="Registrar Usuário" placement="right" arrow>
@@ -139,10 +131,10 @@ export default function Header() {
         )}
 
         <Tooltip title="Meu Perfil" placement="right" arrow>
-          <Link to="/profile">
-            <PersonOutlineSharpIcon color="#000" size={20} />
-            <i id="label-menu">Meu Perfil</i>
-          </Link>
+          <IconButton>
+            <PersonOutlineSharpIcon />
+            <DrawerMyAccount />
+          </IconButton>
         </Tooltip>
       </section>
     </div>
