@@ -18,21 +18,6 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-// Função para calcular a classificação de risco
-function calculatePontos(peso) {
-  if (peso <= 10) return "Risco Muito Baixo";
-  if (peso <= 30) return "Risco Baixo";
-  if (peso <= 50) return "Risco Médio";
-  if (peso <= 70) return "Risco Alto";
-  return "Risco Muito Alto";
-}
-
-// Função para processar o APRworksheet
-function v0(apr) {
-  if (!apr.peso || typeof apr.peso !== "number") return "-";
-  return calculatePontos(apr.peso);
-}
-
 export default function Reports() {
   const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +34,7 @@ export default function Reports() {
 
       // Filtro por Data
       if (filterDate.startDate && filterDate.endDate) {
+        console.log('data filter')
         const start = new Date(filterDate.startDate);
         const end = new Date(filterDate.endDate);
         end.setDate(end.getDate() + 1); // Inclui o dia final
@@ -57,16 +43,19 @@ export default function Reports() {
 
       // Filtro por Status
       if (filterStatus) {
+        console.log('data status')
         query = query.where("status", "==", filterStatus);
       }
 
       // Filtro por Motivo
       if (filterMotivo && filterMotivo !== "Todos") {
+        console.log('motivo filter')
         query = query.where("motivo_apr", "==", filterMotivo);
       }
 
       // Filtro por Tipo de Site
       if (filterTipoSite && filterTipoSite !== "todos") {
+        console.log('tipo site filter')
         query = query.where("site_id.tipoSite", "==", filterTipoSite);
       }
 
@@ -84,80 +73,202 @@ export default function Reports() {
     setLoading(false);
   }
 
-  async function updateState() {
-    setLoading(true);
+  function downloadExcel(data) {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "aprs");
 
+    const options = {
+      compression: "DEFLATE", // Configura o nível de compressão
+      bookSST: false,
+      type: "blob",
+    };
+
+    XLSX.writeFile(workbook, "apr-digital.xlsx", options);
+  }
+
+  // Função para calcular a classificação de risco
+  function calculatePontos(peso) {
+    if (peso <= 10) {
+      return `Risco Muito Baixo`
+    } else if (peso >= 11 && peso <= 30) {
+      return `Risco Baixo`
+    } else if (peso >= 31 && peso <= 50) {
+      return `Risco Médio`
+    } else if (peso >= 51 && peso <= 70) {
+      return `Risco Alto`
+    } else if (peso >= 71) {
+      return `Risco Muito Alto`
+    }
+  }
+
+  // Função para processar o APRworksheet
+  async function v0(apr) {
+    if (!apr.peso) return "-";
+
+    try {
+      // Fetch the site document based on apr.site_id
+      const querySnapshot = await firebase.firestore().collection('sites')
+        .where("Sigla", "==", apr.site_id.Sigla)
+        .where("Estado", "==", apr.site_id.Estado)
+        .get();
+
+      if (querySnapshot.empty) {
+        console.log("Nenhum documento encontrado.");
+        return;
+      }
+
+      const site = querySnapshot.docs[0].data();
+      const classif = calculatePontos(apr.peso);
+
+      // Verifying site values
+      if (site.CtCritica !== '-' || site.NonStop !== '-' || site.ErbCritica !== '-') return "v0 - Rota Critica";
+
+      // Determine the return value based on classification and site criticality
+      switch (classif) {
+        case "Risco Muito Baixo":
+          return site.critical === "Baixo" ? "v4 - Classificação"
+            : site.critical === "Médio" ? "v4 - Classificação"
+              : "v3 - Classificação";
+        case "Risco Baixo":
+          return site.critical === "Baixo" ? "v4 - Classificação"
+            : site.critical === "Médio" ? "v3 - Classificação"
+              : "v3 - Classificação";
+        case "Risco Médio":
+          return site.critical === "Baixo" ? "v3 - Classificação"
+            : site.critical === "Médio" ? "v3 - Classificação"
+              : "v2 - Classificação";
+        case "Risco Alto":
+          return site.critical === "Baixo" ? "v3 - Classificação"
+            : site.critical === "Médio" ? "v2 - Classificação"
+              : "v1 - Classificação";
+        case "Risco Muito Alto":
+          return site.critical === "Baixo" ? "v2 - Classificação"
+            : site.critical === "Médio" ? "v1 - Classificação"
+              : "v0 - Classificação";
+        default:
+          return "-";
+      }
+    } catch (error) {
+      console.error("Erro ao consultar o Firestore:", error);
+      return "-";
+    }
+  }
+
+  async function updateState(snapshot) {
+    setLoading(true)
     const relatorioApr = [];
-
-    const promises = chamados.map(async (doc) => {
+    const promises = snapshot.map(doc => {
+      // Verifica se o documento tem a propriedade
       if (doc.created !== undefined) {
-        const result = v0(doc);
-
-        if (includeQuestions) {
-          if (doc.checklist && doc.status !== "Com Exceção") {
-            doc.checklist.forEach((blocoQuestion) => {
-              blocoQuestion[1].forEach((question) => {
-                if (question.resp !== "") {
-                  relatorioApr.push({
-                    ID: doc.id,
-                    DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-                    STATUS: doc.status,
-                    MOTIVO: doc.motivo_apr,
-                    CLASSIFICACAO: calculatePontos(doc.peso),
-                    PESO: doc.peso,
-                    QUESTIONS: question.question,
-                    QUESTIONS_RESP: question.resp,
-                    QUESTIONS_RESPGABARITO: question.respGabarito,
-                    QUESTIONS_PA: question.openPA,
-                    QUESTION_PA_DATA: question.resp_pa_data
-                      ? format(
+        return v0(doc).then(result => {
+          if (includeQuestions) {
+            if (doc.checklist && doc.status !== "Com Exceção") {
+              doc.checklist.forEach((blocoQuestion) => {
+                blocoQuestion[1].forEach((question) => {
+                  if (question.resp !== "") {
+                    relatorioApr.push({
+                      ID: doc.id,
+                      DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+                      STATUS: doc.status,
+                      MOTIVO: doc.motivo_apr,
+                      CLASSIFICACAO: calculatePontos(doc.peso),
+                      PESO: doc.peso,
+                      QUESTIONS: question.question,
+                      QUESTIONS_RESP: question.resp,
+                      QUESTIONS_RESPGABARITO: question.respGabarito,
+                      QUESTIONS_PA: question.openPA,
+                      QUESTION_PA_DATA: question.resp_pa_data
+                        ? format(
                           question.resp_pa_data.toDate(),
                           "dd/MM/yyyy HH:mm:ss"
                         )
-                      : "",
-                    QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
-                    QUESTION_PA_NOME: question.resp_pa_user_name || "",
-                    SIGLA: doc.site_id.Sigla,
-                    SIGLA_GVT: doc.site_id.Sigla_GVT,
-                    TIPO_SITE: doc.site_id.tipoSite,
-                    NOME_SITE: doc.site_id.Nome,
-                    LAT_SITE: doc.site_id.Latitude,
-                    LNG_SITE: doc.site_id.Longitude,
-                    UF_SITE: doc.site_id.Estado,
-                    END_SITE: doc.site_id.Endereco,
-                    MUNICIPIO_SITE: doc.site_id.Cidade,
-                    BAIRRO_SITE: doc.site_id.Bairro,
-                    CEP_SITE: doc.site_id.CEP,
-                    CRITICIDADE_SITE: doc.site_id.critical,
-                    ABERTURA_LAT: doc.locationCreated.latitude,
-                    ABERTURA_LNG: doc.locationCreated.logitude,
-                    ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-                    TEMP_INCIO: format(
-                      doc.tempoConclusao.inicio.toDate(),
-                      "dd/MM/yyyy HH:mm:ss"
-                    ),
-                    TEMP_TERMINO: format(
-                      doc.tempoConclusao.conclusao.toDate(),
-                      "dd/MM/yyyy HH:mm:ss"
-                    ),
-                    TEMP_EFETUADO: Math.ceil(
-                      (doc.tempoConclusao.conclusao.toDate() -
-                        doc.tempoConclusao.inicio.toDate()) /
+                        : "",
+                      QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
+                      QUESTION_PA_NOME: question.resp_pa_user_name || "",
+                      SIGLA: doc.site_id.Sigla,
+                      SIGLA_GVT: doc.site_id.Sigla_GVT,
+                      TIPO_SITE: doc.site_id.tipoSite,
+                      NOME_SITE: doc.site_id.Nome,
+                      LAT_SITE: doc.site_id.Latitude,
+                      LNG_SITE: doc.site_id.Longitude,
+                      UF_SITE: doc.site_id.Estado,
+                      END_SITE: doc.site_id.Endereco,
+                      MUNICIPIO_SITE: doc.site_id.Cidade,
+                      BAIRRO_SITE: doc.site_id.Bairro,
+                      CEP_SITE: doc.site_id.CEP,
+                      CRITICIDADE_SITE: doc.site_id.critical,
+                      ABERTURA_LAT: doc.locationCreated.latitude,
+                      ABERTURA_LNG: doc.locationCreated.logitude,
+                      ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
+                      TEMP_INCIO: format(
+                        doc.tempoConclusao.inicio.toDate(),
+                        "dd/MM/yyyy HH:mm:ss"
+                      ),
+                      TEMP_TERMINO: format(
+                        doc.tempoConclusao.conclusao.toDate(),
+                        "dd/MM/yyyy HH:mm:ss"
+                      ),
+                      TEMP_EFETUADO: Math.ceil(
+                        (doc.tempoConclusao.conclusao.toDate() -
+                          doc.tempoConclusao.inicio.toDate()) /
                         (1000 * 60)
-                    ),
-                    USER_ID: doc.user_id.uid,
-                    USER_NOME: doc.user_id.nome,
-                    USER_UF: doc.user_id.uf,
-                    V0: result,
-                  });
-                }
+                      ),
+                      USER_ID: doc.user_id.uid,
+                      USER_NOME: doc.user_id.nome,
+                      USER_UF: doc.user_id.uf,
+                      V0: result,
+                    });
+                  }
+                });
               });
-            });
-          } else if (doc.status === "Com Exceção") {
+            } else if (doc.status === "Com Exceção") {
+              relatorioApr.push({
+                ID: doc.id,
+                DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+                STATUS: doc.status,
+                SIGLA: doc.site_id.Sigla,
+                SIGLA_GVT: doc.site_id.Sigla_GVT,
+                TIPO_SITE: doc.site_id.tipoSite,
+                NOME_SITE: doc.site_id.Nome,
+                LAT_SITE: doc.site_id.Latitude,
+                LNG_SITE: doc.site_id.Longitude,
+                UF_SITE: doc.site_id.Estado,
+                END_SITE: doc.site_id.Endereco,
+                MUNICIPIO_SITE: doc.site_id.Cidade,
+                BAIRRO_SITE: doc.site_id.Bairro,
+                CEP_SITE: doc.site_id.CEP,
+                CRITICIDADE_SITE: doc.site_id.critical,
+                ABERTURA_LAT: doc.locationCreated.latitude,
+                ABERTURA_LNG: doc.locationCreated.logitude,
+                ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
+                TEMP_INCIO: format(
+                  doc.tempoConclusao.inicio.toDate(),
+                  "dd/MM/yyyy HH:mm:ss"
+                ),
+                TEMP_TERMINO: format(
+                  doc.tempoConclusao.conclusao.toDate(),
+                  "dd/MM/yyyy HH:mm:ss"
+                ),
+                TEMP_EFETUADO: Math.ceil(
+                  (doc.tempoConclusao.conclusao.toDate() -
+                    doc.tempoConclusao.inicio.toDate()) /
+                  (1000 * 60)
+                ),
+                USER_ID: doc.user_id.uid,
+                USER_NOME: doc.user_id.nome,
+                USER_UF: doc.user_id.uf,
+                V0: "-",
+              });
+            }
+          } else {
             relatorioApr.push({
               ID: doc.id,
               DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
               STATUS: doc.status,
+              MOTIVO: doc.motivo_apr,
+              CLASSIFICACAO: calculatePontos(doc.peso),
+              PESO: doc.peso,
               SIGLA: doc.site_id.Sigla,
               SIGLA_GVT: doc.site_id.Sigla_GVT,
               TIPO_SITE: doc.site_id.tipoSite,
@@ -184,87 +295,29 @@ export default function Reports() {
               TEMP_EFETUADO: Math.ceil(
                 (doc.tempoConclusao.conclusao.toDate() -
                   doc.tempoConclusao.inicio.toDate()) /
-                  (1000 * 60)
+                (1000 * 60)
               ),
               USER_ID: doc.user_id.uid,
               USER_NOME: doc.user_id.nome,
               USER_UF: doc.user_id.uf,
-              V0: "-",
+              V0: result,
             });
           }
-        } else {
-          relatorioApr.push({
-            ID: doc.id,
-            DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-            STATUS: doc.status,
-            MOTIVO: doc.motivo_apr,
-            CLASSIFICACAO: calculatePontos(doc.peso),
-            PESO: doc.peso,
-            SIGLA: doc.site_id.Sigla,
-            SIGLA_GVT: doc.site_id.Sigla_GVT,
-            TIPO_SITE: doc.site_id.tipoSite,
-            NOME_SITE: doc.site_id.Nome,
-            LAT_SITE: doc.site_id.Latitude,
-            LNG_SITE: doc.site_id.Longitude,
-            UF_SITE: doc.site_id.Estado,
-            END_SITE: doc.site_id.Endereco,
-            MUNICIPIO_SITE: doc.site_id.Cidade,
-            BAIRRO_SITE: doc.site_id.Bairro,
-            CEP_SITE: doc.site_id.CEP,
-            CRITICIDADE_SITE: doc.site_id.critical,
-            ABERTURA_LAT: doc.locationCreated.latitude,
-            ABERTURA_LNG: doc.locationCreated.logitude,
-            ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-            TEMP_INCIO: format(
-              doc.tempoConclusao.inicio.toDate(),
-              "dd/MM/yyyy HH:mm:ss"
-            ),
-            TEMP_TERMINO: format(
-              doc.tempoConclusao.conclusao.toDate(),
-              "dd/MM/yyyy HH:mm:ss"
-            ),
-            TEMP_EFETUADO: Math.ceil(
-              (doc.tempoConclusao.conclusao.toDate() -
-                doc.tempoConclusao.inicio.toDate()) /
-                (1000 * 60)
-            ),
-            USER_ID: doc.user_id.uid,
-            USER_NOME: doc.user_id.nome,
-            USER_UF: doc.user_id.uf,
-            V0: result,
-          });
-        }
+        });
+      } else {
+        return Promise.resolve(); // Retorna uma promise resolvida para documentos sem 'created'
       }
     });
 
-    function downloadExcel(data) {
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "aprs");
-
-      const options = {
-        compression: "DEFLATE", // Configura o nível de compressão
-        bookSST: false,
-        type: "blob",
-      };
-
-      XLSX.writeFile(workbook, "apr-digital.xlsx", options);
-    }
-
     // Aguarda a resolução de todas as Promises
-    Promise.all(promises)
-      .then(() => {
-        console.log(relatorioApr);
-
-        downloadExcel(relatorioApr);
-
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Erro ao processar documentos:", error);
-
-        setLoading(false);
-      });
+    Promise.all(promises).then(() => {
+      console.log(relatorioApr);
+      downloadExcel(relatorioApr);
+      setLoading(false)
+    }).catch(error => {
+      console.error("Erro ao processar documentos:", error);
+      setLoading(false)
+    });
   }
 
   return (
@@ -344,7 +397,7 @@ export default function Reports() {
                     <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
                     <MenuItem value="Não Opinada">Não Opinada</MenuItem>
                     <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
-                    <MenuItem value="Retrofit">Retrofit</MenuItem> 
+                    <MenuItem value="Retrofit">Retrofit</MenuItem>
                     <MenuItem value="Rota Critica DWDM">Rota Crítica DWDM</MenuItem>
                   </Select>
                 </FormControl>
@@ -393,7 +446,7 @@ export default function Reports() {
                     color="primary"
                     onClick={loadChamados}
                     disabled={loading}
-										style={{borderColor:"#380054e8", color:"#380054e8"}}
+                    style={{ borderColor: "#380054e8", color: "#380054e8" }}
                   >
                     {loading ? "Carregando..." : "Filtrar"}
                   </Button>
@@ -407,7 +460,7 @@ export default function Reports() {
           <Button
             variant="contained"
             color="primary"
-            onClick={updateState}
+            onClick={() => updateState(chamados)}
             disabled={loading || chamados.length === 0}
           >
             {loading ? "Carregando..." : "Download"}
