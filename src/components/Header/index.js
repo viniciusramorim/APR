@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../contexts/auth";
 import logoRonda from "../../assets/logoRondaDigital-removebg.png";
 import logo from "../../assets/logoaprdigital-removebg.png";
-import logoMobile from "../../assets/logoaprdigital-removebg-mobile.png"
+import logoMobile from "../../assets/logoaprdigital-removebg-mobile.png";
 
 import { Link } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchS
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import LockResetSharpIcon from "@mui/icons-material/LockResetSharp";
 import ExitToAppSharpIcon from "@mui/icons-material/ExitToAppSharp";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
@@ -38,7 +39,6 @@ export default function Header() {
       width >= 170 ? "50px" : "170px";
     document.getElementById("logo-apr").style.width =
       width >= 170 ? "50px" : "170px";
-
 
     for (let i of queryObj) {
       i.hidden = width >= 170 ? true : false;
@@ -113,6 +113,11 @@ export default function Header() {
               <Link to="/reports">
                 <ContentPasteSearchSharpIcon color="#000" size={20} />
                 <i id="label-menu">Relatório</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Questionarios" placement="right" arrow>
+              <Link to="/questions">
+                <ContentPasteIcon />
               </Link>
             </Tooltip>
             <Tooltip title="Registrar Usuário" placement="right" arrow>

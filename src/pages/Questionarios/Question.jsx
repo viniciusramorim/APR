@@ -16,21 +16,30 @@ import {
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
+  Edit as EditIcon,
   ArrowUpward,
   ArrowDownward,
 } from "@mui/icons-material";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import MyModal from "../../components/Question/QuestionnaireForm";
-import "../../pages/Questionarios/Question.css";
 import Title from "../../components/Title";
-import { FiMessageSquare } from "react-icons/fi";
+import ChecklistModal from "../../components/Question/ChecklistModal";
+import BlocoModal from "../../components/Question/BlocoModal";
+import QuestionModal from "../../components/Question/QuestionModal";
+import "../../pages/Questionarios/Question.css";
 
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});
   const [selectedChecklist, setSelectedChecklist] = useState(null);
   const [selectedBloco, setSelectedBloco] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
+  const [selectedBlocoTitle, setSelectedBlocoTitle] = useState("");
+
+  const [openChecklistModal, setOpenChecklistModal] = useState(false);
+  const [openBlocoModal, setOpenBlocoModal] = useState(false);
+  const [openQuestionModal, setOpenQuestionModal] = useState(false);
+
+  const [editingChecklist, setEditingChecklist] = useState(null);
+  const [editingBloco, setEditingBloco] = useState(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
@@ -44,67 +53,221 @@ const ChecklistManager = () => {
         });
         setChecklists(data);
       } catch (error) {
-        console.error("Error fetching checklists:", error);
+        console.error("Erro ao buscar checklists:", error);
       }
     };
-
     fetchChecklists();
   }, []);
+
+  const clearFields = () => {
+    setEditingChecklist(null);
+    setEditingBloco(null);
+    setEditingQuestion(null);
+    setSelectedBloco(null);
+    setSelectedBlocoTitle("");
+  };
+
+  const handleAddChecklist = () => {
+    setEditingChecklist(null);
+    setOpenChecklistModal(true);
+  };
+
+  const handleAddBloco = () => {
+    setEditingBloco(null);
+    setOpenBlocoModal(true);
+  };
+
+  const handleAddQuestion = () => {
+    if (!selectedChecklist || !selectedBloco) {
+      console.error(
+        "Checklist e Bloco devem ser selecionados antes de adicionar uma pergunta."
+      );
+      return;
+    }
+    setEditingQuestion(null);
+    setOpenQuestionModal(true);
+  };
 
   const handleChecklistClick = (checklistId) => {
     setSelectedChecklist(checklistId);
     setSelectedBloco(null);
+    setSelectedBlocoTitle("");
   };
 
   const handleBlocoClick = (blocoId) => {
+    const blocoTitle = checklists[selectedChecklist]?.[blocoId]?.title || "";
     setSelectedBloco(blocoId);
+    setSelectedBlocoTitle(blocoTitle);
   };
 
-  const handleEditQuestion = (question) => {
-    setEditingQuestion({
-      ...question,
-      selectedChecklist,
-      selectedBloco,
-    });
-    setOpenModal(true);
-  };
-
-  const handleDeleteQuestion = async (checklistId, blocoId, questionId) => {
+  const handleSaveChecklist = async (checklist) => {
     try {
-      if (!checklistId || !blocoId || !questionId) {
-        console.error("Checklist, bloco ou pergunta inválida.");
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(checklist.id);
+      await checklistRef.set({ title: checklist.title }, { merge: true });
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [checklist.id]: { title: checklist.title },
+      }));
+      setOpenChecklistModal(false);
+      clearFields();
+    } catch (error) {
+      console.error("Erro ao salvar o checklist:", error);
+    }
+  };
+
+  const handleSaveBloco = async (bloco) => {
+    try {
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(selectedChecklist);
+      await checklistRef.set(
+        { [bloco.id]: { title: bloco.title, questions: [] } },
+        { merge: true }
+      );
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [selectedChecklist]: {
+          ...prevChecklists[selectedChecklist],
+          [bloco.id]: { title: bloco.title, questions: [] },
+        },
+      }));
+      setOpenBlocoModal(false);
+      clearFields();
+    } catch (error) {
+      console.error("Erro ao salvar o bloco:", error);
+    }
+  };
+
+  const handleSaveQuestion = async (question) => {
+    try {
+      if (!selectedChecklist || !selectedBloco) {
+        console.error(
+          "Checklist e Bloco devem ser selecionados antes de adicionar uma pergunta."
+        );
         return;
       }
 
-      // Filtra as perguntas removendo a que deve ser excluída
-      const updatedQuestions = checklists[checklistId][blocoId].filter(
-        (q) => q.questionId !== questionId
-      );
+      const currentQuestions =
+        checklists[selectedChecklist][selectedBloco]?.questions || [];
+      let updatedQuestions = [...currentQuestions];
 
-      // Atualize o checklist no Firebase
+      if (editingQuestion) {
+        const questionIndex = updatedQuestions.findIndex(
+          (q) => q.questionId === editingQuestion.questionId
+        );
+        if (questionIndex !== -1) {
+          updatedQuestions[questionIndex] = {
+            ...question,
+            questionId: editingQuestion.questionId,
+          };
+        }
+      } else {
+        const newQuestionId = currentQuestions.length + 1;
+        const formattedQuestion = {
+          ...question,
+          questionId: newQuestionId,
+          lastUpdate: new Date(),
+          area: selectedBlocoTitle,
+        };
+        updatedQuestions.push(formattedQuestion);
+      }
+
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(selectedChecklist);
+      await checklistRef.update({
+        [`${selectedBloco}.questions`]: updatedQuestions,
+      });
+
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [selectedChecklist]: {
+          ...prevChecklists[selectedChecklist],
+          [selectedBloco]: {
+            ...prevChecklists[selectedChecklist][selectedBloco],
+            questions: updatedQuestions,
+          },
+        },
+      }));
+      setOpenQuestionModal(false);
+      clearFields();
+    } catch (error) {
+      console.error("Erro ao salvar a pergunta:", error);
+    }
+  };
+
+  // Função para excluir um bloco específico dentro do checklist selecionado
+  const handleDeleteBloco = async (blocoId) => {
+    try {
+      if (!selectedChecklist || !blocoId) {
+        console.error("Checklist ou bloco inválido.");
+        return;
+      }
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(selectedChecklist);
+      await checklistRef.update({
+        [blocoId]: firebase.firestore.FieldValue.delete(),
+      });
+
+      setChecklists((prevChecklists) => {
+        const updatedChecklists = { ...prevChecklists };
+        delete updatedChecklists[selectedChecklist][blocoId];
+        return updatedChecklists;
+      });
+      setSelectedBloco(null);
+      setSelectedBlocoTitle("");
+    } catch (error) {
+      console.error("Erro ao excluir o bloco:", error);
+    }
+  };
+
+  // Função para editar uma pergunta existente
+  const handleEditQuestion = (question) => {
+    setEditingQuestion(question); // Define a pergunta para edição
+    setOpenQuestionModal(true); // Abre o modal com os dados da pergunta
+  };
+
+  // Função para excluir uma pergunta específica
+  const handleDeleteQuestion = async (checklistId, blocoId, questionId) => {
+    try {
+      const updatedQuestions = checklists[checklistId][
+        blocoId
+      ].questions.filter((q) => q.questionId !== questionId);
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
       await checklistRef.update({
-        [blocoId]: updatedQuestions,
+        [`${blocoId}.questions`]: updatedQuestions,
       });
 
-      // Atualize o estado local
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklistId]: {
           ...prevChecklists[checklistId],
-          [blocoId]: updatedQuestions,
+          [blocoId]: {
+            ...prevChecklists[checklistId][blocoId],
+            questions: updatedQuestions,
+          },
         },
       }));
-
-      console.log("Pergunta excluída com sucesso!");
+      console.log(
+        `Pergunta ${questionId} excluída com sucesso do bloco ${blocoId}`
+      );
     } catch (error) {
       console.error("Erro ao excluir a pergunta:", error);
     }
   };
 
+  // Função para mover uma pergunta para cima ou para baixo dentro do bloco
   const moveQuestion = async (
     checklistId,
     blocoId,
@@ -112,122 +275,62 @@ const ChecklistManager = () => {
     direction
   ) => {
     try {
-      if (!checklistId || !blocoId) {
-        console.error("Checklist ou bloco inválido.");
-        return;
-      }
-
       const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-      const questions = [...checklists[checklistId][blocoId]];
+      const questions = [...checklists[checklistId][blocoId].questions];
 
+      // Certifique-se de que o novo índice é válido
       if (newIndex < 0 || newIndex >= questions.length) return;
 
+      // Troca a posição das perguntas no array
       const [movedQuestion] = questions.splice(currentIndex, 1);
       questions.splice(newIndex, 0, movedQuestion);
-
-      const newChecklists = {
-        ...checklists,
-        [checklistId]: {
-          ...checklists[checklistId],
-          [blocoId]: questions,
-        },
-      };
-
-      setChecklists(newChecklists);
 
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
       await checklistRef.update({
-        [blocoId]: questions,
+        [`${blocoId}.questions`]: questions,
       });
+
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [checklistId]: {
+          ...prevChecklists[checklistId],
+          [blocoId]: { ...prevChecklists[checklistId][blocoId], questions },
+        },
+      }));
+      console.log(
+        `Pergunta movida para ${direction === "up" ? "cima" : "baixo"}`
+      );
     } catch (error) {
       console.error("Erro ao mover a pergunta:", error);
     }
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setEditingQuestion(null);
-  };
-
-  const handleModalSubmit = async (updatedData) => {
-    try {
-      if (!selectedChecklist || !selectedBloco) {
-        console.error("Checklist ou bloco inválido.");
-        return;
-      }
-
-      const checklistRef = firebase
-        .firestore()
-        .collection("question")
-        .doc(selectedChecklist);
-
-      if (editingQuestion) {
-        const updatedQuestions = checklists[selectedChecklist][
-          selectedBloco
-        ].map((q) =>
-          q.questionId === editingQuestion.questionId ? updatedData : q
-        );
-        await checklistRef.update({
-          [selectedBloco]: updatedQuestions,
+  // Função para excluir um checklist completo, incluindo todos os blocos e perguntas
+  const handleDeleteChecklist = async (checklistId) => {
+    if (
+      window.confirm(
+        "Tem certeza que deseja excluir este checklist? Essa ação é irreversível."
+      )
+    ) {
+      try {
+        await firebase
+          .firestore()
+          .collection("question")
+          .doc(checklistId)
+          .delete(); // Remove do Firebase
+        setChecklists((prevChecklists) => {
+          const updatedChecklists = { ...prevChecklists };
+          delete updatedChecklists[checklistId]; // Remove do estado local
+          return updatedChecklists;
         });
-      } else {
-        await checklistRef.update({
-          [selectedBloco]:
-            firebase.firestore.FieldValue.arrayUnion(updatedData),
-        });
+        console.log(`Checklist ${checklistId} excluído com sucesso!`);
+        clearFields();
+      } catch (error) {
+        console.error("Erro ao excluir o checklist:", error);
       }
-
-      setChecklists((prevChecklists) => {
-        const newChecklists = { ...prevChecklists };
-        if (editingQuestion) {
-          newChecklists[selectedChecklist][selectedBloco] = newChecklists[
-            selectedChecklist
-          ][selectedBloco].map((q) =>
-            q.questionId === editingQuestion.questionId ? updatedData : q
-          );
-        } else {
-          newChecklists[selectedChecklist][selectedBloco].push(updatedData);
-        }
-        return newChecklists;
-      });
-
-      handleCloseModal();
-    } catch (error) {
-      console.error("Erro ao salvar pergunta:", error);
-    }
-  };
-
-  const handleDeleteBloco = async (blocoId) => {
-    try {
-      if (!selectedChecklist || !blocoId) {
-        console.error("Checklist ou bloco inválido.");
-        console.log(selectedChecklist);
-        return;
-      }
-
-      const checklistRef = firebase
-        .firestore()
-        .collection("question")
-        .doc(selectedChecklist);
-
-      const updatedBlocos = { ...checklists[selectedChecklist] };
-      delete updatedBlocos[blocoId];
-
-      await checklistRef.update({
-        [blocoId]: firebase.firestore.FieldValue.delete(),
-      });
-
-      setChecklists((prevChecklists) => ({
-        ...prevChecklists,
-        [selectedChecklist]: updatedBlocos,
-      }));
-
-      setSelectedBloco(null);
-    } catch (error) {
-      console.error("Erro ao excluir o bloco:", error);
     }
   };
 
@@ -235,19 +338,17 @@ const ChecklistManager = () => {
     <div className="apr-digital">
       <Header />
       <div className="content">
-        <Title name="Gerenciamento de Checklist">
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
-        </Title>
+        <Title name="Gerenciamento de Checklist" />
         <div className="container">
           <Container maxWidth="md">
             <Box sx={{ mt: 4, mb: 4 }}>
               <Button
                 color="success"
                 variant="outlined"
-                onClick={() => setOpenModal(true)}
+                onClick={handleAddChecklist}
                 sx={{ mb: 2 }}
               >
-                Adicionar Nova Pergunta
+                Adicionar Novo Checklist
               </Button>
               {!selectedChecklist ? (
                 <Grid container spacing={2}>
@@ -258,12 +359,6 @@ const ChecklistManager = () => {
                           <CardContent>
                             <Typography variant="h6">
                               {checklist.title || checklistId}
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteBloco(checklist)}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {
@@ -281,6 +376,13 @@ const ChecklistManager = () => {
                             >
                               Ver Detalhes
                             </Button>
+                            <IconButton
+                              aria-label="delete"
+                              color="error"
+                              onClick={() => handleDeleteChecklist(checklistId)} // Adiciona a funcionalidade de excluir checklist completo
+                            >
+                              <DeleteIcon />
+                            </IconButton>
                           </CardActions>
                         </Card>
                       </Grid>
@@ -289,40 +391,43 @@ const ChecklistManager = () => {
                 </Grid>
               ) : !selectedBloco ? (
                 <Box>
-                  <div className="nav-header">
-                    <Button
-                      color="success"
-                      variant="outlined"
-                      onClick={() => setSelectedChecklist(null)}
-                      sx={{ mb: 2 }}
-                    >
-                      Voltar para Checklists
-                    </Button>
-                  </div>
+                  <Button
+                    color="success"
+                    variant="outlined"
+                    onClick={handleAddBloco}
+                    sx={{ mb: 2 }}
+                  >
+                    Adicionar Novo Bloco
+                  </Button>
+                  <Button
+                    color="secondary"
+                    variant="outlined"
+                    onClick={() => setSelectedChecklist(null)}
+                    sx={{ mb: 2 }}
+                  >
+                    Voltar para Checklists
+                  </Button>
                   <Typography variant="h5" gutterBottom>
                     {checklists[selectedChecklist].title || selectedChecklist}
                   </Typography>
                   <Grid container spacing={2}>
                     {Object.entries(checklists[selectedChecklist])
                       .filter(([key]) => key !== "title")
-                      .map(([blocoId, questions]) => (
+                      .map(([blocoId, blocoData]) => (
                         <Grid item xs={12} sm={6} md={4} key={blocoId}>
                           <Card>
                             <CardContent>
                               <Typography variant="h6">
-                                {blocoId}
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDeleteBloco(blocoId)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
+                                {blocoData.title || blocoId}
                               </Typography>
                               <Typography
                                 variant="body2"
                                 color="text.secondary"
                               >
-                                {questions.length} perguntas
+                                {blocoData.questions
+                                  ? blocoData.questions.length
+                                  : 0}{" "}
+                                perguntas
                               </Typography>
                             </CardContent>
                             <CardActions>
@@ -332,6 +437,13 @@ const ChecklistManager = () => {
                               >
                                 Ver Perguntas
                               </Button>
+                              <IconButton
+                                aria-label="delete"
+                                color="error"
+                                onClick={() => handleDeleteBloco(blocoId)} // Chama a função handleDeleteBloco ao excluir
+                              >
+                                <DeleteIcon />
+                              </IconButton>
                             </CardActions>
                           </Card>
                         </Grid>
@@ -340,35 +452,39 @@ const ChecklistManager = () => {
                 </Box>
               ) : (
                 <Box>
-                  <Button onClick={() => setSelectedBloco(null)} sx={{ mb: 2 }}>
+                  <Button
+                    color="success"
+                    variant="outlined"
+                    onClick={handleAddQuestion}
+                    sx={{ mb: 2 }}
+                  >
+                    Adicionar Nova Pergunta
+                  </Button>
+                  <Button
+                    color="secondary"
+                    variant="outlined"
+                    onClick={() => setSelectedBloco(null)}
+                    sx={{ mb: 2 }}
+                  >
                     Voltar para Blocos
                   </Button>
                   <Typography variant="h5" gutterBottom>
                     {checklists[selectedChecklist].title || selectedChecklist} -{" "}
-                    {selectedBloco}
+                    {selectedBlocoTitle}
                   </Typography>
                   <List>
-                    {checklists[selectedChecklist][selectedBloco].map(
+                    {checklists[selectedChecklist][selectedBloco].questions.map(
                       (question, index) => (
-                        <ListItem
-                          className="listQuest"
-                          key={question.questionId}
-                        >
+                        <ListItem key={question.questionId}>
                           <ListItemText primary={index + 1} />
                           <ListItemText secondary={question.question} />
                           <ListItemSecondaryAction>
                             <IconButton
                               edge="end"
-                              aria-label="delete"
-                              onClick={() =>
-                                handleDeleteQuestion(
-                                  selectedChecklist,
-                                  selectedBloco,
-                                  question.questionId
-                                )
-                              }
+                              aria-label="edit"
+                              onClick={() => handleEditQuestion(question)}
                             >
-                              <DeleteIcon />
+                              <EditIcon />
                             </IconButton>
                             <IconButton
                               edge="end"
@@ -399,11 +515,25 @@ const ChecklistManager = () => {
                               disabled={
                                 index ===
                                 checklists[selectedChecklist][selectedBloco]
-                                  .length -
+                                  .questions.length -
                                   1
                               }
                             >
                               <ArrowDownward />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="delete"
+                              color="error"
+                              onClick={() =>
+                                handleDeleteQuestion(
+                                  selectedChecklist,
+                                  selectedBloco,
+                                  question.questionId
+                                )
+                              }
+                            >
+                              <DeleteIcon />
                             </IconButton>
                           </ListItemSecondaryAction>
                         </ListItem>
@@ -416,13 +546,30 @@ const ChecklistManager = () => {
           </Container>
         </div>
       </div>
-      <MyModal
-        open={openModal}
-        handleClose={handleCloseModal}
-        editingQuestion={editingQuestion}
+
+      {/* Modais para adicionar ou editar */}
+      <ChecklistModal
+        open={openChecklistModal}
+        onClose={() => setOpenChecklistModal(false)}
+        onSave={handleSaveChecklist}
+        checklist={editingChecklist}
+      />
+
+      <BlocoModal
+        open={openBlocoModal}
+        onClose={() => setOpenBlocoModal(false)}
+        onSave={handleSaveBloco}
+        bloco={editingBloco}
+      />
+
+      <QuestionModal
+        open={openQuestionModal}
+        onClose={() => setOpenQuestionModal(false)}
+        onSave={handleSaveQuestion}
+        question={editingQuestion}
         selectedChecklist={selectedChecklist}
         selectedBloco={selectedBloco}
-        onSubmit={handleModalSubmit}
+        selectedBlocoTitle={selectedBlocoTitle}
       />
     </div>
   );
