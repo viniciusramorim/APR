@@ -23,13 +23,9 @@ const ChecklistModal = ({ open, onClose, onSave, checklist }) => {
       return;
     }
 
-    // Define o ID como sendo igual ao título, removendo espaços e colocando em minúsculo
     const id = title.trim().toLowerCase().replace(/\s+/g, "-");
-
-    // Log para verificar os dados que estão sendo passados para a função de salvamento
     console.log("Salvando Checklist:", { id, title: title.trim() });
 
-    // Passa o ID e o título para a função de salvamento
     onSave({ id, title: title.trim() });
     onClose();
   };

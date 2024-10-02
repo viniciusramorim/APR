@@ -14,7 +14,6 @@ import {
   Switch,
   Divider,
 } from "@mui/material";
-import firebase from "../../services/firebaseConnection";
 import { AuthContext } from "../../contexts/auth";
 
 const modalStyle = {
@@ -30,25 +29,31 @@ const modalStyle = {
   overflowY: "auto",
 };
 
-const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) => {
+const QuestionModal = ({
+  open,
+  onClose,
+  onSave,
+  question,
+  selectedBlocoTitle,
+  questionId,
+}) => {
   const { user } = useContext(AuthContext);
 
-  // Estado inicial para o formulário
   const initialFormData = {
     question: "",
     answers: ["Sim", "Não"],
     selectOptions: false,
     textarea: false,
     inputImages: false,
-    questionId: "",
+    questionId: questionId || 0,
     resp: "",
     respTextArea: "",
-    respGabarito: "Ambas",
+    respGabarito: "",
     images: [],
     plano_acao: [],
     openPA: false,
-    area: "", // Inicializa `area` vazio e será atualizado
-    newAreaResponsavel: "",
+    area: selectedBlocoTitle || "",
+    areaResponsavel: [],
     critical: "Baixo",
     user: user ? user.nome : "",
     lastUpdate: new Date(),
@@ -57,9 +62,12 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
     inputImagesLibrary: false,
   };
 
-  // Estado para o formulário
   const [formData, setFormData] = useState(initialFormData);
-  const [areaOptions, setAreaOptions] = useState(["oem", "Área Responsável 1", "Área Responsável 2"]);
+  const [areaOptions, setAreaOptions] = useState([
+    "oem",
+    "Área Responsável 1",
+    "Área Responsável 2",
+  ]);
   const [newArea, setNewArea] = useState("");
 
   useEffect(() => {
@@ -68,11 +76,16 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
         ...formData,
         ...question,
         lastUpdate: new Date(),
+        area: selectedBlocoTitle || "",
+        areaResponsavel: question.areaResponsavel || [],
       });
     } else {
-      setFormData(initialFormData); // Reseta o estado ao abrir o modal para adicionar nova pergunta
+      setFormData({
+        ...initialFormData,
+        questionId: questionId,
+      });
     }
-  }, [question, open]);
+  }, [question, open, questionId]);
 
   useEffect(() => {
     if (user) {
@@ -100,27 +113,24 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
     }));
   };
 
-  const handleAddNewAreaResponsavel = async () => {
-    if (!newArea.trim()) {
-      return;
-    }
+  const handleAreaResponsavelChange = (event) => {
+    const { value } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      areaResponsavel: typeof value === "string" ? value.split(",") : value,
+    }));
+  };
 
-    const newAreaLower = newArea.trim().toLowerCase();
+  const handleAddNewAreaResponsavel = () => {
+    if (!newArea.trim()) return;
 
-    try {
-      const areasRef = firebase.firestore().collection("areas");
-      await areasRef.add({ name: newAreaLower });
+    setAreaOptions((prevOptions) => [...prevOptions, newArea]);
+    setFormData((prevData) => ({
+      ...prevData,
+      areaResponsavel: [...prevData.areaResponsavel, newArea],
+    }));
 
-      setAreaOptions((prevOptions) => [...prevOptions, newAreaLower]);
-      setFormData((prevData) => ({
-        ...prevData,
-        area: newAreaLower,
-      }));
-
-      setNewArea(""); // Limpa o campo de nova área
-    } catch (error) {
-      console.error("Erro ao adicionar nova área responsável:", error);
-    }
+    setNewArea("");
   };
 
   const handleSave = () => {
@@ -128,7 +138,7 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
       ...formData,
       lastUpdate: new Date(),
     };
-    onSave(formattedQuestion); // Passa a pergunta formatada para a função onSave
+    onSave(formattedQuestion);
     onClose();
   };
 
@@ -152,16 +162,21 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
           label="Peso"
           name="peso"
           value={formData.peso}
-          onChange={(e) => setFormData({ ...formData, peso: parseInt(e.target.value) })}
+          onChange={(e) =>
+            setFormData({ ...formData, peso: parseInt(e.target.value) })
+          }
           fullWidth
           margin="normal"
         />
+
+        {/* Select de Área Responsável com múltipla seleção */}
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
-            name="area"
-            value={formData.area}
-            onChange={handleChange}
+            name="areaResponsavel"
+            multiple // Permite seleção múltipla
+            value={formData.areaResponsavel}
+            onChange={handleAreaResponsavelChange}
             fullWidth
           >
             {areaOptions.map((option, index) => (
@@ -173,7 +188,7 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
           </Select>
         </FormControl>
 
-        {formData.area === "addNew" && (
+        {formData.areaResponsavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
               label="Nova Área Responsável"
@@ -182,7 +197,11 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
               fullWidth
               margin="normal"
             />
-            <Button variant="outlined" onClick={handleAddNewAreaResponsavel} sx={{ ml: 2, mt: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={handleAddNewAreaResponsavel}
+              sx={{ ml: 2, mt: 2 }}
+            >
               Adicionar
             </Button>
           </Box>
@@ -229,17 +248,18 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
           control={
             <Switch
               checked={formData.status}
-              onChange={(e) => setFormData((prevData) => ({
-                ...prevData,
-                status: e.target.checked,
-              }))}
+              onChange={(e) =>
+                setFormData((prevData) => ({
+                  ...prevData,
+                  status: e.target.checked,
+                }))
+              }
               name="status"
             />
           }
           label="Status (Ativa/Inativa)"
         />
 
-        {/* Campos adicionais com Checkbox */}
         <FormControlLabel
           control={
             <Checkbox
@@ -282,6 +302,15 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
           disabled
         />
         <TextField
+          label="ID da Pergunta"
+          name="questionId"
+          value={formData.questionId}
+          fullWidth
+          margin="normal"
+          disabled
+        />
+
+        <TextField
           label="Última Atualização"
           name="lastUpdate"
           value={formData.lastUpdate.toLocaleString()}
@@ -289,7 +318,12 @@ const QuestionModal = ({ open, onClose, onSave, question, selectedBlocoTitle }) 
           margin="normal"
           disabled
         />
-        <Button variant="contained" onClick={handleSave} fullWidth sx={{ mt: 2 }}>
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          fullWidth
+          sx={{ mt: 2 }}
+        >
           Salvar
         </Button>
       </Box>

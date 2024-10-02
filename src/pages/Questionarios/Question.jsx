@@ -95,9 +95,11 @@ const ChecklistManager = () => {
   };
 
   const handleBlocoClick = (blocoId) => {
-    const blocoTitle = checklists[selectedChecklist]?.[blocoId]?.title || "";
+    const blocoTitle =
+      checklists[selectedChecklist]?.[blocoId]?.title || blocoId;
     setSelectedBloco(blocoId);
     setSelectedBlocoTitle(blocoTitle);
+    console.log("Bloco selecionado:", blocoTitle);
   };
 
   const handleSaveChecklist = async (checklist) => {
@@ -106,10 +108,9 @@ const ChecklistManager = () => {
         .firestore()
         .collection("question")
         .doc(checklist.id);
-      await checklistRef.set({ title: checklist.title }, { merge: true });
+      await checklistRef.set({ merge: true });
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
-        [checklist.id]: { title: checklist.title },
       }));
       setOpenChecklistModal(false);
       clearFields();
@@ -124,17 +125,27 @@ const ChecklistManager = () => {
         .firestore()
         .collection("question")
         .doc(selectedChecklist);
+
+      // Verifica se o bloco existe como um array, caso contrário, inicializa como array
+      const blocoData = checklists[selectedChecklist]?.[bloco.title] || [];
+
+      // Atualiza o Firebase para garantir que o bloco é um array
       await checklistRef.set(
-        { [bloco.id]: { title: bloco.title, questions: [] } },
+        {
+          [bloco.title]: blocoData, // Cria um bloco vazio, mas como array
+        },
         { merge: true }
       );
+
+      // Atualiza o estado local para refletir o novo bloco como array
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [selectedChecklist]: {
           ...prevChecklists[selectedChecklist],
-          [bloco.id]: { title: bloco.title, questions: [] },
+          [bloco.title]: blocoData, // Define o bloco vazio no estado local como array
         },
       }));
+
       setOpenBlocoModal(false);
       clearFields();
     } catch (error) {
@@ -151,49 +162,60 @@ const ChecklistManager = () => {
         return;
       }
 
-      const currentQuestions =
-        checklists[selectedChecklist][selectedBloco]?.questions || [];
-      let updatedQuestions = [...currentQuestions];
-
-      if (editingQuestion) {
-        const questionIndex = updatedQuestions.findIndex(
-          (q) => q.questionId === editingQuestion.questionId
-        );
-        if (questionIndex !== -1) {
-          updatedQuestions[questionIndex] = {
-            ...question,
-            questionId: editingQuestion.questionId,
-          };
-        }
-      } else {
-        const newQuestionId = currentQuestions.length + 1;
-        const formattedQuestion = {
-          ...question,
-          questionId: newQuestionId,
-          lastUpdate: new Date(),
-          area: selectedBlocoTitle,
-        };
-        updatedQuestions.push(formattedQuestion);
+      if (
+        !question.question ||
+        question.question.trim() === "" ||
+        !question.area ||
+        question.area.trim() === ""
+      ) {
+        console.error("A pergunta ou área não podem estar vazias!");
+        return;
       }
 
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(selectedChecklist);
-      await checklistRef.update({
-        [`${selectedBloco}.questions`]: updatedQuestions,
-      });
+
+      let updatedBlocoData = checklists[selectedChecklist][selectedBloco] || [];
+
+      if (!Array.isArray(updatedBlocoData)) {
+        updatedBlocoData = [];
+      }
+
+      if (editingQuestion) {
+        const questionIndex = updatedBlocoData.findIndex(
+          (q) => q.questionId === editingQuestion.questionId
+        );
+        if (questionIndex !== -1) {
+          updatedBlocoData[questionIndex] = {
+            ...editingQuestion,
+            ...question,
+            lastUpdate: new Date(),
+          };
+        }
+      } else {
+        updatedBlocoData = [
+          ...updatedBlocoData,
+          {
+            ...question,
+            questionId: new Date().getTime().toString(),
+            order: updatedBlocoData.length + 1,
+            lastUpdate: new Date(),
+          },
+        ];
+      }
+
+      await checklistRef.update({ [`${selectedBloco}`]: updatedBlocoData });
 
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [selectedChecklist]: {
           ...prevChecklists[selectedChecklist],
-          [selectedBloco]: {
-            ...prevChecklists[selectedChecklist][selectedBloco],
-            questions: updatedQuestions,
-          },
+          [selectedBloco]: updatedBlocoData,
         },
       }));
+
       setOpenQuestionModal(false);
       clearFields();
     } catch (error) {
@@ -201,7 +223,6 @@ const ChecklistManager = () => {
     }
   };
 
-  // Função para excluir um bloco específico dentro do checklist selecionado
   const handleDeleteBloco = async (blocoId) => {
     try {
       if (!selectedChecklist || !blocoId) {
@@ -228,46 +249,37 @@ const ChecklistManager = () => {
     }
   };
 
-  // Função para editar uma pergunta existente
   const handleEditQuestion = (question) => {
-    setEditingQuestion(question); // Define a pergunta para edição
-    setOpenQuestionModal(true); // Abre o modal com os dados da pergunta
+    setEditingQuestion(question);
+    setOpenQuestionModal(true);
   };
 
-  // Função para excluir uma pergunta específica
   const handleDeleteQuestion = async (checklistId, blocoId, questionId) => {
     try {
-      const updatedQuestions = checklists[checklistId][
-        blocoId
-      ].questions.filter((q) => q.questionId !== questionId);
+      let updatedBlocoData = checklists[checklistId][blocoId].filter(
+        (q) => q.questionId !== questionId
+      );
 
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
-      await checklistRef.update({
-        [`${blocoId}.questions`]: updatedQuestions,
-      });
+      await checklistRef.update({ [blocoId]: updatedBlocoData });
 
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklistId]: {
           ...prevChecklists[checklistId],
-          [blocoId]: {
-            ...prevChecklists[checklistId][blocoId],
-            questions: updatedQuestions,
-          },
+          [blocoId]: updatedBlocoData,
         },
       }));
-      console.log(
-        `Pergunta ${questionId} excluída com sucesso do bloco ${blocoId}`
-      );
+
+      console.log(`Pergunta excluída com sucesso do bloco ${blocoId}`);
     } catch (error) {
       console.error("Erro ao excluir a pergunta:", error);
     }
   };
 
-  // Função para mover uma pergunta para cima ou para baixo dentro do bloco
   const moveQuestion = async (
     checklistId,
     blocoId,
@@ -275,31 +287,32 @@ const ChecklistManager = () => {
     direction
   ) => {
     try {
+      let blocoData = [...checklists[checklistId][blocoId]];
       const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-      const questions = [...checklists[checklistId][blocoId].questions];
 
-      // Certifique-se de que o novo índice é válido
-      if (newIndex < 0 || newIndex >= questions.length) return;
+      if (newIndex < 0 || newIndex >= blocoData.length) return;
 
-      // Troca a posição das perguntas no array
-      const [movedQuestion] = questions.splice(currentIndex, 1);
-      questions.splice(newIndex, 0, movedQuestion);
+      [blocoData[currentIndex], blocoData[newIndex]] = [
+        blocoData[newIndex],
+        blocoData[currentIndex],
+      ];
+
+      blocoData = blocoData.map((q, index) => ({ ...q, order: index + 1 }));
 
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
-      await checklistRef.update({
-        [`${blocoId}.questions`]: questions,
-      });
+      await checklistRef.update({ [blocoId]: blocoData });
 
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklistId]: {
           ...prevChecklists[checklistId],
-          [blocoId]: { ...prevChecklists[checklistId][blocoId], questions },
+          [blocoId]: blocoData,
         },
       }));
+
       console.log(
         `Pergunta movida para ${direction === "up" ? "cima" : "baixo"}`
       );
@@ -308,7 +321,6 @@ const ChecklistManager = () => {
     }
   };
 
-  // Função para excluir um checklist completo, incluindo todos os blocos e perguntas
   const handleDeleteChecklist = async (checklistId) => {
     if (
       window.confirm(
@@ -320,10 +332,10 @@ const ChecklistManager = () => {
           .firestore()
           .collection("question")
           .doc(checklistId)
-          .delete(); // Remove do Firebase
+          .delete();
         setChecklists((prevChecklists) => {
           const updatedChecklists = { ...prevChecklists };
-          delete updatedChecklists[checklistId]; // Remove do estado local
+          delete updatedChecklists[checklistId];
           return updatedChecklists;
         });
         console.log(`Checklist ${checklistId} excluído com sucesso!`);
@@ -424,9 +436,11 @@ const ChecklistManager = () => {
                                 variant="body2"
                                 color="text.secondary"
                               >
-                                {blocoData.questions
-                                  ? blocoData.questions.length
-                                  : 0}{" "}
+                                {
+                                  Object.keys(blocoData).filter(
+                                    (key) => key !== "title"
+                                  ).length
+                                }{" "}
                                 perguntas
                               </Typography>
                             </CardContent>
@@ -440,7 +454,7 @@ const ChecklistManager = () => {
                               <IconButton
                                 aria-label="delete"
                                 color="error"
-                                onClick={() => handleDeleteBloco(blocoId)} // Chama a função handleDeleteBloco ao excluir
+                                onClick={() => handleDeleteBloco(blocoId)}
                               >
                                 <DeleteIcon />
                               </IconButton>
@@ -473,72 +487,75 @@ const ChecklistManager = () => {
                     {selectedBlocoTitle}
                   </Typography>
                   <List>
-                    {checklists[selectedChecklist][selectedBloco].questions.map(
-                      (question, index) => (
-                        <ListItem key={question.questionId}>
-                          <ListItemText primary={index + 1} />
-                          <ListItemText secondary={question.question} />
-                          <ListItemSecondaryAction>
-                            <IconButton
-                              edge="end"
-                              aria-label="edit"
-                              onClick={() => handleEditQuestion(question)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              edge="end"
-                              aria-label="move up"
-                              onClick={() =>
-                                moveQuestion(
-                                  selectedChecklist,
-                                  selectedBloco,
-                                  index,
-                                  "up"
-                                )
-                              }
-                              disabled={index === 0}
-                            >
-                              <ArrowUpward />
-                            </IconButton>
-                            <IconButton
-                              edge="end"
-                              aria-label="move down"
-                              onClick={() =>
-                                moveQuestion(
-                                  selectedChecklist,
-                                  selectedBloco,
-                                  index,
-                                  "down"
-                                )
-                              }
-                              disabled={
-                                index ===
-                                checklists[selectedChecklist][selectedBloco]
-                                  .questions.length -
-                                  1
-                              }
-                            >
-                              <ArrowDownward />
-                            </IconButton>
-                            <IconButton
-                              edge="end"
-                              aria-label="delete"
-                              color="error"
-                              onClick={() =>
-                                handleDeleteQuestion(
-                                  selectedChecklist,
-                                  selectedBloco,
-                                  question.questionId
-                                )
-                              }
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </ListItemSecondaryAction>
-                        </ListItem>
-                      )
-                    )}
+                    {Array.isArray(
+                      checklists[selectedChecklist][selectedBloco]
+                    ) &&
+                      checklists[selectedChecklist][selectedBloco]
+                        .sort((a, b) => a.order - b.order) // Ordena pelo campo `order`
+                        .map((question, index) => (
+                          <ListItem key={question.questionId}>
+                            <ListItemText primary={index + 1} />
+                            <ListItemText secondary={question.question} />
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                edge="end"
+                                aria-label="edit"
+                                onClick={() => handleEditQuestion(question)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                edge="end"
+                                aria-label="move up"
+                                onClick={() =>
+                                  moveQuestion(
+                                    selectedChecklist,
+                                    selectedBloco,
+                                    index,
+                                    "up"
+                                  )
+                                }
+                                disabled={index === 0}
+                              >
+                                <ArrowUpward />
+                              </IconButton>
+                              <IconButton
+                                edge="end"
+                                aria-label="move down"
+                                onClick={() =>
+                                  moveQuestion(
+                                    selectedChecklist,
+                                    selectedBloco,
+                                    index,
+                                    "down"
+                                  )
+                                }
+                                disabled={
+                                  index ===
+                                  checklists[selectedChecklist][selectedBloco]
+                                    .length -
+                                    1
+                                }
+                              >
+                                <ArrowDownward />
+                              </IconButton>
+                              <IconButton
+                                edge="end"
+                                aria-label="delete"
+                                color="error"
+                                onClick={() =>
+                                  handleDeleteQuestion(
+                                    selectedChecklist,
+                                    selectedBloco,
+                                    question.questionId
+                                  )
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        ))}
                   </List>
                 </Box>
               )}
