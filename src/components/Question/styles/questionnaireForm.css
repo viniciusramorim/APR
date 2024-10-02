@@ -1,0 +1,13 @@
+h6.MuiTypography-root.MuiTypography-subtitle1.MuiTypography-gutterBottom.css-1wniyei-MuiTypography-root {
+  background: #a29bfe;
+  padding: 10px;
+  border-radius: 8px;
+  color: #fff;
+}
+
+@media(max-width:767px) {
+  .css-10bu1ee {
+      width:90%!important
+  }
+     
+ }

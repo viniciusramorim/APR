@@ -1,0 +1,133 @@
+.MuiContainer-root.MuiContainer-maxWidthMd.css-xdmu94-MuiContainer-root {
+  border: 1px solid #fff;
+  border-radius:5px;
+  margin:0px;
+}
+
+.nav-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* Pagina Question */
+.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-hcmkxp-MuiListItem-root {
+  width: 80%;
+}
+
+.listQuest {
+  display:flex;
+  gap:20px;
+}
+
+.listQuest .MuiListItemText-root.css-tlelie-MuiListItemText-root:nth-child(2):not(p) {
+  display:flex;
+  gap:20px;
+  width:100%;
+  padding:10px;
+  background:#fff;
+  border-radius:8px;
+}
+
+.listQuest .MuiListItemText-root.css-tlelie-MuiListItemText-root:nth-child(1) {
+  display:block;
+  width:40px;
+  margin:0 auto;
+  text-align:center;
+  padding:10px;
+  background:#e1dada;
+  border-radius:8px;
+}
+
+.listQuest .MuiListItemText-root.css-tlelie-MuiListItemText-root p {
+  color:#3e3e3e
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root {
+  display:flex;
+  flex-direction:row;
+  gap:5px;
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root button {
+  padding:5px;
+  background:#e1dada;
+  color:#000;
+  border-radius:0px;
+  margin:0px;
+  right:0px;
+  border-radius:5px;
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root button:nth-child(1):hover {
+  background:#2980b9;
+  color:#fff;
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root button:nth-child(2):hover {
+  background:#c0392b;
+  color:#fff;
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root button:nth-child(3):hover {
+  background:#e056fd;
+  color:#fff;
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root button:nth-child(4):hover {
+  background:#be2edd;
+  color:#fff;
+}
+ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root li.MuiListItem-container.css-oyakqy-MuiListItem-container{
+  transition:0.5s;
+}
+ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root li.MuiListItem-container.css-oyakqy-MuiListItem-container:hover {
+  background:#fff;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-MuiTypography-root {
+  background: #ddd;
+  padding: 40px 20px 10px 20px;
+  border-radius: 10px;
+  position:relative;
+}
+
+h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-MuiTypography-root:before {
+  content:'Checklist:';
+  display:block;
+  width:fit-content;
+  padding:2px 5px;
+  border-radius:5px;
+  background:#be2edd;
+  color:#fff;
+  font-size:15px;
+  position:absolute;
+  left:20px;
+  top:10px
+}
+
+@media(max-width:787px) {
+  .css-518kzi-MuiListItemSecondaryAction-root {
+    position: absolute;
+    top:calc(100% + 20px)!important;
+}
+.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-hcmkxp-MuiListItem-root {
+    width: 100%;
+    padding: 0px;
+}
+
+.css-h4y409-MuiList-root {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+}
+
+@media (min-width: 900px) {
+  .css-xdmu94-MuiContainer-root {
+      max-width: 1920px!important;
+  }
+}

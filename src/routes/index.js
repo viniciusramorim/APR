@@ -15,6 +15,7 @@ import ProfileADM from '../pages/ProfileADM';
 import Assignments from '../pages/Assignments';
 import NewRonda from '../pages/New_Ronda';
 import Reports from '../pages/Reports';
+import QuestionsPage from '../pages/Questionarios/Question';
 
 export default function Routes() {
   return (
@@ -28,6 +29,7 @@ export default function Routes() {
       <Route exact path="/reports" component={Reports} isPrivate />
       {/* paginas apr digital */}
       <Route exact path="/dashboard" component={Dashboard} isPrivate />
+      <Route exact path="/questions" component={QuestionsPage} isPrivate />
       <Route exact path="/new" component={PreNew} isPrivate />
       <Route exact path="/new/:id" component={New} isPrivate />
       <Route exact path="/new/:id/:id_assign" component={New} isPrivate />
