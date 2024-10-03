@@ -1,0 +1,59 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.modalLoad {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: $modal-load-bg;
+  z-index: 99;
+
+  .loading {
+    position: fixed;
+    max-width: 600px;
+    top: 30%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    img {
+      width: 25%;
+    }
+
+    i {
+      background-color: $modal-load-i-bg;
+      padding: 0.5em 2em;
+      color: $white-color;
+      border-radius: 15px;
+      margin-top: 0.8em;
+    }
+  }
+
+  a {
+    background-color: $modal-load-link-bg;
+    color: $white-color;
+    cursor: pointer;
+    padding: 7px 20px;
+    border-radius: 5px;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+
+    &:hover {
+      background-color: $modal-load-link-hover-bg;
+      color: $white-color;
+      cursor: pointer;
+    }
+  }
+
+  &-body {
+    width: 100%;
+  }
+}

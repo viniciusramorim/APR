@@ -1,3 +1,6 @@
+@import '../../styles/_variables.scss';
+
+
 .container-drawer,
 .container-button {
   padding: 20px;
@@ -27,14 +30,14 @@
   }
 
   button:hover {
-    background-color: var($hover-color);
+    background-color: $hover-color;
   }
 }
 
 .logout-btn {
   padding: 8px 20px;
   background-color: transparent;
-  border: 1px solid var($primary-color);
+  border: 1px solid $primary-color;
   border-radius: 5px;
   font-size: 14px;
   display: flex;
@@ -44,10 +47,10 @@
 }
 
 .btn-salvar {
-  background-color: var($primary-color);
+  background-color: $primary-color;
 }
 
 .css-1e6y48t-MuiButtonBase-root-MuiButton-root {
-  color:#fff!important;
-  text-transform:capitalize!important;
+  color: $white-color !important;
+  text-transform: capitalize !important;
 }

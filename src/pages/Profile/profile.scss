@@ -1,0 +1,70 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.container {
+  @include container-style($container-border-color, $container-perg-shadow);
+  padding: 0.8em;
+  margin-bottom: 1em;
+  flex-direction: row;
+  @include flex-center;
+}
+
+.label-avatar {
+  width: 280px;
+  height: 280px;
+  cursor: pointer;
+
+  span {
+    position: absolute;
+    opacity: $avatar-hover-opacity;
+    transition: all 0.5s;
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.4);
+    }
+  }
+}
+
+.form-profile {
+  img {
+    margin-bottom: 1em;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  label {
+    margin-bottom: 0.5em;
+    font-size: 1.4em;
+  }
+
+  input,
+  textarea,
+  select {
+    @include input-style;
+  }
+
+  button {
+    @include button-style($btn-save-bg, $btn-save-hover-bg);
+  }
+
+  button:hover {
+    background-color: $btn-save-hover-bg;
+  }
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  background-color: transparent;
+  border: 1px solid $btn-border-color-dark;
+  border-radius: 5px;
+  font-size: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 0.8em;
+}
+
+.btn-salvar {
+  @include button-style($btn-save-bg, $btn-save-hover-bg);
+}

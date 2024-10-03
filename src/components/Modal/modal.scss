@@ -1,0 +1,78 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.modal {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: $modal-overlay-bg;
+  z-index: 99;
+
+  .container {
+    @include container-style($container-border-color, $modal-container-shadow);
+    position: fixed;
+    display: flex;
+    max-width: 600px;
+    top: 15%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    padding: 4em 2rem;
+    flex-direction: column;
+  }
+
+  h2 {
+    margin-bottom: 0.5em;
+    font-size: 2em;
+  }
+
+  span {
+    font-weight: $font-weight-bold;
+    font-size: 0.9em;
+    color: $text-color-dark;
+
+    i {
+      font-weight: 400;
+      margin-right: 1em;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+  }
+
+  p {
+    padding-top: 0.5em;
+    white-space: pre-wrap;
+  }
+
+  a {
+    @include button-style($modal-link-bg, $modal-link-hover-bg);
+    position: absolute;
+    bottom: 15px;
+    display: flex;
+  }
+
+  a:hover {
+    background-color: $modal-link-hover-bg;
+  }
+}
+
+.close {
+  background-color: $close-btn-bg;
+  border: 0;
+  color: $white-color;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 8px;
+  box-shadow: $modal-container-shadow;
+
+  svg {
+    margin-right: 5px;
+  }
+}

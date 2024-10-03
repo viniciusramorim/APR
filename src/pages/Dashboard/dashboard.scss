@@ -1,0 +1,208 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  span {
+    margin: 2em 0;
+    font-weight: 600;
+    font-size: 1.2em;
+    color: $dashboard-span-color;
+  }
+}
+
+.tableAprs {
+  border-collapse: separate;
+  border-spacing: 0 7px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+
+  b {
+    background-color: rgb(179, 175, 175);
+    color: $white-color;
+    padding: 0.2em;
+    border-radius: 10px;
+    font-weight: lighter;
+  }
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0 7px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+  background-color: $table-bg;
+
+  caption {
+    font-size: 1.5em;
+    margin: 0.5em 0 0.75em;
+  }
+
+  tr {
+    background-color: $table-bg;
+    border: 1px solid #ddd;
+    padding: 0.35em;
+  }
+
+  th {
+    background-color: $table-header-bg;
+    color: $text-color-light !important;
+    font-size: 0.85em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  td {
+    padding: 0.62em;
+    text-align: center;
+    min-width: 130px;
+  }
+
+  td .action,
+  td .action-log {
+    border: 0;
+    padding: 5px;
+    margin-right: 2px;
+    align-items: center;
+    display: inline-block;
+    border-radius: 4px;
+
+    svg {
+      vertical-align: middle;
+    }
+  }
+
+  td .badge {
+    padding: 3px;
+    border-radius: 3px;
+    color: $white-color;
+    background-color: $badge-bg;
+  }
+}
+
+.apr-digital {
+  .MuiGrid-root.MuiGrid-container.css-fitckq-MuiGrid-root {
+    padding: 7px 0px;
+    border-radius: 8px;
+    background: $table-bg !important;
+  }
+
+  .container.filter {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: wrap;
+    margin-right: 10px;
+    padding-left: 7px;
+    border-radius: 8px;
+
+    @include respond-to(medium) {
+      justify-content: center;
+    }
+  }
+
+  .filtrosAPRs {
+    @include respond-to(medium) {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+}
+
+.btn-more {
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  height: 35px;
+  border: 0;
+  border-radius: 5px;
+  background-color: $btn-more-bg;
+  color: $white-color;
+  font-size: 1.1em;
+}
+
+.ReactModal__Overlay.ReactModal__Overlay--after-open {
+  z-index: 1;
+}
+
+body.ReactModal__Body--open div#sidebar-menu {
+  z-index: -1 !important;
+}
+
+.MuiBox-root.css-vtxhf1 {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 600px !important;
+}
+
+@include respond-to(medium) {
+  table {
+    border: 0;
+  }
+
+  table caption {
+    font-size: 1.3em;
+  }
+
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: 0.65em;
+  }
+
+  table td {
+    border-bottom: 1px solid #ddd !important;
+    display: block !important;
+    font-size: 0.8em !important;
+    text-align: right !important;
+
+    &::before {
+      content: attr(data-label) !important;
+      float: left !important;
+      font-weight: bold !important;
+      text-transform: uppercase !important;
+    }
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .indicadores-aprs div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .filtrosAPRs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+    margin: 0;
+  }
+
+  .btnListar {
+    margin: 15px;
+  }
+}

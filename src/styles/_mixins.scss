@@ -1,0 +1,64 @@
+@import "./variables";
+
+// Mixin para estilos de botões
+@mixin button-style($bg-color, $hover-bg-color, $color: $white-color) {
+  background-color: $bg-color;
+  color: $color;
+  border: 0;
+  border-radius: 7px;
+  transition: ease-in-out 0.4s;
+
+  &:hover {
+    background-color: $hover-bg-color;
+  }
+}
+
+// Mixin para containers com bordas e sombras
+@mixin container-style($border-color, $shadow) {
+  border: 1px solid $border-color;
+  box-shadow: $shadow;
+  border-radius: 5px;
+  background-color: $form-bg-light;
+}
+
+// Mixin para centralização de flexbox
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Mixin para estilização de inputs, selects e textareas
+@mixin input-style {
+  height: 35px;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px;
+  font-size: 15px;
+  background-color: $white-color;
+}
+
+// Mixin para aplicar tema
+@mixin apply-theme($theme) {
+  background-color: map-get($theme, primary);
+  color: map-get($theme, text);
+
+  button {
+    background-color: map-get($theme, button-bg);
+
+    &:hover {
+      background-color: map-get($theme, button-hover-bg);
+    }
+  }
+}
+
+// Mixin para media queries
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == small {
+    @media (max-width: 600px) { @content; }
+  } @else if $breakpoint == medium {
+    @media (max-width: 768px) { @content; }
+  } @else if $breakpoint == large {
+    @media (min-width: 1200px) { @content; }
+  }
+}

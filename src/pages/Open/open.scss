@@ -1,0 +1,160 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+form {
+  margin-top: 1.5em;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  width: 100%;
+}
+
+.container-perg-open {
+  display: flex;
+  margin: 0.5em 0 2em 0;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  flex-direction: column;
+  border: 1px solid $border-color-light-2;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px;
+}
+
+.siteInfo {
+  max-width: 600px;
+  display: flex;
+  width: 100%;
+  text-transform: uppercase;
+  align-items: baseline;
+
+  @include respond-to(medium) {
+    flex-direction: column;
+
+    span {
+      font-weight: bold;
+      margin-top: 0.5em;
+    }
+  }
+
+  span {
+    font-weight: bold;
+  }
+
+  li {
+    margin-bottom: 0.5em;
+  }
+}
+
+.form-open {
+  label {
+    margin: 0.8em 0;
+    font-weight: bold;
+  }
+
+  i,
+  span {
+    margin-bottom: 0.8em;
+
+    &[data-text="Sim"] {
+      background-color: $btn-action-green;
+      color: $white-color;
+      max-width: 60px;
+      max-height: 50px;
+      text-align: center;
+      padding: 5px;
+      font-weight: bold;
+    }
+
+    &[data-text="Não"] {
+      background-color: $btn-action-red;
+      color: $white-color;
+      max-width: 60px;
+      max-height: 50px;
+      text-align: center;
+      padding: 5px;
+      font-weight: bold;
+    }
+
+    &[data-text="Ativar-PA"] {
+      background-color: $btn-activate-pa-bg;
+      color: $white-color;
+      max-height: 50px;
+      text-align: center;
+      padding: 5px;
+      font-weight: bold;
+
+      &:hover {
+        cursor: pointer;
+        background-color: $btn-activate-pa-hover-bg;
+      }
+    }
+  }
+
+  .textArea {
+    background-color: $bg-light-gray;
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  img {
+    margin-bottom: 0.9em;
+    max-height: 300px;
+    max-width: 300px;
+  }
+
+  div {
+    display: flex;
+    margin: 0.5em 0 2em 0;
+    justify-content: space-around;
+    flex-direction: column;
+  }
+
+  #button-area {
+    background-color: $button-area-bg;
+    border: 1px solid $button-area-bg;
+    color: $white-color;
+    padding: 0.5em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 0.2em;
+
+    &:hover {
+      background-color: $white-color;
+      color: $text-color-dark;
+      border: 1px solid $button-area-bg;
+    }
+  }
+}
+
+.Edit,
+.plano-acao {
+  text-align: right;
+  display: flex;
+  flex-direction: row-reverse;
+
+  svg {
+    margin-right: 0.2em;
+  }
+
+  a {
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 130px;
+    border-radius: 5px;
+
+    &[data-check="Não"] {
+      background-color: $btn-action-red;
+      color: $white-color;
+    }
+
+    &[data-check="Sim"] {
+      background-color: $btn-action-green;
+      color: $white-color;
+    }
+  }
+}

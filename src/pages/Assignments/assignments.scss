@@ -1,0 +1,17 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.container {
+  background-color: $container-bg-color; // Utilizando variável global para o fundo
+  justify-content: left;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0 7px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+  overflow-x: scroll;
+}

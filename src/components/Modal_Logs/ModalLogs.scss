@@ -1,0 +1,86 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.modal-logs {
+  a {
+    cursor: pointer;
+  }
+}
+
+.tela-logs {
+  text-align: center;
+  width: 100%;
+  align-items: flex-start;
+  flex-grow: 1;
+}
+
+.titulo-logs {
+  margin-bottom: 20px;
+  position: relative;
+  color: $card-title-color;
+}
+
+.card-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.card {
+  width: 300px;
+  margin-bottom: 15px;
+  background-color: $card-bg-color;
+  border-radius: 8px;
+  box-shadow: $box-shadow-light;
+  color: $text-color-light;
+  padding: 8px;
+
+  &-header {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+
+  &-body {
+    padding: 10px;
+    padding-bottom: 15px;
+  }
+}
+
+.Elemento {
+  margin-top: 10px;
+}
+
+.Vazio {
+  background-color: $empty-bg-color;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: $text-color-light;
+}
+
+.ReactModal__Overlay {
+  background-color: $modal-overlay-bg !important;
+}
+
+@include respond-to(medium) {
+  .card-group {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 90%;
+  }
+}
+
+@include respond-to(small) {
+  .card {
+    width: 100%;
+  }
+}

@@ -1,0 +1,135 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.MuiContainer-root.MuiContainer-maxWidthMd.css-xdmu94-MuiContainer-root {
+  border: 1px solid $container-border-color;
+  border-radius: 5px;
+  margin: 0px;
+
+  @include respond-to(large) {
+    max-width: 1920px !important;
+  }
+}
+
+.nav-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-hcmkxp-MuiListItem-root {
+  width: 80%;
+
+  @include respond-to(medium) {
+    width: 100%;
+    padding: 0px;
+  }
+}
+
+.listQuest {
+  display: flex;
+  gap: 20px;
+
+  .MuiListItemText-root.css-tlelie-MuiListItemText-root {
+    &:nth-child(2):not(p) {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      padding: 10px;
+      background: $container-border-color;
+      border-radius: 8px;
+    }
+
+    &:nth-child(1) {
+      display: block;
+      width: 40px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 10px;
+      background: $list-bg-color;
+      border-radius: 8px;
+    }
+
+    p {
+      color: #3e3e3e;
+    }
+  }
+}
+
+.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+
+  button {
+    padding: 5px;
+    background: $list-bg-color;
+    color: $text-color-dark;
+    border-radius: 5px;
+    margin: 0px;
+
+    &:nth-child(1):hover {
+      background: $action-hover-bg-1;
+      color: $white-color;
+    }
+
+    &:nth-child(2):hover {
+      background: $action-hover-bg-2;
+      color: $white-color;
+    }
+
+    &:nth-child(3):hover {
+      background: $action-hover-bg-3;
+      color: $white-color;
+    }
+
+    &:nth-child(4):hover {
+      background: $action-hover-bg-4;
+      color: $white-color;
+    }
+  }
+
+  @include respond-to(medium) {
+    position: absolute;
+    top: calc(100% + 20px) !important;
+  }
+}
+
+ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root {
+  li.MuiListItem-container.css-oyakqy-MuiListItem-container {
+    transition: 0.5s;
+
+    &:hover {
+      background: $list-item-hover-bg;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  }
+
+  @include respond-to(medium) {
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+  }
+}
+
+h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-MuiTypography-root {
+  background: $typography-h5-bg;
+  padding: 40px 20px 10px 20px;
+  border-radius: 10px;
+  position: relative;
+
+  &:before {
+    content: "Checklist:";
+    display: block;
+    width: fit-content;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: $typography-h5-before-bg;
+    color: $white-color;
+    font-size: 15px;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+  }
+}

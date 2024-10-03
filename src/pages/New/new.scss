@@ -1,0 +1,261 @@
+// src/styles/_formNew.scss
+
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.form-new {
+  margin-top: 1.5em;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  width: 100%;
+
+  button {
+    height: 100%;
+    border: 0;
+    border-radius: 7px;
+    background-color: $btn-primary-bg;
+    color: $white-color;
+    font-size: 1.3em;
+    transition: ease-in-out 0.4s;
+
+    &:hover {
+      background-color: $btn-primary-hover-bg;
+    }
+  }
+
+  div {
+    display: flex;
+    margin: 0.5em 0 2em 0;
+    justify-content: space-around;
+    flex-direction: column;
+  }
+
+  label {
+    max-width: 600px;
+    margin-right: 0.8em;
+    cursor: pointer;
+    align-items: center;
+    display: flex;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+  }
+
+  #button-area {
+    background-color: $btn-alt-bg;
+    border: 1px solid $btn-alt-bg;
+    color: $white-color;
+    padding: 0.5em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 0.2em;
+
+    &:hover {
+      background-color: $btn-alt-hover-bg;
+      color: $text-color-dark;
+      border: 1px solid $btn-alt-bg;
+    }
+  }
+
+  textarea,
+  input,
+  select {
+    padding: 0.7em;
+    border: 0;
+    border-radius: 5px;
+    max-width: 600px;
+    margin-bottom: 0.8em;
+    background-color: $background-light;
+  }
+
+  a {
+    padding: 10px;
+    text-align: center;
+    max-width: 250px;
+    height: 70px;
+    background-color: $btn-primary-bg;
+    border-radius: 0.5em;
+    color: $white-color;
+    margin-top: 0.8em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-transform: uppercase;
+
+    &:hover {
+      background-color: #082ed8;
+      color: $white-color;
+    }
+  }
+
+  #selectSite,
+  #selectMotivo,
+  #selectValorArmazenamento,
+  #selectValorTransporte,
+  #selectValorSinistro,
+  #selectValorEstoque,
+  #selectTipoLoja {
+    width: 100%;
+    padding: 0.7em;
+    border: 0;
+    border-radius: 5px;
+    margin-right: 5px;
+    max-width: 195px;
+
+    &:first-of-type {
+      max-width: 295px;
+    }
+  }
+
+  img {
+    margin-bottom: 1em;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  svg {
+    margin-right: 0.5em;
+  }
+
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+
+    + svg {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    &.yes:hover + svg,
+    &.yes:checked + svg,
+    &.yes:focus + svg {
+      color: $white-color;
+      background-color: rgb(10, 231, 40);
+      border-radius: 0.5em;
+    }
+
+    &.no:hover + svg,
+    &.no:checked + svg,
+    &.no:focus + svg {
+      color: $white-color;
+      background-color: rgb(238, 65, 12);
+      border-radius: 0.5em;
+    }
+  }
+}
+
+.container-perg {
+  border: 1px solid $border-color-light;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 1px 2px 11px $box-shadow-light;
+}
+
+.clearQuestion {
+  width: 55px;
+  text-align: center;
+  padding: 0.2em;
+  border-radius: 10px;
+
+  &:hover {
+    background-color: $error-bg;
+    color: $white-color;
+    cursor: pointer;
+  }
+}
+
+#container-conclusion {
+  display: flex;
+  flex-direction: column;
+
+  span {
+    padding: 0.8em;
+    border-radius: 9px;
+    margin-bottom: 0.5em;
+
+    &:first-of-type {
+      background-color: $success-bg;
+      color: $white-color;
+    }
+  }
+
+  a {
+    background-color: $btn-primary-bg;
+    color: $white-color;
+    border-radius: 9px;
+    margin-bottom: 0.5em;
+    padding: 7px 12px;
+
+    &:hover {
+      background-color: $btn-alt-bg;
+    }
+  }
+}
+
+.imageList {
+  margin-bottom: 0.8em;
+
+  li {
+    background-color: $container-bg;
+    width: 60px;
+    height: 60px;
+    margin-left: 0.2em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border-radius: 5px;
+
+    label {
+      margin: 0em;
+      height: 100%;
+      width: 100%;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      transition: ease-in-out 0.4s;
+
+      &:hover {
+        color: $white-color;
+      }
+    }
+
+    svg {
+      margin-right: 0em;
+    }
+
+    i {
+      cursor: pointer;
+      background-color: $error-bg;
+      color: $white-color;
+      padding: 0.2em;
+      text-align: center;
+      font-style: normal;
+      border-radius: 0px 4px 0px 4px;
+    }
+  }
+}
+
+.save {
+  max-width: 600px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  text-transform: uppercase;
+
+  a {
+    background-color: $btn-secondary-bg;
+    color: $white-color;
+    width: 45%;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+
+    &:hover {
+      cursor: pointer;
+      background-color: $btn-secondary-hover-bg;
+    }
+  }
+}

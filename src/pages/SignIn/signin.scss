@@ -1,0 +1,87 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.container-center {
+  height: 100%;
+  @include flex-center;
+  background-image: url('../../assets/Cover.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  @include respond-to(medium) {
+    background-position: left;
+  }
+}
+
+.login {
+  background-color: $login-bg-color;
+  width: 450px;
+  height: 70%;
+  @include flex-center;
+  flex-direction: column;
+  border-radius: 8px;
+
+  @include respond-to(medium) {
+    width: 90%;
+    height: 60%;
+  }
+
+  a {
+    margin: 1.5em 0;
+    color: $text-color-dark;
+    cursor: pointer;
+
+    &:hover {
+      color: $link-hover-color;
+    }
+  }
+
+  input,
+  select {
+    @include input-style;
+    margin-bottom: 15px;
+  }
+
+  .login-area {
+    margin-bottom: 10px;
+    text-align: center;
+
+    img {
+      width: 60%;
+    }
+  }
+
+  .login-rodape {
+    padding: 25px;
+
+    a {
+      margin-left: 1em;
+
+      &:hover {
+        color: $link-hover-color;
+      }
+    }
+  }
+}
+
+form {
+  margin-top: 1.5em;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+
+  h1 {
+    text-align: center;
+    margin-bottom: 0.5em;
+    color: $text-color-dark;
+  }
+
+  button {
+    height: 40px;
+    margin: 0.5em 0 13px 0;
+    @include button-style($button-login-bg, $button-login-hover-bg);
+    font-size: 1.3em;
+  }
+}

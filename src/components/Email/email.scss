@@ -1,0 +1,32 @@
+
+@import '../../styles/_variables.scss';
+
+.emails {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+
+  a {
+    background-color: $hover-color;
+    width: 150px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    color: $white-color;
+    margin-top: 0.2em;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: ease-in-out 0.4s;
+
+    &:hover {
+      background-color: $primary-color;
+    }
+  }
+
+  p {
+    text-align: center;
+    margin-bottom: 0.8em;
+  }
+}

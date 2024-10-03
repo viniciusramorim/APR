@@ -1,0 +1,130 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  span {
+    margin: 2em 0;
+    font-weight: 600;
+    font-size: 1.2em;
+    color: $dashboard-span-color;
+  }
+}
+
+.filter {
+  flex-wrap: wrap;
+}
+
+table {
+  border: 1px solid $table-border;
+  border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+
+  caption {
+    font-size: 1.5em;
+    margin: 0.5em 0 0.75em;
+  }
+
+  tr {
+    background-color: $table-row-bg;
+    border: 1px solid #ddd;
+    padding: 0.35em;
+  }
+
+  th,
+  td {
+    padding: 0.62em;
+    text-align: center;
+  }
+
+  th {
+    font-size: 0.85em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background-color: $table-header-bg;
+    color: $text-color-light;
+  }
+
+  td .action {
+    border: 0;
+    padding: 5px;
+    margin-right: 2px;
+    align-items: center;
+    display: inline-block;
+    border-radius: 4px;
+
+    svg {
+      vertical-align: middle;
+    }
+  }
+
+  td .badge {
+    padding: 3px;
+    border-radius: 3px;
+    color: $white-color;
+    background-color: $badge-bg;
+  }
+}
+
+.btn-more {
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  height: 35px;
+  border: 0;
+  border-radius: 5px;
+  background-color: $btn-more-bg;
+  color: $white-color;
+  font-size: 1.1em;
+}
+
+@include respond-to(medium) {
+  table {
+    border: 0;
+  }
+
+  table caption {
+    font-size: 1.3em;
+  }
+
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: 0.65em;
+  }
+
+  table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: 0.8em;
+    text-align: right;
+
+    &::before {
+      content: attr(data-label);
+      float: left;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
