@@ -1,121 +1,146 @@
+import {
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
+import { useState, useEffect, useContext } from "react";
+import { FiMapPin } from "react-icons/fi";
+import { toast } from "react-toastify";
+import * as geofire from "geofire-common";
+import * as XLSX from "xlsx";
 
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
-import { useState, useEffect, useContext } from 'react';
-import { FiMapPin } from 'react-icons/fi';
-import { toast } from 'react-toastify';
-import * as geofire from 'geofire-common';
-import * as XLSX from 'xlsx'
+import "./new_site.scss";
 
-import './new_site.scss'
-
-import firebase from '../../services/firebaseConnection';
-import Header from '../../components/Header';
-import Title from '../../components/Title';
-import { format } from 'date-fns';
-import ModalInfoSite from '../../components/Modal_InfoSite';
-import { AuthContext } from '../../contexts/auth';
+import firebase from "../../services/firebaseConnection";
+import Header from "../../components/Header";
+import Title from "../../components/Title";
+import { format } from "date-fns";
+import ModalInfoSite from "../../components/Modal_InfoSite";
+import { AuthContext } from "../../contexts/auth";
 
 export default function New_Site() {
-
   const { user, logSistem } = useContext(AuthContext);
 
   const [file, setFile] = useState();
   const [sitesAprovacao, setSitesAprovacao] = useState([]);
 
   useEffect(() => {
-    loadSitesAprovacao()
-  }, [])
+    loadSitesAprovacao();
+  }, []);
 
   async function loadSitesAprovacao() {
-    await firebase.firestore().collection('sites-aprovacao')
+    await firebase
+      .firestore()
+      .collection("sites-aprovacao")
       .get()
       .then((result) => {
         let sites = [];
-        result.forEach(doc => {
+        result.forEach((doc) => {
           sites.push({
             id: doc.id,
-            ...doc.data()
-          })
-        })
-        setSitesAprovacao(sites)
+            ...doc.data(),
+          });
+        });
+        setSitesAprovacao(sites);
       })
-      .catch((error) => console.log(error))
+      .catch((error) => console.log(error));
   }
 
   async function submitAllXlsx() {
     onLoadXLSX()
       .then((file) => {
-        console.log(file)
+        console.log(file);
         file.forEach(async (item, index) => {
           if (index < 1) return;
 
-          let hash = geofire.geohashForLocation([parseFloat(item[10]), parseFloat(item[11])]);
+          let hash = geofire.geohashForLocation([
+            parseFloat(item[10]),
+            parseFloat(item[11]),
+          ]);
 
-          let doc = [{
-            Estado: item[0] === undefined ? '' : item[0],
-            Nome: item[1] === undefined ? '' : item[1].toString(),
-            Sigla: item[2] === undefined ? '' : item[2],
-            Sigla_GVT: item[3] === undefined ? '' : item[3],
-            Situacao: item[4] === undefined ? '' : item[4],
-            Cidade: item[5] === undefined ? '' : item[5],
-            Bairro: item[6] === undefined ? '' : item[6],
-            Endereco: item[7] === undefined ? '' : item[7],
-            Complemento: item[8] === undefined ? '' : item[8],
-            CEP: item[9] === undefined ? '' : item[9],
-            Latitude: parseFloat(item[10]) === undefined ? 0 : item[10].toString(),
-            Longitude: parseFloat(item[11]) === undefined ? 0 : item[11].toString(),
-            tipoContrato: item[12] === undefined ? '' : item[12],
-            critical: item[13] === undefined ? '' : item[13],
-            geohash: hash === undefined ? '' : hash,
-            tipoSite: item[14] === undefined ? '' : item[14],
-            Detentora: item[15] === undefined ? '' : item[15],
-            lastUpdate: new Date(),
-            userLastUpdate: user.nome
-          }]
+          let doc = [
+            {
+              Estado: item[0] === undefined ? "" : item[0],
+              Nome: item[1] === undefined ? "" : item[1].toString(),
+              Sigla: item[2] === undefined ? "" : item[2],
+              Sigla_GVT: item[3] === undefined ? "" : item[3],
+              Situacao: item[4] === undefined ? "" : item[4],
+              Cidade: item[5] === undefined ? "" : item[5],
+              Bairro: item[6] === undefined ? "" : item[6],
+              Endereco: item[7] === undefined ? "" : item[7],
+              Complemento: item[8] === undefined ? "" : item[8],
+              CEP: item[9] === undefined ? "" : item[9],
+              Latitude:
+                parseFloat(item[10]) === undefined ? 0 : item[10].toString(),
+              Longitude:
+                parseFloat(item[11]) === undefined ? 0 : item[11].toString(),
+              tipoContrato: item[12] === undefined ? "" : item[12],
+              critical: item[13] === undefined ? "" : item[13],
+              geohash: hash === undefined ? "" : hash,
+              tipoSite: item[14] === undefined ? "" : item[14],
+              Detentora: item[15] === undefined ? "" : item[15],
+              lastUpdate: new Date(),
+              userLastUpdate: user.nome,
+            },
+          ];
 
-          await firebase.firestore().collection('sites')
+          await firebase
+            .firestore()
+            .collection("sites")
             .add(doc[0])
             .then(() => {
-              console.log('Site cadastrado com sucesso ! - ' + index + "/" + file.length);
+              console.log(
+                "Site cadastrado com sucesso ! - " + index + "/" + file.length
+              );
               logSistem(`CADASTRADO-SITES-XLSX`, item[0]);
-            })
-        })
+            });
+        });
       })
-      .catch(err => {
-        console.log('Erro ao carregar dados.')
-      })
+      .catch((err) => {
+        console.log("Erro ao carregar dados.");
+      });
   }
 
   async function removeAllXlsx() {
-    onLoadXLSX()
-      .then((file) => {
-        console.log(file)
-        file.forEach(async (item, index) => {
-          if (index < 1) return;
+    onLoadXLSX().then((file) => {
+      console.log(file);
+      file.forEach(async (item, index) => {
+        if (index < 1) return;
 
-          console.log(item[0])
+        console.log(item[0]);
 
-          await firebase.firestore().collection('sites')
-            .doc(item[0])
-            .delete()
-            .then(() => {
-              console.log('Site removido com sucesso ! - ' + index + "/" + file.length - 1);
-              logSistem(`REMOVIDO-SITES-XLSX`, item[0]);
-            })
-
-        })
-      })
+        await firebase
+          .firestore()
+          .collection("sites")
+          .doc(item[0])
+          .delete()
+          .then(() => {
+            console.log(
+              "Site removido com sucesso ! - " + index + "/" + file.length - 1
+            );
+            logSistem(`REMOVIDO-SITES-XLSX`, item[0]);
+          });
+      });
+    });
   }
 
   async function updateAllXlsx() {
-    onLoadXLSX()
-      .then((file) => {
-        file.forEach(async (item, index) => {
-          if (index < 1) return;
+    onLoadXLSX().then((file) => {
+      file.forEach(async (item, index) => {
+        if (index < 1) return;
 
-          let hash = geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])])
-          console.log(hash)
-          let doc = [{
+        let hash = geofire.geohashForLocation([
+          parseFloat(item[6]),
+          parseFloat(item[7]),
+        ]);
+        console.log(hash);
+        let doc = [
+          {
             CEP: item[1],
             Cidade: item[2],
             Complemento: item[3],
@@ -129,7 +154,10 @@ export default function New_Site() {
             Nome: item[8].toString(),
             tipoSite: item[12],
             critical: item[13],
-            geohash: geofire.geohashForLocation([parseFloat(item[6]), parseFloat(item[7])]),
+            geohash: geofire.geohashForLocation([
+              parseFloat(item[6]),
+              parseFloat(item[7]),
+            ]),
             tipoContrato: item[15],
             Detentora: item[16],
             NonStop: item[17],
@@ -137,37 +165,45 @@ export default function New_Site() {
             ErbCritica: item[19],
             MapaCalor: item[21],
             lastUpdate: new Date(),
-            userLastUpdate: user.nome
-          }]
+            userLastUpdate: user.nome,
+          },
+        ];
 
-          console.log(doc[0])
+        console.log(doc[0]);
 
-          await firebase.firestore().collection('sites')
-            .doc(item[0])
-            .update(doc[0])
-            .then(() => {
-              console.log('Site atualizado com sucesso ! - ' + index + "/" + file.length);
-              logSistem(`UPDATE-SITES-XLSX`, item[0]);
-            })
-            .catch(err => {
-              console.log('Site não atualizado ! - ' + index + "/" + file.length);
-            })
-        })
-      })
+        await firebase
+          .firestore()
+          .collection("sites")
+          .doc(item[0])
+          .update(doc[0])
+          .then(() => {
+            console.log(
+              "Site atualizado com sucesso ! - " + index + "/" + file.length
+            );
+            logSistem(`UPDATE-SITES-XLSX`, item[0]);
+          })
+          .catch((err) => {
+            console.log("Site não atualizado ! - " + index + "/" + file.length);
+          });
+      });
+    });
   }
 
   function handleFileSelect(evt) {
     let filesArr = Array.prototype.slice.call(evt.target.files);
     let not_xlsx = false;
 
-    filesArr.forEach(file => {
-      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-        not_xlsx = true
+    filesArr.forEach((file) => {
+      if (
+        file.type !==
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ) {
+        not_xlsx = true;
       }
-    })
+    });
 
     if (not_xlsx === true) {
-      toast.error("Selecione apenas arquivos XLSX")
+      toast.error("Selecione apenas arquivos XLSX");
       document.getElementById("inputXLSX").value = "";
       return;
     } else if (not_xlsx === false) {
@@ -178,7 +214,7 @@ export default function New_Site() {
 
   function onLoadXLSX() {
     let i, f;
-    let sheet_data
+    let sheet_data;
     //Loop through files
     return new Promise((resolve, reject) => {
       for (i = 0, f = file[i]; i != file.length; ++i) {
@@ -189,50 +225,50 @@ export default function New_Site() {
           let data = evt.target.result;
           let workbook = XLSX.read(data);
 
-          sheet_data = XLSX.utils.sheet_to_json(
-            workbook.Sheets['sites'], {
-            header: 1
-          }
-          );
-          setFile(sheet_data)
-          resolve(sheet_data)
+          sheet_data = XLSX.utils.sheet_to_json(workbook.Sheets["sites"], {
+            header: 1,
+          });
+          setFile(sheet_data);
+          resolve(sheet_data);
         };
         reader.readAsArrayBuffer(f);
       }
-    })
+    });
   }
 
   async function downloadExcel() {
-    await firebase.firestore().collection('sites')
+    await firebase
+      .firestore()
+      .collection("sites")
       .get()
       .then((snapshot) => {
-        updateState(snapshot)
+        updateState(snapshot);
       })
       .catch((err) => {
-        console.log('Deu algum erro: ', err);
-      })
+        console.log("Deu algum erro: ", err);
+      });
   }
 
   async function downloadModelo() {
-    let relatorioApr = []
+    let relatorioApr = [];
     relatorioApr.push({
-      UF: '',
-      NOME: '',
-      SIGLA: '',
-      SIGLA_GVT: '',
-      SITUACAO: '',
-      MUNICIPIO: '',
-      BAIRRO: '',
-      ENDERECO: '',
-      COMPLEMENTO: '',
-      CEP: '',
-      LATITUDE: '-0,00000',
-      LONGITUDE: '-0,00000',
-      TIPO_CONTRATO: '',
-      CRITICIDADE: '',
-      TIPO_SITE: '',
-      DETENTORA: '',
-    })
+      UF: "",
+      NOME: "",
+      SIGLA: "",
+      SIGLA_GVT: "",
+      SITUACAO: "",
+      MUNICIPIO: "",
+      BAIRRO: "",
+      ENDERECO: "",
+      COMPLEMENTO: "",
+      CEP: "",
+      LATITUDE: "-0,00000",
+      LONGITUDE: "-0,00000",
+      TIPO_CONTRATO: "",
+      CRITICIDADE: "",
+      TIPO_SITE: "",
+      DETENTORA: "",
+    });
     exportExcel(relatorioApr);
   }
 
@@ -262,8 +298,8 @@ export default function New_Site() {
         CtCritica: doc.data().CtCritica,
         ErbCritica: doc.data().ErbCritica,
         MapaCalor: doc.data().MapaCalor,
-      })
-    })
+      });
+    });
     exportExcel(relatorioApr);
   }
 
@@ -274,7 +310,7 @@ export default function New_Site() {
     //let buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
     //XLSX.write(workbook, { bookType: "xlsx", type: "binary" });
     XLSX.writeFile(workbook, "sites.xlsx");
-  };
+  }
 
   return (
     <div>
@@ -285,28 +321,38 @@ export default function New_Site() {
           <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
         </Title>
 
-        {user.uid === ('wQzKfmkPgsV8PULa9t5JLg9Ta6j2' || 'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2') && (
-          <div className='container inputfile'>
-            <label id='arquive'>Selecionar arquivo
-              <input id='inputXLSX' type='file' accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => handleFileSelect(e)} />
+        {user.uid ===
+          ("wQzKfmkPgsV8PULa9t5JLg9Ta6j2" ||
+            "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2") && (
+          <div className="container inputfile">
+            <label id="arquive">
+              Selecionar arquivo
+              <input
+                id="inputXLSX"
+                type="file"
+                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                onChange={(e) => handleFileSelect(e)}
+              />
             </label>
-            <a onClick={() => submitAllXlsx()} >Enviar</a>
-            <a onClick={() => removeAllXlsx()} >Remover</a>
-            <a onClick={() => updateAllXlsx()} >Update</a>
-            <a onClick={() => downloadModelo()} >Baixar Modelo</a>
-            <a onClick={() => downloadExcel()} >Baixar Todos Sites</a>
+            <a onClick={() => submitAllXlsx()}>Enviar</a>
+            <a onClick={() => removeAllXlsx()}>Remover</a>
+            <a onClick={() => updateAllXlsx()}>Update</a>
+            <a onClick={() => downloadModelo()}>Baixar Modelo</a>
+            <a onClick={() => downloadExcel()}>Baixar Todos Sites</a>
           </div>
         )}
 
-        {['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2',
-          'WN0EtV44xnV0V87n5wBBXT87QXI2',
-          '5WBRPLgGmzUSLzrthSs9e9qnSnb2',
-          'wQzKfmkPgsV8PULa9t5JLg9Ta6j2'].includes(user.uid) && (
-          <Grid container className='container'>
+        {[
+          "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+          "WN0EtV44xnV0V87n5wBBXT87QXI2",
+          "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
+          "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+        ].includes(user.uid) && (
+          <Grid container className="container">
             <TableContainer component={Paper}>
               <Table size="small" aria-label="a dense table">
-                <TableHead>
-                  <TableRow style={{ color: '#FFF' }}>
+                <TableHead className="new-site-table">
+                  <TableRow>
                     <TableCell align="center">Sigla</TableCell>
                     <TableCell align="center">UF</TableCell>
                     <TableCell align="center">Municipio</TableCell>
@@ -320,22 +366,23 @@ export default function New_Site() {
                   {sitesAprovacao.map((row) => (
                     <TableRow
                       key={row.id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell align="center">{row.Sigla}</TableCell>
                       <TableCell align="center">{row.Estado}</TableCell>
                       <TableCell align="center">{row.Cidade}</TableCell>
                       <TableCell align="center">{row.Latitude}</TableCell>
                       <TableCell align="center">{row.Longitude}</TableCell>
-                      <TableCell align="center">{format(row.created.toDate(), "dd/MM/yyyy HH:mm")}</TableCell>
+                      <TableCell align="center">
+                        {format(row.created.toDate(), "dd/MM/yyyy HH:mm")}
+                      </TableCell>
                       <TableCell align="center">
                         <ModalInfoSite
                           site={row}
                           loadSites={loadSitesAprovacao}
                           logSistem={logSistem}
                           user={user}
-                        >
-                        </ModalInfoSite>
+                        ></ModalInfoSite>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -346,5 +393,5 @@ export default function New_Site() {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -131,7 +131,7 @@ export default function Header() {
         )}
 
         <Tooltip title="Meu Perfil" placement="right" arrow>
-          <IconButton>
+          <IconButton className="myaccount">
             <PersonOutlineSharpIcon />
             <DrawerMyAccount />
           </IconButton>

@@ -65,8 +65,7 @@ const QuestionModal = ({
   const [formData, setFormData] = useState(initialFormData);
   const [areaOptions, setAreaOptions] = useState([
     "oem",
-    "Área Responsável 1",
-    "Área Responsável 2",
+    "patrimonial"
   ]);
   const [newArea, setNewArea] = useState("");
 

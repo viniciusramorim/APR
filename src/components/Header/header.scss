@@ -17,12 +17,12 @@
     padding-top: 15px;
     height: fit-content;
     width: 100%;
-    background: $hover-color;
+    background: $btn-secondary-bg;
     border-radius: 0px;
   }
 
   a {
-    display: block;
+    display: flex;
     color: $text-color-dark;
     padding: 9px 10px;
     margin: 0.2em 0.2em;
@@ -44,10 +44,10 @@
     }
 
     &:first-of-type {
-      background-color: #330253;
+      background-color: $container-perg-shadow;
 
       &:hover {
-        background-color: #06b51ebd;
+        background-color: #8a42e7;
       }
     }
   }
@@ -60,7 +60,7 @@
     width: 97%;
     height: 100%;
     position: relative;
-    background-color: $hover-color;
+    background-color: $btn-secondary-bg;
     color: $text-color-light;
 
     div {
@@ -78,6 +78,7 @@
         display: none;
       }
     }
+    
   }
 
   @include respond-to(small) {
@@ -195,6 +196,7 @@
     &:hover .dropdown-content {
       display: block;
     }
+    
   }
 }
 
@@ -232,6 +234,21 @@
   border-radius: 0px;
 }
 
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div{
+  background:none!important;
+  position:relative
+ }
+ 
+ button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div button{
+  background:none!important;
+  position:absolute;
+  top:-10px;
+  width:160px;
+  left:-20px;
+  color:$text-color-dark;
+  font-weight:700;
+ }
+
 section#menu {
   button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root {
     display: flex;
@@ -252,3 +269,19 @@ section#menu {
     }
   }
 }
+@media (min-width:767px) {
+  .show.mobile button {
+   display:none;   
+  }
+  }
+
+  @media (max-width:767px) {
+    div#sidebar-menu #menu {
+      display:none;
+  }
+  
+  div#sidebar-menu #logo-apr {
+      width:50%;
+      margin:0 auto;
+  }
+  }

@@ -19,6 +19,7 @@
   background-color: $login-bg-color;
   width: 450px;
   height: 70%;
+  padding:30px;
   @include flex-center;
   flex-direction: column;
   border-radius: 8px;
@@ -37,11 +38,15 @@
       color: $link-hover-color;
     }
   }
+  svg {
+    padding:1px;
+  }
 
   input,
   select {
     @include input-style;
     margin-bottom: 15px;
+    width: 95%;
   }
 
   .login-area {

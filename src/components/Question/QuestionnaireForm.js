@@ -49,7 +49,7 @@ const MyModal = ({ open, handleClose }) => {
     images: [],
     plano_acao: [],
     openPA: false,
-    areaResposavel: "oem",
+    areaResposavel: "",
     newAreaResponsavel: "",
     critical: "Baixo",
     user: user ? user.nome : "",
@@ -69,7 +69,7 @@ const MyModal = ({ open, handleClose }) => {
 
   const [areaResposavelOptions, setAreaResposavelOptions] = useState([
     "oem",
-    "Área Responsável 1",
+    "patrimonial",
   ]);
 
   const [hierarchicalData, setHierarchicalData] = useState({});
@@ -403,11 +403,6 @@ const MyModal = ({ open, handleClose }) => {
           label="Possui upload de imagens?"
         />
 
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="subtitle1" gutterBottom>
-          Selecione a Área Responsável e Criticidade
-        </Typography>
-        <Divider sx={{ my: 2 }} />
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
