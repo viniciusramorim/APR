@@ -1,108 +1,108 @@
-// Primary Colors
-$primary-color: #344767; // Primary color for elements
-$hover-color: #9b59b6; // Hover color for interactions
-$white-color: #fff; // White color
+/* Primary Colors */
+$primary-color: #344767;                          /* Primary color for elements */
+$hover-color: #9b59b6;                            /* Hover color for interactions */
+$white-color: #fff;                               /* White color */
 
-// Sidebar and Header
-$sidebar-bg-color: #fff; // Background color for the sidebar
-$sidebar-hover-bg: rgba(53, 2, 76, 0.08); // Background color on hover for sidebar items
-$text-color-dark: #000; // Dark text color for headers and sidebar
-$text-color-light: #f8f8f8; // Light text color for headers and sidebar
-$box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px; // Box shadow fors
+/* Sidebar and Header */
+$sidebar-bg-color: #fff;                          /* Background color for the sidebar */
+$sidebar-hover-bg: rgba(53, 2, 76, 0.08);         /* Background color on hover for sidebar items */
+$text-color-dark: #000;                           /* Dark text color for headers and sidebar */
+$text-color-light: #f8f8f8;                       /* Light text color for headers and sidebar */
+$box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px; /* Box shadow for containers */
 
-// Modal
-$modal-overlay-bg: rgba(0, 0, 0, 0.6); // Background color for modal overlay
-$modal-container-bg: $white-color; // Background color for modal container
-$modal-container-shadow: rgba(0, 0, 0, 0.8); // Shadow color for modal container
-$close-btn-bg: #f82b2b; // Background color for the close button in modals
-$modal-link-bg: #43057e; // Background color for links inside modals
-$modal-link-hover-bg: #5900ac; // Background color for links on hover inside modals
-$form-bg-color: #e1dada; // Background color for form fields
-$modal-justify-bg: #c0c0c028; // Background color for modal justify container
-$modal-justify-content-bg: rgb(152, 68, 231); // Background color for content inside modal justify
-$modal-load-bg: rgba(110, 108, 108, 0.18); // Background color for loading modal
-$modal-load-link-bg: #6686e9; // Background color for links inside loading modal
-$modal-load-link-hover-bg: #305ee7; // Hover background color for links inside loading modal
-$modal-load-i-bg: #00aeefb5; // Background color for modal icons
+/* Modal */
+$modal-overlay-bg: rgba(0, 0, 0, 0.6);            /* Background color for modal overlay */
+$modal-container-bg: $white-color;                  /* Background color for modal container */
+$modal-container-shadow: rgba(0, 0, 0, 0.8);      /* Shadow color for modal container */
+$close-btn-bg: #f82b2b;                           /* Background color for the close button in modals */
+$modal-link-bg: #43057e;                          /* Background color for links inside modals */
+$modal-link-hover-bg: #5900ac;                    /* Background color for links on hover inside modals */
+$form-bg-color: #e1dada;                          /* Background color for form fields */
+$modal-justify-bg: #c0c0c028;                     /* Background color for modal justify container */
+$modal-justify-content-bg: rgb(152, 68, 231);     /* Background color for content inside modal justify */
+$modal-load-bg: rgba(110, 108, 108, 0.18);        /* Background color for loading modal */
+$modal-load-link-bg: #6686e9;                     /* Background color for links inside loading modal */
+$modal-load-link-hover-bg: #305ee7;               /* Hover background color for links inside loading modal */
+$modal-load-i-bg: #00aeefb5;                      /* Background color for modal icons */
 
-// Card Styles
-$card-bg-color: rgb(105, 6, 151); // Background color for cards
-$card-title-color: rgb(90, 3, 172); // Title color for cards
-$empty-bg-color: blueviolet; // Background color for empty card states
-$box-shadow-light: 2px 2px 5px rgba(147, 146, 146, 0.52); // Light shadow for cards
+/* Card Styles */
+$card-bg-color: rgb(105, 6, 151);                 /* Background color for cards */
+$card-title-color: rgb(90, 3, 172);               /* Title color for cards */
+$empty-bg-color: blueviolet;                      /* Background color for empty card states */
+$box-shadow-light: 2px 2px 5px rgba(147, 146, 146, 0.52); /* Light shadow for cards */
 
-// Typography
-$typography-bg: #a29bfe; // Background color for typography elements
+/* Typography */
+$typography-bg: #a29bfe;                          /* Background color for typography elements */
 
-// Title Styles
-$title-bg-color: rgba(248, 248, 248, 0.64); // Background color for title sections
+/* Title Styles */
+$title-bg-color: rgba(248, 248, 248, 0.64);       /* Background color for title sections */
 
-// Page and Container Styles
-$container-bg-color: rgba(248, 248, 248, 0.64); // Background color for container sections
-$dashboard-bg: #380054e8; // Background color for the dashboard
-$dashboard-span-color: #181c2e; // Span text color in the dashboard
-$table-bg: rgba(248, 248, 248, 0.64); // Background color for tables
-$table-header-bg: $sidebar-bg-color; // Background color for table headers
-$table-row-bg: $container-bg-color; // Background color for table rows
-$btn-more-bg: #181c2e; // Background color for "More" buttons
-$badge-bg: blueviolet; // Background color for badges
+/* Page and Container Styles */
+$container-bg-color: rgba(248, 248, 248, 0.64);   /* Background color for container sections */
+$dashboard-bg: #380054e8;                         /* Background color for the dashboard */
+$dashboard-span-color: #181c2e;                   /* Span text color in the dashboard */
+$table-bg: rgba(248, 248, 248, 0.64);             /* Background color for tables */
+$table-header-bg: $sidebar-bg-color;                /* Background color for table headers */
+$table-row-bg: $container-bg-color;                 /* Background color for table rows */
+$btn-more-bg: #181c2e;                            /* Background color for "More" buttons */
+$badge-bg: blueviolet;                            /* Background color for badges */
 
-// Button Styles
-$btn-primary-bg: #8a42e7; // Primary button background color
-$btn-primary-hover-bg: #6e06f7; // Primary button hover background color
-$btn-secondary-bg: #430058; // Secondary button background color
-$btn-secondary-hover-bg: #52006b; // Secondary button hover background color
-$btn-action-red: rgb(228, 54, 23); // Action button red background color
-$btn-action-green: rgb(14, 206, 14); // Action button green background color
-$btn-activate-pa-bg: #e74242; // Background color for "Activate-PA" button
-$btn-activate-pa-hover-bg: #f70909; // Hover background color for "Activate-PA" button
-$btn-dark-bg: #333; // Dark background color for buttons
-$btn-dark-color: #fff; // Text color for dark buttons
-$button-primary-bg: #182b72; // Primary button background color
-$button-primary-hover-bg: #2643ad; // Primary button hover background color
+/* Button Styles */
+$btn-primary-bg: #8a42e7;                         /* Primary button background color */
+$btn-primary-hover-bg: #6e06f7;                   /* Primary button hover background color */
+$btn-secondary-bg: #430058;                       /* Secondary button background color */
+$btn-secondary-hover-bg: #52006b;                 /* Secondary button hover background color */
+$btn-action-red: rgb(228, 54, 23);                /* Action button red background color */
+$btn-action-green: rgb(14, 206, 14);              /* Action button green background color */
+$btn-activate-pa-bg: #e74242;                     /* Background color for "Activate-PA" button */
+$btn-activate-pa-hover-bg: #f70909;               /* Hover background color for "Activate-PA" button */
+$btn-dark-bg: #333;                               /* Dark background color for buttons */
+$btn-dark-color: #fff;                            /* Text color for dark buttons */
+$button-primary-bg: #182b72;                      /* Primary button background color */
+$button-primary-hover-bg: #2643ad;                /* Primary button hover background color */
 
-// Input and Form Styles
-$form-bg-light: #f8f8f8; // Light background color for forms
-$background-light: rgb(231, 231, 231); // Light background color for input fields
-$input-disabled-cursor: not-allowed; // Cursor style for disabled inputs
+/* Input and Form Styles */
+$form-bg-light: #f8f8f8;                          /* Light background color for forms */
+$background-light: rgb(231, 231, 231);            /* Light background color for input fields */
+$input-disabled-cursor: not-allowed;                /* Cursor style for disabled inputs */
 
-// Borders and Shadows
-$border-color-light: rgba(128, 128, 128, 0.3); // Light border color for form elements
-$border-color-light-2: rgba(128, 128, 128, 0.3); // Light border color for containers
-$border-color-dark: #000; // Dark border color for elements
-$container-border-color: #fff; // Border color for containers
-$container-perg-border: rgba(128, 128, 128, 0.3); // Border color for "container-perg"
-$container-perg-shadow: rgba(0, 0, 0, 0.24); // Shadow color for "container-perg"
+/* Borders and Shadows */
+$border-color-light: rgba(128, 128, 128, 0.3);    /* Light border color for form elements */
+$border-color-light-2: rgba(128, 128, 128, 0.3);  /* Light border color for containers */
+$border-color-dark: #000;                         /* Dark border color for elements */
+$container-border-color: #fff;                    /* Border color for containers */
+$container-perg-border: rgba(128, 128, 128, 0.3); /* Border color for "container-perg" */
+$container-perg-shadow: rgba(0, 0, 0, 0.24);      /* Shadow color for "container-perg" */
 
-// Miscellaneous
-$success-bg: #15d515; // Background color for success indicators
-$error-bg: #e66060; // Background color for error indicators
-$link-primary-bg: #8a42e7; // Primary link background color
-$link-primary-hover-bg: #6e0dec; // Primary link hover background color
-$link-hover-color: #8a42e7; // Link hover color
+/* Miscellaneous */
+$success-bg: #15d515;                             /* Background color for success indicators */
+$error-bg: #e66060;                               /* Background color for error indicators */
+$link-primary-bg: #8a42e7;                        /* Primary link background color */
+$link-primary-hover-bg: #6e0dec;                  /* Primary link hover background color */
+$link-hover-color: #8a42e7;                       /* Link hover color */
 
-// Report Styles
-$reports-bg-color: #f8f8f8a4; // Background color for the reports section
-$reports-button-bg: #380054e8; // Background color for report buttons
-$reports-button-hover-bg: #3a077c; // Hover background color for report buttons
+/* Report Styles */
+$reports-bg-color: #f8f8f8a4;                     /* Background color for the reports section */
+$reports-button-bg: #380054e8;                    /* Background color for report buttons */
+$reports-button-hover-bg: #3a077c;                /* Hover background color for report buttons */
 
-// Pagination Styles
-$table-pagination-bg: #380054e8; // Background color for pagination buttons
-$pagination-btn-color: #fff; // Text color for pagination buttons
+/* Pagination Styles */
+$table-pagination-bg: #380054e8;                  /* Background color for pagination buttons */
+$pagination-btn-color: #fff;                      /* Text color for pagination buttons */
 
-// List and Item Styles
-$list-bg-color: #e1dada; // Background color for list items
-$list-item-hover-bg: #fff; // Hover background color for list items
-$action-hover-bg-1: #2980b9; // Hover background color for action button 1
-$action-hover-bg-2: #c0392b; // Hover background color for action button 2
-$action-hover-bg-3: #e056fd; // Hover background color for action button 3
-$action-hover-bg-4: #be2edd; // Hover background color for action button 4
+/* List and Item Styles */
+$list-bg-color: #e1dada;                          /* Background color for list items */
+$list-item-hover-bg: #fff;                        /* Hover background color for list items */
+$action-hover-bg-1: #2980b9;                      /* Hover background color for action button 1 */
+$action-hover-bg-2: #c0392b;                      /* Hover background color for action button 2 */
+$action-hover-bg-3: #e056fd;                      /* Hover background color for action button 3 */
+$action-hover-bg-4: #be2edd;                      /* Hover background color for action button 4 */
 
-// Typography Styles
-$typography-h5-bg: #ddd; // Background color for h5 titles
-$typography-h5-before-bg: #be2edd; // Background color for "before" element in h5
+/* Typography Styles */
+$typography-h5-bg: #ddd;                          /* Background color for h5 titles */
+$typography-h5-before-bg: #be2edd;                /* Background color for "before" element in h5 */
 
-// Login Styles
-$login-bg-color: rgba(255, 255, 255, 0.44); // Background color for the login container
-$button-login-bg: #380054; // Login button background color
-$button-login-hover-bg: #2e0564; // Login button hover background color
+/* Login Styles */
+$login-bg-color: rgba(255, 255, 255, 0.44);       /* Background color for the login container */
+$button-login-bg: #380054;                        /* Login button background color */
+$button-login-hover-bg: #2e0564;                  /* Login button hover background color */
