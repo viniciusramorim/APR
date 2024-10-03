@@ -19,7 +19,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
   };
 
   return (
-    <div className="show">
+    <div className="show mobile">
       <Button
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
