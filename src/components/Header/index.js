@@ -1,4 +1,4 @@
-import "./header.css";
+import "./header.scss";
 import { useContext } from "react";
 import { AuthContext } from "../../contexts/auth";
 import logoRonda from "../../assets/logoRondaDigital-removebg.png";

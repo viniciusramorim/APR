@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import Modal from 'react-modal';
 import { FiCamera, FiCameraOff, FiUpload, FiX } from 'react-icons/fi';
 
-import './new.css'
+import './new.scss'
 
 const CameraComponent = (item) => {
   const webcamRef = useRef(null);

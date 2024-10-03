@@ -1,4 +1,4 @@
-import './new.css'
+import './new.scss'
 
 import React from 'react';
 import { FiUpload } from 'react-icons/fi';

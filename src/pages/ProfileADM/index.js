@@ -5,7 +5,7 @@ import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 import Title from "../../components/Title";
 import Header from "../../components/Header";
-import "./profileAdm.css";
+import "./profileAdm.scss";
 import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import Stack from "@mui/material/Stack";

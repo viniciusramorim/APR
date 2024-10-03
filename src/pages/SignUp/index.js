@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { BsEye } from "react-icons/bs";
 
-import '../SignIn/signin.css';
+import '../SignIn/signin.scss';
 
 import { AuthContext } from '../../contexts/auth';
 

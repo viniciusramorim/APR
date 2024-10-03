@@ -45,18 +45,18 @@
   }
 
   button {
-    @include button-style($btn-save-bg, $btn-save-hover-bg);
+    @include button-style($btn-secondary-hover-bg, $btn-secondary-hover-bg);
   }
 
   button:hover {
-    background-color: $btn-save-hover-bg;
+    background-color: $btn-secondary-bg;
   }
 }
 
 .logout-btn {
   padding: 8px 20px;
   background-color: transparent;
-  border: 1px solid $btn-border-color-dark;
+  border: 1px solid $border-color-light;
   border-radius: 5px;
   font-size: 1.5em;
   display: flex;
@@ -66,5 +66,5 @@
 }
 
 .btn-salvar {
-  @include button-style($btn-save-bg, $btn-save-hover-bg);
+  @include button-style($btn-save-bg, $btn-secondary-bg);
 }

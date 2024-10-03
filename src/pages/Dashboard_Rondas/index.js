@@ -7,7 +7,7 @@ import { AuthContext } from '../../contexts/auth';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
 import firebase from '../../services/firebaseConnection';
-import './dashboardRondas.css';
+import './dashboardRondas.scss';
 
 const listRef = firebase.firestore().collection('rondas')
 

@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import firebase from '../../services/firebaseConnection';
 import stateRecipients from './statateRecipient';
-import './email.css'
+import './email.scss'
 
 const EmailLink = ({ apr, id, logSistem }) => {
   const base = 'aprs-producao'

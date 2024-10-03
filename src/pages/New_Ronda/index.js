@@ -5,7 +5,7 @@ import { FiMapPin, FiCamera } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as geofire from 'geofire-common';
 
-import './newronda.css'
+import './newronda.scss'
 
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';

@@ -1,5 +1,3 @@
-// src/styles/_sidebar.scss
-
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -225,7 +223,7 @@
     background: none !important;
   }
 
-  .sidebar div& button {
+  .sidebar div & button {
     background: none !important;
   }
 }

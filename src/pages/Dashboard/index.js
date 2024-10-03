@@ -5,7 +5,7 @@ import { AuthContext } from "../../contexts/auth";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
 import firebase from "../../services/firebaseConnection";
-import "./dashboard.css";
+import "./dashboard.scss";
 import { toast } from "react-toastify";
 import TableDashboard from "./tableDashboard";
 import QuestionnaireForm from "../../components/Question/QuestionnaireForm";

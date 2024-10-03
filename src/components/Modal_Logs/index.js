@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import firebase from '../../services/firebaseConnection';
 import { FiInfo } from 'react-icons/fi';
 
-import './ModalLogs.css'
+import './ModalLogs.scss'
 import { IconButton } from '@mui/material';
 import { Info } from '@mui/icons-material';
 import zIndex from '@mui/material/styles/zIndex';

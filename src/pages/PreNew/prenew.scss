@@ -136,7 +136,7 @@
 
   .container-atribuir {
     display: flex;
-    background-color: $form-bg-color-light;
+    background-color: $container-bg-color;
     border-radius: 5px;
     padding: 0.8em;
     align-items: flex-start;
@@ -182,13 +182,13 @@
     select {
       max-width: 430px;
       width: 100%;
-      border: 1px solid $filter-border-color;
+      border: 1px solid $btn-secondary-hover-bg;
       padding: 0.5em;
       margin-right: 0.5em;
       border-radius: 8px;
 
       &:focus {
-        border: 1px solid $filter-border-color;
+        border: 1px solid $btn-secondary-hover-bg;
       }
     }
 
@@ -214,7 +214,7 @@
 
     li {
       padding: 15px 9pxem;
-      border-bottom: 1px solid $filter-border-color;
+      border-bottom: 1px solid $btn-secondary-hover-bg;
       border-radius: 5px;
 
       &:hover {
@@ -236,7 +236,7 @@
     padding: 10px 0;
     min-width: 100%;
     width: fit-content;
-    border-bottom: 1px solid $filter-border-color;
+    border-bottom: 1px solid $btn-secondary-hover-bg;
     padding: 10px;
 
     p {
@@ -244,7 +244,7 @@
     }
 
     &:hover {
-      background: $site-item-hover-bg;
+      background: $form-bg-light;
       transition: 0.2s ease;
       color: $white-color;
       cursor: pointer;

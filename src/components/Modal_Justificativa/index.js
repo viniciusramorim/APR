@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
 
-import './justify.css'
+import './justify.scss'
 import { FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 

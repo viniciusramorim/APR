@@ -1,5 +1,5 @@
 
-import './loading.css';
+import './loading.scss';
 
 import loading from '../../assets/loading.gif'
 

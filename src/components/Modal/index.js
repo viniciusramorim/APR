@@ -4,7 +4,7 @@ import { FiX } from 'react-icons/fi';
 
 import { AuthContext } from '../../contexts/auth';
 import planoAcao from './PlanoAcao/planoAcao';
-import './modal.css';
+import './modal.scss';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 

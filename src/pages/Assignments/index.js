@@ -8,7 +8,7 @@ import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
 
-import './assignments.css'
+import './assignments.scss'
 
 export default function PreNew() {
 

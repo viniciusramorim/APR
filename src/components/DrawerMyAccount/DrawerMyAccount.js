@@ -7,7 +7,7 @@ import { useState, useContext } from "react";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 
-import "./drawerMyAccount.css";
+import "./drawerMyAccount.scss";
 import { toast } from "react-toastify";
 
 export default function AnchorTemporaryDrawer() {

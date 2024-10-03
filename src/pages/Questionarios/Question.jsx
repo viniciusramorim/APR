@@ -26,7 +26,7 @@ import Title from "../../components/Title";
 import ChecklistModal from "../../components/Question/ChecklistModal";
 import BlocoModal from "../../components/Question/BlocoModal";
 import QuestionModal from "../../components/Question/QuestionModal";
-import "../../pages/Questionarios/Question.css";
+import "../../pages/Questionarios/Question.scss";
 
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});

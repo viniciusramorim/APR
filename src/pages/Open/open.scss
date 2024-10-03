@@ -111,8 +111,8 @@ form {
   }
 
   #button-area {
-    background-color: $button-area-bg;
-    border: 1px solid $button-area-bg;
+    background-color: var($button-login-bg);
+    border: 1px solid var($button-login-bg);
     color: $white-color;
     padding: 0.5em;
     border-radius: 15px;
@@ -123,7 +123,7 @@ form {
     &:hover {
       background-color: $white-color;
       color: $text-color-dark;
-      border: 1px solid $button-area-bg;
+      border: 1px solid var($button-login-bg);
     }
   }
 }

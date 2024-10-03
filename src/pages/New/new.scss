@@ -1,7 +1,7 @@
 // src/styles/_formNew.scss
 
-@import "../../styles/_variables.scss";
-@import "../../styles/_mixins.scss";
+@import '../../styles/variables';
+@import "../../styles/mixins";
 
 .form-new {
   margin-top: 1.5em;
@@ -198,7 +198,7 @@
   margin-bottom: 0.8em;
 
   li {
-    background-color: $container-bg;
+    background-color: var($container-bg-color);
     width: 60px;
     height: 60px;
     margin-left: 0.2em;

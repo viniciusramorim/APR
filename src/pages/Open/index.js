@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-import './open.css'
+import './open.scss'
 
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';

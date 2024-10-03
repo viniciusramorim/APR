@@ -90,6 +90,7 @@ $reports-button-hover-bg: #3a077c;                /* Hover background color for 
 $table-pagination-bg: #380054e8;                  /* Background color for pagination buttons */
 $pagination-btn-color: #fff;                      /* Text color for pagination buttons */
 
+
 /* List and Item Styles */
 $list-bg-color: #e1dada;                          /* Background color for list items */
 $list-item-hover-bg: #fff;                        /* Hover background color for list items */
@@ -106,3 +107,15 @@ $typography-h5-before-bg: #be2edd;                /* Background color for "befor
 $login-bg-color: rgba(255, 255, 255, 0.44);       /* Background color for the login container */
 $button-login-bg: #380054;                        /* Login button background color */
 $button-login-hover-bg: #2e0564;                  /* Login button hover background color */
+
+/* Additional Variables */
+$font-weight-bold: bold;                            /* Font weight for bold text */
+$table-border: #ccc;                              /* Color for table borders */
+$btn-alt-bg: #6e0dec;                             /* Alternate button background color */
+$btn-alt-hover-bg: #fff;                          /* Alternate button hover background color */
+$form-bg: rgba(248, 248, 248, 0.64);              /* Background color for forms */
+$bg-light-gray: rgb(224, 223, 223);               /* Light background color for areas of input */
+$table-row-border: #ddd;                          /* Color for the border of table rows */
+$table-action-margin: 10px;                         /* Margin for actions within table cells */
+$avatar-hover-opacity: 0.7;                         /* Opacity for avatar hover state */
+$btn-save-bg: #380054;

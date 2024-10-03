@@ -1,4 +1,4 @@
-import "./prenew.css";
+import "./prenew.scss";
 import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
 import { FiClipboard } from "react-icons/fi";

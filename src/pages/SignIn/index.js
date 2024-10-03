@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { BsEye } from 'react-icons/bs';
 
-import './signin.css';
+import './signin.scss';
 import { AuthContext } from '../../contexts/auth';
 import logo from '../../assets/logoaprdigital-removebg.png';
 

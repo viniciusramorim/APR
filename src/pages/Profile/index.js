@@ -7,7 +7,7 @@ import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
 
-import './profile.css';
+import './profile.scss';
 import { toast } from 'react-toastify';
 
 export default function Profile(){

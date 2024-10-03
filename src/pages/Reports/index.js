@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
-import "./report.css";
+import "./report.scss";
 import { useState } from "react";
 import {
   Button,

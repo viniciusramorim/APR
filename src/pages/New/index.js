@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns'
 import * as geofire from 'geofire-common';
 
-import './new.css'
+import './new.scss'
 
 import { AuthContext } from '../../contexts/auth';
 import firebase from '../../services/firebaseConnection';

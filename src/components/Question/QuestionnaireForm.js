@@ -17,7 +17,7 @@ import {
   Divider,
 } from "@mui/material";
 import firebase from "../../services/firebaseConnection";
-import "../../components/Question/styles/questionnaireForm.css";
+import "../../components/Question/styles/questionnaireForm.scss";
 import { AuthContext } from "../../contexts/auth";
 
 const modalStyle = {

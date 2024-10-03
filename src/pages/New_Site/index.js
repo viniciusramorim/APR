@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import * as geofire from 'geofire-common';
 import * as XLSX from 'xlsx'
 
-import './new_site.css'
+import './new_site.scss'
 
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';

@@ -1,5 +1,5 @@
 
-import './title.css';
+import './title.scss';
 
 export default function Title({children, name}){
   return(
