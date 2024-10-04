@@ -78,7 +78,7 @@
         display: none;
       }
     }
-    
+
   }
 
   @include respond-to(small) {
@@ -196,7 +196,7 @@
     &:hover .dropdown-content {
       display: block;
     }
-    
+
   }
 }
 
@@ -234,20 +234,31 @@
   border-radius: 0px;
 }
 
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div{
-  background:none!important;
-  position:relative
- }
- 
- button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div button{
-  background:none!important;
-  position:absolute;
-  top:-10px;
-  width:160px;
-  left:-20px;
-  color:$text-color-dark;
-  font-weight:700;
- }
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount.css-1wjzr1s-MuiButtonBase-root-MuiIconButton-root {
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    height:40px;
+  }
+}
+
+
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div {
+  background: none !important;
+  position: relative;
+
+}
+
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div button {
+  background: none !important;
+  position: absolute;
+  top: -10px;
+  width: 160px;
+  left: -26px;
+  color: $text-color-dark;
+  font-weight: 700;
+
+}
 
 section#menu {
   button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root {
@@ -269,19 +280,20 @@ section#menu {
     }
   }
 }
-@media (min-width:767px) {
+
+@media (min-width: 767px) {
   .show.mobile button {
-   display:none;   
+    display: none;
   }
+}
+
+@media (max-width: 767px) {
+  div#sidebar-menu #menu {
+    display: none;
   }
 
-  @media (max-width:767px) {
-    div#sidebar-menu #menu {
-      display:none;
-  }
-  
   div#sidebar-menu #logo-apr {
-      width:50%;
-      margin:0 auto;
+    width: 50%;
+    margin: 0 auto;
   }
-  }
+}

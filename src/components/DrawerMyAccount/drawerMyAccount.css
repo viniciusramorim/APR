@@ -1,0 +1,153 @@
+/* Primary Colors */
+/* Primary color for elements */
+/* Hover color for interactions */
+/* White color */
+/* Sidebar and Header */
+/* Background color for the sidebar */
+/* Background color on hover for sidebar items */
+/* Dark text color for headers and sidebar */
+/* Light text color for headers and sidebar */
+/* Box shadow for containers */
+/* Modal */
+/* Background color for modal overlay */
+/* Background color for modal container */
+/* Shadow color for modal container */
+/* Background color for the close button in modals */
+/* Background color for links inside modals */
+/* Background color for links on hover inside modals */
+/* Background color for form fields */
+/* Background color for modal justify container */
+/* Background color for content inside modal justify */
+/* Background color for loading modal */
+/* Background color for links inside loading modal */
+/* Hover background color for links inside loading modal */
+/* Background color for modal icons */
+/* Card Styles */
+/* Background color for cards */
+/* Title color for cards */
+/* Background color for empty card states */
+/* Light shadow for cards */
+/* Typography */
+/* Background color for typography elements */
+/* Title Styles */
+/* Background color for title sections */
+/* Page and Container Styles */
+/* Background color for container sections */
+/* Background color for the dashboard */
+/* Span text color in the dashboard */
+/* Background color for tables */
+/* Background color for table headers */
+/* Background color for table rows */
+/* Background color for "More" buttons */
+/* Background color for badges */
+/* Button Styles */
+/* Primary button background color */
+/* Primary button hover background color */
+/* Secondary button background color */
+/* Secondary button hover background color */
+/* Action button red background color */
+/* Action button green background color */
+/* Background color for "Activate-PA" button */
+/* Hover background color for "Activate-PA" button */
+/* Dark background color for buttons */
+/* Text color for dark buttons */
+/* Primary button background color */
+/* Primary button hover background color */
+/* Input and Form Styles */
+/* Light background color for forms */
+/* Light background color for input fields */
+/* Cursor style for disabled inputs */
+/* Borders and Shadows */
+/* Light border color for form elements */
+/* Light border color for containers */
+/* Dark border color for elements */
+/* Border color for containers */
+/* Border color for "container-perg" */
+/* Shadow color for "container-perg" */
+/* Miscellaneous */
+/* Background color for success indicators */
+/* Background color for error indicators */
+/* Primary link background color */
+/* Primary link hover background color */
+/* Link hover color */
+/* Report Styles */
+/* Background color for the reports section */
+/* Background color for report buttons */
+/* Hover background color for report buttons */
+/* Pagination Styles */
+/* Background color for pagination buttons */
+/* Text color for pagination buttons */
+/* List and Item Styles */
+/* Background color for list items */
+/* Hover background color for list items */
+/* Hover background color for action button 1 */
+/* Hover background color for action button 2 */
+/* Hover background color for action button 3 */
+/* Hover background color for action button 4 */
+/* Typography Styles */
+/* Background color for h5 titles */
+/* Background color for "before" element in h5 */
+/* Login Styles */
+/* Background color for the login container */
+/* Login button background color */
+/* Login button hover background color */
+/* Additional Variables */
+/* Font weight for bold text */
+/* Color for table borders */
+/* Alternate button background color */
+/* Alternate button hover background color */
+/* Background color for forms */
+/* Light background color for areas of input */
+/* Color for the border of table rows */
+/* Margin for actions within table cells */
+/* Opacity for avatar hover state */
+.container-drawer,
+.container-button {
+  padding: 20px;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-profile input,
+.form-profile textarea,
+.form-profile select {
+  margin-bottom: 1em;
+  padding: 0.7em 0px;
+  border: 0;
+  border-radius: 5px;
+  max-width: 600px;
+}
+.form-profile input:disabled {
+  cursor: not-allowed;
+}
+.form-profile button {
+  max-width: 600px;
+}
+.form-profile button:hover {
+  background-color: #9b59b6;
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  background-color: transparent;
+  border: 1px solid #43057e !important;
+  border-radius: 5px;
+  font-size: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 0.8em;
+}
+
+.btn-salvar {
+  background-color: #344767;
+}
+
+.css-1e6y48t-MuiButtonBase-root-MuiButton-root {
+  color: #fff !important;
+  text-transform: capitalize !important;
+}
+
+/*# sourceMappingURL=drawerMyAccount.css.map */

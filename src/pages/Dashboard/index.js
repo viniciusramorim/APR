@@ -344,7 +344,7 @@ export default function Dashboard() {
         <div className="container filter">
           <div className="filtrosAPRs">
             <Grid container spacing={2}>
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <TextField
                   id="id"
                   type="number"
@@ -358,7 +358,7 @@ export default function Dashboard() {
                   size="small"
                 />
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="uf-label" size="small">
                     UF
@@ -403,7 +403,7 @@ export default function Dashboard() {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <TextField
                   id="nome"
                   type="text"
@@ -416,7 +416,7 @@ export default function Dashboard() {
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <TextField
                   id="sigla"
                   type="text"
@@ -429,7 +429,7 @@ export default function Dashboard() {
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="tipo-label" size="small">
                     Tipo de Site
@@ -459,7 +459,7 @@ export default function Dashboard() {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={12} md={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="status-label" size="small">
                     Status

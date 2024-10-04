@@ -40,13 +40,18 @@
   }
   svg {
     padding:1px;
+    position: absolute;
+    top: 20%;
+    right: calc(0px + 10px);
+    cursor:pointer;
   }
 
   input,
   select {
     @include input-style;
     margin-bottom: 15px;
-    width: 95%;
+    width: 100%;
+    position:relative;
   }
 
   .login-area {
@@ -88,5 +93,9 @@ form {
     margin: 0.5em 0 13px 0;
     @include button-style($button-login-bg, $button-login-hover-bg);
     font-size: 1.3em;
+  }
+
+  label {
+    position:relative;
   }
 }

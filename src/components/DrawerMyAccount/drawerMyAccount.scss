@@ -37,9 +37,9 @@
 .logout-btn {
   padding: 8px 20px;
   background-color: transparent;
-  border: 1px solid $primary-color;
+  border: 1px solid $modal-link-bg!important;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
