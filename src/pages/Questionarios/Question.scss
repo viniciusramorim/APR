@@ -133,3 +133,12 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
     top: 10px;
   }
 }
+
+.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-1mnohwx-MuiListItem-root {
+  &:hover {
+    transition:0.2s;
+    background:$white-color;
+    border-radius: 8px;
+    cursor:pointer;
+  }
+}

@@ -238,7 +238,7 @@ button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount.
   &:hover {
     background: rgba(0, 0, 0, 0.06);
     border-radius: 8px;
-    height:40px;
+    height: 40px;
   }
 }
 
@@ -254,9 +254,11 @@ button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount 
   position: absolute;
   top: -10px;
   width: 160px;
-  left: -26px;
+  left: -32px;
   color: $text-color-dark;
   font-weight: 700;
+  text-transform: capitalize;
+  font-style: italic;
 
 }
 
@@ -265,9 +267,11 @@ section#menu {
     display: flex;
     align-items: center;
     align-content: center;
+    text-transform: capitalize !important;
 
     svg {
       margin-left: 5px;
+      fill: #000;
     }
 
     div {
