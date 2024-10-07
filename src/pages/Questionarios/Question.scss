@@ -142,3 +142,10 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
     cursor:pointer;
   }
 }
+
+.button-header {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: space-between;
+}

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -14,6 +13,7 @@ import {
   ListItemSecondaryAction,
   Container,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -109,18 +109,16 @@ const ChecklistManager = () => {
         .collection("question")
         .doc(checklist.id);
 
-      const emptyChecklist = {
-      };
+      const emptyChecklist = {};
       await checklistRef.set(emptyChecklist, { merge: true });
-
 
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklist.id]: emptyChecklist,
       }));
 
-      setOpenChecklistModal(false); 
-      clearFields(); 
+      setOpenChecklistModal(false);
+      clearFields();
     } catch (error) {
       console.error("Erro ao salvar o checklist:", error);
     }
@@ -407,22 +405,24 @@ const ChecklistManager = () => {
                 </Grid>
               ) : !selectedBloco ? (
                 <Box>
-                  <Button
-                    color="success"
-                    variant="outlined"
-                    onClick={handleAddBloco}
-                    sx={{ mb: 2 }}
-                  >
-                    Adicionar Novo Bloco
-                  </Button>
-                  <Button
-                    color="secondary"
-                    variant="outlined"
-                    onClick={() => setSelectedChecklist(null)}
-                    sx={{ mb: 2 }}
-                  >
-                    Voltar para Checklists
-                  </Button>
+                  <div className="button-header">
+                    <Button
+                      color="success"
+                      variant="outlined"
+                      onClick={handleAddBloco}
+                      sx={{ mb: 2 }}
+                    >
+                      Adicionar Novo Bloco
+                    </Button>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      onClick={() => setSelectedChecklist(null)}
+                      sx={{ mb: 2 }}
+                    >
+                      Voltar para Checklists
+                    </Button>
+                  </div>
                   <Typography variant="h5" gutterBottom>
                     {checklists[selectedChecklist].title || selectedChecklist}
                   </Typography>
