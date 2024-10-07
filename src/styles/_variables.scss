@@ -39,7 +39,8 @@ $title-bg-color: rgba(248, 248, 248, 0.64);       /* Background color for title 
 
 /* Page and Container Styles */
 $container-bg-color: rgba(248, 248, 248, 0.64);   /* Background color for container sections */
-$dashboard-bg: #380054e8;                         /* Background color for the dashboard */
+$dashboard-bg: #380054e8;    
+$gray-dark:#595959;                                /* Background color for the dashboard */
 $dashboard-span-color: #181c2e;                   /* Span text color in the dashboard */
 $table-bg: rgba(248, 248, 248, 0.64);             /* Background color for tables */
 $table-header-bg: $sidebar-bg-color;                /* Background color for table headers */
