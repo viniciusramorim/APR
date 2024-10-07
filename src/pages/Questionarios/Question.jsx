@@ -108,12 +108,19 @@ const ChecklistManager = () => {
         .firestore()
         .collection("question")
         .doc(checklist.id);
-      await checklistRef.set({ merge: true });
+
+      const emptyChecklist = {
+      };
+      await checklistRef.set(emptyChecklist, { merge: true });
+
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
+        [checklist.id]: emptyChecklist,
       }));
-      setOpenChecklistModal(false);
-      clearFields();
+
+      setOpenChecklistModal(false); 
+      clearFields(); 
     } catch (error) {
       console.error("Erro ao salvar o checklist:", error);
     }
@@ -126,23 +133,20 @@ const ChecklistManager = () => {
         .collection("question")
         .doc(selectedChecklist);
 
-      // Verifica se o bloco existe como um array, caso contrário, inicializa como array
       const blocoData = checklists[selectedChecklist]?.[bloco.title] || [];
 
-      // Atualiza o Firebase para garantir que o bloco é um array
       await checklistRef.set(
         {
-          [bloco.title]: blocoData, // Cria um bloco vazio, mas como array
+          [bloco.title]: blocoData,
         },
         { merge: true }
       );
 
-      // Atualiza o estado local para refletir o novo bloco como array
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [selectedChecklist]: {
           ...prevChecklists[selectedChecklist],
-          [bloco.title]: blocoData, // Define o bloco vazio no estado local como array
+          [bloco.title]: blocoData,
         },
       }));
 

@@ -25,7 +25,6 @@ const ChecklistModal = ({ open, onClose, onSave, checklist }) => {
     console.log("Salvando Checklist:", { id, title: title.trim() });
     onSave({ id, title: title.trim() });
     onClose();
-    window.location.reload();
   };
 
   return (
