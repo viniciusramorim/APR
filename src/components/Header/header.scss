@@ -43,12 +43,8 @@
       margin-right: 0.5em;
     }
 
-    &:first-of-type {
-      background-color: $container-perg-shadow;
-
-      &:hover {
-        background-color: #8a42e7;
-      }
+    &:hover {
+      background-color: #8a42e7;
     }
   }
 
@@ -138,12 +134,8 @@
 }
 
 .ronda {
-  a:first-of-type {
-    background-color: #330253;
-
-    &:hover {
-      background-color: #06b51ebd;
-    }
+  &:hover {
+    background-color: #06b51ebd;
   }
 }
 
@@ -243,13 +235,13 @@ button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount.
 }
 
 
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div {
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount>div {
   background: none !important;
   position: relative;
 
 }
 
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount > div button {
+button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount>div button {
   background: none !important;
   position: absolute;
   top: -10px;
