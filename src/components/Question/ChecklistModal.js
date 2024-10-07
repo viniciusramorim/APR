@@ -14,7 +14,6 @@ const modalStyle = {
 };
 
 const ChecklistModal = ({ open, onClose, onSave, checklist }) => {
-  // Define o estado inicial do título com base no checklist passado ou vazio
   const [title, setTitle] = useState(checklist ? checklist.title : "");
 
   const handleSave = () => {
@@ -22,12 +21,11 @@ const ChecklistModal = ({ open, onClose, onSave, checklist }) => {
       console.error("O título do checklist não pode estar vazio.");
       return;
     }
-
-    const id = title.trim().toLowerCase().replace(/\s+/g, "-");
+    const id = title.trim().replace(/\s+/g, "-");
     console.log("Salvando Checklist:", { id, title: title.trim() });
-
     onSave({ id, title: title.trim() });
     onClose();
+    window.location.reload();
   };
 
   return (

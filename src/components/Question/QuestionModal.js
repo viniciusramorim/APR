@@ -173,7 +173,7 @@ const QuestionModal = ({
           <InputLabel>Área Responsável</InputLabel>
           <Select
             name="areaResponsavel"
-            multiple // Permite seleção múltipla
+            multiple
             value={formData.areaResponsavel}
             onChange={handleAreaResponsavelChange}
             fullWidth
