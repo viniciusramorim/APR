@@ -18,7 +18,7 @@
 .login {
   background-color: $gray-dark;
   width: 350px;
-  height: 60%;
+  height: 95vh;
   padding: 30px;
   @include flex-center;
   flex-direction: column;
@@ -51,19 +51,21 @@
   input,
   select {
     @include input-style;
+    font-size:13px;
     margin-bottom: 15px;
     width: 100%;
     position: relative;
     border-radius: 0px;
     margin-top: 5px;
-    background: transparent;
+    background: $white-color;
     border-radius: 7px;
-    color: $white-color;
+    color: $btn-dark-bg;
     border: 1px solid $white-color;
 
     &::placeholder {
-      color: #fff;
+      color: $btn-dark-bg;
     }
+
 
   }
 

@@ -1,5 +1,5 @@
 import "./header.scss";
-import { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/auth";
 import logoRonda from "../../assets/logoRondaDigital-removebg.png";
 import logo from "../../assets/logoaprdigital-removebg.png";
@@ -8,7 +8,7 @@ import DrawerMyAccount from "../../components/DrawerMyAccount/DrawerMyAccount";
 
 import { Link } from "react-router-dom";
 import { FiHome } from "react-icons/fi";
-import { Avatar, IconButton, Tooltip } from "@mui/material";
+import { Avatar, IconButton, Tooltip, Button } from "@mui/material";
 import MenuMobile from "./MenuMobile";
 import PlaylistAddCheckSharpIcon from "@mui/icons-material/PlaylistAddCheckSharp";
 import FileDownloadDoneSharpIcon from "@mui/icons-material/FileDownloadDoneSharp";
@@ -18,9 +18,11 @@ import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchS
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
+import SignUpModal from "../RegisterMember"; // Importação do modal de cadastro
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
+  const [openModal, setOpenModal] = useState(false); // Estado para controlar o modal
 
   function expandMenu() {
     let element = document.getElementById("sidebar-menu");
@@ -39,6 +41,14 @@ export default function Header() {
 
   const location = useLocation();
 
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
   return (
     <div id="sidebar-menu" className="sidebar">
       <Avatar
@@ -47,14 +57,14 @@ export default function Header() {
         variant="rounded"
         src={logo}
         onClick={() => expandMenu()}
-      ></Avatar>
+      />
       <Avatar
         className="logo-m"
         id={"logo-apr-m"}
         variant="rounded"
         src={logoMobile}
         onClick={() => expandMenu()}
-      ></Avatar>
+      />
       <MenuMobile
         className="menu-mobile"
         user={user}
@@ -104,8 +114,6 @@ export default function Header() {
                 <PlaylistAddSharpIcon color="#000" size={20} />
                 <i id="label-menu">Novo Site</i>
               </Link>
-            </Tooltip>
-            <Tooltip title="Gerenciar Perfis" placement="right" arrow>
               <Link to="/profileadm">
                 <PersonOutlineSharpIcon color="#000" size={20} />
                 <i id="label-menu">Gerenciar Perfis</i>
@@ -117,16 +125,17 @@ export default function Header() {
                 <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
-            <Tooltip title="Questionarios" placement="right" arrow>
+            <Tooltip title="Questionários" placement="right" arrow>
               <Link to="/questions">
-                <ContentPasteIcon />
+                <ContentPasteIcon color="#000" size={20} />
                 <i id="label-menu">Questionário</i>
               </Link>
             </Tooltip>
-            <Tooltip title="Registrar Usuário" placement="right" arrow>
-              <Link to="/register">
-                <PersonAddSharpIcon color="#000" size={20} />
-                <i id="label-menu">Registrar Usuário</i>
+            <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
+              <Link to={location.pathname} className="user-name"  onClick={handleOpenModal}>
+                <SignUpModal/>
+                <PersonAddSharpIcon color="#000" size={10} />
+                <i id="label-menu">Cadastrar Usuário</i>
               </Link>
             </Tooltip>
           </>
@@ -147,6 +156,7 @@ export default function Header() {
           </Link>
         </Tooltip>
       </section>
+      <SignUpModal open={openModal} onClose={handleCloseModal} />
     </div>
   );
 }

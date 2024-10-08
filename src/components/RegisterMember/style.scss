@@ -1,0 +1,45 @@
+@import url(../../styles/_variables.scss);
+@import url(../../styles/_mixins.scss);
+
+.modal-new-user-dialog {
+  background: #430058;
+  color: #fff;
+  fill: #fff;
+  margin: 10px!important;
+  border-radius: 10px;
+
+  button {
+    background: #fff;
+    ;
+    color: #430058;
+    fill: #fff;
+    margin: 10px;
+    border-radius: 100px;
+
+    &:hover {
+      color: #fff;
+      background: #430058;
+      box-shadow: #fff 0px 0px 0px 2px
+    }
+  }
+}
+
+.modal-new-user {
+  form {
+    margin: 0px !important;
+  }
+
+  fieldset {
+    border-color: #430058 !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #430058;
+  border-radius: 10px;
+  border: 2px solid #430058;
+}
