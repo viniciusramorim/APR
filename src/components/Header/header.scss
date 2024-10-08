@@ -299,20 +299,28 @@ section#menu {
   display: none !important;
 }
 
-#sidebar-menu[style="width: 170px;"] .logo img {
-  display: block !important;
+#sidebar-menu[style="width: 170px;"] {
+  .logo img {
+    display: block !important;
+  }
+
+  .logo-m {
+    display: none !important;
+  }
 }
 
-#sidebar-menu[style="width: 170px;"] .logo-m {
-  display: none !important;
-}
+#sidebar-menu[style="width: 50px;"] {
+  .logo-m {
+    img {
+      display: block !important;
+    }
+  }
 
-#sidebar-menu[style="width: 50px;"] .logo-m img {
-  display: block !important;
-}
-
-#sidebar-menu[style="width: 50px;"] .logo img {
-  display: none !important;
+  .logo {
+    img {
+      display: none !important;
+    }
+  }
 }
 
 a.myaccount {
@@ -350,18 +358,20 @@ a.myaccount {
 }
 
 @media (max-width: 767px) {
-  div#sidebar-menu #menu {
-    display: none;
-  }
+  div#sidebar-menu {
+    #menu {
+      display: none;
+    }
 
-  #sidebar-menu .logo-m {
-    display: none !important;
-  }
+    .logo-m {
+      display: none !important;
+    }
 
-  #sidebar-menu .logo img {
-    display: block !important;
-    overflow: hidden;
-    width: 100%;
-    margin: 0 auto;
+    .logo img {
+      overflow: hidden;
+      display: block !important;
+      margin: 0 auto;
+      width: 100%;
+    }
   }
 }
