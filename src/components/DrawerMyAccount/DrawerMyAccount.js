@@ -9,6 +9,8 @@ import firebase from "../../services/firebaseConnection";
 
 import "./drawerMyAccount.scss";
 import { toast } from "react-toastify";
+import PersonOutlineSharpIcon from "@mui/icons-material/PersonOutlineSharp";
+
 
 export default function AnchorTemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -93,6 +95,7 @@ export default function AnchorTemporaryDrawer() {
     <div>
       {["right"].map((anchor) => (
         <React.Fragment key={anchor}>
+          <PersonOutlineSharpIcon onClick={toggleDrawer(anchor, true)} />
           <Button onClick={toggleDrawer(anchor, true)}>Meu Perfil</Button>
           <Drawer
             anchor={anchor}

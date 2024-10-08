@@ -13,12 +13,15 @@
   overflow: hidden;
   z-index: 999;
 
-  div {
-    padding-top: 15px;
-    height: fit-content;
+  .logo {
+    height: 70px;
     width: 100%;
     background: $btn-secondary-bg;
     border-radius: 0px;
+
+    img {
+      object-fit: contain;
+    }
   }
 
   a {
@@ -75,6 +78,14 @@
       }
     }
 
+  }
+
+  .logo-m {
+    width: 20px;
+    height: auto;
+    position: absolute;
+    top: 10px;
+    left: 5px
   }
 
   @include respond-to(small) {
@@ -277,6 +288,61 @@ section#menu {
   }
 }
 
+#sidebar-menu .logo-m {
+  display: block !important;
+  position: absolute;
+  top: 13px;
+  width: 40px;
+}
+
+#sidebar-menu .logo img {
+  display: none !important;
+}
+
+#sidebar-menu[style="width: 170px;"] .logo img {
+  display: block !important;
+}
+
+#sidebar-menu[style="width: 170px;"] .logo-m {
+  display: none !important;
+}
+
+#sidebar-menu[style="width: 50px;"] .logo-m img {
+  display: block !important;
+}
+
+#sidebar-menu[style="width: 50px;"] .logo img {
+  display: none !important;
+}
+
+a.myaccount {
+  div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    svg {
+      position: relative;
+      left: -5px;
+      top: -3px;
+
+    }
+
+    button {
+      padding: 0px;
+      margin: 0px;
+      height: unset;
+      text-transform: capitalize;
+      color: #000;
+      font-weight: bold;
+      font-style: italic;
+      margin-left: -5px;
+
+    }
+  }
+}
+
+
 @media (min-width: 767px) {
   .show.mobile button {
     display: none;
@@ -288,8 +354,14 @@ section#menu {
     display: none;
   }
 
-  div#sidebar-menu #logo-apr {
-    width: 50%;
+  #sidebar-menu .logo-m {
+    display: none !important;
+  }
+
+  #sidebar-menu .logo img {
+    display: block !important;
+    overflow: hidden;
+    width: 100%;
     margin: 0 auto;
   }
 }

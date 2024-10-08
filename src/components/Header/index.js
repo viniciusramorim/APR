@@ -17,6 +17,7 @@ import PersonOutlineSharpIcon from "@mui/icons-material/PersonOutlineSharp";
 import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchSharp";
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
@@ -36,12 +37,22 @@ export default function Header() {
     }
   }
 
+  const location = useLocation();
+
   return (
     <div id="sidebar-menu" className="sidebar">
       <Avatar
+        className="logo"
         id={"logo-apr"}
         variant="rounded"
         src={logo}
+        onClick={() => expandMenu()}
+      ></Avatar>
+      <Avatar
+        className="logo-m"
+        id={"logo-apr-m"}
+        variant="rounded"
+        src={logoMobile}
         onClick={() => expandMenu()}
       ></Avatar>
       <MenuMobile
@@ -131,10 +142,9 @@ export default function Header() {
         )}
 
         <Tooltip title="Meu Perfil" placement="right" arrow>
-          <IconButton className="myaccount">
-            <PersonOutlineSharpIcon />
+          <Link to={location.pathname} className="myaccount">
             <DrawerMyAccount />
-          </IconButton>
+          </Link>
         </Tooltip>
       </section>
     </div>
