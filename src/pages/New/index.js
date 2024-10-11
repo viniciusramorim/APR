@@ -72,7 +72,6 @@ export default function New() {
     setValorEstoque(valor);
   };
 
-
   useEffect(() => {
 
     async function loadSite() {
@@ -111,32 +110,29 @@ export default function New() {
           return
         } else {
           document.getElementById('container-questions').style.display = 'flex';
-          siteInfo.tipoSite = snapshot
 
-          if (snapshot === "ERB") {
-            question = questions_erb.filter(Boolean);
-          } else if (snapshot === "CT") {
-            question = questions_ct.filter(Boolean);
-          } else if (snapshot === "PREDIO CORE") {
-            question = questions_predio_core.filter(Boolean);
-          } else if (snapshot === "OUTDOOR") {
-            question = question_outdoor.filter(Boolean);
-          } else if (snapshot === "INDOOR") {
-            question = questions_indoor.filter(Boolean);
-          } else if (snapshot === "LOJA") {
-            question = questions_llpp.filter(Boolean);
-          } else if (snapshot === "LOJA DEALER") {
-            question = questions_ldealer.filter(Boolean);
-          } else if (snapshot === "CD") {
-            question = questions_cd.filter(Boolean);
-          } else if (snapshot === "AUDIT PGR FIXA") {
-            question = questions_pgr_fixa.filter(Boolean);
-          } else if (snapshot === "AUDIT PGR MOVEL") {
-            question = questions_pgr_movel.filter(Boolean);
-          } else if (snapshot === "SMARTTAG2") {
-            question = questions_tag.filter(Boolean);
-          }
-          setQuestions(Object.entries(question[0]));
+          const siteMapping = {
+            'erb-checklist': 'ERB',
+            'ct-checklist': 'CT',
+            'predio-core-checklist': 'PREDIO CORE',
+            'llpp-checklist': 'LOJA',
+            'ldealer-checklist': 'LOJA DEALER',
+            'outdoor-checklist': 'OUTDOOR',
+            'indoor-checklist': 'INDOOR',
+            'pgr-movel-checklist': 'AUDIT PGR MOVEL',
+            'pgr-fixa-checklist': 'AUDIT PGR FIXA',
+            'tag-checklist': 'SMARTTAG2'
+          };
+          
+          siteInfo.tipoSite = siteMapping[snapshot] || 'Unknown';
+
+          await firebase.firestore().collection('question')
+            .doc(snapshot)
+            .get()
+            .then((item_question) => {
+              console.log(item_question.data())
+              setQuestions(Object.entries(item_question.data()));
+            })
         }
       })
 
@@ -312,9 +308,6 @@ export default function New() {
       .then(async result => {
         setSite(id, motivoAPR).then(async () => {
           console.log('ID Atual:', result);
-
-          console.log(tipoLoja)
-          console.log(valorEstoque)
 
           await firebase.firestore().collection(base)
             .add({
@@ -722,7 +715,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(valorEstoque, tipoLoja)} />
+          <FiClipboard size={25} onClick={() => console.log(siteInfo.tipoSite)} />
         </Title>
 
         <div className='container'>
@@ -775,16 +768,16 @@ export default function New() {
         <div className='container' id='container' style={{ display: 'none' }}>
           <select id='selectSite' defaultValue={'0'} onChange={e => getQuestions(e.target.value)}>
             <option disabled value={'0'}>Selecione um tipo de site...</option>
-            <option value={'ERB'}>ERB</option>
-            <option value={'CT'}>CT</option>
-            <option value={'PREDIO CORE'}>PREDIO CORE</option>
-            <option value={'LOJA'}>LOJA</option>
-            <option value={'LOJA DEALER'}>LOJA DEALER</option>
-            <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
-            <option value={'INDOOR'}>ARMARIO INDOOR</option>
-            <option value={'AUDIT PGR MOVEL'}>AUDIT PGR MOVEL</option>
-            <option value={'AUDIT PGR FIXA'}>AUDIT PGR FIXA</option>
-            <option value={'SMARTTAG2'}>SMARTTAG</option>
+            <option value={'erb-checklist'}>ERB</option>
+            <option value={'ct-checklist'}>CT</option>
+            <option value={'predio-core-checklist'}>PREDIO CORE</option>
+            <option value={'llpp-checklist'}>LOJA</option>
+            <option value={'ldealer-checklist'}>LOJA DEALER</option>
+            <option value={'outdoor-checklist'}>ARMARIO OUTDOOR</option>
+            <option value={'indoor-checklist'}>ARMARIO INDOOR</option>
+            <option value={'pgr-movel-checklist'}>AUDIT PGR MOVEL</option>
+            <option value={'pgr-fixa-checklist'}>AUDIT PGR FIXA</option>
+            <option value={'tag-checklist'}>SMARTTAG</option>
           </select>
         </div>
 
@@ -870,7 +863,7 @@ export default function New() {
                             )}
                             {doc.inputImages === true && (
                               <ul className='imageList' id={"inputimg_" + doc.questionId + "_" + indexA} style={{ display: doc.resp !== '' && doc.resp !== doc.respGabarito ? 'flex' : 'none' }}>
-                                <li className='notremove' style={{marginRight: 10}}>
+                                <li className='notremove' style={{ marginRight: 10 }}>
                                   <CameraComponent
                                     saveIndexedDB={saveIndexedDB}
                                     questions={questions}
