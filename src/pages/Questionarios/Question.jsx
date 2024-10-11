@@ -368,7 +368,7 @@ const ChecklistManager = () => {
                 <Grid container spacing={2}>
                   {Object.entries(checklists).map(
                     ([checklistId, checklist]) => (
-                      <Grid item xs={12} sm={6} md={4} key={checklistId}>
+                      <Grid className="card-check" key={checklistId}>
                         <Card>
                           <CardContent>
                             <Typography variant="h6">
@@ -393,7 +393,7 @@ const ChecklistManager = () => {
                             <IconButton
                               aria-label="delete"
                               color="error"
-                              onClick={() => handleDeleteChecklist(checklistId)} // Adiciona a funcionalidade de excluir checklist completo
+                              onClick={() => handleDeleteChecklist(checklistId)}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -430,7 +430,7 @@ const ChecklistManager = () => {
                     {Object.entries(checklists[selectedChecklist])
                       .filter(([key]) => key !== "title")
                       .map(([blocoId, blocoData]) => (
-                        <Grid item xs={12} sm={6} md={4} key={blocoId}>
+                        <Grid className="card-block" key={blocoId}>
                           <Card>
                             <CardContent>
                               <Typography variant="h6">
@@ -470,36 +470,47 @@ const ChecklistManager = () => {
                 </Box>
               ) : (
                 <Box>
-                  <Button
-                    color="success"
-                    variant="outlined"
-                    onClick={handleAddQuestion}
-                    sx={{ mb: 2 }}
-                  >
-                    Adicionar Nova Pergunta
-                  </Button>
-                  <Button
-                    color="secondary"
-                    variant="outlined"
-                    onClick={() => setSelectedBloco(null)}
-                    sx={{ mb: 2 }}
-                  >
-                    Voltar para Blocos
-                  </Button>
+                  <div className="button-header">
+                    <Button
+                      color="success"
+                      variant="outlined"
+                      onClick={handleAddQuestion}
+                      sx={{ mb: 2 }}
+                    >
+                      Adicionar Nova Pergunta
+                    </Button>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      onClick={() => setSelectedBloco(null)}
+                      sx={{ mb: 2 }}
+                    >
+                      Voltar para Blocos
+                    </Button>
+                  </div>
                   <Typography variant="h5" gutterBottom>
                     {checklists[selectedChecklist].title || selectedChecklist} -{" "}
                     {selectedBlocoTitle}
                   </Typography>
-                  <List>
+                  <List className="question-box">
                     {Array.isArray(
                       checklists[selectedChecklist][selectedBloco]
                     ) &&
                       checklists[selectedChecklist][selectedBloco]
                         .sort((a, b) => a.order - b.order) // Ordena pelo campo `order`
                         .map((question, index) => (
-                          <ListItem key={question.questionId}>
-                            <ListItemText primary={index + 1} />
-                            <ListItemText secondary={question.question} />
+                          <ListItem
+                            key={question.questionId}
+                            className="list-question"
+                          >
+                            <ListItemText
+                              primary={index + 1}
+                              className="item-index"
+                            />
+                            <ListItemText
+                              secondary={question.question}
+                              className="item-question"
+                            />
                             <ListItemSecondaryAction>
                               <IconButton
                                 edge="end"

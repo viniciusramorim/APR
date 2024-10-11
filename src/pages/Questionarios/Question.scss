@@ -60,6 +60,8 @@
   display: flex;
   flex-direction: row;
   gap: 5px;
+  position: absolute;
+  right: 20px;
 
   button {
     padding: 5px;
@@ -90,8 +92,8 @@
   }
 
   @include respond-to(medium) {
-    position: absolute;
-    top: calc(100% + 20px) !important;
+    top: calc(100% + -25px) !important;
+    left: 57px;
   }
 }
 
@@ -148,4 +150,64 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
   flex-direction: row;
   gap: 20px;
   justify-content: space-between;
+  
+  @include respond-to(medium) {
+    flex-direction: column;
+    gap:0px;
+  }
 }
+
+button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSuccess.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorSuccess.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSuccess.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorSuccess.css-yrdp3g-MuiButtonBase-root-MuiButton-root {
+  @include respond-to(medium) {
+  width: 100%;
+}
+}
+
+.card-check,
+.card-block {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  min-height: 140px;
+  max-height: 200px;
+  flex-shrink: initial;
+  width: 30%;
+  @include respond-to(medium) {
+    width:95%;
+  }
+}
+
+.question-box {
+  display:flex;
+  flex-direction:column;
+  align-items: stretch;
+}
+.MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiCard-root.css-6fm6rz-MuiPaper-root-MuiCard-root {
+  height: 100%;
+}
+.question-box li > div {
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+}
+
+.question-box li > div .item-index {
+  width: 50px;
+}
+.question-box li > div .item-question {
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+  padding-right: 200px;
+  
+  @include respond-to(medium) {
+    width:100%;
+    padding:0px 0px 40px 0px
+  }
+}
+

@@ -22,11 +22,12 @@ form {
 }
 
 .siteInfo {
-  max-width: 600px;
+  max-width: 100%;
   display: flex;
   width: 100%;
   text-transform: uppercase;
   align-items: baseline;
+  justify-content: space-between;
 
   @include respond-to(medium) {
     flex-direction: column;
@@ -111,8 +112,8 @@ form {
   }
 
   #button-area {
-    background-color: var($button-login-bg);
-    border: 1px solid var($button-login-bg);
+    background-color: $btn-primary-bg;
+    border: 1px solid $button-login-bg;
     color: $white-color;
     padding: 0.5em;
     border-radius: 15px;
