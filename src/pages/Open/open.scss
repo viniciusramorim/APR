@@ -159,3 +159,40 @@ form {
     }
   }
 }
+
+div#container-loja {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+select#selectTipoLoja {
+  width: 290px
+}
+
+input#selectValorEstoque {
+  width: 290px;
+}
+
+#selectSite,
+#selectMotivo {
+  width: 590px;
+}
+
+@media(max-width:767px) {
+
+  #selectSite,
+  #selectMotivo {
+    width: 100%;
+  }
+
+  div#container-loja {
+    flex-direction: column;
+    width: 100%
+  }
+
+  select#selectTipoLoja,
+  #selectValorEstoque {
+    width: 96% !important;
+  }
+}

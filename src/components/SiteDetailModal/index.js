@@ -131,7 +131,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 disabled
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -221,7 +220,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={handleChange}
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -239,7 +237,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={handleChange}
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -266,7 +263,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -283,7 +279,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewLat(e.target.value)}
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -300,7 +295,6 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewLng(e.target.value)}
                 style={{
                   width: "fit-content",
-                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",

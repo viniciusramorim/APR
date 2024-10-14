@@ -916,7 +916,7 @@ export default function New() {
                 </div>
               )
             })}
-            <button onClick={() => submit()}>Concluir APR</button>
+            <button className="submit-apr" onClick={() => submit()}>Concluir APR</button>
           </div>
         </div>
 

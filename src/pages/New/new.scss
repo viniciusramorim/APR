@@ -11,7 +11,7 @@
   width: 100%;
 
   button {
-    height: 40px;
+    height: 100%;
     border: 0;
     border-radius: 7px;
     background-color: $btn-primary-bg;
@@ -22,7 +22,13 @@
 
     &:hover {
       background-color: $btn-primary-hover-bg;
+
     }
+  }
+
+  .submit-apr {
+    height: 40px !important;
+    border-radius: 100px !important;
   }
 
   div {
@@ -274,20 +280,31 @@ input {
 .ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
   position: relative;
 
-  @include respond-to(medium) {
-    height: 500px;
-  };
+}
 
-  span.botoesCam {
-    position: absolute;
-    bottom: 10px;
+span.botoesCam {
+  position: absolute;
+  bottom: 10px;
 
-    button {
-      width: 60px;
-      height: 60px;
-      background: $btn-secondary-bg;
-      color: #fff;
-      border-radius: 10px
-    }
+  button {
+    width: 60px;
+    height: 60px;
+    background: $btn-secondary-bg;
+    color: #fff;
+    border-radius: 10px
   }
+}
+
+@media (max-width:767px) {
+  div#container-pgr {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  input#selectValorArmazenamento,
+  input#selectValorTransporte,
+  input#selectValorSinistro {
+    width: 100%;
+  }
+
 }
