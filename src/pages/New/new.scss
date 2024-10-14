@@ -18,7 +18,7 @@
     color: $white-color;
     font-size: 1.3em;
     transition: ease-in-out 0.4s;
-    width:100%;
+    width: 100%;
 
     &:hover {
       background-color: $btn-primary-hover-bg;
@@ -124,22 +124,22 @@
     position: absolute;
     opacity: 0;
 
-    + svg {
+    +svg {
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    &.yes:hover + svg,
-    &.yes:checked + svg,
-    &.yes:focus + svg {
+    &.yes:hover+svg,
+    &.yes:checked+svg,
+    &.yes:focus+svg {
       color: $white-color;
       background-color: rgb(10, 231, 40);
       border-radius: 0.5em;
     }
 
-    &.no:hover + svg,
-    &.no:checked + svg,
-    &.no:focus + svg {
+    &.no:hover+svg,
+    &.no:checked+svg,
+    &.no:focus+svg {
       color: $white-color;
       background-color: rgb(238, 65, 12);
       border-radius: 0.5em;
@@ -261,10 +261,33 @@
   }
 }
 
-select, input {
+select,
+input {
   border-radius: 8px;
   height: 50px;
-  padding: 10px!important;
+  padding: 10px !important;
   background: transparent;
-  margin:5px;
+  margin: 5px;
+}
+
+// Camera
+.ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
+  position: relative;
+
+  @include respond-to(medium) {
+    height: 500px;
+  };
+
+  span.botoesCam {
+    position: absolute;
+    bottom: 10px;
+
+    button {
+      width: 60px;
+      height: 60px;
+      background: $btn-secondary-bg;
+      color: #fff;
+      border-radius: 10px
+    }
+  }
 }
