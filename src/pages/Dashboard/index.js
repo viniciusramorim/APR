@@ -362,7 +362,7 @@ export default function Dashboard() {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={12} md={2}>
+              <Grid item xs={12} sm={12} md={0.9}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="uf-label" size="small">
                     UF
@@ -433,7 +433,7 @@ export default function Dashboard() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={12} md={2}>
+              <Grid item xs={12} sm={12} md={1.5}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="tipo-label" size="small">
                     Tipo de Site
@@ -465,7 +465,7 @@ export default function Dashboard() {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={12} md={2}>
+              <Grid item xs={12} sm={12} md={1.6}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="status-label" size="small">
                     Status

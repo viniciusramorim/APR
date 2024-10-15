@@ -153,7 +153,8 @@
   }
 }
 
-#container-pgr, #container-loja {
+#container-pgr,
+#container-loja {
   gap: 5px;
   align-items: flex-end !important;
 
@@ -288,11 +289,19 @@ input {
 // Camera
 .ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
   position: relative;
+
+  video {
+    height: 100vh;
+    width: auto;
+
+  }
 }
 
 span.botoesCam {
   position: absolute;
   bottom: 10px;
+  display: flex;
+  gap: 20px;
 
   button {
     width: 60px;
@@ -309,7 +318,8 @@ span.botoesCam {
     width: 100%;
   }
 
-  #container-pgr, #container-loja {
+  #container-pgr,
+  #container-loja {
     label {
       width: 100%;
     }
