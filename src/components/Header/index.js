@@ -125,12 +125,14 @@ export default function Header() {
                 <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
-            <Tooltip title="Questionários" placement="right" arrow>
-              <Link to="/questions">
-                <ContentPasteIcon color="#000" size={20} />
-                <i id="label-menu">Questionário</i>
-              </Link>
-            </Tooltip>
+            {['wQzKfmkPgsV8PULa9t5JLg9Ta6j2', '5WBRPLgGmzUSLzrthSs9e9qnSnb2', 'J8Ktb51lucTxok00HAi2qTv7jQH2'].includes(user.uid) && (
+              <Tooltip title="Questionários" placement="right" arrow>
+                <Link to="/questions">
+                  <ContentPasteIcon color="#000" size={20} />
+                  <i id="label-menu">Questionário</i>
+                </Link>
+              </Tooltip>
+            )}
             <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
               <Link to={location.pathname} className="user-name"  onClick={handleOpenModal}>
                 <SignUpModal/>

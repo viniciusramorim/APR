@@ -29,11 +29,11 @@ export default function Routes() {
       <Route exact path="/reports" component={Reports} isPrivate />
       {/* paginas apr digital */}
       <Route exact path="/dashboard" component={Dashboard} isPrivate />
-      <Route exact path="/questions" component={QuestionsPage} isPrivate />
+      <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>
       <Route exact path="/new" component={PreNew} isPrivate />
       <Route exact path="/new/:id" component={New} isPrivate />
       <Route exact path="/new/:id/:id_assign" component={New} isPrivate />
-      <Route exact path="/open/:id" component={Open} isPrivate /> {/*em teste*/}
+      <Route exact path="/open/:id" component={Open} isPrivate />
       <Route exact path="/assignments" component={Assignments} isPrivate />
       {/* paginas ronda digital */}
       <Route

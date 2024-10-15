@@ -153,6 +153,16 @@
   }
 }
 
+#container-pgr, #container-loja {
+  gap: 5px;
+  align-items: flex-end !important;
+
+  label {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .container-perg {
   border: 1px solid $border-color-light;
   border-radius: 5px;
@@ -273,13 +283,11 @@ input {
   height: 50px;
   padding: 10px !important;
   background: transparent;
-  margin: 5px;
 }
 
 // Camera
 .ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
   position: relative;
-
 }
 
 span.botoesCam {
@@ -299,6 +307,12 @@ span.botoesCam {
   div#container-pgr {
     flex-direction: column;
     width: 100%;
+  }
+
+  #container-pgr, #container-loja {
+    label {
+      width: 100%;
+    }
   }
 
   input#selectValorArmazenamento,

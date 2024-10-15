@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterNome, setFilterNome] = useState("");
   const [filterID, setFilterID] = useState("");
+  const [filterMotivo, setFilterMotivo] = useState("");
 
   async function loadChamados(props) {
     let regional = [];
@@ -79,17 +80,17 @@ export default function Dashboard() {
     query =
       user.nivel === "auditor"
         ? query.where("site_id.tipoSite", "in", [
-            "AUDIT PGR MOVEL",
-            "AUDIT PGR FIXA",
-          ])
+          "AUDIT PGR MOVEL",
+          "AUDIT PGR FIXA",
+        ])
         : query;
     query =
       user.area === "oem"
         ? query.where("status", "in", [
-            "Enviado",
-            "Respondido pela Area",
-            "Revisado",
-          ])
+          "Enviado",
+          "Respondido pela Area",
+          "Revisado",
+        ])
         : query;
 
     query =
@@ -108,6 +109,8 @@ export default function Dashboard() {
       filterStatus !== "" ? query.where("status", "==", filterStatus) : query;
     query =
       filterNome !== "" ? query.where("user_id.nome", "==", filterNome) : query;
+    query =
+      filterMotivo !== "" ? query.where("motivo_apr", "==", filterMotivo) : query;
 
     let lista = [];
 
@@ -203,30 +206,6 @@ export default function Dashboard() {
     setLoading(true);
   }
 
-  function elementHiddenAndShow() {
-    let id = document.getElementById("id").style;
-    let uf = document.getElementById("uf").style;
-    let sigla = document.getElementById("sigla").style;
-    let tipo = document.getElementById("tipo").style;
-    let status = document.getElementById("status").style;
-    let nome = document.getElementById("nome").style;
-
-    id.display === "block" ? (id.display = "none") : (id.display = "block");
-    uf.display === "block" ? (uf.display = "none") : (uf.display = "block");
-    sigla.display === "block"
-      ? (sigla.display = "none")
-      : (sigla.display = "block");
-    tipo.display === "block"
-      ? (tipo.display = "none")
-      : (tipo.display = "block");
-    status.display === "block"
-      ? (status.display = "none")
-      : (status.display = "block");
-    nome.display === "block"
-      ? (nome.display = "none")
-      : (nome.display = "block");
-  }
-
   function contAprs(status) {
     var quantidadeElementos = chamados.filter(
       (x) => x.status === status
@@ -266,7 +245,7 @@ export default function Dashboard() {
       gap: "10px",
     },
   };
-  
+
   return (
     <div className="apr-digital">
       <Header />
@@ -358,6 +337,31 @@ export default function Dashboard() {
                   size="small"
                 />
               </Grid>
+
+              <Grid item xs={12} sm={12} md={2}>
+                <FormControl variant="outlined" fullWidth>
+                  <InputLabel id="uf-label" size="small">
+                    Motivo
+                  </InputLabel>
+                  <Select
+                    id="uf"
+                    labelId="uf-label"
+                    label="Motivo"
+                    value={filterMotivo}
+                    onChange={(e) => setFilterMotivo(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value={'Mapa de Calor'}>Mapa de Calor</MenuItem>
+                    <MenuItem value={'Retrofit'}>Retrofit</MenuItem>
+                    <MenuItem value={'Rota Critica DWDM'}>Rota Critica DWDM</MenuItem>
+                    <MenuItem value={'Projeto Veneza'}>Projeto Veneza (internalização Loja Dealer)</MenuItem>
+                    <MenuItem value={'Estoque Avançado'}>Estoque Avançado</MenuItem>
+                    <MenuItem value={'Instalação Tag'}>Instalação Tag</MenuItem>
+                    <MenuItem value={'Não Opinada'}>Não Opinada</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid item xs={12} sm={12} md={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="uf-label" size="small">
@@ -452,9 +456,11 @@ export default function Dashboard() {
                     <MenuItem value="PREDIO CORE">PREDIO CORE</MenuItem>
                     <MenuItem value="LOJA">LOJA</MenuItem>
                     <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
-                    <MenuItem value="CROSS DOCKING">CROSS DOCKING</MenuItem>
+                    <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
+                    <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>
                     <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>
                     <MenuItem value="INDOOR">INDOOR</MenuItem>
+                    <MenuItem value="SMARTTAG2">SMARTTAG</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

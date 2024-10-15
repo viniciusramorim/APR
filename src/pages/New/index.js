@@ -17,17 +17,6 @@ import ModalLoading from '../../components/Modal_Loading';
 import Modal_Justificativa from '../../components/Modal_Justificativa';
 import CameraComponent from './CameraComponent';
 
-import questions_erb from './Questions/erb'
-import questions_predio_core from './Questions/predio_core'
-import question_outdoor from './Questions/outdoor'
-import questions_indoor from './Questions/indoor'
-import questions_llpp from './Questions/llpp'
-import questions_ldealer from './Questions/ldealer';
-import questions_cd from './Questions/cd';
-import questions_ct from './Questions/ct';
-import questions_pgr_movel from './Questions/pgr_movel';
-import questions_pgr_fixa from './Questions/pgr_fixa';
-import questions_tag from './Questions/tag';
 import InputComponent from './InputComponent';
 
 
@@ -150,18 +139,21 @@ export default function New() {
     setQuestions(questions);
     saveIndexedDB()
 
-    if (e.target.value === '') {
-      document.getElementById(indexA + "_textarea_" + question.questionId).style.display = 'none'
-      document.getElementById("inputimg_" + question.questionId + "_" + indexA).style.display = 'none'
+    let textarea = document.getElementById(indexA + "_textarea_" + question.questionId)
+    let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA)
+
+    if (e.target.value === '' && textarea && inputimage) {
+      textarea.style.display = 'none'
+      inputimage.style.display = 'none'
       return
     }
 
     if (question.textarea === true) {
-      document.getElementById(indexA + "_textarea_" + question.questionId).style.display = 'block'
-      document.getElementById("inputimg_" + question.questionId + "_" + indexA).style.display = 'flex'
+      textarea.style.display = 'block'
+      inputimage.style.display = 'flex'
     } else if (question.textarea === true) {
-      document.getElementById(indexA + "_textarea_" + question.questionId).style.display = 'none'
-      document.getElementById("inputimg_" + question.questionId + "_" + indexA).style.display = 'none'
+      textarea.style.display = 'none'
+      inputimage.style.display = 'none'
     }
   }
 
@@ -178,14 +170,13 @@ export default function New() {
       }
     });
 
-    document.getElementById(indexA + "_textarea_" + question.questionId).style.display =
-      document.getElementById(indexA + "_textarea_" + question.questionId).style.display === 'block' && 'none'
-    document.getElementById("inputimg_" + question.questionId + "_" + indexA).style.display =
-      document.getElementById("inputimg_" + question.questionId + "_" + indexA).style.display === 'flex' && 'none'
+    let textarea = document.getElementById(indexA + "_textarea_" + question.questionId);
+    let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA);
 
+    textarea && (textarea.style.display = textarea.style.display === 'block' && 'none')
+    inputimage && (inputimage.style.display = inputimage.style.display === 'flex' && 'none')
 
-
-    document.getElementById(indexA + "_textarea_" + question.questionId).value = ""
+    textarea && (textarea.value = "")
 
     questions[indexA][1][objIndex].resp = '';
     questions[indexA][1][objIndex].images = [];
@@ -783,20 +774,26 @@ export default function New() {
 
         {(siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
           <div className='container' id='container-pgr'>
-            <input id='selectValorArmazenamento' type='text' value={
-              new Intl.NumberFormat('pt-BR', {
+            <label name='valor-armazenamento'>Valor Armazenamento
+              <input id='selectValorArmazenamento' name='valor-armazenamento' type='text' value={
+                new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(valorArmazenamento / 100)
+              } onChange={e => setValorArmazenamento(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Armazenamento'></input>
+            </label>
+            <label name='valor-transporte'>Valor Transporte
+              <input id='selectValorTransporte' name='valor-transporte' type='text' value={new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
-              }).format(valorArmazenamento / 100)
-            } onChange={e => setValorArmazenamento(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Armazenamento'></input>
-            <input id='selectValorTransporte' type='text' value={new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
-            <input id='selectValorSinistro' type='text' value={new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
+              }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
+            </label>
+            <label name='valor-sinistro'>Valor Sinistro
+              <input id='selectValorSinistro' name='valor-sinistro' type='text' value={new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
+            </label>
           </div>
         )}
 
@@ -810,16 +807,19 @@ export default function New() {
               <option value={'LOJA SHOP 1° PISO'}>LOJA SHOP 1° PISO</option>
               <option value={'LOJA SHOP ELITE'}>LOJA SHOP ELITE</option>
             </select>
-            <input
-              id='selectValorEstoque'
-              type='text'
-              value={new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              }).format(valorEstoque / 100)}
-              onChange={(e) => setValorEstoque(e.target.value.replace(/\D/g, ''))}
-              placeholder='Valor de Estoque'
-            />
+            <label name='valor-estoque'>Valor Estoque
+              <input
+                id='selectValorEstoque'
+                name='valor-estoque'
+                type='text'
+                value={new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(valorEstoque / 100)}
+                onChange={(e) => setValorEstoque(e.target.value.replace(/\D/g, ''))}
+                placeholder='Valor de Estoque'
+              />
+            </label>
           </div>
         )}
 
