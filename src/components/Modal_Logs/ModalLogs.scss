@@ -65,7 +65,7 @@
 }
 
 .ReactModal__Overlay {
-  background-color: $modal-overlay-bg !important;
+  background-color: #000 !important;
 }
 
 @include respond-to(medium) {
