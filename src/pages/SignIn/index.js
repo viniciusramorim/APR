@@ -1,30 +1,34 @@
-import { useState, useContext } from 'react';
-import { BsEye } from 'react-icons/bs';
+import { useState, useContext, useEffect } from "react";
+import { BsEye } from "react-icons/bs";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
-import './signin.scss';
-import { AuthContext } from '../../contexts/auth';
-import logo from '../../assets/logoaprdigital-removebg.png';
+import "./signin.scss";
+import { AuthContext } from "../../contexts/auth";
+import logo from "../../assets/logoaprdigital-removebg.png";
 
-function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
+export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { signIn, loadingAuth } = useContext(AuthContext);
+
+  useEffect(() => {
+    addBodyClass('page-apply-apr');
+  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
 
-    if (email !== '' && password !== '') {
-      signIn(email.replaceAll(' ', ''), password.replaceAll(' ', ''));
+    if (email !== "" && password !== "") {
+      signIn(email.replaceAll(" ", ""), password.replaceAll(" ", ""));
     }
   }
 
   function toggleVisible() {
-    var x = document.getElementById('password');
-    if (x.type === 'password') {
-      x.type = 'text';
+    var x = document.getElementById("password");
+    if (x.type === "password") {
+      x.type = "text";
     } else {
-      x.type = 'password';
+      x.type = "password";
     }
   }
 
@@ -54,12 +58,10 @@ function SignIn() {
             <BsEye size={15} onClick={() => toggleVisible()} />
           </label>
           <button type="submit">
-            {loadingAuth ? 'Carregando...' : 'Acessar'}
+            {loadingAuth ? "Carregando..." : "Acessar"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-
-export default SignIn;

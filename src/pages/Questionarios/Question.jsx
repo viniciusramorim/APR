@@ -27,6 +27,7 @@ import ChecklistModal from "../../components/Question/ChecklistModal";
 import BlocoModal from "../../components/Question/BlocoModal";
 import QuestionModal from "../../components/Question/QuestionModal";
 import "../../pages/Questionarios/Question.scss";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});
@@ -43,6 +44,7 @@ const ChecklistManager = () => {
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
+    addBodyClass('page-questions');
     const fetchChecklists = async () => {
       try {
         const checklistsRef = firebase.firestore().collection("question");
@@ -549,7 +551,7 @@ const ChecklistManager = () => {
                                   index ===
                                   checklists[selectedChecklist][selectedBloco]
                                     .length -
-                                    1
+                                  1
                                 }
                               >
                                 <ArrowDownward />

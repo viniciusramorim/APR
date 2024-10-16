@@ -13,7 +13,7 @@ import { FiMapPin } from "react-icons/fi";
 import { toast } from "react-toastify";
 import * as geofire from "geofire-common";
 import * as XLSX from "xlsx";
-
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import "./new_site.scss";
 
 import firebase from "../../services/firebaseConnection";
@@ -31,6 +31,7 @@ export default function New_Site() {
 
   useEffect(() => {
     loadSitesAprovacao();
+    addBodyClass('page-new-site');
   }, []);
 
   async function loadSitesAprovacao() {
@@ -324,23 +325,23 @@ export default function New_Site() {
         {user.uid ===
           ("wQzKfmkPgsV8PULa9t5JLg9Ta6j2" ||
             "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2") && (
-          <div className="container inputfile">
-            <label id="arquive">
-              Selecionar arquivo
-              <input
-                id="inputXLSX"
-                type="file"
-                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                onChange={(e) => handleFileSelect(e)}
-              />
-            </label>
-            <a onClick={() => submitAllXlsx()}>Enviar</a>
-            <a onClick={() => removeAllXlsx()}>Remover</a>
-            <a onClick={() => updateAllXlsx()}>Update</a>
-            <a onClick={() => downloadModelo()}>Baixar Modelo</a>
-            <a onClick={() => downloadExcel()}>Baixar Todos Sites</a>
-          </div>
-        )}
+            <div className="container inputfile">
+              <label id="arquive">
+                Selecionar arquivo
+                <input
+                  id="inputXLSX"
+                  type="file"
+                  accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={(e) => handleFileSelect(e)}
+                />
+              </label>
+              <a onClick={() => submitAllXlsx()}>Enviar</a>
+              <a onClick={() => removeAllXlsx()}>Remover</a>
+              <a onClick={() => updateAllXlsx()}>Update</a>
+              <a onClick={() => downloadModelo()}>Baixar Modelo</a>
+              <a onClick={() => downloadExcel()}>Baixar Todos Sites</a>
+            </div>
+          )}
 
         {[
           "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
@@ -348,49 +349,49 @@ export default function New_Site() {
           "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
           "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
         ].includes(user.uid) && (
-          <Grid container className="container">
-            <TableContainer component={Paper}>
-              <Table size="small" aria-label="a dense table">
-                <TableHead className="new-site-table">
-                  <TableRow>
-                    <TableCell align="center">Sigla</TableCell>
-                    <TableCell align="center">UF</TableCell>
-                    <TableCell align="center">Municipio</TableCell>
-                    <TableCell align="center">Lat</TableCell>
-                    <TableCell align="center">Lng</TableCell>
-                    <TableCell align="center">Data</TableCell>
-                    <TableCell align="center"></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sitesAprovacao.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell align="center">{row.Sigla}</TableCell>
-                      <TableCell align="center">{row.Estado}</TableCell>
-                      <TableCell align="center">{row.Cidade}</TableCell>
-                      <TableCell align="center">{row.Latitude}</TableCell>
-                      <TableCell align="center">{row.Longitude}</TableCell>
-                      <TableCell align="center">
-                        {format(row.created.toDate(), "dd/MM/yyyy HH:mm")}
-                      </TableCell>
-                      <TableCell align="center">
-                        <ModalInfoSite
-                          site={row}
-                          loadSites={loadSitesAprovacao}
-                          logSistem={logSistem}
-                          user={user}
-                        ></ModalInfoSite>
-                      </TableCell>
+            <Grid container className="container">
+              <TableContainer component={Paper}>
+                <Table size="small" aria-label="a dense table">
+                  <TableHead className="new-site-table">
+                    <TableRow>
+                      <TableCell align="center">Sigla</TableCell>
+                      <TableCell align="center">UF</TableCell>
+                      <TableCell align="center">Municipio</TableCell>
+                      <TableCell align="center">Lat</TableCell>
+                      <TableCell align="center">Lng</TableCell>
+                      <TableCell align="center">Data</TableCell>
+                      <TableCell align="center"></TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-        )}
+                  </TableHead>
+                  <TableBody>
+                    {sitesAprovacao.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      >
+                        <TableCell align="center">{row.Sigla}</TableCell>
+                        <TableCell align="center">{row.Estado}</TableCell>
+                        <TableCell align="center">{row.Cidade}</TableCell>
+                        <TableCell align="center">{row.Latitude}</TableCell>
+                        <TableCell align="center">{row.Longitude}</TableCell>
+                        <TableCell align="center">
+                          {format(row.created.toDate(), "dd/MM/yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell align="center">
+                          <ModalInfoSite
+                            site={row}
+                            loadSites={loadSitesAprovacao}
+                            logSistem={logSistem}
+                            user={user}
+                          ></ModalInfoSite>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          )}
       </div>
     </div>
   );

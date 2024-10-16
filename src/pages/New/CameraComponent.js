@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import Modal from 'react-modal';
 import { FiCamera, FiCameraOff, FiUpload, FiX } from 'react-icons/fi';

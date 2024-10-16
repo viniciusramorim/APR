@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiUsers, FiX, FiCheck, FiLock } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/auth";
@@ -46,6 +47,7 @@ export default function ProfileADM() {
 
   useEffect(() => {
     loadUsers();
+    addBodyClass('page-apply-apr');
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiUser } from 'react-icons/fi';
 
 import { AuthContext } from '../../contexts/auth';
@@ -10,15 +11,14 @@ import Title from '../../components/Title';
 import './profile.scss';
 import { toast } from 'react-toastify';
 
-export default function Profile(){
-  const { user, signOut, redefinirPassword, redefinirEmail} = useContext(AuthContext);
-
+export default function Profile() {
+  const { user, signOut, redefinirPassword, redefinirEmail } = useContext(AuthContext);
   const [nome, setNome] = useState(user && user.nome);
   const [email, setEmail] = useState(user && user.email);
 
   async function updateNivel(e) {
     e.preventDefault();
-    if(nome !== '' && nome !== undefined){
+    if (nome !== '' && nome !== undefined) {
       await firebase.firestore().collection('users')
         .doc(user.uid)
         .update({
@@ -35,39 +35,37 @@ export default function Profile(){
       toast.error('Nome não pode ser nulo!')
     }
   }
+  useEffect(() => {
+    addBodyClass('page-profile');
+  }, []);
 
-  return(
+  return (
     <div>
-      <Header/>
-
+      <Header />
       <div className="content">
         <Title name="Meu perfil">
           <FiUser size={25} onClick={() => console.log(user.uid)} />
         </Title>
-
         <div className="container">
           <form className="form-profile" onSubmit={updateNivel}>
             <label>Nome</label>
-            <input type="text" value={nome} onChange={ (e) => setNome(e.target.value.toUpperCase()) } />
-
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value.toUpperCase())} />
             <label>Email</label>
-            <input type="text" value={email} disabled={true} />     
-
-            <button className='btn-salvar' type="submit">Salvar</button>       
-
+            <input type="text" value={email} disabled={true} />
+            <button className='btn-salvar' type="submit">Salvar</button>
           </form>
         </div>
 
         <div className="container">
-            <button className="logout-btn" onClick={ () => signOut() } >
-               Sair
-            </button>
-            <button className="logout-btn" onClick={ () => redefinirPassword() } >
-               Trocar Senha
-            </button>
-            <button className="logout-btn" onClick={ () => redefinirEmail() } >
-               Alterar E-mail
-            </button>
+          <button className="logout-btn" onClick={() => signOut()} >
+            Sair
+          </button>
+          <button className="logout-btn" onClick={() => redefinirPassword()} >
+            Trocar Senha
+          </button>
+          <button className="logout-btn" onClick={() => redefinirEmail()} >
+            Alterar E-mail
+          </button>
         </div>
 
       </div>

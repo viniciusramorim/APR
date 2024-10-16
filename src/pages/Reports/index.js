@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiFileText } from "react-icons/fi";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
@@ -5,7 +7,6 @@ import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
 import "./report.scss";
-import { useState } from "react";
 import {
   Button,
   FormControl,
@@ -26,6 +27,10 @@ export default function Reports() {
   const [filterMotivo, setFilterMotivo] = useState("");
   const [filterTipoSite, setFilterTipoSite] = useState("");
   const [includeQuestions, setIncludeQuestions] = useState(false);
+
+  useEffect(() => {
+    addBodyClass('page-reports');
+  }, []);
 
   async function loadChamados() {
     setLoading(true);

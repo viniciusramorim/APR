@@ -1,4 +1,5 @@
-import { useState, useContext } from "react";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
+import { useState, useContext, useEffect } from "react";
 import { FiMessageSquare } from "react-icons/fi";
 import { format } from "date-fns";
 import { AuthContext } from "../../contexts/auth";
@@ -8,9 +9,7 @@ import firebase from "../../services/firebaseConnection";
 import "./dashboard.scss";
 import { toast } from "react-toastify";
 import TableDashboard from "./tableDashboard";
-import QuestionnaireForm from "../../components/Question/QuestionnaireForm";
 import {
-  Switch,
   Grid,
   Button,
   ButtonGroup,
@@ -20,6 +19,8 @@ import {
   InputLabel,
   Select,
 } from "@mui/material";
+
+
 
 export default function Dashboard() {
   const base = "aprs-producao"; //aprs-producao
@@ -34,6 +35,10 @@ export default function Dashboard() {
   const [filterNome, setFilterNome] = useState("");
   const [filterID, setFilterID] = useState("");
   const [filterMotivo, setFilterMotivo] = useState("");
+
+  useEffect(() => {
+    addBodyClass('page-dash');
+  }, []);
 
   async function loadChamados(props) {
     let regional = [];

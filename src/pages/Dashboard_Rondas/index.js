@@ -8,6 +8,7 @@ import Header from '../../components/Header';
 import Title from '../../components/Title';
 import firebase from '../../services/firebaseConnection';
 import './dashboardRondas.scss';
+import { addBodyClass } from '../../components/BodyClassInsert/bodyClassInserter';
 
 const listRef = firebase.firestore().collection('rondas')
 
@@ -19,7 +20,7 @@ export default function DashboardRondas() {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-
+    addBodyClass('page-dash-rondas');
     loadRondas();
 
   }, []);

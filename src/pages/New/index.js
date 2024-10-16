@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns'
 import * as geofire from 'geofire-common';
-
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import './new.scss'
 
 import { AuthContext } from '../../contexts/auth';
@@ -62,7 +62,7 @@ export default function New() {
   };
 
   useEffect(() => {
-
+    addBodyClass('page-new');
     async function loadSite() {
       await firebase.firestore().collection('sites')
         .doc(id)

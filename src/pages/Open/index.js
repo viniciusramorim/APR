@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
 import './open.scss'
 
@@ -49,6 +50,7 @@ export default function Open() {
   };
 
   useEffect(() => {
+    addBodyClass('page-open');
     ReloadAPR()
   }, [id])
 

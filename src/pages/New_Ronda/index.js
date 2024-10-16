@@ -1,4 +1,5 @@
 
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../contexts/auth';
 import { FiMapPin, FiCamera } from 'react-icons/fi';
@@ -21,7 +22,7 @@ export default function NewRonda() {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-
+    addBodyClass('page-new-ronda');
     function getQuestions() {
       setQuestions(questionsRonda);
     }
@@ -71,7 +72,7 @@ export default function NewRonda() {
           console.log(doc.get('Latitude'));
           const lng = parseFloat(doc.get('Longitude'));
           console.log(doc.get('Longitude'));
-          
+
           // We have to filter out a few false positives due to GeoHash
           // accuracy, but most will match
           const distanceInKm = geofire.distanceBetween([lat, lng], center);
@@ -110,7 +111,7 @@ export default function NewRonda() {
       .then(async (index) => {
 
         let containsImage = verifyContainsImage();
-        
+
         if (containsImage === true) {
           const questionsForEach = new Promise((resolve, reject) => {
             questions.forEach(async (question, indexQ) => {
@@ -119,7 +120,7 @@ export default function NewRonda() {
                 let imgPath = `imagesRonda/${index.id}/${question.questionId}/${imgName}`
                 let storageRef = await firebase.storage().ref(imgPath)
                 let upload = storageRef.put(file)
-  
+
                 trackUpload(upload).then(() => {
                   storageRef.getDownloadURL().then((downloadUrl) => {
                     questions[indexQ].photo = downloadUrl
@@ -146,7 +147,7 @@ export default function NewRonda() {
           })
         }
 
-        if(containsImage === false){
+        if (containsImage === false) {
           await firebase.firestore().collection('rondas')
             .doc(index.id)
             .update({
@@ -160,17 +161,17 @@ export default function NewRonda() {
               console.log(err)
             })
         }
-        
+
       })
   }
 
   function verifyContainsImage() {
     let containsImage = false
     questions.forEach(async (question) => {
-        // verifica se contem imagem
-        if (question.photo.length > 0) {
-          containsImage = true
-        }
+      // verifica se contem imagem
+      if (question.photo.length > 0) {
+        containsImage = true
+      }
     })
 
     return containsImage
