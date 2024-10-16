@@ -1,7 +1,7 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.container {
+.page-profile .container {
   @include container-style($container-border-color, $container-perg-shadow);
   padding: 0.8em;
   margin-bottom: 1em;
@@ -9,7 +9,7 @@
   @include flex-center;
 }
 
-.label-avatar {
+.page-profile .label-avatar {
   width: 280px;
   height: 280px;
   cursor: pointer;
@@ -26,7 +26,7 @@
   }
 }
 
-.form-profile {
+.page-profile .form-profile {
   img {
     margin-bottom: 1em;
     border-radius: 50%;
@@ -53,7 +53,7 @@
   }
 }
 
-.logout-btn {
+.page-profile .logout-btn {
   padding: 8px 20px;
   background-color: transparent;
   border: 1px solid $border-color-light;
@@ -65,9 +65,9 @@
   margin-right: 0.8em;
 }
 
-.btn-salvar {
+.page-profile .btn-salvar {
   @include button-style($btn-save-bg, $btn-secondary-bg);
 }
-[aria-label="Meu Perfil"] svg.MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium.css-20bmp1-MuiSvgIcon-root {
+.page-profile [aria-label="Meu Perfil"] svg.MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium.css-20bmp1-MuiSvgIcon-root {
   margin-left: 5px;
 }

@@ -47,7 +47,7 @@ export default function ProfileADM() {
 
   useEffect(() => {
     loadUsers();
-    addBodyClass('page-apply-apr');
+    addBodyClass('page-profile-adm');
   }, []);
 
   useEffect(() => {

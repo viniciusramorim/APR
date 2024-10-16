@@ -1,7 +1,7 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.dashboard {
+.page-dash .dashboard {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,7 +15,7 @@
   }
 }
 
-.tableAprs {
+.page-dash .tableAprs {
   border-collapse: separate;
   border-spacing: 0 7px;
   margin: 0;
@@ -32,7 +32,7 @@
   }
 }
 
-table {
+.page-dash table {
   border-collapse: separate;
   border-spacing: 0 7px;
   margin: 0;
@@ -53,7 +53,7 @@ table {
   }
 
   th {
-    background-color: $btn-secondary-hover-bg!important;
+    background-color: $btn-secondary-hover-bg !important;
     color: $text-color-light !important;
     font-size: 0.85em;
     letter-spacing: 0.1em;
@@ -89,7 +89,7 @@ table {
   }
 }
 
-.apr-digital {
+.page-dash .apr-digital {
   .MuiGrid-root.MuiGrid-container.css-fitckq-MuiGrid-root {
     padding: 7px 0px;
     border-radius: 8px;
@@ -120,7 +120,7 @@ table {
   }
 }
 
-.btn-more {
+.page-dash .btn-more {
   margin: 1.5em 0;
   padding: 0.5em 1em;
   height: 35px;
@@ -131,70 +131,72 @@ table {
   font-size: 1.1em;
 }
 
-.ReactModal__Overlay.ReactModal__Overlay--after-open {
+.page-dash .ReactModal__Overlay.ReactModal__Overlay--after-open {
   z-index: 1;
 }
 
-body.ReactModal__Body--open div#sidebar-menu {
+.page-dash .ReactModal__Body--open div#sidebar-menu {
   z-index: -1 !important;
 }
 
-.MuiBox-root.css-vtxhf1 {
+.page-dash .MuiBox-root.css-vtxhf1 {
   overflow-y: scroll;
   overflow-x: hidden;
   height: 600px !important;
 }
 
 @include respond-to(medium) {
-  table {
+  .page-dash table {
     border: 0;
-  }
 
-  table caption {
-    font-size: 1.3em;
-  }
-
-  table thead {
-    border: none;
-    clip: rect(0 0 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-  }
-
-  table tr {
-    border-bottom: 3px solid #ddd;
-    display: block;
-    margin-bottom: 0.65em;
-  }
-
-  table td {
-    border-bottom: 1px solid #ddd !important;
-    display: block !important;
-    font-size: 0.8em !important;
-    text-align: right !important;
-
-    &::before {
-      content: attr(data-label) !important;
-      float: left !important;
-      font-weight: bold !important;
-      text-transform: uppercase !important;
+    caption {
+      font-size: 1.3em;
     }
 
-    &:last-child {
-      border-bottom: 0;
+    thead {
+      border: none;
+      clip: rect(0 0 0 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+    }
+
+    tr {
+      border-bottom: 3px solid #ddd;
+      display: block;
+      margin-bottom: 0.65em;
+    }
+
+    td {
+      border-bottom: 1px solid #ddd !important;
+      display: block !important;
+      font-size: 0.8em !important;
+      text-align: right !important;
+
+      &::before {
+        content: attr(data-label) !important;
+        float: left !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+      }
+
+      &:last-child {
+        border-bottom: 0;
+      }
     }
   }
 
-  .indicadores-aprs div {
-    display: flex;
-    flex-direction: column;
+  .page-dash .indicadores-aprs {
+    div {
+      display: flex;
+      flex-direction: column;
+    }
   }
 
-  .filtrosAPRs {
+  .page-dash .filtrosAPRs {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -202,7 +204,7 @@ body.ReactModal__Body--open div#sidebar-menu {
     margin: 0;
   }
 
-  .btnListar {
+  .page-dash .btnListar {
     margin: 15px;
   }
 }

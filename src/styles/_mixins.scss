@@ -28,6 +28,12 @@
   align-items: center;
 }
 
+@mixin flex-start {
+  display: flex;
+  justify-content:flex-start;
+  align-items: stretch;
+}
+
 // Mixin para estilização de inputs, selects e textareas
 @mixin input-style {
   height: 35px;

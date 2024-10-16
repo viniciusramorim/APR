@@ -1,7 +1,7 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-form {
+.page-new-site form {
   margin-top: 1.5em;
   display: flex;
   flex-direction: column;
@@ -9,7 +9,7 @@ form {
   width: 100%;
 }
 
-.inputfile {
+.page-new-site .inputfile {
   flex-wrap: wrap;
   background-color: $form-bg;
 
@@ -45,7 +45,7 @@ form {
   }
 }
 
-table {
+.page-new-site table {
   .new-site-table {
     tr {
       * {

@@ -5,7 +5,6 @@ import "./SiteDetailModal.scss";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
-
 const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
   const [editSite, setEditSite] = useState(null);
   const [newEstado, setNewEstado] = useState("");
@@ -131,6 +130,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 disabled
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -220,6 +220,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={handleChange}
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -237,6 +238,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={handleChange}
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -263,6 +265,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewDetentora(e.target.value.toUpperCase())}
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -279,6 +282,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewLat(e.target.value)}
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -295,6 +299,7 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
                 onChange={(e) => setNewLng(e.target.value)}
                 style={{
                   width: "fit-content",
+                  padding: "8px",
                   borderColor: "#6e0dec",
                   borderRadius: "8px",
                   borderWidth: "1px",
@@ -304,32 +309,38 @@ const SiteDetailModal = ({ open, onClose, site, handleSearch, user }) => {
           </Grid>
 
           <Grid item xs={12}>
-            {user.nivel === "administrador" && (
-              <Button
-                onClick={handleSave}
-                variant="contained"
-                style={{ backgroundColor: "#6e0dec", borderColor: "#6e0dec" }}
-                sx={{ mt: 2 }}
-              >
-                Salvar Alteração
-              </Button>
-            )}
-            <Button
-              onClick={handleAdvance}
-              variant="outlined"
-              style={{ color: "#6e0dec", borderColor: "#6e0dec" }}
-              sx={{ mt: 2, ml: 2 }}
-            >
-              Avançar
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="outlined"
-              sx={{ mt: 2, ml: 2 }}
-              style={{ color: "#e84118", borderColor: "#e84118" }}
-            >
-              Fechar
-            </Button>
+            <div className="buttons-modal-new-site">
+              <div className="buttons-left">
+                <Button
+                  onClick={onClose}
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  style={{ color: "#e84118", borderColor: "#e84118" }}
+                >
+                  Fechar
+                </Button>
+                {user.nivel === "administrador" && (
+                  <Button
+                    onClick={handleSave}
+                    variant="contained"
+                    style={{ backgroundColor: "#6e0dec", borderColor: "#6e0dec" }}
+                    sx={{ mt: 2, ml: 2 }}
+                  >
+                    Salvar Alteração
+                  </Button>
+                )}
+              </div>
+              <div className="buttons-right">
+                <Button
+                  onClick={handleAdvance}
+                  variant="outlined"
+                  style={{ color: "#6e0dec", borderColor: "#6e0dec" }}
+                  sx={{ mt: 2 }}
+                >
+                  Avançar
+                </Button>
+              </div>
+            </div>
           </Grid>
         </Grid>
       </Box>

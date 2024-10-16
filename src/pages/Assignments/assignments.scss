@@ -1,12 +1,12 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.container {
+.page-assignments .container {
   background-color: $container-bg-color; // Utilizando variável global para o fundo
   justify-content: left;
 }
 
-table {
+.page-assignments table {
   border-collapse: separate;
   border-spacing: 0 7px;
   margin: 0;

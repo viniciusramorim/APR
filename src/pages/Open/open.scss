@@ -1,7 +1,33 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-form {
+.page-open .container {
+  @include container-style($container-border-color, $container-perg-shadow);
+  padding: 0.8em;
+  margin-bottom: 1em;
+  flex-direction: row;
+  @include flex-start;
+}
+
+.page-profile .label-avatar {
+  width: 280px;
+  height: 280px;
+  cursor: pointer;
+
+  span {
+    position: absolute;
+    opacity: $avatar-hover-opacity;
+    transition: all 0.5s;
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.4);
+    }
+  }
+}
+
+
+.page-open form {
   margin-top: 1.5em;
   display: flex;
   flex-direction: column;
@@ -9,7 +35,7 @@ form {
   width: 100%;
 }
 
-.container-perg-open {
+.page-open .container-perg-open {
   display: flex;
   margin: 0.5em 0 2em 0;
   flex-wrap: wrap;
@@ -21,7 +47,7 @@ form {
   box-shadow: 0px;
 }
 
-.siteInfo {
+.page-open .siteInfo {
   max-width: 100%;
   display: flex;
   width: 600px;
@@ -47,7 +73,7 @@ form {
   }
 }
 
-.form-open {
+.page-open .form-open {
   label {
     margin: 0.8em 0;
     font-weight: bold;
@@ -129,8 +155,8 @@ form {
   }
 }
 
-.Edit,
-.plano-acao {
+.page-open .Edit,
+.page-open .plano-acao {
   text-align: right;
   display: flex;
   flex-direction: row-reverse;
@@ -160,39 +186,39 @@ form {
   }
 }
 
-div#container-loja {
+.page-open div#container-loja {
   display: flex;
   justify-content: flex-start;
   align-items: center;
 }
 
-select#selectTipoLoja {
+.page-open select#selectTipoLoja {
   width: 290px
 }
 
-input#selectValorEstoque {
+.page-open input#selectValorEstoque {
   width: 290px;
 }
 
-#selectSite,
-#selectMotivo {
+.page-open #selectSite,
+.page-open #selectMotivo {
   width: 590px;
 }
 
 @media(max-width:767px) {
 
-  #selectSite,
-  #selectMotivo {
+  .page-open #selectSite,
+  .page-open #selectMotivo {
     width: 100%;
   }
 
-  div#container-loja {
+  .page-open div#container-loja {
     flex-direction: column;
     width: 100%
   }
 
-  select#selectTipoLoja,
-  #selectValorEstoque {
+  .page-open select#selectTipoLoja,
+  .page-open #selectValorEstoque {
     width: 96% !important;
   }
 }

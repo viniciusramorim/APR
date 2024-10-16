@@ -1,9 +1,32 @@
-// src/styles/_formNew.scss
-
-@import '../../styles/variables';
+@import "../../styles/variables";
 @import "../../styles/mixins";
 
-.form-new {
+.page-new .container {
+  @include container-style($container-border-color, $container-perg-shadow);
+  padding: 0.8em;
+  margin-bottom: 1em;
+  flex-direction: row;
+  @include flex-start;
+}
+
+.page-profile .label-avatar {
+  width: 280px;
+  height: 280px;
+  cursor: pointer;
+
+  span {
+    position: absolute;
+    opacity: $avatar-hover-opacity;
+    transition: all 0.5s;
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.4);
+    }
+  }
+}
+
+.page-new .form-new {
   margin-top: 1.5em;
   display: flex;
   flex-direction: column;
@@ -11,23 +34,26 @@
   width: 100%;
 
   button {
-    height: 100%;
-    border: 0;
-    border-radius: 7px;
-    background-color: $btn-primary-bg;
-    color: $white-color;
+    @include button-style($btn-primary-bg, $modal-link-bg);
     font-size: 1.3em;
-    transition: ease-in-out 0.4s;
     width: 100%;
+  }
 
-    &:hover {
-      background-color: $btn-primary-hover-bg;
+  button#photo {
+    @include button-style($btn-primary-bg, $modal-link-bg);
+    font-size: 1.3em;
+    width: 100%;
+    min-height: 60px;
+    border:1px solid $btn-primary-bg;
 
+    svg {
+      margin: 0px;
     }
   }
 
+
   .submit-apr {
-    height: 40px !important;
+    height: 30px !important;
     border-radius: 100px !important;
   }
 
@@ -49,52 +75,38 @@
   }
 
   #button-area {
-    background-color: $btn-alt-bg;
-    border: 1px solid $btn-alt-bg;
-    color: $white-color;
     padding: 0.5em;
     border-radius: 15px;
     text-align: center;
-    cursor: pointer;
     margin-bottom: 0.2em;
+    cursor: pointer;
+    border: 1px solid $modal-link-bg;
+    transition: .2s ease-in-out;
 
     &:hover {
-      background-color: $btn-alt-hover-bg;
-      color: $text-color-dark;
-      border: 1px solid $btn-alt-bg;
+      background: $modal-link-bg;
+      color: #fff;
     }
   }
 
   textarea,
   input,
   select {
-    padding: 0.7em;
-    border: 0;
-    border-radius: 5px;
+    @include input-style;
     max-width: 600px;
     margin-bottom: 0.8em;
     background-color: $background-light;
   }
 
   a {
+    @include button-style($btn-primary-bg, #082ed8);
     padding: 10px;
-    text-align: center;
     max-width: 250px;
     height: 70px;
-    background-color: $btn-primary-bg;
-    border-radius: 0.5em;
-    color: $white-color;
-    margin-top: 0.8em;
-    transition: all 0.2s;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
     justify-content: space-around;
-    text-transform: uppercase;
-
-    &:hover {
-      background-color: #082ed8;
-      color: $white-color;
-    }
   }
 
   #selectSite,
@@ -104,11 +116,7 @@
   #selectValorSinistro,
   #selectValorEstoque,
   #selectTipoLoja {
-    width: 100%;
-    padding: 0.7em;
-    border: 0;
-    border-radius: 5px;
-    margin-right: 5px;
+    @include input-style;
     max-width: 195px;
 
     &:first-of-type {
@@ -153,10 +161,10 @@
   }
 }
 
-#container-pgr,
-#container-loja {
+.page-new #container-pgr,
+.page-new #container-loja {
   gap: 5px;
-  align-items: flex-end !important;
+  align-items: flex-start !important;
 
   label {
     display: flex;
@@ -164,14 +172,12 @@
   }
 }
 
-.container-perg {
-  border: 1px solid $border-color-light;
-  border-radius: 5px;
+.page-new .container-perg {
+  @include container-style($border-color-light, $box-shadow-light);
   padding: 10px;
-  box-shadow: 1px 2px 11px $box-shadow-light;
 }
 
-.clearQuestion {
+.page-new .clearQuestion {
   width: 55px;
   text-align: center;
   padding: 0.2em;
@@ -184,7 +190,7 @@
   }
 }
 
-#container-conclusion {
+.page-new #container-conclusion {
   display: flex;
   flex-direction: column;
 
@@ -200,19 +206,13 @@
   }
 
   a {
-    background-color: $btn-primary-bg;
-    color: $white-color;
-    border-radius: 9px;
+    @include button-style($btn-primary-bg, $btn-alt-bg);
     margin-bottom: 0.5em;
     padding: 7px 12px;
-
-    &:hover {
-      background-color: $btn-alt-bg;
-    }
   }
 }
 
-.imageList {
+.page-new .imageList {
   margin-bottom: 0.8em;
 
   li {
@@ -226,7 +226,7 @@
     border-radius: 5px;
 
     label {
-      margin: 0em;
+      margin: 0;
       height: 100%;
       width: 100%;
       cursor: pointer;
@@ -238,10 +238,10 @@
       &:hover {
         color: $white-color;
       }
-    }
 
-    svg {
-      margin-right: 0em;
+      svg {
+        margin: 0px;
+      }
     }
 
     i {
@@ -250,13 +250,12 @@
       color: $white-color;
       padding: 0.2em;
       text-align: center;
-      font-style: normal;
-      border-radius: 0px 4px 0px 4px;
+      border-radius: 0 4px 0 4px;
     }
   }
 }
 
-.save {
+.page-new .save {
   max-width: 600px;
   display: flex;
   width: 100%;
@@ -264,40 +263,33 @@
   text-transform: uppercase;
 
   a {
-    background-color: $btn-secondary-bg;
-    color: $white-color;
+    @include button-style($btn-secondary-bg, $btn-secondary-hover-bg);
     width: 45%;
     text-align: center;
     padding: 10px;
-    border-radius: 10px;
-
-    &:hover {
-      cursor: pointer;
-      background-color: $btn-secondary-hover-bg;
-    }
+    cursor: pointer;
   }
 }
 
-select,
-input {
+.page-new select,
+.page-new input {
   border-radius: 8px;
-  height: 50px;
   padding: 10px !important;
   background: transparent;
+  cursor: pointer;
 }
 
 // Camera
-.ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
+.page-new .ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
   position: relative;
 
   video {
     height: 93vh;
     width: auto;
-
   }
 }
 
-span.botoesCam {
+.page-new span.botoesCam {
   position: absolute;
   bottom: 10px;
   display: flex;
@@ -306,29 +298,28 @@ span.botoesCam {
   button {
     width: 60px;
     height: 60px;
-    background: $btn-secondary-bg;
-    color: #fff;
-    border-radius: 10px
+    @include button-style($btn-secondary-bg, $btn-secondary-hover-bg);
+    border-radius: 10px;
   }
 }
 
-@media (max-width:767px) {
-  div#container-pgr {
+// Responsividade
+@include respond-to(small) {
+  .page-new div#container-pgr {
     flex-direction: column;
     width: 100%;
   }
 
-  #container-pgr,
-  #container-loja {
+  .page-new #container-pgr,
+  .page-new #container-loja {
     label {
       width: 100%;
     }
   }
 
-  input#selectValorArmazenamento,
-  input#selectValorTransporte,
-  input#selectValorSinistro {
+  .page-new input#selectValorArmazenamento,
+  .page-new input#selectValorTransporte,
+  .page-new input#selectValorSinistro {
     width: 100%;
   }
-
 }

@@ -21,3 +21,29 @@
     }
   }
 }
+
+
+.buttons-modal-new-site {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: space-between;
+
+  @include respond-to(medium) {
+    display: flex;
+    margin: 10px 0px;
+    width: 100%;
+    align-content: stretch;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+
+  button {
+    @include respond-to(medium) {
+      width: 100%;
+      margin: 10px 0px;
+    }
+  }
+}

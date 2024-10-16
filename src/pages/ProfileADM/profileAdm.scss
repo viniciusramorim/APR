@@ -1,7 +1,7 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.form-profiles {
+.page-profile-adm .form-profiles {
   img {
     margin-bottom: 1em;
     border-radius: 50%;
@@ -40,7 +40,7 @@ table td .action {
   margin-right: $table-action-margin;
 }
 
-.table-usuarios {
+.page-profile-adm .table-usuarios {
   svg {
     margin: 5px;
     border-radius: 5px;
@@ -64,7 +64,7 @@ table td .action {
   }
 }
 
-.indicadores {
+.page-profile-adm .indicadores {
   span {
     margin-right: 0.8em;
   }
@@ -74,34 +74,34 @@ table td .action {
   }
 }
 
-td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Status"],
-td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Area"] {
+.page-profile-adm td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Status"],
+.page-profile-adm td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Area"] {
   text-align: center;
 }
 
-td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Area"] {
+.page-profile-adm td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.css-1ex1afd-MuiTableCell-root[data-label="Area"] {
   text-transform: capitalize !important;
 }
 
-.css-1sazv7p-MuiStack-root> :not(style):not(style) {
+.page-profile-adm .css-1sazv7p-MuiStack-root> :not(style):not(style) {
   margin: 0 auto !important;
   padding-bottom: 30px;
 }
 
-ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul li button {
+.page-profile-adm ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul li button {
   background: $table-pagination-bg !important;
   padding: 10px;
   color: $pagination-btn-color !important;
 }
 
 @media (max-width: 767px) {
-  .container.filtros {
+  .page-profile-adm .container.filtros {
     flex-direction: column;
     gap: 15px;
     align-items: stretch;
   }
 
-  .table-users table tr td:before {
+  .page-profile-adm .table-users table tr td:before {
     padding-right: 5px;
   }
 }
