@@ -356,7 +356,7 @@ const ChecklistManager = () => {
       <div className="content">
         <Title name="Gerenciamento de Checklist" />
         <div className="container">
-          <Container maxWidth="md">
+          <Container maxWidth="xl">
             <Box sx={{ mt: 4, mb: 4 }}>
               <Button
                 color="success"

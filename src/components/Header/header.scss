@@ -289,8 +289,10 @@ section#menu {
   }
 }
 
-.sidebar>div:not(.show) {
-  pointer-events: none;
+@include respond-to(medium) {
+  .sidebar>div:not(.show) {
+    pointer-events: none;
+  }
 }
 
 #sidebar-menu .logo-m {
