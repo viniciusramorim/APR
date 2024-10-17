@@ -1,6 +1,14 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
+// cards
+
+.MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiCard-root.css-6fm6rz-MuiPaper-root-MuiCard-root {
+  display:flex;
+  flex-direction:column;
+  justify-content: space-between;
+}
+
 .MuiContainer-root.MuiContainer-maxWidthMd.css-xdmu94-MuiContainer-root {
   border: 1px solid $container-border-color;
   border-radius: 5px;
