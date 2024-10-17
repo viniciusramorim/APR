@@ -21,6 +21,11 @@ import InputComponent from './InputComponent';
 
 
 export default function New() {
+
+  useEffect(() => {
+    addBodyClass('page-new');
+  }, []);
+
   const base = 'aprs-producao' //aprs-producao
   const storage = 'images' //images
 
@@ -62,7 +67,6 @@ export default function New() {
   };
 
   useEffect(() => {
-    addBodyClass('page-new');
     async function loadSite() {
       await firebase.firestore().collection('sites')
         .doc(id)
@@ -112,7 +116,7 @@ export default function New() {
             'pgr-fixa-checklist': 'AUDIT PGR FIXA',
             'tag-checklist': 'SMARTTAG2'
           };
-          
+
           siteInfo.tipoSite = siteMapping[snapshot] || 'Unknown';
 
           await firebase.firestore().collection('question')
@@ -799,14 +803,16 @@ export default function New() {
 
         {(siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
           <div className='container' id='container-loja'>
-            <select id='selectTipoLoja' defaultValue={''} value={tipoLoja} onChange={e => setTipoLoja(e.target.value)}>
-              <option disabled value={''}>Selecione um tipo de loja...</option>
-              <option value={'LOJA RUA'}>LOJA RUA</option>
-              <option value={'LOJA GALERIA'}>LOJA GALERIA</option>
-              <option value={'LOJA SHOP TERREO'}>LOJA SHOP TERREO</option>
-              <option value={'LOJA SHOP 1° PISO'}>LOJA SHOP 1° PISO</option>
-              <option value={'LOJA SHOP ELITE'}>LOJA SHOP ELITE</option>
-            </select>
+            <label name='valor-estoque'>Tipo de Loja
+              <select id='selectTipoLoja' defaultValue={''} value={tipoLoja} onChange={e => setTipoLoja(e.target.value)}>
+                <option disabled value={''}>Selecione um tipo de loja...</option>
+                <option value={'LOJA RUA'}>LOJA RUA</option>
+                <option value={'LOJA GALERIA'}>LOJA GALERIA</option>
+                <option value={'LOJA SHOP TERREO'}>LOJA SHOP TERREO</option>
+                <option value={'LOJA SHOP 1° PISO'}>LOJA SHOP 1° PISO</option>
+                <option value={'LOJA SHOP ELITE'}>LOJA SHOP ELITE</option>
+              </select>
+            </label>
             <label name='valor-estoque'>Valor Estoque
               <input
                 id='selectValorEstoque'

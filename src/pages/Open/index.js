@@ -51,6 +51,9 @@ export default function Open() {
 
   useEffect(() => {
     addBodyClass('page-open');
+    
+  }, []);
+  useEffect(() => {
     ReloadAPR()
   }, [id])
 

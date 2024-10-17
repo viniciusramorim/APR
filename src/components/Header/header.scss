@@ -35,7 +35,7 @@
     transition: ease-in-out 0.4s;
     font-weight: bold;
     border-radius: 8px;
-    height:40px;
+    height: 40px;
 
     &:hover {
       background-color: $sidebar-hover-bg;
@@ -289,6 +289,10 @@ section#menu {
   }
 }
 
+.sidebar>div:not(.show) {
+  pointer-events: none;
+}
+
 #sidebar-menu .logo-m {
   display: block !important;
   position: absolute;
@@ -332,8 +336,8 @@ a.myaccount {
 
     svg {
       position: relative;
-      left: -5px;
-      top: -3px;
+      left: 0px;
+      top: 0px;
 
     }
 

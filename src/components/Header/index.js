@@ -18,11 +18,11 @@ import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchS
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
-import SignUpModal from "../RegisterMember"; // Importação do modal de cadastro
+import SignUpModal from "../RegisterMember";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
-  const [openModal, setOpenModal] = useState(false); // Estado para controlar o modal
+  const [openModal, setOpenModal] = useState(false);
 
   function expandMenu() {
     let element = document.getElementById("sidebar-menu");
@@ -114,6 +114,8 @@ export default function Header() {
                 <PlaylistAddSharpIcon color="#000" size={20} />
                 <i id="label-menu">Novo Site</i>
               </Link>
+            </Tooltip>
+            <Tooltip title="Usuarios" placement="right" arrow>
               <Link to="/profileadm">
                 <PersonOutlineSharpIcon color="#000" size={20} />
                 <i id="label-menu">Gerenciar Perfis</i>
@@ -125,7 +127,11 @@ export default function Header() {
                 <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
-            {['wQzKfmkPgsV8PULa9t5JLg9Ta6j2', '5WBRPLgGmzUSLzrthSs9e9qnSnb2', 'J8Ktb51lucTxok00HAi2qTv7jQH2'].includes(user.uid) && (
+            {[
+              "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+              "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
+              "J8Ktb51lucTxok00HAi2qTv7jQH2",
+            ].includes(user.uid) && (
               <Tooltip title="Questionários" placement="right" arrow>
                 <Link to="/questions">
                   <ContentPasteIcon color="#000" size={20} />
@@ -134,8 +140,12 @@ export default function Header() {
               </Tooltip>
             )}
             <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
-              <Link to={location.pathname} className="user-name"  onClick={handleOpenModal}>
-                <SignUpModal/>
+              <Link
+                to={location.pathname}
+                className="user-name"
+                onClick={handleOpenModal}
+              >
+                <SignUpModal />
                 <PersonAddSharpIcon color="#000" size={10} />
                 <i id="label-menu">Cadastrar Usuário</i>
               </Link>

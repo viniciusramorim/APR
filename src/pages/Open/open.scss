@@ -1,7 +1,8 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.page-open .container {
+.page-open .container,
+.content .container {
   @include container-style($container-border-color, $container-perg-shadow);
   padding: 0.8em;
   margin-bottom: 1em;
@@ -47,13 +48,22 @@
   box-shadow: 0px;
 }
 
-.page-open .siteInfo {
+.siteInfo {
   max-width: 100%;
   display: flex;
   width: 600px;
   text-transform: uppercase;
   align-items: baseline;
   justify-content: space-between;
+
+  select {
+    height: 40px !important;
+    border-radius: 10px;
+    padding: 3px;
+    background: transparent;
+
+  }
+
 
   @include respond-to(medium) {
     flex-direction: column;

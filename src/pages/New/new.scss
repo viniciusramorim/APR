@@ -1,7 +1,7 @@
 @import "../../styles/variables";
 @import "../../styles/mixins";
 
-.page-new .container {
+.page-apply-apr .container {
   @include container-style($container-border-color, $container-perg-shadow);
   padding: 0.8em;
   margin-bottom: 1em;
@@ -44,7 +44,7 @@
     font-size: 1.3em;
     width: 100%;
     min-height: 60px;
-    border:1px solid $btn-primary-bg;
+    border: 1px solid $btn-primary-bg;
 
     svg {
       margin: 0px;
@@ -96,6 +96,13 @@
     max-width: 600px;
     margin-bottom: 0.8em;
     background-color: $background-light;
+  }
+
+  @include respond-to(medium) {
+
+    textarea {
+      height: 100px !important;
+    }
   }
 
   a {
@@ -272,12 +279,17 @@
 }
 
 .page-new select,
-.page-new input {
+.page-new input:not([type="radio"]) {
   border-radius: 8px;
   padding: 10px !important;
   background: transparent;
   cursor: pointer;
+
+  @include respond-to(medium) {
+    width: 100%;
+  }
 }
+
 
 // Camera
 .page-new .ReactModal__Content.ReactModal__Content--after-open.modalOverlay {
@@ -304,8 +316,10 @@
 }
 
 // Responsividade
-@include respond-to(small) {
-  .page-new div#container-pgr {
+@include respond-to(medium) {
+
+  .page-new #container-pgr,
+  .page-new #container-loja {
     flex-direction: column;
     width: 100%;
   }
