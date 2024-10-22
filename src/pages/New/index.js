@@ -95,7 +95,6 @@ export default function New() {
   }, [id])
 
   async function getQuestions(snapshot) {
-    let question = [];
     navigator.permissions.query({ name: 'geolocation' })
       .then(async (item) => {
         if (item.state !== 'granted') {
@@ -104,25 +103,12 @@ export default function New() {
         } else {
           document.getElementById('container-questions').style.display = 'flex';
 
-          const siteMapping = {
-            'erb-checklist': 'ERB',
-            'ct-checklist': 'CT',
-            'predio-core-checklist': 'PREDIO CORE',
-            'llpp-checklist': 'LOJA',
-            'ldealer-checklist': 'LOJA DEALER',
-            'outdoor-checklist': 'OUTDOOR',
-            'indoor-checklist': 'INDOOR',
-            'pgr-movel-checklist': 'AUDIT PGR MOVEL',
-            'pgr-fixa-checklist': 'AUDIT PGR FIXA',
-            'tag-checklist': 'SMARTTAG2'
-          };
-
-          siteInfo.tipoSite = siteMapping[snapshot] || 'Unknown';
+          siteInfo.tipoSite = snapshot;
 
           await firebase.firestore().collection('question')
             .doc(snapshot)
             .get()
-            .then((item_question) => {
+            .then(async (item_question) => {
               console.log(item_question.data())
               setQuestions(Object.entries(item_question.data()));
             })
@@ -763,16 +749,17 @@ export default function New() {
         <div className='container' id='container' style={{ display: 'none' }}>
           <select id='selectSite' defaultValue={'0'} onChange={e => getQuestions(e.target.value)}>
             <option disabled value={'0'}>Selecione um tipo de site...</option>
-            <option value={'erb-checklist'}>ERB</option>
-            <option value={'ct-checklist'}>CT</option>
-            <option value={'predio-core-checklist'}>PREDIO CORE</option>
-            <option value={'llpp-checklist'}>LOJA</option>
-            <option value={'ldealer-checklist'}>LOJA DEALER</option>
-            <option value={'outdoor-checklist'}>ARMARIO OUTDOOR</option>
-            <option value={'indoor-checklist'}>ARMARIO INDOOR</option>
-            <option value={'pgr-movel-checklist'}>AUDIT PGR MOVEL</option>
-            <option value={'pgr-fixa-checklist'}>AUDIT PGR FIXA</option>
-            <option value={'tag-checklist'}>SMARTTAG</option>
+            <option value={'ERB'}>ERB</option>
+            <option value={'CT'}>CT</option>
+            <option value={'CD'}>CD</option>
+            <option value={'PREDIO CORE'}>PREDIO CORE</option>
+            <option value={'LOJA'}>LOJA</option>
+            <option value={'LOJA DEALER'}>LOJA DEALER</option>
+            <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
+            <option value={'INDOOR'}>ARMARIO INDOOR</option>
+            <option value={'AUDIT PGR MOVEL'}>AUDIT PGR MOVEL</option>
+            <option value={'AUDIT PGR FIXA'}>AUDIT PGR FIXA</option>
+            <option value={'SMARTTAG2'}>SMARTTAG</option>
           </select>
         </div>
 
