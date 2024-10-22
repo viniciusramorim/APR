@@ -43,6 +43,8 @@ const ChecklistManager = () => {
   const [editingBloco, setEditingBloco] = useState(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
 
+  const max_title_length = 20;
+
   useEffect(() => {
     addBodyClass('page-questions');
     const fetchChecklists = async () => {
@@ -106,19 +108,24 @@ const ChecklistManager = () => {
 
   const handleSaveChecklist = async (checklist) => {
     try {
+      const checklistTitle = checklist.title
+        ? checklist.title.toUpperCase().slice(0, max_title_length)
+        : "NOME PADRÃO";
+  
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklist.id);
-
-      const emptyChecklist = {};
+  
+      const emptyChecklist = { title: checklistTitle };
+  
       await checklistRef.set(emptyChecklist, { merge: true });
-
+  
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklist.id]: emptyChecklist,
       }));
-
+  
       setOpenChecklistModal(false);
       clearFields();
     } catch (error) {
@@ -128,16 +135,20 @@ const ChecklistManager = () => {
 
   const handleSaveBloco = async (bloco) => {
     try {
+      const blocoTitle = bloco.title
+        ? bloco.title.toUpperCase().slice(0, max_title_length)
+        : "BLOCO PADRÃO";
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(selectedChecklist);
 
-      const blocoData = checklists[selectedChecklist]?.[bloco.title] || [];
+      const blocoData = checklists[selectedChecklist]?.[blocoTitle] || [];
 
       await checklistRef.set(
         {
-          [bloco.title]: blocoData,
+          [blocoTitle]: blocoData,
         },
         { merge: true }
       );
@@ -146,7 +157,7 @@ const ChecklistManager = () => {
         ...prevChecklists,
         [selectedChecklist]: {
           ...prevChecklists[selectedChecklist],
-          [bloco.title]: blocoData,
+          [blocoTitle]: blocoData,
         },
       }));
 
@@ -550,8 +561,7 @@ const ChecklistManager = () => {
                                 disabled={
                                   index ===
                                   checklists[selectedChecklist][selectedBloco]
-                                    .length -
-                                  1
+                                    .length - 1
                                 }
                               >
                                 <ArrowDownward />
