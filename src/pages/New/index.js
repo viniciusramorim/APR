@@ -22,18 +22,29 @@ import InputComponent from './InputComponent';
 
 export default function New() {
 
-  useEffect(() => {
-    addBodyClass('page-new');
-  }, []);
-
-  const base = 'aprs-producao' //aprs-producao
-  const storage = 'images' //images
-
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
   const { id_assign } = useParams();
 
+  useEffect(() => {
+    addBodyClass('page-new');
+
+    loadSite();
+    getCheckLists();
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+      setLocation(position.coords)
+    })
+
+  }, [id])
+
+  const base = 'aprs-producao' //aprs-producao
+  const storage = 'images' //images
+
+  //question
   const [questions, setQuestions] = useState([]);
+  const [listQuestions, setListQuestions] = useState([]);
+
   const [motivoAPR, setMotivoAPR] = useState('');
 
   const [siteInfo, setSiteInfo] = useState([]);
@@ -56,43 +67,29 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState('');
   const [valorEstoque, setValorEstoque] = useState('0');
 
-  const handleValorEstoqueChange = (e) => {
-    // Formata o valor para moeda BRL
-    let valor = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(e.target.value.replace(/\D/g, '') / 100); // Divida por 100 para obter os centavos
+  async function getCheckLists(){
+    const collections = await firebase.firestore().collection('question').get();
+    setListQuestions(collections.docs);
+  }
 
-    setValorEstoque(valor);
-  };
-
-  useEffect(() => {
-    async function loadSite() {
-      await firebase.firestore().collection('sites')
-        .doc(id)
-        .get()
-        .then((snapshot) => {
-          setSiteInfo(snapshot.data());
-          if (snapshot.data().last_apr !== undefined) {
-            setLastAPR({
-              data: format(snapshot.data().last_apr.toDate(), 'dd/MM/yyyy HH:mm'),
-              motivo: snapshot.data().last_motivo
-            })
-          }
-          setInicio(new Date());
-        })
-        .catch((error) => {
-          console.log('DEU ALGUM ERRO!', error);
-        })
-    }
-
-    loadSite()
-
-    navigator.geolocation.getCurrentPosition(function (position) {
-      setLocation(position.coords)
-    })
-
-  }, [id])
+  async function loadSite() {
+    await firebase.firestore().collection('sites')
+      .doc(id)
+      .get()
+      .then((snapshot) => {
+        setSiteInfo(snapshot.data());
+        if (snapshot.data().last_apr !== undefined) {
+          setLastAPR({
+            data: format(snapshot.data().last_apr.toDate(), 'dd/MM/yyyy HH:mm'),
+            motivo: snapshot.data().last_motivo
+          })
+        }
+        setInicio(new Date());
+      })
+      .catch((error) => {
+        console.log('DEU ALGUM ERRO!', error);
+      })
+  }
 
   async function getQuestions(snapshot) {
     navigator.permissions.query({ name: 'geolocation' })
@@ -696,7 +693,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(siteInfo.tipoSite)} />
+          <FiClipboard size={25} onClick={() => console.log(getCheckLists())} />
         </Title>
 
         <div className='container'>
@@ -749,17 +746,11 @@ export default function New() {
         <div className='container' id='container' style={{ display: 'none' }}>
           <select id='selectSite' defaultValue={'0'} onChange={e => getQuestions(e.target.value)}>
             <option disabled value={'0'}>Selecione um tipo de site...</option>
-            <option value={'ERB'}>ERB</option>
-            <option value={'CT'}>CT</option>
-            <option value={'CD'}>CD</option>
-            <option value={'PREDIO CORE'}>PREDIO CORE</option>
-            <option value={'LOJA'}>LOJA</option>
-            <option value={'LOJA DEALER'}>LOJA DEALER</option>
-            <option value={'OUTDOOR'}>ARMARIO OUTDOOR</option>
-            <option value={'INDOOR'}>ARMARIO INDOOR</option>
-            <option value={'AUDIT PGR MOVEL'}>AUDIT PGR MOVEL</option>
-            <option value={'AUDIT PGR FIXA'}>AUDIT PGR FIXA</option>
-            <option value={'SMARTTAG2'}>SMARTTAG</option>
+            {listQuestions.map((value, index) => {
+              return (
+                <option key={index} value={value.id}>{value.id}</option>
+              )
+            })}
           </select>
         </div>
 
@@ -836,7 +827,7 @@ export default function New() {
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
                       if (exibition === true) return (
                         <div key={indexDoc} className='container-perg'>
-                          {doc.questionId} - {doc.question}
+                          {indexDoc + 1} - {doc.question}
                           <div>
                             {doc.selectOptions === true && (
                               <>
