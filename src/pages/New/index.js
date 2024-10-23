@@ -67,7 +67,7 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState('');
   const [valorEstoque, setValorEstoque] = useState('0');
 
-  async function getCheckLists(){
+  async function getCheckLists() {
     const collections = await firebase.firestore().collection('question').get();
     setListQuestions(collections.docs);
   }
@@ -816,15 +816,13 @@ export default function New() {
                   <span id={`container-${indexA}`} style={{ display: 'block' }}>
                     {area[1].map((doc, indexDoc) => {
                       let exibition = false
-                      if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') &&
-                        doc.estados.includes(siteInfo.Estado) &&
-                        (
-                          doc.valorArmazenado && (((valorArmazenamento / 100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento / 100))) ||
-                          doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
-                          doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
-                        )
-                      ) exibition = true
+                      if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && doc.estados.includes(siteInfo.Estado) && (
+                        doc.valorArmazenado && (((valorArmazenamento / 100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento / 100))) ||
+                        doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
+                        doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
+                      )) exibition = true
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
+                      
                       if (exibition === true) return (
                         <div key={indexDoc} className='container-perg'>
                           {indexDoc + 1} - {doc.question}
