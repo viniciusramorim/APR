@@ -19,7 +19,7 @@ import {
 import firebase from "../../services/firebaseConnection";
 import "../../components/Question/styles/questionnaireForm.scss";
 import { AuthContext } from "../../contexts/auth";
-
+ 
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -32,10 +32,10 @@ const modalStyle = {
   maxHeight: "90vh",
   overflowY: "auto",
 };
-
+ 
 const MyModal = ({ open, handleClose }) => {
   const { user } = useContext(AuthContext);
-
+ 
   const [formData, setFormData] = useState({
     question: "",
     answers: ["Sim", "Não"],
@@ -58,23 +58,23 @@ const MyModal = ({ open, handleClose }) => {
     peso: 0,
     inputImagesLibrary: false,
   });
-
+ 
   const [checklistOptions, setChecklistOptions] = useState([]);
   const [selectedChecklist, setSelectedChecklist] = useState("");
   const [newChecklist, setNewChecklist] = useState("");
-
+ 
   const [blocoOptions, setBlocoOptions] = useState([]);
   const [selectedBloco, setSelectedBloco] = useState("");
   const [newBloco, setNewBloco] = useState("");
-
+ 
   const [areaResposavelOptions, setAreaResposavelOptions] = useState([
     "oem",
     "patrimonial",
   ]);
-
+ 
   const [hierarchicalData, setHierarchicalData] = useState({});
   const [error, setError] = useState(null);
-
+ 
   // Carrega os checklists e blocos do Firebase
   const loadData = useCallback(async () => {
     try {
@@ -85,10 +85,10 @@ const MyModal = ({ open, handleClose }) => {
         data[doc.id] = doc.data();
       });
       setHierarchicalData(data);
-
+ 
       const checklistNames = Object.keys(data);
       setChecklistOptions(checklistNames);
-
+ 
       // Inicializa o checklist e bloco selecionados
       if (checklistNames.length > 0) {
         setSelectedChecklist(checklistNames[0]);
@@ -103,14 +103,14 @@ const MyModal = ({ open, handleClose }) => {
       setError("Erro ao carregar dados. Por favor, tente novamente.");
     }
   }, []);
-
+ 
   // Carrega os dados quando o modal é aberto
   useEffect(() => {
     if (open) {
       loadData();
     }
   }, [open, loadData]);
-
+ 
   // Atualiza o usuário no formulário
   useEffect(() => {
     if (user) {
@@ -120,7 +120,7 @@ const MyModal = ({ open, handleClose }) => {
       }));
     }
   }, [user]);
-
+ 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevData) => ({
@@ -128,7 +128,7 @@ const MyModal = ({ open, handleClose }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
   }, []);
-
+ 
   const handleNewChecklist = useCallback(() => {
     if (newChecklist && !checklistOptions.includes(newChecklist)) {
       setChecklistOptions((prevOptions) => [...prevOptions, newChecklist]);
@@ -142,7 +142,7 @@ const MyModal = ({ open, handleClose }) => {
       setSelectedBloco("");
     }
   }, [newChecklist, checklistOptions]);
-
+ 
   const handleNewBloco = useCallback(() => {
     if (newBloco && selectedChecklist && !blocoOptions.includes(newBloco)) {
       setBlocoOptions((prevOptions) => [...prevOptions, newBloco]);
@@ -157,7 +157,7 @@ const MyModal = ({ open, handleClose }) => {
       setNewBloco("");
     }
   }, [newBloco, selectedChecklist, blocoOptions]);
-
+ 
   const handleNewAreaResponsavel = useCallback(() => {
     if (
       formData.newAreaResponsavel &&
@@ -174,7 +174,7 @@ const MyModal = ({ open, handleClose }) => {
       }));
     }
   }, [formData.newAreaResponsavel, areaResposavelOptions]);
-
+ 
   const handleAddQuestion = useCallback(() => {
     if (!selectedChecklist || !selectedBloco) {
       setError(
@@ -182,11 +182,11 @@ const MyModal = ({ open, handleClose }) => {
       );
       return;
     }
-
+ 
     const newQuestionId = `${selectedChecklist}-${selectedBloco}-${
       (hierarchicalData[selectedChecklist]?.[selectedBloco]?.length || 0) + 1
     }`;
-
+ 
     setHierarchicalData((prevData) => ({
       ...prevData,
       [selectedChecklist]: {
@@ -200,7 +200,7 @@ const MyModal = ({ open, handleClose }) => {
         ],
       },
     }));
-
+ 
     setFormData((prevData) => ({
       ...prevData,
       question: "",
@@ -208,27 +208,27 @@ const MyModal = ({ open, handleClose }) => {
         (hierarchicalData[selectedChecklist]?.[selectedBloco]?.length || 0) + 2
       }`,
     }));
-
+ 
     setError(null);
-
+ 
     const blockElement = document.getElementById(`block-${selectedBloco}`);
     if (blockElement) {
       blockElement.scrollIntoView({ behavior: "smooth" });
     }
   }, [formData, selectedChecklist, selectedBloco, hierarchicalData]);
-
+ 
   const handleSubmit = useCallback(async () => {
     try {
       const batch = firebase.firestore().batch();
       const checklistsRef = firebase.firestore().collection("question");
-
+ 
       Object.keys(hierarchicalData).forEach((checklistName) => {
         const checklistDoc = checklistsRef.doc(checklistName);
         batch.set(checklistDoc, hierarchicalData[checklistName], {
           merge: true,
         });
       });
-
+ 
       await batch.commit();
       console.log("Dados salvos com sucesso:", hierarchicalData);
       handleClose();
@@ -237,7 +237,7 @@ const MyModal = ({ open, handleClose }) => {
       console.error("Erro ao salvar:", error);
     }
   }, [hierarchicalData, handleClose]);
-
+ 
   useEffect(() => {
     if (selectedChecklist) {
       const blocoNames = Object.keys(hierarchicalData[selectedChecklist] || {});
@@ -247,7 +247,7 @@ const MyModal = ({ open, handleClose }) => {
       }
     }
   }, [selectedChecklist, hierarchicalData, selectedBloco]);
-
+ 
   useEffect(() => {
     if (user) {
       const userName = user.nome || user.displayName || user.email || "Usuário";
@@ -257,7 +257,7 @@ const MyModal = ({ open, handleClose }) => {
       }));
     }
   }, [user]);
-
+ 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={modalStyle}>
@@ -283,7 +283,7 @@ const MyModal = ({ open, handleClose }) => {
             <MenuItem value="addNew">Adicionar novo checklist</MenuItem>
           </Select>
         </FormControl>
-
+ 
         {selectedChecklist === "addNew" && (
           <>
             <TextField
@@ -298,12 +298,12 @@ const MyModal = ({ open, handleClose }) => {
             </Button>
           </>
         )}
-
+ 
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           Selecione um bloco de perguntas abaixo:
         </Typography>
-
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Bloco</InputLabel>
           <Select
@@ -318,7 +318,7 @@ const MyModal = ({ open, handleClose }) => {
             <MenuItem value="newBloco">Adicionar novo Bloco</MenuItem>
           </Select>
         </FormControl>
-
+ 
         {selectedBloco === "newBloco" && (
           <>
             <TextField
@@ -333,13 +333,13 @@ const MyModal = ({ open, handleClose }) => {
             </Button>
           </>
         )}
-
+ 
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           Insira aqui a pergunta que deseja adicionar ao bloco
         </Typography>
         <Divider sx={{ my: 2 }} />
-
+ 
         <TextField
           label="Pergunta"
           name="question"
@@ -348,13 +348,13 @@ const MyModal = ({ open, handleClose }) => {
           fullWidth
           margin="normal"
         />
-
+ 
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           Configure aqui os campos da sua pergunta
         </Typography>
         <Divider sx={{ my: 2 }} />
-
+ 
         <TextField
           type="number"
           label="Peso"
@@ -369,7 +369,7 @@ const MyModal = ({ open, handleClose }) => {
           fullWidth
           margin="normal"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -380,7 +380,7 @@ const MyModal = ({ open, handleClose }) => {
           }
           label="Possui campo de texto adicional?"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -391,7 +391,7 @@ const MyModal = ({ open, handleClose }) => {
           }
           label="Possui select de opções?"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -402,8 +402,8 @@ const MyModal = ({ open, handleClose }) => {
           }
           label="Possui upload de imagens?"
         />
-
-
+ 
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
@@ -421,7 +421,7 @@ const MyModal = ({ open, handleClose }) => {
             </MenuItem>
           </Select>
         </FormControl>
-
+ 
         {formData.areaResposavel === "addNewResponsavel" && (
           <>
             <TextField
@@ -437,7 +437,7 @@ const MyModal = ({ open, handleClose }) => {
             </Button>
           </>
         )}
-
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Criticidade</InputLabel>
           <Select
@@ -450,7 +450,7 @@ const MyModal = ({ open, handleClose }) => {
             <MenuItem value="Alto">Alto</MenuItem>
           </Select>
         </FormControl>
-
+ 
         <TextField
           label="ID da Pergunta"
           name="questionId"
@@ -459,13 +459,13 @@ const MyModal = ({ open, handleClose }) => {
           margin="normal"
           disabled
         />
-
+ 
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           Selecione o Gabarito e o Plano de Ação
         </Typography>
         <Divider sx={{ my: 2 }} />
-
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>
           <Select
@@ -478,7 +478,7 @@ const MyModal = ({ open, handleClose }) => {
             <MenuItem value="ambas">Ambas</MenuItem>
           </Select>
         </FormControl>
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -489,7 +489,7 @@ const MyModal = ({ open, handleClose }) => {
           }
           label="Plano de Ação aberto?"
         />
-
+ 
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom>
           <p>
@@ -504,7 +504,7 @@ const MyModal = ({ open, handleClose }) => {
           </p>
         </Typography>
         <Divider sx={{ my: 2 }} />
-
+ 
         <TextField
           label="Criado por"
           name="user"
@@ -513,7 +513,7 @@ const MyModal = ({ open, handleClose }) => {
           margin="normal"
           disabled
         />
-
+ 
         <TextField
           label="Última Atualização"
           name="lastUpdate"
@@ -522,17 +522,17 @@ const MyModal = ({ open, handleClose }) => {
           margin="normal"
           disabled
         />
-
+ 
         {error && (
           <Typography color="error" gutterBottom>
             {error}
           </Typography>
         )}
-
+ 
         <Button variant="contained" onClick={handleAddQuestion} fullWidth>
           Adicionar Pergunta
         </Button>
-
+ 
         {selectedChecklist && (
           <Box mt={2}>
             <Typography variant="h6" gutterBottom>
@@ -554,7 +554,7 @@ const MyModal = ({ open, handleClose }) => {
             </List>
           </Box>
         )}
-
+ 
         <Button variant="contained" onClick={handleSubmit} fullWidth>
           Salvar
         </Button>
@@ -562,6 +562,5 @@ const MyModal = ({ open, handleClose }) => {
     </Modal>
   );
 };
-
+ 
 export default MyModal;
-

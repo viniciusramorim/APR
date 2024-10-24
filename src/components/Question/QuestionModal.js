@@ -13,22 +13,25 @@ import {
   FormControl,
   Switch,
   Divider,
+  IconButton,
 } from "@mui/material";
 import { AuthContext } from "../../contexts/auth";
-
+import DeleteIcon from '@mui/icons-material/Delete';
+import './styles/questionnaireForm.scss';
+ 
 const modalStyle = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 600,
+  width: 1000,
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   maxHeight: "90vh",
   overflowY: "auto",
 };
-
+ 
 const QuestionModal = ({
   open,
   onClose,
@@ -38,7 +41,7 @@ const QuestionModal = ({
   questionId,
 }) => {
   const { user } = useContext(AuthContext);
-
+ 
   const initialFormData = {
     question: "",
     answers: ["Sim", "Não"],
@@ -59,16 +62,20 @@ const QuestionModal = ({
     lastUpdate: new Date(),
     status: true,
     peso: 0,
+    peso_icd: 0,
+    peso_fmc: 0,
+    peso_rct: 0,
+    peso_daef: 0,
     inputImagesLibrary: false,
+    optionList: [],
+    listCheckOptions: false,
+    optionListResp: "",
   };
-
+ 
   const [formData, setFormData] = useState(initialFormData);
-  const [areaOptions, setAreaOptions] = useState([
-    "oem",
-    "patrimonial"
-  ]);
+  const [areaOptions, setAreaOptions] = useState(["oem", "patrimonial"]);
   const [newArea, setNewArea] = useState("");
-
+  const [newOption, setNewOption] = useState("");
   useEffect(() => {
     if (question) {
       setFormData({
@@ -85,7 +92,7 @@ const QuestionModal = ({
       });
     }
   }, [question, open, questionId]);
-
+ 
   useEffect(() => {
     if (user) {
       setFormData((prevData) => ({
@@ -94,7 +101,7 @@ const QuestionModal = ({
       }));
     }
   }, [user]);
-
+ 
   useEffect(() => {
     if (selectedBlocoTitle) {
       setFormData((prevData) => ({
@@ -103,7 +110,7 @@ const QuestionModal = ({
       }));
     }
   }, [selectedBlocoTitle]);
-
+ 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevData) => ({
@@ -111,27 +118,55 @@ const QuestionModal = ({
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
+ 
   const handleAreaResponsavelChange = (event) => {
     const { value } = event.target;
     setFormData((prevData) => ({
       ...prevData,
-      areaResponsavel: typeof value === "string" ? value.split(",") : value,
+      areaResponsavel:
+        typeof value === "string" ? value.split(",") : value,
     }));
   };
-
+ 
   const handleAddNewAreaResponsavel = () => {
     if (!newArea.trim()) return;
-
+ 
     setAreaOptions((prevOptions) => [...prevOptions, newArea]);
     setFormData((prevData) => ({
       ...prevData,
       areaResponsavel: [...prevData.areaResponsavel, newArea],
     }));
-
+ 
     setNewArea("");
   };
-
+ 
+  // Função para salvar a opção selecionada diretamente como string
+  const handleOptionSelect = (event) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      selectedOption: event.target.value,
+    }));
+  };
+ 
+  // Função para adicionar uma nova opção à lista de opções do Select
+  const handleAddOption = () => {
+    if (newOption.trim() !== "") {
+      setFormData((prevData) => ({
+        ...prevData,
+        optionList: [...prevData.optionList, newOption],
+      }));
+      setNewOption("");
+    }
+  };
+ 
+  // Função para excluir uma opção do Select
+  const handleDeleteOption = (optionToDelete) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      optionList: prevData.optionList.filter((option) => option !== optionToDelete),
+    }));
+  };
+ 
   const handleSave = () => {
     const formattedQuestion = {
       ...formData,
@@ -140,7 +175,7 @@ const QuestionModal = ({
     onSave(formattedQuestion);
     onClose();
   };
-
+ 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
@@ -148,6 +183,7 @@ const QuestionModal = ({
           Preencha as Informações da Pergunta
         </Typography>
         <Divider sx={{ my: 2 }} />
+ 
         <TextField
           label="Pergunta"
           name="question"
@@ -156,24 +192,121 @@ const QuestionModal = ({
           fullWidth
           margin="normal"
         />
-        <TextField
-          type="number"
-          label="Peso"
-          name="peso"
-          value={formData.peso}
-          onChange={(e) =>
-            setFormData({ ...formData, peso: parseInt(e.target.value) })
-          }
-          fullWidth
-          margin="normal"
-        />
-
-        {/* Select de Área Responsável com múltipla seleção */}
+ 
+        <div className="type-weight">
+          <TextField
+            sx={{
+              width: {
+                xs: '100%',
+                md: '100%'
+              },
+            }}
+            type="number"
+            label="Peso"
+            name="peso"
+            value={formData.peso}
+            onChange={(e) =>
+              setFormData({ ...formData, peso: parseInt(e.target.value) })
+            }
+            fullWidth
+            margin="normal"
+          />
+          <div className="nivel-impacto">
+            <h2>Nível de Impacto</h2>
+            <TextField
+              sx={{
+                width: {
+                  xs: '100%',
+                  md: '100%',
+                  sm: '100%',
+                  lg: '25%',
+                },
+              }}
+              type="number"
+              label="Invasão de CD"
+              name="peso_icd"
+              value={formData.peso_icd}
+              onChange={(e) =>
+                setFormData({ ...formData, peso_icd: parseInt(e.target.value) })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              sx={{
+                width: {
+                  xs: '100%',
+                  md: '100%',
+                  sm: '100%',
+                  lg: '25%',
+                },
+                padding: {
+                  xs: '0px',
+                  md: '0px',
+                  lg: '0px 10px'
+                }
+              }}
+              type="number"
+              label="Furto de Mercadoria CD"
+              name="peso_fmc"
+              value={formData.peso_fmc}
+              onChange={(e) =>
+                setFormData({ ...formData, peso_fmc: parseInt(e.target.value) })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              sx={{
+                width: {
+                  xs: '100%',
+                  md: '100%',
+                  sm: '100%',
+                  lg: '25%',
+                },
+                padding: {
+                  xs: '0px',
+                  md: '0px',
+                  lg: '0px 10px'
+                }
+              }}
+              type="number"
+              label="Roubo de Carga Transporte"
+              name="peso_rct"
+              value={formData.peso_rct}
+              onChange={(e) =>
+                setFormData({ ...formData, peso_rct: parseInt(e.target.value) })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              sx={{
+                width: {
+                  xs: '100%',
+                  md: '100%',
+                  sm: '100%',
+                  lg: '25%',
+                },
+              }}
+              type="number"
+              label="Danos a estrutura física"
+              name="peso_daef"
+              value={formData.peso_daef}
+              onChange={(e) =>
+                setFormData({ ...formData, peso_daef: parseInt(e.target.value) })
+              }
+              fullWidth
+              margin="normal"
+            />
+          </div>
+        </div>
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
             name="areaResponsavel"
-            multiple
+            multiple // Permite seleção múltipla
             value={formData.areaResponsavel}
             onChange={handleAreaResponsavelChange}
             fullWidth
@@ -186,7 +319,7 @@ const QuestionModal = ({
             <MenuItem value="addNew">Adicionar nova área</MenuItem>
           </Select>
         </FormControl>
-
+ 
         {formData.areaResponsavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
@@ -205,7 +338,7 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
-
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>
           <Select
@@ -218,7 +351,7 @@ const QuestionModal = ({
             <MenuItem value="Ambas">Ambas</MenuItem>
           </Select>
         </FormControl>
-
+ 
         <FormControl fullWidth margin="normal">
           <InputLabel>Criticidade</InputLabel>
           <Select
@@ -231,7 +364,7 @@ const QuestionModal = ({
             <MenuItem value="Alto">Alto</MenuItem>
           </Select>
         </FormControl>
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -242,7 +375,7 @@ const QuestionModal = ({
           }
           label="Habilitar Plano de Ação"
         />
-
+ 
         <FormControlLabel
           control={
             <Switch
@@ -258,18 +391,18 @@ const QuestionModal = ({
           }
           label="Status (Ativa/Inativa)"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
-              checked={formData.selectOptions}
+              checked={formData.listCheck}
               onChange={handleChange}
-              name="selectOptions"
+              name="listCheck"
             />
           }
-          label="Possui select de opções?"
+          label="Adicionar Lista de Opções?"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -280,7 +413,7 @@ const QuestionModal = ({
           }
           label="Possui campo de texto adicional?"
         />
-
+ 
         <FormControlLabel
           control={
             <Checkbox
@@ -291,7 +424,50 @@ const QuestionModal = ({
           }
           label="Possui upload de imagens?"
         />
-
+        {/* Input para adicionar novas opções ao Select */}
+        {formData.listCheck && (
+          <Box display="flex" mb={2}>
+            <TextField
+              label="Nova Opção"
+              value={newOption}
+              onChange={(e) => setNewOption(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <Button
+              variant="contained"
+              onClick={handleAddOption}
+              sx={{ ml: 2, mt: 2 }}
+            >
+              Adicionar Opção
+            </Button>
+          </Box>
+        )}
+        {/* Exibir Select com as opções dinâmicas */}
+        {formData.listCheck && (
+          <>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Selecione uma Opção</InputLabel>
+              <Select
+                value={formData.selectedOption}
+                onChange={handleOptionSelect}
+                fullWidth
+              >
+                {formData.optionList.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                    <IconButton
+                      onClick={() => handleDeleteOption(option)}
+                      sx={{ marginLeft: "auto" }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
+        )}
         <TextField
           label="Criado por"
           name="user"
@@ -308,7 +484,7 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
-
+ 
         <TextField
           label="Última Atualização"
           name="lastUpdate"
@@ -329,5 +505,5 @@ const QuestionModal = ({
     </Modal>
   );
 };
-
+ 
 export default QuestionModal;

@@ -1,23 +1,82 @@
 @import "../../../styles/_variables.scss";
 @import "../../../styles/_mixins.scss";
-
+ 
 h6.MuiTypography-root.MuiTypography-subtitle1.MuiTypography-gutterBottom.css-1wniyei-MuiTypography-root {
   background: $typography-bg;
   padding: 10px;
   border-radius: 8px;
   color: $white-color;
 }
-
+ 
 @include respond-to(medium) {
   .css-10bu1ee {
     width: 90% !important;
   }
 }
-
+ 
 .MuiContainer-root.MuiContainer-maxWidthMd.css-u4uvlt-MuiContainer-root {
-  justify-content:left;
-  padding:0px;
+  justify-content: left;
+  padding: 0px;
   margin: unset;
   padding-left: 21px;
-  max-width:unset;
+  max-width: unset;
+}
+ 
+.MuiBox-root.css-1yuhvjn {
+  display: flex;
+  flex-direction: column;
+}
+ 
+.css-79ws1d-MuiModal-root .css-1yuhvjn button {
+  margin: 15px 10px;
+  padding: 15px 60px;
+}
+ 
+h2.MuiTypography-root.MuiTypography-h6.MuiTypography-gutterBottom.css-uyrjoy-MuiTypography-root {
+  background: #430058;
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+ 
+.nivel-impacto {
+  background: #f5d6ff;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  border-radius: 10px;
+  margin: 10px 0px;
+}
+ 
+.MuiBox-root.css-1kukc4r {
+  display: flex;
+  align-content: space-around;
+  flex-direction: row;
+}
+ 
+button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.css-12jx62w-MuiButtonBase-root-MuiButton-root {
+  width: 200px;
+  height: 56px;
+  margin: 15px 10px;
+  background: #430058;
+  font-weight: bold;
+}
+ 
+ 
+button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.css-1aj6dcf-MuiButtonBase-root-MuiButton-root {
+  background: #430058;
+  height: 50px;
+}
+ 
+@media(max-width:1200px) {
+  .css-19pkmqe {
+    max-width: 600px;
+    width: 90%!important;
+  }
+ 
+  .nivel-impacto {
+    flex-direction: column;
+  }
+ 
 }
