@@ -28,25 +28,25 @@ import BlocoModal from "../../components/Question/BlocoModal";
 import QuestionModal from "../../components/Question/QuestionModal";
 import "../../pages/Questionarios/Question.scss";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
- 
+
 const ChecklistManager = () => {
   const [checklists, setChecklists] = useState({});
   const [selectedChecklist, setSelectedChecklist] = useState(null);
   const [selectedBloco, setSelectedBloco] = useState(null);
   const [selectedBlocoTitle, setSelectedBlocoTitle] = useState("");
- 
+
   const [openChecklistModal, setOpenChecklistModal] = useState(false);
   const [openBlocoModal, setOpenBlocoModal] = useState(false);
   const [openQuestionModal, setOpenQuestionModal] = useState(false);
- 
+
   const [editingChecklist, setEditingChecklist] = useState(null);
   const [editingBloco, setEditingBloco] = useState(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
- 
+
   const max_title_length = 20;
- 
+
   useEffect(() => {
-    addBodyClass('page-questions');
+    addBodyClass("page-questions");
     const fetchChecklists = async () => {
       try {
         const checklistsRef = firebase.firestore().collection("question");
@@ -62,7 +62,7 @@ const ChecklistManager = () => {
     };
     fetchChecklists();
   }, []);
- 
+
   const clearFields = () => {
     setEditingChecklist(null);
     setEditingBloco(null);
@@ -70,20 +70,20 @@ const ChecklistManager = () => {
     setSelectedBloco(null);
     setSelectedBlocoTitle("");
   };
- 
+
   const handleAddChecklist = () => {
     setEditingChecklist(null);
     setOpenChecklistModal(true);
   };
- 
+
   const handleAddBloco = () => {
     setEditingBloco(null);
     setOpenBlocoModal(true);
   };
- 
+
   const handleAddQuestion = () => {
     if (!selectedChecklist || !selectedBloco) {
-      console.error(
+      alert.error(
         "Checklist e Bloco devem ser selecionados antes de adicionar uma pergunta."
       );
       return;
@@ -91,13 +91,13 @@ const ChecklistManager = () => {
     setEditingQuestion(null);
     setOpenQuestionModal(true);
   };
- 
+
   const handleChecklistClick = (checklistId) => {
     setSelectedChecklist(checklistId);
     setSelectedBloco(null);
     setSelectedBlocoTitle("");
   };
- 
+
   const handleBlocoClick = (blocoId) => {
     const blocoTitle =
       checklists[selectedChecklist]?.[blocoId]?.title || blocoId;
@@ -105,54 +105,54 @@ const ChecklistManager = () => {
     setSelectedBlocoTitle(blocoTitle);
     console.log("Bloco selecionado:", blocoTitle);
   };
- 
+
   const handleSaveChecklist = async (checklist) => {
     try {
       const checklistTitle = checklist.title
         ? checklist.title.toUpperCase().slice(0, max_title_length)
         : "NOME PADRÃO";
- 
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklist.id);
- 
+
       const emptyChecklist = { title: checklistTitle };
- 
+
       await checklistRef.set(emptyChecklist, { merge: true });
- 
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklist.id]: emptyChecklist,
       }));
- 
+
       setOpenChecklistModal(false);
       clearFields();
     } catch (error) {
       console.error("Erro ao salvar o checklist:", error);
     }
   };
- 
+
   const handleSaveBloco = async (bloco) => {
     try {
       const blocoTitle = bloco.title
         ? bloco.title.toUpperCase().slice(0, max_title_length)
         : "BLOCO PADRÃO";
- 
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(selectedChecklist);
- 
+
       const blocoData = checklists[selectedChecklist]?.[blocoTitle] || [];
- 
+
       await checklistRef.set(
         {
           [blocoTitle]: blocoData,
         },
         { merge: true }
       );
- 
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [selectedChecklist]: {
@@ -160,14 +160,14 @@ const ChecklistManager = () => {
           [blocoTitle]: blocoData,
         },
       }));
- 
+
       setOpenBlocoModal(false);
       clearFields();
     } catch (error) {
       console.error("Erro ao salvar o bloco:", error);
     }
   };
- 
+
   const handleSaveQuestion = async (question) => {
     try {
       if (!selectedChecklist || !selectedBloco) {
@@ -176,28 +176,28 @@ const ChecklistManager = () => {
         );
         return;
       }
- 
+
       if (
         !question.question ||
         question.question.trim() === "" ||
         !question.area ||
         question.area.trim() === ""
       ) {
-        console.error("A pergunta ou área não podem estar vazias!");
+        alert("A pergunta ou área não podem estar vazias!");
         return;
       }
- 
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(selectedChecklist);
- 
+
       let updatedBlocoData = checklists[selectedChecklist][selectedBloco] || [];
- 
+
       if (!Array.isArray(updatedBlocoData)) {
         updatedBlocoData = [];
       }
- 
+
       if (editingQuestion) {
         const questionIndex = updatedBlocoData.findIndex(
           (q) => q.questionId === editingQuestion.questionId
@@ -220,9 +220,9 @@ const ChecklistManager = () => {
           },
         ];
       }
- 
+
       await checklistRef.update({ [`${selectedBloco}`]: updatedBlocoData });
- 
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [selectedChecklist]: {
@@ -230,14 +230,14 @@ const ChecklistManager = () => {
           [selectedBloco]: updatedBlocoData,
         },
       }));
- 
+
       setOpenQuestionModal(false);
       clearFields();
     } catch (error) {
       console.error("Erro ao salvar a pergunta:", error);
     }
   };
- 
+
   const handleDeleteBloco = async (blocoId) => {
     try {
       if (!selectedChecklist || !blocoId) {
@@ -251,7 +251,7 @@ const ChecklistManager = () => {
       await checklistRef.update({
         [blocoId]: firebase.firestore.FieldValue.delete(),
       });
- 
+
       setChecklists((prevChecklists) => {
         const updatedChecklists = { ...prevChecklists };
         delete updatedChecklists[selectedChecklist][blocoId];
@@ -263,24 +263,24 @@ const ChecklistManager = () => {
       console.error("Erro ao excluir o bloco:", error);
     }
   };
- 
+
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
     setOpenQuestionModal(true);
   };
- 
+
   const handleDeleteQuestion = async (checklistId, blocoId, questionId) => {
     try {
       let updatedBlocoData = checklists[checklistId][blocoId].filter(
         (q) => q.questionId !== questionId
       );
- 
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
       await checklistRef.update({ [blocoId]: updatedBlocoData });
- 
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklistId]: {
@@ -288,13 +288,13 @@ const ChecklistManager = () => {
           [blocoId]: updatedBlocoData,
         },
       }));
- 
+
       console.log(`Pergunta excluída com sucesso do bloco ${blocoId}`);
     } catch (error) {
       console.error("Erro ao excluir a pergunta:", error);
     }
   };
- 
+
   const moveQuestion = async (
     checklistId,
     blocoId,
@@ -304,22 +304,22 @@ const ChecklistManager = () => {
     try {
       let blocoData = [...checklists[checklistId][blocoId]];
       const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
- 
+
       if (newIndex < 0 || newIndex >= blocoData.length) return;
- 
+
       [blocoData[currentIndex], blocoData[newIndex]] = [
         blocoData[newIndex],
         blocoData[currentIndex],
       ];
- 
+
       blocoData = blocoData.map((q, index) => ({ ...q, order: index + 1 }));
- 
+
       const checklistRef = firebase
         .firestore()
         .collection("question")
         .doc(checklistId);
       await checklistRef.update({ [blocoId]: blocoData });
- 
+
       setChecklists((prevChecklists) => ({
         ...prevChecklists,
         [checklistId]: {
@@ -327,15 +327,15 @@ const ChecklistManager = () => {
           [blocoId]: blocoData,
         },
       }));
- 
-      console.log(
-        `Pergunta movida para ${direction === "up" ? "cima" : "baixo"}`
+
+      alert(
+        `Pergunta ${currentIndex} movida para ${direction === "up" ? "cima" : "baixo"}`
       );
     } catch (error) {
       console.error("Erro ao mover a pergunta:", error);
     }
   };
- 
+
   const handleDeleteChecklist = async (checklistId) => {
     if (
       window.confirm(
@@ -360,7 +360,7 @@ const ChecklistManager = () => {
       }
     }
   };
- 
+
   return (
     <div className="apr-digital">
       <Header />
@@ -561,7 +561,8 @@ const ChecklistManager = () => {
                                 disabled={
                                   index ===
                                   checklists[selectedChecklist][selectedBloco]
-                                    .length - 1
+                                    .length -
+                                    1
                                 }
                               >
                                 <ArrowDownward />
@@ -590,7 +591,7 @@ const ChecklistManager = () => {
           </Container>
         </div>
       </div>
- 
+
       {/* Modais para adicionar ou editar */}
       <ChecklistModal
         open={openChecklistModal}
@@ -598,14 +599,14 @@ const ChecklistManager = () => {
         onSave={handleSaveChecklist}
         checklist={editingChecklist}
       />
- 
+
       <BlocoModal
         open={openBlocoModal}
         onClose={() => setOpenBlocoModal(false)}
         onSave={handleSaveBloco}
         bloco={editingBloco}
       />
- 
+
       <QuestionModal
         open={openQuestionModal}
         onClose={() => setOpenQuestionModal(false)}
@@ -618,5 +619,5 @@ const ChecklistManager = () => {
     </div>
   );
 };
- 
+
 export default ChecklistManager;

@@ -64,9 +64,17 @@
   color: $text-color-light;
 }
 
+.page-apply-apr .ReactModal__Overlay,
+.page-dash .ReactModal__Overlay {
+  background-color: #00000086 !important;
+  z-index: 999 !important;
+}
+
 .ReactModal__Overlay {
   background-color: #000 !important;
 }
+
+
 
 @include respond-to(medium) {
   .card-group {

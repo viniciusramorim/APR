@@ -16,9 +16,9 @@ import {
   IconButton,
 } from "@mui/material";
 import { AuthContext } from "../../contexts/auth";
-import DeleteIcon from '@mui/icons-material/Delete';
-import './styles/questionnaireForm.scss';
- 
+import DeleteIcon from "@mui/icons-material/Delete";
+import "./styles/questionnaireForm.scss";
+
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -31,7 +31,7 @@ const modalStyle = {
   maxHeight: "90vh",
   overflowY: "auto",
 };
- 
+
 const QuestionModal = ({
   open,
   onClose,
@@ -41,7 +41,8 @@ const QuestionModal = ({
   questionId,
 }) => {
   const { user } = useContext(AuthContext);
- 
+  const [newOption, setNewOption] = useState("");
+
   const initialFormData = {
     question: "",
     answers: ["Sim", "Não"],
@@ -61,29 +62,30 @@ const QuestionModal = ({
     user: user ? user.nome : "",
     lastUpdate: new Date(),
     status: true,
-    peso: 0,
-    peso_icd: 0,
-    peso_fmc: 0,
-    peso_rct: 0,
-    peso_daef: 0,
+    peso: "",
+    peso_icd: "",
+    peso_fmc: "",
+    peso_rct: "",
+    peso_daef: "",
     inputImagesLibrary: false,
     optionList: [],
-    listCheckOptions: false,
+    listCheck: false,
     optionListResp: "",
   };
- 
+
   const [formData, setFormData] = useState(initialFormData);
   const [areaOptions, setAreaOptions] = useState(["oem", "patrimonial"]);
   const [newArea, setNewArea] = useState("");
-  const [newOption, setNewOption] = useState("");
+
   useEffect(() => {
     if (question) {
       setFormData({
-        ...formData,
+        ...initialFormData,
         ...question,
         lastUpdate: new Date(),
         area: selectedBlocoTitle || "",
         areaResponsavel: question.areaResponsavel || [],
+        listCheck: question.listCheck || false,
       });
     } else {
       setFormData({
@@ -92,7 +94,7 @@ const QuestionModal = ({
       });
     }
   }, [question, open, questionId]);
- 
+
   useEffect(() => {
     if (user) {
       setFormData((prevData) => ({
@@ -101,7 +103,7 @@ const QuestionModal = ({
       }));
     }
   }, [user]);
- 
+
   useEffect(() => {
     if (selectedBlocoTitle) {
       setFormData((prevData) => ({
@@ -110,7 +112,7 @@ const QuestionModal = ({
       }));
     }
   }, [selectedBlocoTitle]);
- 
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevData) => ({
@@ -118,28 +120,27 @@ const QuestionModal = ({
       [name]: type === "checkbox" ? checked : value,
     }));
   };
- 
+
   const handleAreaResponsavelChange = (event) => {
     const { value } = event.target;
     setFormData((prevData) => ({
       ...prevData,
-      areaResponsavel:
-        typeof value === "string" ? value.split(",") : value,
+      areaResponsavel: typeof value === "string" ? value.split(",") : value,
     }));
   };
- 
+
   const handleAddNewAreaResponsavel = () => {
     if (!newArea.trim()) return;
- 
+
     setAreaOptions((prevOptions) => [...prevOptions, newArea]);
     setFormData((prevData) => ({
       ...prevData,
       areaResponsavel: [...prevData.areaResponsavel, newArea],
     }));
- 
+
     setNewArea("");
   };
- 
+
   // Função para salvar a opção selecionada diretamente como string
   const handleOptionSelect = (event) => {
     setFormData((prevData) => ({
@@ -147,7 +148,7 @@ const QuestionModal = ({
       selectedOption: event.target.value,
     }));
   };
- 
+
   // Função para adicionar uma nova opção à lista de opções do Select
   const handleAddOption = () => {
     if (newOption.trim() !== "") {
@@ -158,15 +159,17 @@ const QuestionModal = ({
       setNewOption("");
     }
   };
- 
+
   // Função para excluir uma opção do Select
   const handleDeleteOption = (optionToDelete) => {
     setFormData((prevData) => ({
       ...prevData,
-      optionList: prevData.optionList.filter((option) => option !== optionToDelete),
+      optionList: prevData.optionList.filter(
+        (option) => option !== optionToDelete
+      ),
     }));
   };
- 
+
   const handleSave = () => {
     const formattedQuestion = {
       ...formData,
@@ -175,7 +178,7 @@ const QuestionModal = ({
     onSave(formattedQuestion);
     onClose();
   };
- 
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
@@ -183,7 +186,7 @@ const QuestionModal = ({
           Preencha as Informações da Pergunta
         </Typography>
         <Divider sx={{ my: 2 }} />
- 
+
         <TextField
           label="Pergunta"
           name="question"
@@ -192,13 +195,13 @@ const QuestionModal = ({
           fullWidth
           margin="normal"
         />
- 
+
         <div className="type-weight">
           <TextField
             sx={{
               width: {
-                xs: '100%',
-                md: '100%'
+                xs: "100%",
+                md: "100%",
               },
             }}
             type="number"
@@ -216,18 +219,22 @@ const QuestionModal = ({
             <TextField
               sx={{
                 width: {
-                  xs: '100%',
-                  md: '100%',
-                  sm: '100%',
-                  lg: '25%',
+                  xs: "100%",
+                  md: "100%",
+                  sm: "100%",
+                  lg: "25%",
                 },
               }}
+              placeholder="0"
               type="number"
-              label="Invasão de CD"
+              label="Invasão"
               name="peso_icd"
               value={formData.peso_icd}
               onChange={(e) =>
-                setFormData({ ...formData, peso_icd: parseInt(e.target.value) })
+                setFormData({
+                  ...formData,
+                  peso_icd: parseInt(e.target.value),
+                })
               }
               fullWidth
               margin="normal"
@@ -235,23 +242,27 @@ const QuestionModal = ({
             <TextField
               sx={{
                 width: {
-                  xs: '100%',
-                  md: '100%',
-                  sm: '100%',
-                  lg: '25%',
+                  xs: "100%",
+                  md: "100%",
+                  sm: "100%",
+                  lg: "25%",
                 },
                 padding: {
-                  xs: '0px',
-                  md: '0px',
-                  lg: '0px 10px'
-                }
+                  xs: "0px",
+                  md: "0px",
+                  lg: "0px 10px",
+                },
               }}
+              placeholder="0"
               type="number"
-              label="Furto de Mercadoria CD"
+              label="Furto de Mercadoria"
               name="peso_fmc"
               value={formData.peso_fmc}
               onChange={(e) =>
-                setFormData({ ...formData, peso_fmc: parseInt(e.target.value) })
+                setFormData({
+                  ...formData,
+                  peso_fmc: parseInt(e.target.value),
+                })
               }
               fullWidth
               margin="normal"
@@ -259,23 +270,27 @@ const QuestionModal = ({
             <TextField
               sx={{
                 width: {
-                  xs: '100%',
-                  md: '100%',
-                  sm: '100%',
-                  lg: '25%',
+                  xs: "100%",
+                  md: "100%",
+                  sm: "100%",
+                  lg: "25%",
                 },
                 padding: {
-                  xs: '0px',
-                  md: '0px',
-                  lg: '0px 10px'
-                }
+                  xs: "0px",
+                  md: "0px",
+                  lg: "0px 10px",
+                },
               }}
+              placeholder="0"
               type="number"
               label="Roubo de Carga Transporte"
               name="peso_rct"
               value={formData.peso_rct}
               onChange={(e) =>
-                setFormData({ ...formData, peso_rct: parseInt(e.target.value) })
+                setFormData({
+                  ...formData,
+                  peso_rct: parseInt(e.target.value),
+                })
               }
               fullWidth
               margin="normal"
@@ -283,30 +298,34 @@ const QuestionModal = ({
             <TextField
               sx={{
                 width: {
-                  xs: '100%',
-                  md: '100%',
-                  sm: '100%',
-                  lg: '25%',
+                  xs: "100%",
+                  md: "100%",
+                  sm: "100%",
+                  lg: "25%",
                 },
               }}
+              placeholder="0"
               type="number"
               label="Danos a estrutura física"
               name="peso_daef"
               value={formData.peso_daef}
               onChange={(e) =>
-                setFormData({ ...formData, peso_daef: parseInt(e.target.value) })
+                setFormData({
+                  ...formData,
+                  peso_daef: parseInt(e.target.value),
+                })
               }
               fullWidth
               margin="normal"
             />
           </div>
         </div>
- 
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
             name="areaResponsavel"
-            multiple // Permite seleção múltipla
+            multiple
             value={formData.areaResponsavel}
             onChange={handleAreaResponsavelChange}
             fullWidth
@@ -319,7 +338,7 @@ const QuestionModal = ({
             <MenuItem value="addNew">Adicionar nova área</MenuItem>
           </Select>
         </FormControl>
- 
+
         {formData.areaResponsavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
@@ -338,7 +357,7 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
- 
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>
           <Select
@@ -351,7 +370,7 @@ const QuestionModal = ({
             <MenuItem value="Ambas">Ambas</MenuItem>
           </Select>
         </FormControl>
- 
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Criticidade</InputLabel>
           <Select
@@ -364,7 +383,7 @@ const QuestionModal = ({
             <MenuItem value="Alto">Alto</MenuItem>
           </Select>
         </FormControl>
- 
+
         <FormControlLabel
           control={
             <Checkbox
@@ -375,7 +394,7 @@ const QuestionModal = ({
           }
           label="Habilitar Plano de Ação"
         />
- 
+
         <FormControlLabel
           control={
             <Switch
@@ -391,7 +410,7 @@ const QuestionModal = ({
           }
           label="Status (Ativa/Inativa)"
         />
- 
+
         <FormControlLabel
           control={
             <Checkbox
@@ -402,7 +421,7 @@ const QuestionModal = ({
           }
           label="Adicionar Lista de Opções?"
         />
- 
+
         <FormControlLabel
           control={
             <Checkbox
@@ -413,7 +432,7 @@ const QuestionModal = ({
           }
           label="Possui campo de texto adicional?"
         />
- 
+
         <FormControlLabel
           control={
             <Checkbox
@@ -424,6 +443,7 @@ const QuestionModal = ({
           }
           label="Possui upload de imagens?"
         />
+
         {/* Input para adicionar novas opções ao Select */}
         {formData.listCheck && (
           <Box display="flex" mb={2}>
@@ -443,6 +463,7 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
+
         {/* Exibir Select com as opções dinâmicas */}
         {formData.listCheck && (
           <>
@@ -468,6 +489,7 @@ const QuestionModal = ({
             </FormControl>
           </>
         )}
+
         <TextField
           label="Criado por"
           name="user"
@@ -476,6 +498,7 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
+
         <TextField
           label="ID da Pergunta"
           name="questionId"
@@ -484,7 +507,7 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
- 
+
         <TextField
           label="Última Atualização"
           name="lastUpdate"
@@ -493,6 +516,7 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
+
         <Button
           variant="contained"
           onClick={handleSave}
@@ -505,5 +529,5 @@ const QuestionModal = ({
     </Modal>
   );
 };
- 
+
 export default QuestionModal;

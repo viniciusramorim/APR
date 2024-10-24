@@ -20,6 +20,17 @@ import { Link } from "react-router-dom";
 import { Close, Search } from "@mui/icons-material";
 import { TableHead } from "@mui/material";
 
+// Função para salvar a página no localStorage
+const savePageToLocalStorage = (page) => {
+  localStorage.setItem("tablePage", page);
+};
+
+// Função para carregar a página do localStorage
+const loadPageFromLocalStorage = () => {
+  const savedPage = localStorage.getItem("tablePage");
+  return savedPage ? parseInt(savedPage, 10) : 0; // Se não houver página salva, retorna 0
+};
+
 function TablePaginationActions(props) {
   const theme = useTheme();
   const { count, page, rowsPerPage, onPageChange } = props;
@@ -92,20 +103,23 @@ TablePaginationActions.propTypes = {
 export default function CustomPaginationActionsTable(props) {
   const { chamados, user, updateStatus } = props;
 
-  const [page, setPage] = React.useState(0);
+  // Carregar a página inicial do localStorage
+  const [page, setPage] = React.useState(loadPageFromLocalStorage());
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
-  // Avoid a layout jump when reaching the last page with empty chamados.
+  // Evitar saltos na última página quando houver registros vazios.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - chamados.length) : 0;
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+    savePageToLocalStorage(newPage); // Salvar a página no localStorage
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+    savePageToLocalStorage(0); // Reseta para a primeira página e salva no localStorage
   };
 
   return (
@@ -132,9 +146,9 @@ export default function CustomPaginationActionsTable(props) {
         <TableBody>
           {(rowsPerPage > 0
             ? chamados.slice(
-                page * rowsPerPage,
-                page * rowsPerPage + rowsPerPage
-              )
+              page * rowsPerPage,
+              page * rowsPerPage + rowsPerPage
+            )
             : chamados
           ).map((row, index) => (
             <TableRow key={row.id}>
@@ -173,14 +187,14 @@ export default function CustomPaginationActionsTable(props) {
                 </Link>
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && (
-                  <IconButton
-                    onClick={() => updateStatus(row.id, index)}
-                    color="error"
-                    aria-label="add an alarm"
-                  >
-                    <Close />
-                  </IconButton>
-                )}
+                    <IconButton
+                      onClick={() => updateStatus(row.id, index)}
+                      color="error"
+                      aria-label="add an alarm"
+                    >
+                      <Close />
+                    </IconButton>
+                  )}
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
               </TableCell>
