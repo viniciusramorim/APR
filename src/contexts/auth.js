@@ -90,25 +90,19 @@ function AuthProvider({ children }) {
             return toast.error(
               "E-mail já utilizado. Vá para a página de login."
             );
-            break;
           case "ERROR_WRONG_PASSWORD":
           case "auth/wrong-password":
             return toast.error("E-mail / Senha incorretos !");
-            break;
           case "ERROR_USER_NOT_FOUND":
           case "auth/user-not-found":
             return toast.error("E-mail inserido não cadastrado !");
-            break;
           case "auth/invalid-email":
             return toast.error("E-mail invalido !");
-            break;
           case "ERROR_USER_DISABLED":
           case "auth/user-disabled":
             return toast.error("Usuario desabilitado !");
-            break;
           default:
             return toast.error(error.code);
-            break;
         }
       });
   }
