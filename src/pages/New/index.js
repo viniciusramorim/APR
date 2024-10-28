@@ -119,6 +119,12 @@ export default function New() {
     questions[indexA][1][objIndex].respTextArea = e.target.value;
     setQuestions(questions)
   }
+  //questions selectArea
+  function selectAreaValue(question, indexA, e) {
+    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    questions[indexA][1][objIndex].optionListResp = e.target.value;
+    setQuestions(questions)
+  }
   //questions sim ou não
   function radioSetValue(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
@@ -128,19 +134,25 @@ export default function New() {
 
     let textarea = document.getElementById(indexA + "_textarea_" + question.questionId)
     let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA)
+    let inputSelectResp = document.getElementById(indexA + "_select_" + question.questionId)
 
-    if (e.target.value === '' && textarea && inputimage) {
+    if (e.target.value === '' && textarea && inputimage && inputSelectResp) {
       textarea.style.display = 'none'
       inputimage.style.display = 'none'
+      inputSelectResp.style.display = 'none'
       return
     }
 
     if (question.textarea === true) {
-      textarea.style.display = 'block'
-      inputimage.style.display = 'flex'
-    } else if (question.textarea === true) {
-      textarea.style.display = 'none'
-      inputimage.style.display = 'none'
+      textarea.style.display = textarea.style.display === 'block' ? 'none' : 'block'
+    }
+
+    if (question.inputImages === true) {
+      inputimage.style.display = inputimage.style.display === 'flex' ? 'none' : 'flex'
+    }
+
+    if (question.listCheck === true) {
+      inputSelectResp.style.display = inputSelectResp.style.display === 'block' ? 'none' : 'block'
     }
   }
 
@@ -822,7 +834,7 @@ export default function New() {
                         doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
                       )) exibition = true
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
-                      
+
                       if (exibition === true) return (
                         <div key={indexDoc} className='container-perg'>
                           {indexDoc + 1} - {doc.question}
@@ -888,6 +900,22 @@ export default function New() {
                                 onChange={(e) => textareaValue(doc, indexA, e)}
                                 defaultValue={doc.respTextArea !== '' && doc.resp !== doc.respGabarito ? doc.respTextArea : ''}
                               />
+                            )}
+                            {doc.listCheck === true && (
+                              <select
+                                id={indexA + "_select_" + doc.questionId}
+                                placeholder="Selecione uma resposta..."
+                                style={{ display: doc.resp !== '' ? 'block' : 'none' }}
+                                onChange={(e) => selectAreaValue(doc, indexA, e)}
+                                defaultValue={doc.optionListResp !== '' && doc.resp !== doc.respGabarito ? doc.optionListResp : ''}
+                              >
+                                <option key={"00_option_" + doc.questionId} value={''} disabled>Selecione uma resposta...</option>
+                                {doc.optionList.map((value, index) => {
+                                  return(
+                                    <option key={index + "_option_" + doc.questionId} value={value}>{value}</option>
+                                  )
+                                })}
+                              </select>
                             )}
                           </div>
                           <i className='clearQuestion' onClick={(() => clearQuestion(doc, indexA))}> Limpar </i>

@@ -46,7 +46,7 @@ const QuestionModal = ({
   const initialFormData = {
     question: "",
     answers: ["Sim", "Não"],
-    selectOptions: false,
+    selectOptions: true,
     textarea: false,
     inputImages: false,
     questionId: questionId || 0,
