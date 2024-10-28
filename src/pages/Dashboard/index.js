@@ -88,15 +88,15 @@ export default function Dashboard() {
     // Recupera o último botão clicado e dispara o clique correspondente
     const lastButtonClicked = loadLastButtonFromLocalStorage();
     if (lastButtonClicked === "all") {
-      loadChamados(false); // Carregar todas as APRs
+      loadChamados(false);
     } else if (lastButtonClicked === "new") {
-      loadChamados(true); // Carregar novas APRs
+      loadChamados(true);
     }
   }, []);
 
   // Função para carregar os chamados com base nos filtros
   const loadChamados = async (novasAPRs = false) => {
-    setLoading(true); // Começar carregamento
+    setLoading(true);
     let regional = [];
     let query = listRef;
 
@@ -129,8 +129,8 @@ export default function Dashboard() {
             created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
           });
         });
-        setChamados(lista); // Atualiza o estado com os dados carregados
-        setLoading(false); // Finaliza o carregamento
+        setChamados(lista);
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Erro ao carregar APRs: ", err);
@@ -149,7 +149,7 @@ export default function Dashboard() {
       .then(() => {
         let updatedChamados = [...chamados];
         updatedChamados[index].status = "Cancelado";
-        setChamados(updatedChamados); // Atualiza o estado localmente
+        setChamados(updatedChamados);
         logSistem(`APR foi alterado o status para Cancelado`, id);
         toast.success("Status da APR alterado com sucesso!");
       })
@@ -168,7 +168,7 @@ export default function Dashboard() {
     setFilterNome("");
     setFilterID("");
     setFilterMotivo("");
-    clearLocalStorage(); // Limpar o localStorage
+    clearLocalStorage();
   };
 
   // Atualizar o estado dos filtros e salvar no localStorage
@@ -181,11 +181,10 @@ export default function Dashboard() {
       filterNome,
       filterID,
       filterMotivo,
-      [name]: value, // Atualiza o filtro específico
+      [name]: value,
     };
-    saveFiltersToLocalStorage(newFilters); // Salva no localStorage
+    saveFiltersToLocalStorage(newFilters);
 
-    // Atualizar o estado do filtro específico
     switch (name) {
       case "filterUF":
         setFilterUF(value);
@@ -212,6 +211,24 @@ export default function Dashboard() {
         break;
     }
   };
+  function contAprs(status) {
+    var quantidadeElementos = chamados.filter(
+      (x) => x.status === status
+    ).length;
+    return quantidadeElementos;
+  }
+
+  const styles = {
+    containerDash: {
+      background: "#380054e8",
+      color: "#fff",
+      padding: "6px",
+      borderRadius: "8px",
+    },
+    gridContainer: {
+      gap: "10px",
+    },
+  };
 
   return (
     <div className="apr-digital">
@@ -220,6 +237,68 @@ export default function Dashboard() {
         <Title name="APRs">
           <FiMessageSquare size={25} onClick={() => console.log("")} />
         </Title>
+        {(user.nivel === "administrador" || user.nivel === "revisor") && (
+          <Grid
+            container
+            marginBottom={2}
+            justifyContent="center"
+            alignItems="center"
+            textAlign="center"
+            sx={styles.gridContainer}
+          >
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Em Aberto</Grid>
+              <Grid>{contAprs("Em Aberto")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Cancelado</Grid>
+              <Grid>{contAprs("Cancelado")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Enviado</Grid>
+              <Grid>{contAprs("Enviado")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={5}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Respondido pela Área</Grid>
+              <Grid>{contAprs("Respondido pela Área")}</Grid>
+            </Grid>
+          </Grid>
+        )}
 
         <div className="container filter">
           <Grid container spacing={2}>
@@ -386,7 +465,7 @@ export default function Dashboard() {
               <Button
                 variant="outlined"
                 color="secondary"
-                onClick={clearFilters} // Limpar filtros
+                onClick={clearFilters}
                 fullWidth
               >
                 Limpar Filtros
@@ -409,7 +488,7 @@ export default function Dashboard() {
               variant="contained"
               onClick={() => {
                 loadChamados(false);
-                saveLastButtonToLocalStorage("all"); // Salva o botão clicado
+                saveLastButtonToLocalStorage("all");
               }}
               disabled={loading}
             >
@@ -422,7 +501,7 @@ export default function Dashboard() {
               style={{ marginLeft: "10px" }}
               onClick={() => {
                 loadChamados(true);
-                saveLastButtonToLocalStorage("new"); // Salva o botão clicado
+                saveLastButtonToLocalStorage("new");
               }}
               disabled={loading}
             >
@@ -435,7 +514,7 @@ export default function Dashboard() {
         <TableDashboard
           chamados={chamados}
           user={user}
-          updateStatus={updateStatus} // Passando a função corretamente
+          updateStatus={updateStatus} 
         />
       </div>
     </div>
