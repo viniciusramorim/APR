@@ -1,8 +1,6 @@
-
-import { useState, createContext, useEffect } from 'react';
-import firebase from '../services/firebaseConnection';
-import { toast } from 'react-toastify';
-
+import { useState, createContext, useEffect } from "react";
+import firebase from "../services/firebaseConnection";
+import { toast } from "react-toastify";
 
 export const AuthContext = createContext({});
 
@@ -12,9 +10,8 @@ function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
     function loadStorage() {
-      const storageUser = sessionStorage.getItem('SistemaUser');
+      const storageUser = sessionStorage.getItem("SistemaUser");
 
       if (storageUser) {
         setUser(JSON.parse(storageUser));
@@ -25,13 +22,11 @@ function AuthProvider({ children }) {
     }
 
     loadStorage();
-
-  }, [])
+  }, []);
 
   async function authStateChanged() {
     await firebase.auth().onAuthStateChanged(async (user, index) => {
       if (user) {
-
       } else {
         signOut();
       }
@@ -43,10 +38,16 @@ function AuthProvider({ children }) {
     setLoadingAuth(true);
 
     // efetua login
-    await firebase.auth().signInWithEmailAndPassword(email, password)
+    await firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
       .then(async (value) => {
         let uid = value.user.uid;
-        let userProfile = await firebase.firestore().collection('users').doc(uid).get();
+        let userProfile = await firebase
+          .firestore()
+          .collection("users")
+          .doc(uid)
+          .get();
         // if (value.user.emailVerified === false) {
         //   let text = "Para entrar você precisa verificar seu e-mail!\nClique em  OK para reenviar seu e-mail.";
         //   if (window.confirm(text) == true) {
@@ -57,7 +58,7 @@ function AuthProvider({ children }) {
         //   setLoadingAuth(false);
         // } else
         if (userProfile.data().status === false) {
-          toast.info('Ops... Você precisa ter permissão para acessar!');
+          toast.info("Ops... Você precisa ter permissão para acessar!");
           setLoadingAuth(false);
         } else {
           let data = {
@@ -68,12 +69,15 @@ function AuthProvider({ children }) {
             nivel: userProfile.data().nivel,
             uf: userProfile.data().uf,
             status: userProfile.data().status,
-            regional: userProfile.data().regional === undefined ? '' : userProfile.data().regional,
+            regional:
+              userProfile.data().regional === undefined
+                ? ""
+                : userProfile.data().regional,
           };
           setUser(data);
           storageUser(data);
           setLoadingAuth(false);
-          toast.success('Bem vindo de volta!');
+          toast.success("Bem vindo de volta!");
         }
       })
       .catch((error) => {
@@ -83,7 +87,9 @@ function AuthProvider({ children }) {
           case "ERROR_EMAIL_ALREADY_IN_USE":
           case "account-exists-with-different-credential":
           case "auth/email-already-in-use":
-            return toast.error("E-mail já utilizado. Vá para a página de login.");
+            return toast.error(
+              "E-mail já utilizado. Vá para a página de login."
+            );
             break;
           case "ERROR_WRONG_PASSWORD":
           case "auth/wrong-password":
@@ -104,9 +110,7 @@ function AuthProvider({ children }) {
             return toast.error(error.code);
             break;
         }
-
-      })
-
+      });
   }
   //Cadastrando um novo usuario
   async function signUp(email, password, nome, area, nivel, estado, status) {
@@ -116,7 +120,7 @@ function AuthProvider({ children }) {
     let small = (password.match(/[a-z]/g) || []).length;
     let num = (password.match(/[0-9]/g) || []).length;
     let specialSymbol = (password.match(/\W/g) || []).length;
-    let lengthMin = password.length
+    let lengthMin = password.length;
 
     if (caps < 1) {
       toast.error("Senha deve conter pelo menos uma letra MAIUSCULA");
@@ -131,7 +135,9 @@ function AuthProvider({ children }) {
       setLoadingAuth(false);
       return;
     } else if (specialSymbol < 1) {
-      toast.error("Senha deve conter pelo menos um CARACTER ESPECIAL: @$! % * ? &");
+      toast.error(
+        "Senha deve conter pelo menos um CARACTER ESPECIAL: @$! % * ? &"
+      );
       setLoadingAuth(false);
       return;
     } else if (lengthMin < 10) {
@@ -140,13 +146,18 @@ function AuthProvider({ children }) {
       return;
     }
 
-    await firebase.auth().createUserWithEmailAndPassword(email, password)
+    await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
       .then(async (value) => {
         let uid = value.user.uid;
 
         if (value.user != null) {
-          await firebase.firestore().collection('users')
-            .doc(uid).set({
+          await firebase
+            .firestore()
+            .collection("users")
+            .doc(uid)
+            .set({
               nome: nome,
               email: value.user.email,
               area: area,
@@ -159,52 +170,62 @@ function AuthProvider({ children }) {
               setTimeout(function () {
                 window.location.href = "/"; //move para pagina inicial
               }, 1000);
-            })
+            });
         }
-
       })
       .catch((error) => {
         console.log(error);
         toast.error(error.code);
         setLoadingAuth(false);
-      })
-
+      });
   }
 
   function storageUser(data) {
-    sessionStorage.setItem('SistemaUser', JSON.stringify(data));
+    sessionStorage.setItem("SistemaUser", JSON.stringify(data));
   }
+
+  const clearLocalStorage = () => {
+    localStorage.removeItem("filters");
+    localStorage.removeItem("tablePage");
+    localStorage.removeItem("lastButtonClicked");
+  };
+
   //Logout do usuario
   async function signOut() {
-    await firebase.auth().signOut().then(async () => {
-      sessionStorage.removeItem('SistemaUser');
-      setUser(null);
-    })
+    await firebase
+      .auth()
+      .signOut()
+      .then(async () => {
+        sessionStorage.removeItem("SistemaUser");
+        clearLocalStorage();
+        setUser(null);
+      });
   }
 
   async function resetPassword(email) {
-    await firebase.auth().sendPasswordResetEmail(email)
+    await firebase
+      .auth()
+      .sendPasswordResetEmail(email)
       .then(() => {
-        toast.success("Foi enviado um e-mail para redefinir sua senha !")
+        toast.success("Foi enviado um e-mail para redefinir sua senha !");
       })
-      .catch(err => {
-        toast.error(err.code)
-      })
+      .catch((err) => {
+        toast.error(err.code);
+      });
   }
 
   async function redefinirPassword() {
-
-    let password = prompt('Digite sua nova senha.');
-    if (password === null) return
+    let password = prompt("Digite sua nova senha.");
+    if (password === null) return;
 
     let user = firebase.auth().currentUser;
-    let newPassword = password.replaceAll(' ', '');
+    let newPassword = password.replaceAll(" ", "");
 
     let caps = (password.match(/[A-Z]/g) || []).length;
     let small = (password.match(/[a-z]/g) || []).length;
     let num = (password.match(/[0-9]/g) || []).length;
     let specialSymbol = (password.match(/\W/g) || []).length;
-    let lengthMin = password.length
+    let lengthMin = password.length;
 
     if (caps < 1) {
       toast.error("Senha deve conter pelo menos uma letra MAIUSCULA");
@@ -216,90 +237,109 @@ function AuthProvider({ children }) {
       toast.error("Senha deve conter pelo menos um NUMERO");
       return;
     } else if (specialSymbol < 1) {
-      toast.error("Senha deve conter pelo menos um CARACTER ESPECIAL: @$! % * ? &");
+      toast.error(
+        "Senha deve conter pelo menos um CARACTER ESPECIAL: @$! % * ? &"
+      );
       return;
     } else if (lengthMin < 10) {
       toast.error("Senha deve conter no minimo 10 CARACTER");
       return;
     }
 
-    user.updatePassword(newPassword).then(() => {
-      toast.success("Senha alterada com sucesso!")
-      console.log(newPassword)
-    }).catch((error) => {
-      console.log(error)
-    });
+    user
+      .updatePassword(newPassword)
+      .then(() => {
+        toast.success("Senha alterada com sucesso!");
+        console.log(newPassword);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   async function redefinirEmail() {
-    let email = prompt('Digite seu novo e-mail.');
-    if (email === null) return
+    let email = prompt("Digite seu novo e-mail.");
+    if (email === null) return;
     let user = firebase.auth().currentUser;
 
-    user.updateEmail(email).then(async () => {
-      await firebase.firestore().collection('users')
-        .doc(user.uid).update({
-          email: user.email,
-        })
-        .then(() => {
-          toast.success("email atualizado com sucesso! Entre no seu e-mail e confirme a troca.")
-          signOut()
-        })
-    }).catch((error) => {
-      console.log(error)
-      switch (error.code) {
-        case "ERROR_EMAIL_ALREADY_IN_USE":
-        case "account-exists-with-different-credential":
-        case "auth/email-already-in-use":
-          return toast.error("E-mail já utilizado. Vá para a página de login.");
-          break;
-        case "ERROR_WRONG_PASSWORD":
-        case "auth/wrong-password":
-          return toast.error("E-mail / Senha incorretos !");
-          break;
-        case "ERROR_USER_NOT_FOUND":
-        case "auth/user-not-found":
-          return toast.error("E-mail inserido não cadastrado !");
-          break;
-        case "auth/invalid-email":
-          return toast.error("E-mail invalido !");
-          break;
-        case "ERROR_USER_DISABLED":
-        case "auth/user-disabled":
-          return toast.error("Usuario desabilitado !");
-          break;
-        case "auth/requires-recent-login":
-          return toast.error("Renove seu login e tente novamente.");
-          break;
-        default:
-          return toast.error(error.code);
-          break;
-      };
-    })
+    user
+      .updateEmail(email)
+      .then(async () => {
+        await firebase
+          .firestore()
+          .collection("users")
+          .doc(user.uid)
+          .update({
+            email: user.email,
+          })
+          .then(() => {
+            toast.success(
+              "email atualizado com sucesso! Entre no seu e-mail e confirme a troca."
+            );
+            signOut();
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+        switch (error.code) {
+          case "ERROR_EMAIL_ALREADY_IN_USE":
+          case "account-exists-with-different-credential":
+          case "auth/email-already-in-use":
+            return toast.error(
+              "E-mail já utilizado. Vá para a página de login."
+            );
+            break;
+          case "ERROR_WRONG_PASSWORD":
+          case "auth/wrong-password":
+            return toast.error("E-mail / Senha incorretos !");
+            break;
+          case "ERROR_USER_NOT_FOUND":
+          case "auth/user-not-found":
+            return toast.error("E-mail inserido não cadastrado !");
+            break;
+          case "auth/invalid-email":
+            return toast.error("E-mail invalido !");
+            break;
+          case "ERROR_USER_DISABLED":
+          case "auth/user-disabled":
+            return toast.error("Usuario desabilitado !");
+            break;
+          case "auth/requires-recent-login":
+            return toast.error("Renove seu login e tente novamente.");
+            break;
+          default:
+            return toast.error(error.code);
+            break;
+        }
+      });
   }
 
   async function currentUsers() {
     let curentUsers = firebase.auth().currentUser;
-    console.log(curentUsers)
+    console.log(curentUsers);
   }
 
   async function logSistem(evento, chamado) {
-    var ip = 'null'
-    let nome = 'null'
+    var ip = "null";
+    let nome = "null";
 
     try {
-      nome = user.nome
-    } catch { }
+      nome = user.nome;
+    } catch {}
 
-    await firebase.firestore().collection('log').add({
-      event: evento,
-      user: nome,
-      chamado: chamado ? chamado : '',
-      ip: ip,
-      data: new Date(),
-    }).then(() => {
-      console.log('log salvo')
-    })
+    await firebase
+      .firestore()
+      .collection("log")
+      .add({
+        event: evento,
+        user: nome,
+        chamado: chamado ? chamado : "",
+        ip: ip,
+        data: new Date(),
+      })
+      .then(() => {
+        console.log("log salvo");
+      });
   }
 
   return (
@@ -319,12 +359,12 @@ function AuthProvider({ children }) {
         currentUsers,
         authStateChanged,
         redefinirEmail,
-        logSistem
+        logSistem,
       }}
     >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export default AuthProvider;
