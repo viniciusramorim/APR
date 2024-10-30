@@ -108,29 +108,29 @@ const ChecklistManager = () => {
 
   const handleSaveChecklist = async (checklist) => {
     try {
-        const checklistId = checklist.title
-            ? checklist.title.replace(/-/g, " ").toUpperCase().slice(0, max_title_length)
-            : "NOME_PADRÃO";
+      const checklistId = checklist.title
+        ? checklist.title.replace(/-/g, " ").toUpperCase().slice(0, max_title_length)
+        : "NOME_PADRÃO";
 
-        const checklistRef = firebase
-            .firestore()
-            .collection("question")
-            .doc(checklistId);
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(checklistId);
 
-        await checklistRef.set({}, { merge: true });
+      await checklistRef.set({}, { merge: true });
 
 
-        setChecklists((prevChecklists) => ({
-            ...prevChecklists,
-            [checklistId]: {},
-        }));
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [checklistId]: {},
+      }));
 
-        setOpenChecklistModal(false);
-        clearFields();
+      setOpenChecklistModal(false);
+      clearFields();
     } catch (error) {
-        console.error("Erro ao salvar o checklist:", error);
+      console.error("Erro ao salvar o checklist:", error);
     }
-};
+  };
 
   const handleSaveBloco = async (bloco) => {
     try {
@@ -523,7 +523,9 @@ const ChecklistManager = () => {
                               secondary={question.question}
                               className="item-question"
                             />
-                            <ListItemSecondaryAction>
+                            <ListItemSecondaryAction
+                              className="btn-comand"
+                            >
                               <IconButton
                                 edge="end"
                                 aria-label="edit"
@@ -561,7 +563,7 @@ const ChecklistManager = () => {
                                   index ===
                                   checklists[selectedChecklist][selectedBloco]
                                     .length -
-                                    1
+                                  1
                                 }
                               >
                                 <ArrowDownward />

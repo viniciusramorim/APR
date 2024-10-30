@@ -38,7 +38,7 @@
   display: flex;
   gap: 20px;
 
-  .MuiListItemText-root.css-tlelie-MuiListItemText-root {
+  .btn-comand {
     &:nth-child(2):not(p) {
       display: flex;
       gap: 20px;
@@ -64,7 +64,7 @@
   }
 }
 
-.question-box .MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root {
+.question-box {
   display: flex;
   flex-direction: row;
   gap: 5px;
@@ -105,8 +105,8 @@
   }
 }
 
-.question-box ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root {
-  li.MuiListItem-container.css-oyakqy-MuiListItem-container {
+.question-box ul {
+  li {
     transition: 0.5s;
 
     &:hover {
@@ -202,6 +202,7 @@ button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSu
   align-items: center;
   justify-content: flex-start;
   flex-wrap: nowrap;
+  gap: 5px
 }
 
 .question-box li>div .item-index {

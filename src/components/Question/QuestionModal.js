@@ -518,6 +518,7 @@ const QuestionModal = ({
         />
 
         <Button
+        className="save-button"
           variant="contained"
           onClick={handleSave}
           fullWidth

@@ -49,13 +49,13 @@ h2.MuiTypography-root.MuiTypography-h6.MuiTypography-gutterBottom.css-uyrjoy-Mui
   margin: 10px 0px;
 }
  
-.MuiBox-root.css-1kukc4r {
+.new-option {
   display: flex;
   align-content: space-around;
   flex-direction: row;
 }
  
-.new-option button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.css-12jx62w-MuiButtonBase-root-MuiButton-root {
+.new-option > button {
   width: 200px;
   height: 56px;
   margin: 15px 10px;
@@ -64,7 +64,7 @@ h2.MuiTypography-root.MuiTypography-h6.MuiTypography-gutterBottom.css-uyrjoy-Mui
 }
  
  
-button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeMedium.MuiButton-containedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.css-1aj6dcf-MuiButtonBase-root-MuiButton-root {
+button.save-button {
   background: #430058;
   height: 50px;
 }
