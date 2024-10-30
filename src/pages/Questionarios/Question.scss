@@ -4,8 +4,8 @@
 // cards
 
 .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiCard-root.css-6fm6rz-MuiPaper-root-MuiCard-root {
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
 }
 
@@ -64,7 +64,7 @@
   }
 }
 
-.MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root {
+.question-box .MuiListItemSecondaryAction-root.css-518kzi-MuiListItemSecondaryAction-root {
   display: flex;
   flex-direction: row;
   gap: 5px;
@@ -105,7 +105,7 @@
   }
 }
 
-ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root {
+.question-box ul.MuiList-root.MuiList-padding.css-h4y409-MuiList-root {
   li.MuiListItem-container.css-oyakqy-MuiListItem-container {
     transition: 0.5s;
 
@@ -146,10 +146,10 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
 
 .MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.MuiListItem-secondaryAction.css-1mnohwx-MuiListItem-root {
   &:hover {
-    transition:0.2s;
-    background:$white-color;
+    transition: 0.2s;
+    background: $white-color;
     border-radius: 8px;
-    cursor:pointer;
+    cursor: pointer;
   }
 }
 
@@ -158,17 +158,17 @@ h5.MuiTypography-root.MuiTypography-h5.MuiTypography-gutterBottom.css-h93ljk-Mui
   flex-direction: row;
   gap: 20px;
   justify-content: space-between;
-  
+
   @include respond-to(medium) {
     flex-direction: column;
-    gap:0px;
+    gap: 0px;
   }
 }
 
 button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSuccess.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorSuccess.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSuccess.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorSuccess.css-yrdp3g-MuiButtonBase-root-MuiButton-root {
   @include respond-to(medium) {
-  width: 100%;
-}
+    width: 100%;
+  }
 }
 
 .card-check,
@@ -180,45 +180,49 @@ button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedSu
   max-height: 200px;
   flex-shrink: initial;
   width: 30%;
+
   @include respond-to(medium) {
-    width:95%;
+    width: 95%;
   }
 }
 
 .question-box {
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
 }
+
 .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiCard-root.css-6fm6rz-MuiPaper-root-MuiCard-root {
   height: 100%;
 }
-.question-box li > div {
-  display:flex;
+
+.question-box li>div {
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   flex-wrap: nowrap;
 }
 
-.question-box li > div .item-index {
+.question-box li>div .item-index {
   width: 50px;
 }
-.question-box li > div .item-question {
-  display:flex;
+
+.question-box li>div .item-question {
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   flex-wrap: nowrap;
   width: 100%;
   padding-right: 200px;
-  
+
   @include respond-to(medium) {
-    width:100%;
-    padding:0px 0px 40px 0px
+    width: 100%;
+    padding: 0px 0px 40px 0px
   }
 }
 
-.css-46bh2p-MuiCardContent-root h6{
+.css-46bh2p-MuiCardContent-root h6 {
   text-transform: uppercase;
 }

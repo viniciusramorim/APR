@@ -119,7 +119,7 @@ const ChecklistManager = () => {
 
         await checklistRef.set({}, { merge: true });
 
-        
+
         setChecklists((prevChecklists) => ({
             ...prevChecklists,
             [checklistId]: {},
@@ -131,8 +131,6 @@ const ChecklistManager = () => {
         console.error("Erro ao salvar o checklist:", error);
     }
 };
-
-
 
   const handleSaveBloco = async (bloco) => {
     try {

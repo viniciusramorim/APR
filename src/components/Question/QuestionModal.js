@@ -446,7 +446,7 @@ const QuestionModal = ({
 
         {/* Input para adicionar novas opções ao Select */}
         {formData.listCheck && (
-          <Box display="flex" mb={2}>
+          <Box display="flex" mb={2} className="new-option">
             <TextField
               label="Nova Opção"
               value={newOption}
