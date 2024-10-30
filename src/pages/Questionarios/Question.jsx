@@ -108,30 +108,31 @@ const ChecklistManager = () => {
 
   const handleSaveChecklist = async (checklist) => {
     try {
-      const checklistTitle = checklist.title
-        ? checklist.title.toUpperCase().slice(0, max_title_length)
-        : "NOME PADRÃO";
+        const checklistId = checklist.title
+            ? checklist.title.replace(/-/g, " ").toUpperCase().slice(0, max_title_length)
+            : "NOME_PADRÃO";
 
-      const checklistRef = firebase
-        .firestore()
-        .collection("question")
-        .doc(checklist.id);
+        const checklistRef = firebase
+            .firestore()
+            .collection("question")
+            .doc(checklistId);
 
-      const emptyChecklist = { title: checklistTitle };
+        await checklistRef.set({}, { merge: true });
 
-      await checklistRef.set(emptyChecklist, { merge: true });
+        
+        setChecklists((prevChecklists) => ({
+            ...prevChecklists,
+            [checklistId]: {},
+        }));
 
-      setChecklists((prevChecklists) => ({
-        ...prevChecklists,
-        [checklist.id]: emptyChecklist,
-      }));
-
-      setOpenChecklistModal(false);
-      clearFields();
+        setOpenChecklistModal(false);
+        clearFields();
     } catch (error) {
-      console.error("Erro ao salvar o checklist:", error);
+        console.error("Erro ao salvar o checklist:", error);
     }
-  };
+};
+
+
 
   const handleSaveBloco = async (bloco) => {
     try {
