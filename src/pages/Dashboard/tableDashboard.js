@@ -2,13 +2,6 @@ import * as React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableFooter from "@mui/material/TableFooter";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -18,17 +11,18 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 import ModalLog from "../../components/Modal_Logs";
 import { Link } from "react-router-dom";
 import { Close, Search } from "@mui/icons-material";
-import { TableHead } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import "./dashboard.scss";
 
-// Função para salvar a página no localStorage
-const savePageToLocalStorage = (page) => {
-  localStorage.setItem("tablePage", page);
+// Função para salvar a página e número de linhas no localStorage
+const savePageStateToLocalStorage = (page, rowsPerPage) => {
+  localStorage.setItem("tablePageState", JSON.stringify({ page, rowsPerPage }));
 };
 
-// Função para carregar a página do localStorage
-const loadPageFromLocalStorage = () => {
-  const savedPage = localStorage.getItem("tablePage");
-  return savedPage ? parseInt(savedPage, 10) : 0; // Se não houver página salva, retorna 0
+// Função para carregar a página e número de linhas do localStorage
+const loadPageStateFromLocalStorage = () => {
+  const savedState = localStorage.getItem("tablePageState");
+  return savedState ? JSON.parse(savedState) : { page: 0, rowsPerPage: 25 };
 };
 
 function TablePaginationActions(props) {
@@ -103,132 +97,154 @@ TablePaginationActions.propTypes = {
 export default function CustomPaginationActionsTable(props) {
   const { chamados, user, updateStatus } = props;
 
-  // Carregar a página inicial do localStorage
-  const [page, setPage] = React.useState(loadPageFromLocalStorage());
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-  // Evitar saltos na última página quando houver registros vazios.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - chamados.length) : 0;
+  const savedState = loadPageStateFromLocalStorage();
+  const [page, setPage] = React.useState(savedState.page);
+  const [rowsPerPage, setRowsPerPage] = React.useState(savedState.rowsPerPage);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-    savePageToLocalStorage(newPage); // Salvar a página no localStorage
+    savePageStateToLocalStorage(newPage, rowsPerPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
     setPage(0);
-    savePageToLocalStorage(0); // Reseta para a primeira página e salva no localStorage
+    savePageStateToLocalStorage(0, newRowsPerPage);
   };
 
-  return (
-    <TableContainer component={Paper}>
-      <Table
-        className="table-dashbaord"
-        size="small"
-        aria-label="a dense table"
-      >
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">APR ID</TableCell>
-            <TableCell align="center">MOTIVO</TableCell>
-            <TableCell align="center">Sigla-UF</TableCell>
-            <TableCell align="center">Nome</TableCell>
-            <TableCell align="center">Tipo Site</TableCell>
-            <TableCell align="center">Municipio</TableCell>
-            <TableCell align="center">Status</TableCell>
-            <TableCell align="center">Data</TableCell>
-            <TableCell align="center">%</TableCell>
-            <TableCell align="center"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(rowsPerPage > 0
-            ? chamados.slice(
-              page * rowsPerPage,
-              page * rowsPerPage + rowsPerPage
-            )
-            : chamados
-          ).map((row, index) => (
-            <TableRow key={row.id}>
-              <TableCell data-label="ID" align="center">
-                {row.apr_id}
-              </TableCell>
-              <TableCell data-label="Motivo APR" align="center">
-                {row.motivo_apr}
-              </TableCell>
-              <TableCell data-label="Sigla-UF" align="center">
-                {row.site_id.Sigla} - {row.site_id.Estado}
-              </TableCell>
-              <TableCell data-label="Nome" align="left">
-                {row.site_id.Nome}
-              </TableCell>
-              <TableCell data-label="Tipo Site" align="center">
-                {row.site_id.tipoSite}
-              </TableCell>
-              <TableCell data-label="Municipio" align="center">
-                {row.site_id.Cidade}
-              </TableCell>
-              <TableCell data-label="Status" align="center">
-                {row.status}
-              </TableCell>
-              <TableCell data-label="Data" align="center">
-                {row.created}
-              </TableCell>
-              <TableCell data-label="%" align="center">
-                {row.porcentagem_resp_area}
-              </TableCell>
-              <TableCell style={{ width: 160 }} align="center">
-                <Link to={`/open/${row.id}`}>
-                  <IconButton color="info">
-                    <Search />
-                  </IconButton>
-                </Link>
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && (
-                    <IconButton
-                      onClick={() => updateStatus(row.id, index)}
-                      color="error"
-                      aria-label="add an alarm"
-                    >
-                      <Close />
-                    </IconButton>
-                  )}
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
-              </TableCell>
-            </TableRow>
-          ))}
-          {emptyRows > 0 && (
-            <TableRow style={{ height: 53 * emptyRows }}>
-              <TableCell colSpan={10} />
-            </TableRow>
+  const columns = [
+    {
+      field: "apr_id",
+      headerName: "APR ID",
+      flex: 1,
+      minWidth: 100,
+      maxWidth: 100,
+    },
+    {
+      field: "motivo_apr",
+      headerName: "MOTIVO",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+    },
+    {
+      field: "sigla_uf",
+      headerName: "Sigla-UF",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+      valueGetter: (params) =>
+        `${params.row.site_id.Sigla} - ${params.row.site_id.Estado}`,
+    },
+    {
+      field: "nome",
+      headerName: "Nome",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+      valueGetter: (params) => params.row.site_id.Nome,
+    },
+    {
+      field: "tipo_site",
+      headerName: "Tipo Site",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+      valueGetter: (params) => params.row.site_id.tipoSite,
+    },
+    {
+      field: "municipio",
+      headerName: "Municipio",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+      valueGetter: (params) => params.row.site_id.Cidade,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      minWidth: 120,
+      maxWidth: 120,
+    },
+    {
+      field: "created",
+      headerName: "Data",
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+    },
+    {
+      field: "porcentagem_resp_area",
+      headerName: "%",
+      flex: 1,
+      minWidth: 70,
+      maxWidth: 70,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      flex: 1,
+      minWidth: 140,
+      maxWidth: 140,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" justifyContent="center">
+          <Link to={`/open/${params.row.id}`}>
+            <IconButton color="info">
+              <Search />
+            </IconButton>
+          </Link>
+          {(user.nivel === "administrador" || user.nivel === "revisor") && (
+            <>
+              <IconButton
+                onClick={() => updateStatus(params.row.id, params.row.index)}
+                color="error"
+                aria-label="add an alarm"
+              >
+                <Close />
+              </IconButton>
+              <ModalLog chamadoId={params.row.id} />
+            </>
           )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 50, { label: "Todos", value: -1 }]}
-              colSpan={10}
-              count={chamados.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              slotProps={{
-                select: {
-                  inputProps: {
-                    "aria-label": "chamados per page",
-                  },
-                  native: true,
-                },
-              }}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+        </Box>
+      ),
+    },
+  ];
+
+  const rows = chamados.map((row, index) => ({
+    id: row.id,
+    apr_id: row.apr_id,
+    motivo_apr: row.motivo_apr,
+    site_id: row.site_id,
+    status: row.status,
+    created: row.created,
+    porcentagem_resp_area: row.porcentagem_resp_area,
+    index,
+  }));
+
+  return (
+    <Paper style={{ height: 500, width: "100%" }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        pageSize={rowsPerPage}
+        rowsPerPageOptions={[25, 50, { label: "Todos", value: -1 }]}
+        pagination
+        paginationMode="client"
+        onPageChange={(newPage) => handleChangePage(null, newPage)}
+        onPageSizeChange={handleChangeRowsPerPage}
+        page={page}
+        sx={{
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "start",
+            maxWidth: 140,
+          },
+        }}
+      />
+    </Paper>
   );
 }
