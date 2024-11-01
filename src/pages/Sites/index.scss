@@ -1,0 +1,64 @@
+@use '../../styles/globals';
+@use '../../styles/mixins';
+@use '../../styles/variables';
+
+/*Pagina de Sites*/
+
+.site-details {
+  ul {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: fit-content;
+    padding: 10px 0px;
+    justify-content: space-between;
+    align-items: stretch;
+    flex-wrap: wrap;
+    align-content: space-around;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 10px;
+    background: #f7f7f7;
+    border-radius: 10px;
+    width: 49%;
+    max-width: 50%;
+    transition: .2s ease;
+
+    &:hover {
+      background: #efd4fb;
+      cursor: pointer;
+    }
+  }
+}
+
+.filters {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 20px 0px;
+}
+
+.accordion-container {
+  padding-bottom: 20px;
+}
+
+ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul {
+  justify-content: center;
+  margin: 0px 0px 20px 0px;
+}
+
+.css-q7jpt8-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
+  background-color: #43057e;
+  color: #fff;
+
+}
+
+.css-q7jpt8-MuiButtonBase-root-MuiPaginationItem-root {
+  background: #a48cc0;
+  color: #fff;
+  border-radius: 10px;
+}
