@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiClipboard, FiEdit, FiSave } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
@@ -11,8 +11,11 @@ import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import CircularProgress from "@mui/material/CircularProgress";
 import "./index.scss";
+import * as geofire from "geofire-common";
+import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 
 export default function Sites() {
+  const { id } = useParams();
   const [sites, setSites] = useState([]);
   const [filteredSites, setFilteredSites] = useState([]);
   const [filters, setFilters] = useState({ name: "", sigla: "" });
@@ -20,6 +23,8 @@ export default function Sites() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [editValues, setEditValues] = useState({});
+  const [location, setLocation] = useState([]);
+  const [showPostModal, setShowPostModal] = useState(false);
   const itemsPerPage = 25;
 
   async function loadSites() {
@@ -110,21 +115,48 @@ export default function Sites() {
 
   function handleEditChange(event) {
     const { name, value } = event.target;
-    setEditValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }));
+
+    if (name === "Latitude" || name === "Longitude") {
+      const numericValue = value.replace(/[^0-9.-]/g, "");
+
+      if (numericValue.length > 10) return;
+
+      const numberValue = parseFloat(numericValue);
+      if (
+        (name === "Latitude" && (numberValue < -90 || numberValue > 90)) ||
+        (name === "Longitude" && (numberValue < -180 || numberValue > 180))
+      ) {
+        return;
+      }
+
+      setEditValues((prevValues) => ({
+        ...prevValues,
+        [name]: numericValue,
+      }));
+    } else {
+      setEditValues((prevValues) => ({
+        ...prevValues,
+        [name]: value,
+      }));
+    }
   }
 
-  async function handleSaveEdit(siteId, field) {
+  async function handleSaveEdit(siteId) {
     try {
+      const updatedData = { ...editValues };
+      const latitude = parseFloat(editValues["Latitude"]);
+      const longitude = parseFloat(editValues["Longitude"]);
+
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        const geohash = geofire.geohashForLocation([latitude, longitude]);
+        updatedData["geohash"] = geohash;
+      }
       await firebase
         .firestore()
         .collection("sites")
         .doc(siteId)
-        .update({
-          [field]: editValues[field],
-        });
+        .update(updatedData);
+
       alert("Campo atualizado com sucesso!");
       setEditingField(null);
       loadSites();
@@ -134,18 +166,30 @@ export default function Sites() {
   }
 
   // campos que serão exibidos
-  const fieldsToShow = [
-    "Nome",
-    "Endereco",
-    "Bairro",
-    "Cidade",
-    "CEP",
-    "Situacao",
-    "Latitude",
-    "Longitude",
-    "Sigla",
-    "Tipo Contrato",
-  ];
+  const fieldLabels = {
+    Nome: "Nome",
+    Endereco: "Endereço",
+    Complemento: "Complemento",
+    Bairro: "Bairro",
+    Cidade: "Cidade",
+    Estado: "Estado",
+    CEP: "CEP",
+    Situacao: "Situação",
+    Latitude: "Latitude",
+    Longitude: "Longitude",
+    Sigla: "Sigla",
+    TipoContrato: "Tipo de Contrato",
+    CtCritica: "Ct Crítica",
+    Detentora: "Detentora",
+    ErbCritica: "Erb Crítica",
+    MapaCalor: "Mapa Calor",
+    NonStop: "NonStop",
+    Sigla_GVT: "Sigla GVT",
+    critical: "Critical",
+    tipoSite: "Tipo de Site",
+  };
+
+  const fieldsToShow = Object.keys(fieldLabels);
 
   return (
     <div>
@@ -160,21 +204,22 @@ export default function Sites() {
           <TextField
             size="small"
             fullWidth
-            label="Nome"
-            name="name"
-            value={filters.name}
-            onChange={handleFilterChange}
-            style={{ textTransform: "uppercase" }}
-          />
-          <TextField
-            size="small"
-            fullWidth
             label="Sigla"
             name="sigla"
             value={filters.sigla}
             onChange={handleFilterChange}
             style={{ textTransform: "uppercase" }}
           />
+          <TextField
+            size="small"
+            fullWidth
+            label="Nome"
+            name="name"
+            value={filters.name}
+            onChange={handleFilterChange}
+            style={{ textTransform: "uppercase" }}
+          />
+
           <Button
             variant="contained"
             onClick={handleSearch}
@@ -224,7 +269,8 @@ export default function Sites() {
                                 value={editValues[field] || site[field]}
                                 onChange={handleEditChange}
                                 size="small"
-                                style={{ width: "90%" }}
+                                fullWidth
+                                style={{ width: "80%" }}
                               />
                               <Button
                                 variant="contained"
@@ -233,7 +279,10 @@ export default function Sites() {
                                 startIcon={<FiSave />}
                                 style={{
                                   marginLeft: "10px",
-                                  background: "#43057e",
+                                  width: "20%",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  background: "#7b1fa2",
                                 }}
                               >
                                 Salvar
@@ -241,7 +290,8 @@ export default function Sites() {
                             </>
                           ) : (
                             <>
-                              {field}: {site[field]}
+                              <strong>{fieldLabels[field]}:</strong>{" "}
+                              {site[field]}
                               <FiEdit
                                 style={{
                                   marginLeft: "10px",

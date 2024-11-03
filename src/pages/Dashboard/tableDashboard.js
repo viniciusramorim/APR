@@ -123,112 +123,91 @@ export default function CustomPaginationActionsTable(props) {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table
-        className="table-dashbaord"
-        size="small"
-        aria-label="a dense table"
-      >
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">APR ID</TableCell>
-            <TableCell align="center">MOTIVO</TableCell>
-            <TableCell align="center">Sigla-UF</TableCell>
-            <TableCell align="center">Nome</TableCell>
-            <TableCell align="center">Tipo Site</TableCell>
-            <TableCell align="center">Municipio</TableCell>
-            <TableCell align="center">Status</TableCell>
-            <TableCell align="center">Data</TableCell>
-            <TableCell align="center">%</TableCell>
-            <TableCell align="center"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(rowsPerPage > 0
-            ? chamados.slice(
-              page * rowsPerPage,
-              page * rowsPerPage + rowsPerPage
-            )
-            : chamados
-          ).map((row, index) => (
-            <TableRow key={row.id}>
-              <TableCell data-label="ID" align="center">
-                {row.apr_id}
-              </TableCell>
-              <TableCell data-label="Motivo APR" align="center">
-                {row.motivo_apr}
-              </TableCell>
-              <TableCell data-label="Sigla-UF" align="center">
-                {row.site_id.Sigla} - {row.site_id.Estado}
-              </TableCell>
-              <TableCell data-label="Nome" align="left">
-                {row.site_id.Nome}
-              </TableCell>
-              <TableCell data-label="Tipo Site" align="center">
-                {row.site_id.tipoSite}
-              </TableCell>
-              <TableCell data-label="Municipio" align="center">
-                {row.site_id.Cidade}
-              </TableCell>
-              <TableCell data-label="Status" align="center">
-                {row.status}
-              </TableCell>
-              <TableCell data-label="Data" align="center">
-                {row.created}
-              </TableCell>
-              <TableCell data-label="%" align="center">
-                {row.porcentagem_resp_area}
-              </TableCell>
-              <TableCell style={{ width: 160 }} align="center">
-                <Link to={`/open/${row.id}`}>
-                  <IconButton color="info">
-                    <Search />
-                  </IconButton>
-                </Link>
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && (
-                    <IconButton
-                      onClick={() => updateStatus(row.id, index)}
-                      color="error"
-                      aria-label="add an alarm"
-                    >
-                      <Close />
-                    </IconButton>
-                  )}
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
-              </TableCell>
-            </TableRow>
-          ))}
-          {emptyRows > 0 && (
-            <TableRow style={{ height: 53 * emptyRows }}>
-              <TableCell colSpan={10} />
-            </TableRow>
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 50, { label: "Todos", value: -1 }]}
-              colSpan={10}
-              count={chamados.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              slotProps={{
-                select: {
-                  inputProps: {
-                    "aria-label": "chamados per page",
-                  },
-                  native: true,
-                },
-              }}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+    <TableHead>
+      <TableRow>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "apr_id"}
+            direction={orderBy === "apr_id" ? order : "asc"}
+            onClick={() => handleRequestSort("apr_id")}
+          >
+            APR ID
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "motivo_apr"}
+            direction={orderBy === "motivo_apr" ? order : "asc"}
+            onClick={() => handleRequestSort("motivo_apr")}
+          >
+            MOTIVO
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "site_id.Sigla"}
+            direction={orderBy === "site_id.Sigla" ? order : "asc"}
+            onClick={() => handleRequestSort("site_id.Sigla")}
+          >
+            Sigla-UF
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "site_id.Nome"}
+            direction={orderBy === "site_id.Nome" ? order : "asc"}
+            onClick={() => handleRequestSort("site_id.Nome")}
+          >
+            Nome
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "site_id.tipoSite"}
+            direction={orderBy === "site_id.tipoSite" ? order : "asc"}
+            onClick={() => handleRequestSort("site_id.tipoSite")}
+          >
+            Tipo Site
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "site_id.Cidade"}
+            direction={orderBy === "site_id.Cidade" ? order : "asc"}
+            onClick={() => handleRequestSort("site_id.Cidade")}
+          >
+            Municipio
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "status"}
+            direction={orderBy === "status" ? order : "asc"}
+            onClick={() => handleRequestSort("status")}
+          >
+            Status
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "created"}
+            direction={orderBy === "created" ? order : "asc"}
+            onClick={() => handleRequestSort("created")}
+          >
+            Data
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center">
+          <TableSortLabel
+            active={orderBy === "porcentagem_resp_area"}
+            direction={orderBy === "porcentagem_resp_area" ? order : "asc"}
+            onClick={() => handleRequestSort("porcentagem_resp_area")}
+          >
+            %
+          </TableSortLabel>
+        </TableCell>
+        <TableCell align="center"></TableCell>
+      </TableRow>
+    </TableHead>
   );
 }

@@ -19,7 +19,8 @@
 
   li {
     display: flex;
-    justify-content: space-between;
+    justify-content: start;
+    position: relative;
     padding: 10px 10px;
     background: #f7f7f7;
     border-radius: 10px;
@@ -30,6 +31,10 @@
     &:hover {
       background: #efd4fb;
       cursor: pointer;
+    }
+    svg {
+      position: absolute;
+      right:10px;
     }
   }
 }
