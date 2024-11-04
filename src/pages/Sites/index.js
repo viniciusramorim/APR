@@ -254,7 +254,7 @@ export default function Sites() {
       <Header />
 
       <div className="content">
-        <Title name="Sites">
+        <Title name="Gerenciamento de Sites">
           <FiClipboard size={25} />
         </Title>
 
