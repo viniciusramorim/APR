@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiClipboard, FiEdit, FiSave } from "react-icons/fi";
+import { FiClipboard, FiEdit, FiSave, FiX } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
@@ -23,8 +23,6 @@ export default function Sites() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [editValues, setEditValues] = useState({});
-  const [location, setLocation] = useState([]);
-  const [showPostModal, setShowPostModal] = useState(false);
   const itemsPerPage = 25;
 
   async function loadSites() {
@@ -113,6 +111,11 @@ export default function Sites() {
     setEditValues({ ...editValues, [field]: value });
   }
 
+  function handleCancelEdit() {
+    setEditingField(null);
+    setEditValues({});
+  }
+
   function handleEditChange(event) {
     const { name, value } = event.target;
 
@@ -162,6 +165,33 @@ export default function Sites() {
       loadSites();
     } catch (error) {
       console.error("Erro ao salvar edição:", error);
+    }
+  }
+  async function handleDeleteSite(siteId) {
+    try {
+      if (!siteId) {
+        console.error("ID do site não pode estar vazio.");
+        alert("Erro: ID do site não pode estar vazio.");
+        return;
+      }
+
+      const confirmDelete = window.confirm(
+        "Tem certeza de que deseja deletar este site? Esta ação não pode ser desfeita."
+      );
+
+      if (confirmDelete) {
+        await firebase.firestore().collection("sites").doc(siteId).delete();
+
+        alert("Site deletado com sucesso!");
+
+        setSites((prevSites) => prevSites.filter((site) => site.id !== siteId));
+        setFilteredSites((prevFilteredSites) =>
+          prevFilteredSites.filter((site) => site.id !== siteId)
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao deletar o site:", error);
+      alert("Erro ao deletar o site. Por favor, tente novamente.");
     }
   }
 
@@ -251,11 +281,18 @@ export default function Sites() {
             <p>Carregando...</p>
           </div>
         ) : (
-          <div className="accordion-container">
+          <div className="accordion-container" style={{justifyContent: 'space-between'}}>
             {filteredSites.map((site) => (
               <Accordion key={site.id}>
                 <AccordionSummary>
                   {site.Sigla} - {site.Nome} - {site.Estado} - {site.Cidade}
+                  <Button
+                    variant="outlined"
+                    site="small"
+                    onClick={() => handleDeleteSite(site.id)}
+                  >
+                    Excluir
+                  </Button>
                 </AccordionSummary>
                 <AccordionDetails>
                   <div className="site-details">
@@ -270,22 +307,32 @@ export default function Sites() {
                                 onChange={handleEditChange}
                                 size="small"
                                 fullWidth
-                                style={{ width: "80%" }}
+                                style={{ width: "70%" }}
                               />
                               <Button
                                 variant="contained"
                                 size="small"
                                 onClick={() => handleSaveEdit(site.id, field)}
-                                startIcon={<FiSave />}
                                 style={{
                                   marginLeft: "10px",
-                                  width: "20%",
-                                  display: "flex",
-                                  flexDirection: "column",
+                                  width: "14%",
                                   background: "#7b1fa2",
                                 }}
                               >
                                 Salvar
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={handleCancelEdit}
+                                style={{
+                                  marginLeft: "5px",
+                                  width: "14%",
+                                  borderColor: "#7b1fa2",
+                                  color: "#7b1fa2",
+                                }}
+                              >
+                                Cancelar
                               </Button>
                             </>
                           ) : (
