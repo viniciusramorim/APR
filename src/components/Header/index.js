@@ -18,6 +18,7 @@ import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchS
 import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
+import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
 import SignUpModal from "../RegisterMember";
 
 export default function Header() {
@@ -131,14 +132,15 @@ export default function Header() {
               "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
               "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
               "J8Ktb51lucTxok00HAi2qTv7jQH2",
+              "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
             ].includes(user.uid) && (
-              <Tooltip title="Questionários" placement="right" arrow>
-                <Link to="/questions">
-                  <ContentPasteIcon color="#000" size={20} />
-                  <i id="label-menu">Questionário</i>
-                </Link>
-              </Tooltip>
-            )}
+                <Tooltip title="Questionários" placement="right" arrow>
+                  <Link to="/questions">
+                    <ContentPasteIcon color="#000" size={20} />
+                    <i id="label-menu">Questionário</i>
+                  </Link>
+                </Tooltip>
+              )}
             <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
               <Link
                 to={location.pathname}
@@ -167,6 +169,21 @@ export default function Header() {
             <DrawerMyAccount />
           </Link>
         </Tooltip>
+
+        {[
+          "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+          "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
+          "J8Ktb51lucTxok00HAi2qTv7jQH2",
+          "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+        ].includes(user.uid) && (
+            <Tooltip title="Gerenciar Sites" placement="right" arrow>
+              <Link to="/sites">
+                <ApprovalOutlinedIcon color="#000" size={20} />
+                <i id="label-menu">Gerenciar Sites</i>
+              </Link>
+            </Tooltip>
+          )}
+
       </section>
       <SignUpModal open={openModal} onClose={handleCloseModal} />
     </div>

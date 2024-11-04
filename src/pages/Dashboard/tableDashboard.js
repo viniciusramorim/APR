@@ -115,13 +115,13 @@ export default function CustomPaginationActionsTable(props) {
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-    savePageToLocalStorage(newPage); // Salvar a página no localStorage
+    savePageToLocalStorage(newPage); 
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-    savePageToLocalStorage(0); // Reseta para a primeira página e salva no localStorage
+    savePageToLocalStorage(0);
   };
 
   const handleRequestSort = (property) => {

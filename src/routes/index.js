@@ -28,7 +28,7 @@ export default function Routes() {
       <Route exact path="/profileadm" component={ProfileADM} isPrivate isAdm />
       <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
       <Route exact path="/reports" component={Reports} isPrivate />
-      <Route exact path="/sites" component={Sites} isPrivate />
+      <Route exact path="/sites" component={Sites} isPrivate isAdm />
       {/* paginas apr digital */}
       <Route exact path="/dashboard" component={Dashboard} isPrivate />
       <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>

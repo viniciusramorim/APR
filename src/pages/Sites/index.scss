@@ -15,6 +15,7 @@
     align-items: stretch;
     flex-wrap: wrap;
     align-content: space-around;
+    
   }
 
   li {
@@ -32,9 +33,10 @@
       background: #efd4fb;
       cursor: pointer;
     }
+
     svg {
       position: absolute;
-      right:10px;
+      right: 10px;
     }
   }
 }
@@ -45,6 +47,9 @@
   justify-content: space-between;
   gap: 10px;
   margin: 20px 0px;
+  background: #f1eff3;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 .accordion-container {
@@ -72,4 +77,14 @@ ul.MuiPagination-ul.css-wjh20t-MuiPagination-ul {
 .css-eqpfi5-MuiAccordionSummary-content {
   justify-content: space-between;
   align-items: center;
+}
+
+button.MuiButtonBase-root[aria-label="Ver logs"] {
+  position: absolute;
+  right: 0px;
+}
+
+button.btn-delete {
+  position: absolute;
+  right: 40px!important;
 }
