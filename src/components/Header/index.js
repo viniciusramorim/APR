@@ -175,6 +175,7 @@ export default function Header() {
           "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
           "J8Ktb51lucTxok00HAi2qTv7jQH2",
           "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+          "WN0EtV44xnV0V87n5wBBXT87QXI2",
         ].includes(user.uid) && (
             <Tooltip title="Gerenciar Sites" placement="right" arrow>
               <Link to="/sites">
