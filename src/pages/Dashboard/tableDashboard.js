@@ -115,7 +115,7 @@ export default function CustomPaginationActionsTable(props) {
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-    savePageToLocalStorage(newPage); 
+    savePageToLocalStorage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -151,7 +151,7 @@ export default function CustomPaginationActionsTable(props) {
         aria-label="a dense table"
       >
         <TableHead>
-          <TableRow>
+          <TableRow className="header-sort">
             <TableCell align="center">
               <TableSortLabel
                 active={orderBy === "apr_id"}
@@ -322,6 +322,6 @@ export default function CustomPaginationActionsTable(props) {
           </TableRow>
         </TableFooter>
       </Table>
-    </TableContainer>
+    </TableContainer >
   );
 }

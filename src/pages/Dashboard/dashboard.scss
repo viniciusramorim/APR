@@ -242,13 +242,22 @@
 
 /*table*/
 
-.css-1qgma8u-MuiButtonBase-root-MuiTableSortLabel-root.Mui-active svg,
-.css-1qgma8u-MuiButtonBase-root-MuiTableSortLabel-root.Mui-active {
-  color: rgb(236 128 255)!important;
+.table-dashbaord thead tr th span svg,
+.table-dashbaord thead tr th span {
+  color: #fff
 }
 
-.css-1qgma8u-MuiButtonBase-root-MuiTableSortLabel-root:hover svg,
-.css-1qgma8u-MuiButtonBase-root-MuiTableSortLabel-root:hover {
-  color: rgb(236 128 255)!important;
+.table-dashbaord thead tr th span.Mui-active,
+.table-dashbaord thead tr th span.Mui-active svg {
+  color: rgb(236 128 255) !important;
 }
 
+
+.table-dashbaord thead tr th:hover span svg,
+.table-dashbaord thead tr th:hover span {
+  color: rgb(236 128 255) !important;
+}
+
+.accordion-container div div div {
+  align-items:center!important;
+}
