@@ -17,6 +17,7 @@ import NewRonda from '../pages/New_Ronda';
 import Reports from '../pages/Reports';
 import QuestionsPage from '../pages/Questionarios/Question';
 import Sites from '../pages/Sites/index';
+import Manager from '../pages/ManagerUsers/index';
 
 export default function Routes() {
   return (
@@ -29,6 +30,7 @@ export default function Routes() {
       <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
       <Route exact path="/reports" component={Reports} isPrivate />
       <Route exact path="/sites" component={Sites} isPrivate isAdm />
+      <Route exact path="/manager-users" component={Manager} isPrivate isAdm />
       {/* paginas apr digital */}
       <Route exact path="/dashboard" component={Dashboard} isPrivate />
       <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>

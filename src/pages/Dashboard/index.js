@@ -20,42 +20,42 @@ import {
 } from "@mui/material";
 
 // Função para salvar os filtros no localStorage
-const saveFiltersToLocalStorage = (filters) => {
-  localStorage.setItem("filters", JSON.stringify(filters));
+const saveFiltersToSessionStorage = (filters) => {
+  sessionStorage.setItem("filters", JSON.stringify(filters));
 };
 
 // Função para carregar os filtros do localStorage
-const loadFiltersFromLocalStorage = () => {
+const loadFiltersFromSessionStorage = () => {
   const savedFilters = localStorage.getItem("filters");
   return savedFilters ? JSON.parse(savedFilters) : {};
 };
 
 // Função para salvar a página no localStorage
-const savePageToLocalStorage = (page) => {
-  localStorage.setItem("tablePage", page);
+const savePageToSessionStorage = (page) => {
+  sessionStorage.setItem("tablePage", page);
 };
 
 // Função para carregar a página do localStorage
-const loadPageFromLocalStorage = () => {
-  const savedPage = localStorage.getItem("tablePage");
+const loadPageFromSessionStorage = () => {
+  const savedPage = sessionStorage.getItem("tablePage");
   return savedPage ? parseInt(savedPage, 10) : 0;
 };
 
 // Função para salvar o botão clicado no localStorage
-const saveLastButtonToLocalStorage = (button) => {
-  localStorage.setItem("lastButtonClicked", button);
+const saveLastButtonToSessionStorage = (button) => {
+  sessionStorage.setItem("lastButtonClicked", button);
 };
 
 // Função para carregar o último botão clicado do localStorage
-const loadLastButtonFromLocalStorage = () => {
-  return localStorage.getItem("lastButtonClicked");
+const loadLastButtonFromSessionStorage = () => {
+  return sessionStorage.getItem("lastButtonClicked");
 };
 
 // Função para limpar as informações de filtro e paginação do localStorage
-const clearLocalStorage = () => {
-  localStorage.removeItem("filters");
-  localStorage.removeItem("tablePage");
-  localStorage.removeItem("lastButtonClicked");
+const clearSessionStorage = () => {
+  sessionStorage.removeItem("filters");
+  sessionStorage.removeItem("tablePage");
+  sessionStorage.removeItem("lastButtonClicked");
 };
 
 // Função para adicionar uma classe ao body
@@ -68,25 +68,36 @@ export default function Dashboard() {
   const listRef = firebase.firestore().collection(base);
   const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(loadPageFromLocalStorage());
+  const [currentPage, setCurrentPage] = useState(loadPageFromSessionStorage());
   const { user, logSistem } = useContext(AuthContext);
 
   // Carregar os filtros do localStorage ao montar o componente
-  const savedFilters = loadFiltersFromLocalStorage();
+  const savedFilters = loadFiltersFromSessionStorage();
 
   const [filterUF, setFilterUF] = useState(savedFilters.filterUF || "");
-  const [filterSigla, setFilterSigla] = useState(savedFilters.filterSigla || "");
-  const [filterTipoSite, setFilterTipoSite] = useState(savedFilters.filterTipoSite || "");
-  const [filterStatus, setFilterStatus] = useState(savedFilters.filterStatus || "");
+  const [filterSigla, setFilterSigla] = useState(
+    savedFilters.filterSigla || ""
+  );
+  const [filterTipoSite, setFilterTipoSite] = useState(
+    savedFilters.filterTipoSite || ""
+  );
+  const [filterStatus, setFilterStatus] = useState(
+    savedFilters.filterStatus || ""
+  );
   const [filterNome, setFilterNome] = useState(savedFilters.filterNome || "");
   const [filterID, setFilterID] = useState(savedFilters.filterID || "");
-  const [filterMotivo, setFilterMotivo] = useState(savedFilters.filterMotivo || "");
+  const [filterMotivo, setFilterMotivo] = useState(
+    savedFilters.filterMotivo || ""
+  );
+  const [filterRegional, setFilterRegional] = useState(
+    savedFilters.filterRegional || ""
+  );
 
   useEffect(() => {
     addBodyClass("page-dash");
 
     // Recupera o último botão clicado e dispara o clique correspondente
-    const lastButtonClicked = loadLastButtonFromLocalStorage();
+    const lastButtonClicked = loadLastButtonFromSessionStorage();
     if (lastButtonClicked === "all") {
       loadChamados(false);
     } else if (lastButtonClicked === "new") {
@@ -97,7 +108,6 @@ export default function Dashboard() {
   // Função para carregar os chamados com base nos filtros
   const loadChamados = async (novasAPRs = false) => {
     setLoading(true);
-    let regional = [];
     let query = listRef;
 
     query = novasAPRs
@@ -105,13 +115,44 @@ export default function Dashboard() {
       : query.orderBy("created", "desc");
 
     // Aplicar os filtros
-    if (filterID !== "") query = query.where("apr_id", "==", parseInt(filterID));
+    if (filterID !== "")
+      query = query.where("apr_id", "==", parseInt(filterID));
     if (filterUF !== "") query = query.where("site_id.Estado", "==", filterUF);
-    if (filterSigla !== "") query = query.where("site_id.Sigla", "==", filterSigla);
-    if (filterTipoSite !== "") query = query.where("site_id.tipoSite", "==", filterTipoSite);
+    if (filterSigla !== "")
+      query = query.where("site_id.Sigla", "==", filterSigla);
+    if (filterTipoSite !== "")
+      query = query.where("site_id.tipoSite", "==", filterTipoSite);
     if (filterStatus !== "") query = query.where("status", "==", filterStatus);
-    if (filterNome !== "") query = query.where("user_id.nome", "==", filterNome);
-    if (filterMotivo !== "") query = query.where("motivo_apr", "==", filterMotivo);
+    if (filterNome !== "")
+      query = query.where("user_id.nome", "==", filterNome);
+    if (filterMotivo !== "")
+      query = query.where("motivo_apr", "==", filterMotivo);
+    if (filterRegional !== "") {
+      const regionMap = {
+        CO_N: [
+          "DF",
+          "GO",
+          "TO",
+          "AC",
+          "MS",
+          "MT",
+          "RO",
+          "AM",
+          "AP",
+          "MA",
+          "PA",
+          "RR",
+        ],
+        NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
+        SE: ["RJ", "ES", "MG"],
+        SP: ["SP"],
+        SUL: ["RS", "PR", "SC"],
+      };
+      const estados = regionMap[filterRegional];
+      if (estados) {
+        query = query.where("site_id.Estado", "in", estados);
+      }
+    }
 
     let lista = [];
 
@@ -168,7 +209,8 @@ export default function Dashboard() {
     setFilterNome("");
     setFilterID("");
     setFilterMotivo("");
-    clearLocalStorage();
+    setFilterRegional("");
+    clearSessionStorage();
   };
 
   // Atualizar o estado dos filtros e salvar no localStorage
@@ -181,9 +223,10 @@ export default function Dashboard() {
       filterNome,
       filterID,
       filterMotivo,
+      filterRegional,
       [name]: value,
     };
-    saveFiltersToLocalStorage(newFilters);
+    saveFiltersToSessionStorage(newFilters);
 
     switch (name) {
       case "filterUF":
@@ -207,10 +250,14 @@ export default function Dashboard() {
       case "filterMotivo":
         setFilterMotivo(value);
         break;
+      case "filterRegional":
+        setFilterRegional(value);
+        break;
       default:
         break;
     }
   };
+
   function contAprs(status) {
     var quantidadeElementos = chamados.filter(
       (x) => x.status === status
@@ -308,7 +355,12 @@ export default function Dashboard() {
                 type="number"
                 label="ID APR"
                 value={filterID}
-                onChange={(e) => handleFilterChange("filterID", e.target.value.toUpperCase().slice(0, 6))}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "filterID",
+                    e.target.value.toUpperCase().slice(0, 6)
+                  )
+                }
                 variant="outlined"
                 fullWidth
                 size="small"
@@ -325,12 +377,16 @@ export default function Dashboard() {
                   labelId="motivo-label"
                   label="Motivo"
                   value={filterMotivo}
-                  onChange={(e) => handleFilterChange("filterMotivo", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("filterMotivo", e.target.value)
+                  }
                   size="small"
                 >
                   <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
                   <MenuItem value="Retrofit">Retrofit</MenuItem>
-                  <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
+                  <MenuItem value="Rota Critica DWDM">
+                    Rota Critica DWDM
+                  </MenuItem>
                   <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
                   <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
                 </Select>
@@ -347,7 +403,9 @@ export default function Dashboard() {
                   labelId="uf-label"
                   label="UF"
                   value={filterUF}
-                  onChange={(e) => handleFilterChange("filterUF", e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    handleFilterChange("filterUF", e.target.value.toUpperCase())
+                  }
                   size="small"
                 >
                   <MenuItem value="">Todas UF</MenuItem>
@@ -382,26 +440,57 @@ export default function Dashboard() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={12} md={2}>
+            <Grid item xs={12} sm={12} md={1.5}>
+              <FormControl variant="outlined" fullWidth>
+                <InputLabel id="tipo-label" size="small">
+                  Regional
+                </InputLabel>
+                <Select
+                  id="tipo"
+                  labelId="tipo-label"
+                  label="Regional"
+                  value={filterRegional}
+                  onChange={(e) =>
+                    handleFilterChange("filterRegional", e.target.value)
+                  }
+                  size="small"
+                >
+                  <MenuItem value="SP">SP</MenuItem>
+                  <MenuItem value="SE">SE</MenuItem>
+                  <MenuItem value="NE">NE</MenuItem>
+                  <MenuItem value="SUL">SUL</MenuItem>
+                  <MenuItem value="CO_N">CO_N</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={1.5}>
               <TextField
                 id="nome"
                 type="text"
                 label="Aplicador"
                 value={filterNome}
-                onChange={(e) => handleFilterChange("filterNome", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFilterChange("filterNome", e.target.value.toUpperCase())
+                }
                 variant="outlined"
                 fullWidth
                 size="small"
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={2}>
+            <Grid item xs={12} sm={12} md={1}>
               <TextField
                 id="sigla"
                 type="text"
                 label="Sigla"
                 value={filterSigla}
-                onChange={(e) => handleFilterChange("filterSigla", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "filterSigla",
+                    e.target.value.toUpperCase()
+                  )
+                }
                 variant="outlined"
                 fullWidth
                 size="small"
@@ -418,7 +507,9 @@ export default function Dashboard() {
                   labelId="tipo-label"
                   label="Tipo de Site"
                   value={filterTipoSite}
-                  onChange={(e) => handleFilterChange("filterTipoSite", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("filterTipoSite", e.target.value)
+                  }
                   size="small"
                 >
                   <MenuItem value="ERB-CT">ERB-CT</MenuItem>
@@ -447,13 +538,17 @@ export default function Dashboard() {
                   labelId="status-label"
                   label="Status"
                   value={filterStatus}
-                  onChange={(e) => handleFilterChange("filterStatus", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("filterStatus", e.target.value)
+                  }
                   size="small"
                 >
                   <MenuItem value="Enviado">Enviado</MenuItem>
                   <MenuItem value="Em Aberto">Em Aberto</MenuItem>
                   <MenuItem value="Concluido">Concluido</MenuItem>
-                  <MenuItem value="Respondido pela Area">Respondido pela Area</MenuItem>
+                  <MenuItem value="Respondido pela Area">
+                    Respondido pela Area
+                  </MenuItem>
                   <MenuItem value="Com Exceção">Com Exceção</MenuItem>
                   <MenuItem value="Cancelado">Cancelado</MenuItem>
                   <MenuItem value="Revisado">Revisado</MenuItem>
@@ -488,7 +583,7 @@ export default function Dashboard() {
               variant="contained"
               onClick={() => {
                 loadChamados(false);
-                saveLastButtonToLocalStorage("all");
+                saveLastButtonToSessionStorage("all");
               }}
               disabled={loading}
             >
@@ -501,7 +596,7 @@ export default function Dashboard() {
               style={{ marginLeft: "10px" }}
               onClick={() => {
                 loadChamados(true);
-                saveLastButtonToLocalStorage("new");
+                saveLastButtonToSessionStorage("new");
               }}
               disabled={loading}
             >
@@ -514,7 +609,7 @@ export default function Dashboard() {
         <TableDashboard
           chamados={chamados}
           user={user}
-          updateStatus={updateStatus} 
+          updateStatus={updateStatus}
         />
       </div>
     </div>

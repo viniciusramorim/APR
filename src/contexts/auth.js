@@ -178,10 +178,10 @@ function AuthProvider({ children }) {
     sessionStorage.setItem("SistemaUser", JSON.stringify(data));
   }
 
-  const clearLocalStorage = () => {
-    localStorage.removeItem("filters");
-    localStorage.removeItem("tablePage");
-    localStorage.removeItem("lastButtonClicked");
+  const clearSessionStorage = () => {
+    sessionStorage.removeItem("filters");
+    sessionStorage.removeItem("tablePage");
+    sessionStorage.removeItem("lastButtonClicked");
   };
 
   //Logout do usuario
@@ -191,7 +191,7 @@ function AuthProvider({ children }) {
       .signOut()
       .then(async () => {
         sessionStorage.removeItem("SistemaUser");
-        clearLocalStorage();
+        clearSessionStorage();
         setUser(null);
       });
   }
