@@ -4,7 +4,7 @@ import Route from './Route';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 
-import Dashboard from '../pages/Dashboard';
+import APRs from '../pages/APRs';
 import DashboardRondas from '../pages/Dashboard_Rondas';
 import Profile from '../pages/Profile';
 import New from '../pages/New';
@@ -32,7 +32,7 @@ export default function Routes() {
       <Route exact path="/sites" component={Sites} isPrivate isAdm />
       <Route exact path="/manager-users" component={Manager} isPrivate isAdm />
       {/* paginas apr digital */}
-      <Route exact path="/dashboard" component={Dashboard} isPrivate />
+      <Route exact path="/aprs" component={APRs} isPrivate />
       <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>
       <Route exact path="/new" component={PreNew} isPrivate />
       <Route exact path="/new/:id" component={New} isPrivate />
