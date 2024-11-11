@@ -14,8 +14,8 @@ import * as geofire from "geofire-common";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { AuthContext } from "../../contexts/auth";
 import ModalSiteLogs from "../../components/Modal_Log_Sites";
-import '../Sites/index.scss';
-import { addBodyClass } from '../../components/BodyClassInsert/bodyClassInserter';
+import "../Sites/index.scss";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter";
 import { readFile } from "xlsx";
 
 export default function Sites() {
@@ -180,7 +180,9 @@ export default function Sites() {
       for (const field in updatedData) {
         if (oldData[field] !== updatedData[field]) {
           await logSistem(
-            `Campo ${field} alterado de "${oldData[field]}" para "${updatedData[field]}"`,
+            `O site ${siteDoc.data().Nome} teve ${field} alterado de "${
+              oldData[field]
+            }" para "${updatedData[field]}"`,
             siteId
           );
         }
@@ -320,7 +322,7 @@ export default function Sites() {
                   <Button
                     variant="outlined"
                     size="small"
-                    style={{ borderColor: '#f82b2b', color:'#f82b2b' }}
+                    style={{ borderColor: "#f82b2b", color: "#f82b2b" }}
                     className="btn-delete"
                     onClick={() => handleDeleteSite(site.id)}
                   >

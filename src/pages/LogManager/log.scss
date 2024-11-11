@@ -1,0 +1,23 @@
+@import url(../../styles/_globals.scss);
+@import url(../../styles/_mixins.scss);
+@import url(../../styles/_variables.scss);
+
+.info-user {
+    background: #f8f8f8;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.details-user {
+    background: #f8f8f8;
+    justify-content: flex-start;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}

@@ -316,10 +316,18 @@ function AuthProvider({ children }) {
   async function logSistem(evento, chamado) {
     var ip = "null";
     let nome = "null";
+    const currentURL = window.location.href;
 
     try {
       nome = user.nome;
     } catch {}
+    try {
+      const response = await fetch("https://api.ipify.org?format=json");
+      const data = await response.json();
+      ip = data.ip;
+    } catch (error) {
+      console.error("Erro ao capturar o IP:", error);
+    }
 
     await firebase
       .firestore()
@@ -330,6 +338,7 @@ function AuthProvider({ children }) {
         chamado: chamado ? chamado : "",
         ip: ip,
         data: new Date(),
+        rota: currentURL,
       })
       .then(() => {
         console.log("log salvo");

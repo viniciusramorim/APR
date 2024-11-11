@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/auth";
 import {
   Box,
   Typography,
@@ -30,6 +32,8 @@ import "../../pages/Questionarios/Question.scss";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
 const ChecklistManager = () => {
+  const { logSistem } = useContext(AuthContext);
+
   const [checklists, setChecklists] = useState({});
   const [selectedChecklist, setSelectedChecklist] = useState(null);
   const [selectedBloco, setSelectedBloco] = useState(null);
@@ -127,6 +131,7 @@ const ChecklistManager = () => {
 
       setOpenChecklistModal(false);
       clearFields();
+      logSistem(`Checklist "${checklistId}" foi criado`);
     } catch (error) {
       console.error("Erro ao salvar o checklist:", error);
     }
@@ -162,6 +167,7 @@ const ChecklistManager = () => {
 
       setOpenBlocoModal(false);
       clearFields();
+      logSistem(`Bloco "${blocoTitle}" foi criado no checklist "${selectedChecklist}"`);
     } catch (error) {
       console.error("Erro ao salvar o bloco:", error);
     }
@@ -232,6 +238,7 @@ const ChecklistManager = () => {
 
       setOpenQuestionModal(false);
       clearFields();
+      logSistem(`Pergunta "${question.question}" foi editada no bloco "${selectedBloco}" do checklist "${selectedChecklist}"`);
     } catch (error) {
       console.error("Erro ao salvar a pergunta:", error);
     }
@@ -258,6 +265,7 @@ const ChecklistManager = () => {
       });
       setSelectedBloco(null);
       setSelectedBlocoTitle("");
+      logSistem(`Bloco "${blocoId}" foi excluído do checklist "${selectedChecklist}"`);
     } catch (error) {
       console.error("Erro ao excluir o bloco:", error);
     }
@@ -289,6 +297,7 @@ const ChecklistManager = () => {
       }));
 
       console.log(`Pergunta excluída com sucesso do bloco ${blocoId}`);
+      logSistem(`Pergunta "${questionId.questionId}" foi excluída do bloco "${blocoId}" do checklist "${checklistId}"`);
     } catch (error) {
       console.error("Erro ao excluir a pergunta:", error);
     }
@@ -354,6 +363,7 @@ const ChecklistManager = () => {
         });
         console.log(`Checklist ${checklistId} excluído com sucesso!`);
         clearFields();
+        logSistem(`Checklist (${checklistId}) foi excluído`);
       } catch (error) {
         console.error("Erro ao excluir o checklist:", error);
       }
