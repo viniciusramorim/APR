@@ -20,6 +20,7 @@ import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
 import SignUpModal from "../RegisterMember";
+import { AddModerator } from "@mui/icons-material";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
@@ -150,6 +151,12 @@ export default function Header() {
                 <SignUpModal />
                 <PersonAddSharpIcon color="#000" size={10} />
                 <i id="label-menu">Cadastrar Usuário</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Gerenciamento de Logs" placement="right" arrow>
+              <Link to="/manager-logs">
+                <AddModerator color="#000" size={20} />
+                <i id="label-menu">Gerenciamento de Logs</i>
               </Link>
             </Tooltip>
           </>
