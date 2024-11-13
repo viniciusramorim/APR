@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import firebase from "../../services/firebaseConnection";
-import { FiInfo } from "react-icons/fi";
 
 import "./ModalLogs.scss";
 import { IconButton } from "@mui/material";
 import { Info } from "@mui/icons-material";
-import zIndex from "@mui/material/styles/zIndex";
 
 Modal.setAppElement("#root");
 
@@ -90,10 +88,6 @@ export default function ModalLog(props) {
                           <h5>
                             <strong>Data: </strong>
                             {log.data.toDate().toLocaleString()}
-                          </h5>
-                          <h5>
-                            <strong>Rota Alteração: </strong>
-                            {log.rota.toDate().toLocaleString()}
                           </h5>
                         </div>
                       </div>

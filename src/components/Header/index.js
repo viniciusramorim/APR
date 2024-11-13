@@ -101,7 +101,7 @@ export default function Header() {
               </Link>
             </Tooltip>
             <Tooltip title="APRs" placement="right" arrow>
-              <Link to="/dashboard">
+              <Link to="/aprs">
                 <FileDownloadDoneSharpIcon color="#000" size={20} />
                 <i id="label-menu">APRs</i>
               </Link>

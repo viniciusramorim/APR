@@ -26,7 +26,7 @@ const saveFiltersToSessionStorage = (filters) => {
 
 // Função para carregar os filtros do localStorage
 const loadFiltersFromSessionStorage = () => {
-  const savedFilters = localStorage.getItem("filters");
+  const savedFilters = sessionStorage.getItem("filters");
   return savedFilters ? JSON.parse(savedFilters) : {};
 };
 

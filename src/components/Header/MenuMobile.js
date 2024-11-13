@@ -68,7 +68,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
             </MenuItem>
 
             <MenuItem>
-              <Link to="/dashboard">
+              <Link to="/aprs">
                 <a id="label-menu">
                   APRs
                 </a>

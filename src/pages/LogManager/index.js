@@ -172,6 +172,7 @@ export default function LogManagement() {
         <div style={{ marginBottom: "20px" }} className="info-user">
           <Autocomplete
             freeSolo
+            size="small"
             options={userOptions}
             inputValue={searchUser}
             onInputChange={(event, newInputValue) =>
@@ -190,6 +191,7 @@ export default function LogManagement() {
             label="Buscar por Data"
             type="date"
             name="date"
+            size="small"
             variant="outlined"
             InputLabelProps={{ shrink: true }}
             style={{ marginRight: "10px" }}
@@ -250,17 +252,6 @@ export default function LogManagement() {
                       Evento
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell
-                    sortDirection={orderBy === "chamado" ? order : false}
-                  >
-                    <TableSortLabel
-                      active={orderBy === "chamado"}
-                      direction={orderBy === "chamado" ? order : "asc"}
-                      onClick={() => handleRequestSort("chamado")}
-                    >
-                      Chamado
-                    </TableSortLabel>
-                  </TableCell>
                   <TableCell sortDirection={orderBy === "ip" ? order : false}>
                     <TableSortLabel
                       active={orderBy === "ip"}
@@ -295,9 +286,8 @@ export default function LogManagement() {
                   <TableRow key={index}>
                     <TableCell>{log.user || "N/A"}</TableCell>
                     <TableCell>{log.event}</TableCell>
-                    <TableCell>{log.chamado || "N/A"}</TableCell>
                     <TableCell>{log.ip || "N/A"}</TableCell>
-                    <TableCell>{log.rota || "N/A"}</TableCell>
+                    <TableCell className="row-rota">{log.rota || "N/A"}</TableCell>
                     <TableCell>{log.data.toDate().toLocaleString()}</TableCell>
                   </TableRow>
                 ))}

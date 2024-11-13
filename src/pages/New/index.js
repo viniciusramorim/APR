@@ -546,7 +546,7 @@ export default function New() {
         <span>ID da sua APR : <i>{id}</i></span>
         <span>Classificação : <i>{classificacao}</i></span>
 
-        <a href={'/dashboard'} >Ir Pagina Inicial</a>
+        <a href={'/aprs'} >Ir Pagina Inicial</a>
         <a href={`/open/${id}`} >Ir APR Criada</a>
       </>
     );

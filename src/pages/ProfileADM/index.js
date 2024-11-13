@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-import { FiUsers, FiX, FiCheck, FiLock } from "react-icons/fi";
+import { FiUsers, FiLock } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
@@ -12,10 +12,8 @@ import PaginationItem from "@mui/material/PaginationItem";
 import Stack from "@mui/material/Stack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import SyncLockIcon from "@mui/icons-material/SyncLock";
 import {
   Chip,
-  colors,
   FormControl,
   InputLabel,
   MenuItem,
@@ -105,7 +103,7 @@ export default function ProfileADM() {
     );
   }
 
-  async function updateNivel(id_user, nivel) {
+  async function updateNivel(id_user, nivel, nome) {
     await firebase
       .firestore()
       .collection("users")
@@ -115,7 +113,7 @@ export default function ProfileADM() {
       })
       .then(() => {
         toast.info("Usuario foi alterado !");
-        logSistem(`NIVEL-USUARIO-ALTERADO ${nivel.toUpperCase()}`, id_user);
+        logSistem(`O NIVEL DO USUARIO ${nome} FOI ALTERADO PARA ${nivel.toUpperCase()}`, id_user);
         loadUsers();
       })
       .catch((err) => {
@@ -123,7 +121,7 @@ export default function ProfileADM() {
       });
   }
 
-  async function updateStatus(id_user, status) {
+  async function updateStatus(id_user, status, nome) {
     await firebase
       .firestore()
       .collection("users")
@@ -134,7 +132,7 @@ export default function ProfileADM() {
       .then(() => {
         toast.info("Usuario foi alterado !");
         logSistem(
-          `STATUS-USUARIO-ALTERADO ${status === true ? "ATIVO" : "INATIVO"}`,
+          `O STATUS DO USUARIO ${nome} FOI ALTERADO PARA ${status === true ? "ATIVO" : "INATIVO"}`,
           id_user
         );
         loadUsers();
@@ -144,7 +142,7 @@ export default function ProfileADM() {
       });
   }
 
-  async function updateRegional(id_user, regional) {
+  async function updateRegional(id_user, regional, nome) {
     await firebase
       .firestore()
       .collection("users")
@@ -154,7 +152,7 @@ export default function ProfileADM() {
       })
       .then(() => {
         toast.info("Usuario foi alterado !");
-        logSistem(`REGIONAL-ALTERADA ${regional}`, id_user);
+        logSistem(`A REGIONAL DO USUARIO ${nome} FOI ALTERADA PARA ${regional}`, id_user);
         loadUsers();
       })
       .catch((err) => {
@@ -282,7 +280,7 @@ export default function ProfileADM() {
                         <Switch
                           checked={item.status}
                           onChange={() =>
-                            updateStatus(item.id_user, !item.status)
+                            updateStatus(item.id_user, !item.status, item.nome)
                           }
                           sx={{
                             "& .MuiSwitch-switchBase.Mui-checked": {
@@ -316,7 +314,7 @@ export default function ProfileADM() {
                             key={"nivel-" + index}
                             value={item.nivel || ""}
                             onChange={(e) =>
-                              updateNivel(item.id_user, e.target.value)
+                              updateNivel(item.id_user, e.target.value, item.nome)
                             }
                           >
                             <MenuItem
@@ -344,7 +342,7 @@ export default function ProfileADM() {
                               item.regional !== undefined ? item.regional : ""
                             }
                             onChange={(e) =>
-                              updateRegional(item.id_user, e.target.value)
+                              updateRegional(item.id_user, e.target.value, item.nome)
                             }
                             className="select-uf"
                           >

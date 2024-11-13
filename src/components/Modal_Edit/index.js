@@ -30,15 +30,15 @@ export default function ModalEdit(props) {
     checklistCompleto[areaIndex][1][questionIndex].resp = questionResp
     checklistCompleto[areaIndex][1][questionIndex].respTextArea = questionComentario
     firebase.firestore().collection('aprs-producao')
-    .doc(id)
-    .update({
-      checklist: checklistCompleto
-    })
-    .then(() => {
-      console.log('update question')
-      logSistem(`QUESTÃO-EDIT-${checklistCompleto[areaIndex][0].toUpperCase()}-QUESTION-${checklistCompleto[areaIndex][1][questionIndex].questionId}`, id)
-    })
-    .catch(err => console.log(err))
+      .doc(id)
+      .update({
+        checklist: checklistCompleto
+      })
+      .then(() => {
+        console.log('update question')
+        logSistem(`A QUESTÃO ${checklistCompleto[areaIndex][1][questionIndex].questionId} DO CHECKLIST ${checklistCompleto[areaIndex][0].toUpperCase()} FOI ALTERADO `, id)
+      })
+      .catch(err => console.log(err))
     loadApr()
     handleClose()
   };
