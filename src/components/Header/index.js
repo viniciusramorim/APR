@@ -162,6 +162,15 @@ export default function Header() {
           </>
         )}
 
+        {user.nivel === "auditor" && (
+          <Tooltip title="Relatório" placement="right" arrow>
+            <Link to="/reports">
+              <ContentPasteSearchSharpIcon color="#000" size={20} />
+              <i id="label-menu">Relatório</i>
+            </Link>
+          </Tooltip>
+        )}
+
         {user.nivel === "revisor" && (
           <Tooltip title="Relatório" placement="right" arrow>
             <Link to="/reports">

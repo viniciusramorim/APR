@@ -19,6 +19,18 @@ import {
   Select,
 } from "@mui/material";
 
+const styles = {
+  containerDash: {
+    background: "#380054e8",
+    color: "#fff",
+    padding: "6px",
+    borderRadius: "8px",
+  },
+  gridContainer: {
+    gap: "10px",
+  },
+};
+
 // Função para salvar os filtros no localStorage
 const saveFiltersToSessionStorage = (filters) => {
   sessionStorage.setItem("filters", JSON.stringify(filters));
@@ -28,11 +40,6 @@ const saveFiltersToSessionStorage = (filters) => {
 const loadFiltersFromSessionStorage = () => {
   const savedFilters = sessionStorage.getItem("filters");
   return savedFilters ? JSON.parse(savedFilters) : {};
-};
-
-// Função para salvar a página no localStorage
-const savePageToSessionStorage = (page) => {
-  sessionStorage.setItem("tablePage", page);
 };
 
 // Função para carregar a página do localStorage
@@ -110,9 +117,15 @@ export default function Dashboard() {
     setLoading(true);
     let query = listRef;
 
-    query = novasAPRs
-      ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc")
-      : query.orderBy("created", "desc");
+    const regionMap = {
+      CO_N: ["DF","GO","TO","AC","MS","MT","RO","AM","AP","MA","PA","RR"],
+      NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
+      SE: ["RJ", "ES", "MG"],
+      SP: ["SP"],
+      SUL: ["RS", "PR", "SC"],
+    };
+
+    query = novasAPRs ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc") : query.orderBy("created", "desc");
 
     // Aplicar os filtros
     if (filterID !== "")
@@ -128,31 +141,21 @@ export default function Dashboard() {
     if (filterMotivo !== "")
       query = query.where("motivo_apr", "==", filterMotivo);
     if (filterRegional !== "") {
-      const regionMap = {
-        CO_N: [
-          "DF",
-          "GO",
-          "TO",
-          "AC",
-          "MS",
-          "MT",
-          "RO",
-          "AM",
-          "AP",
-          "MA",
-          "PA",
-          "RR",
-        ],
-        NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
-        SE: ["RJ", "ES", "MG"],
-        SP: ["SP"],
-        SUL: ["RS", "PR", "SC"],
-      };
       const estados = regionMap[filterRegional];
       if (estados) {
         query = query.where("site_id.Estado", "in", estados);
       }
     }
+
+    //valida regional por usuario
+    const regional = regionMap[user.regional];
+
+    //filtro por perfil
+    query = user.nivel === 'aplicador' && user.area !== 'oem' ? query.where('user_id.uid', '==', user.uid) : query
+    query = user.nivel === 'supervisor' ? query.where('site_id.Estado', 'in', regional) : query
+    query = user.nivel === 'revisor' ? query.where('site_id.Estado', 'in', regional) : query
+    query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area', 'Revisado']) : query
+    query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query
 
     let lista = [];
 
@@ -264,18 +267,6 @@ export default function Dashboard() {
     ).length;
     return quantidadeElementos;
   }
-
-  const styles = {
-    containerDash: {
-      background: "#380054e8",
-      color: "#fff",
-      padding: "6px",
-      borderRadius: "8px",
-    },
-    gridContainer: {
-      gap: "10px",
-    },
-  };
 
   return (
     <div className="apr-digital">

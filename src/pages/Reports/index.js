@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiFileText } from "react-icons/fi";
 import { format } from "date-fns";
@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
+import { AuthContext } from "../../contexts/auth";
 import "./report.scss";
 import {
   Button,
@@ -20,6 +21,8 @@ import {
 } from "@mui/material";
 
 export default function Reports() {
+  const { user } = useContext(AuthContext);
+
   const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterDate, setFilterDate] = useState({ startDate: "", endDate: "" });
@@ -63,6 +66,8 @@ export default function Reports() {
         console.log('tipo site filter')
         query = query.where("site_id.tipoSite", "==", filterTipoSite);
       }
+
+      query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query
 
       const snapshot = await query.get();
       const list = [];

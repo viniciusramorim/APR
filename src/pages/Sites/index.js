@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { FiClipboard, FiEdit, FiSave, FiX } from "react-icons/fi";
+import { FiClipboard, FiEdit } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
@@ -11,16 +11,13 @@ import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import CircularProgress from "@mui/material/CircularProgress";
 import * as geofire from "geofire-common";
-import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { AuthContext } from "../../contexts/auth";
 import ModalSiteLogs from "../../components/Modal_Log_Sites";
 import "../Sites/index.scss";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter";
-import { readFile } from "xlsx";
 
 export default function Sites() {
   const { logSistem } = useContext(AuthContext);
-  const { id } = useParams();
   const [sites, setSites] = useState([]);
   const [filteredSites, setFilteredSites] = useState([]);
   const [filters, setFilters] = useState({ name: "", sigla: "" });
