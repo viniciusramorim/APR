@@ -118,7 +118,7 @@ export default function Dashboard() {
     let query = listRef;
 
     const regionMap = {
-      CO_N: ["DF","GO","TO","AC","MS","MT","RO","AM","AP","MA","PA","RR"],
+      CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR"],
       NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
       SE: ["RJ", "ES", "MG"],
       SP: ["SP"],
@@ -163,15 +163,69 @@ export default function Dashboard() {
       .get()
       .then((snapshot) => {
         snapshot.forEach((doc) => {
-          lista.push({
-            id: doc.id,
-            apr_id: doc.data().apr_id,
-            nome: doc.data().user_id.nome || "",
-            site_id: doc.data().site_id,
-            status: doc.data().status,
-            motivo_apr: doc.data().motivo_apr,
-            created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
-          });
+
+          let questoes = 0;
+          let respondidas = 0;
+          let pgr_inconformidade = 0;
+
+          if (doc.data().site_id.tipoSite === 'AUDIT PGR FIXA' || doc.data().site_id.tipoSite === 'AUDIT PGR MOVEL'){
+            doc.data().checklist.forEach((area, indexA) => {
+              area[1].forEach((question, indexQ) => {
+                if (question.respGabarito !== question.resp && question.resp !== '') {
+                  pgr_inconformidade = pgr_inconformidade + 1;
+                }
+              })
+            })
+          }
+
+          if (doc.data().status === "Respondido pela Area") {
+            // teste de contagem
+            doc.data().checklist.forEach((area, indexA) => {
+              area[1].forEach((question, indexQ) => {
+                if (question.openPA === true && question.respGabarito !== question.resp && question.resp !== '') {
+                  questoes = questoes + 1
+                  if (question.plano_acao.comentario) {
+                    respondidas = respondidas + 1
+                  }
+                }
+              })
+            })
+          }
+
+          if (user.area === 'oem' && doc.data().checklist !== undefined) {
+            let paTrue = false;
+            doc.data().checklist.forEach((area, indexA) => {
+              area[1].forEach((question, indexQ) => {
+                if (question.openPA === true && question.respGabarito !== question.resp) {
+                  paTrue = true;
+                }
+              })
+            })
+            if (paTrue === true) {
+              lista.push({
+                id: doc.id,
+                nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
+                motivo_apr: doc.data().motivo_apr,
+                site_id: doc.data().site_id,
+                status: doc.data().status,
+                created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
+                porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
+                pgr_inconformidade: pgr_inconformidade,
+              })
+            }
+          } else {
+            lista.push({
+              id: doc.id,
+              apr_id: doc.data().apr_id,
+              nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
+              motivo_apr: doc.data().motivo_apr,
+              site_id: doc.data().site_id,
+              status: doc.data().status,
+              created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
+              porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
+              pgr_inconformidade: pgr_inconformidade,
+            })
+          }
         });
         setChamados(lista);
         setLoading(false);
@@ -333,7 +387,7 @@ export default function Dashboard() {
               sx={styles.containerDash}
             >
               <Grid>Respondido pela Área</Grid>
-              <Grid>{contAprs("Respondido pela Área")}</Grid>
+              <Grid>{contAprs("Respondido pela Area")}</Grid>
             </Grid>
           </Grid>
         )}

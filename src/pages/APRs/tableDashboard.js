@@ -106,7 +106,7 @@ export default function CustomPaginationActionsTable(props) {
   // Carregar a página inicial do localStorage
   const [page, setPage] = React.useState(loadPageFromLocalStorage());
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [order, setOrder] = React.useState("asc");
+  const [order, setOrder] = React.useState("desc");
   const [orderBy, setOrderBy] = React.useState("apr_id");
 
   // Evitar saltos na última página quando houver registros vazios.
@@ -226,6 +226,15 @@ export default function CustomPaginationActionsTable(props) {
             </TableCell>
             <TableCell align="center">
               <TableSortLabel
+                active={orderBy === "pgr_inconformidade"}
+                direction={orderBy === "pgr_inconformidade" ? order : "asc"}
+                onClick={() => handleRequestSort("pgr_inconformidade")}
+              >
+                Inc
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="center">
+              <TableSortLabel
                 active={orderBy === "porcentagem_resp_area"}
                 direction={orderBy === "porcentagem_resp_area" ? order : "asc"}
                 onClick={() => handleRequestSort("porcentagem_resp_area")}
@@ -268,6 +277,9 @@ export default function CustomPaginationActionsTable(props) {
               </TableCell>
               <TableCell data-label="Data" align="center">
                 {row.created}
+              </TableCell>
+              <TableCell data-label="Inconformidades" align="center">
+                {row.pgr_inconformidade}
               </TableCell>
               <TableCell data-label="%" align="center">
                 {row.porcentagem_resp_area}
