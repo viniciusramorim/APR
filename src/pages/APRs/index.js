@@ -120,7 +120,7 @@ export default function Dashboard() {
     const regionMap = {
       CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR"],
       NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
-      SE: ["RJ", "ES", "MG"],
+      RJ_ES_MG: ["RJ", "ES", "MG"],
       SP: ["SP"],
       SUL: ["RS", "PR", "SC"],
     };
@@ -501,7 +501,7 @@ export default function Dashboard() {
                   size="small"
                 >
                   <MenuItem value="SP">SP</MenuItem>
-                  <MenuItem value="SE">SE</MenuItem>
+                  <MenuItem value="RJ_ES_MG">RJ_ES_MG</MenuItem>
                   <MenuItem value="NE">NE</MenuItem>
                   <MenuItem value="SUL">SUL</MenuItem>
                   <MenuItem value="CO_N">CO_N</MenuItem>
