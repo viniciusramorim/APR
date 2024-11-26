@@ -107,6 +107,7 @@ export default function New() {
             .get()
             .then(async (item_question) => {
               console.log(item_question.data())
+              console.log(Object.entries(item_question.data()))
               setQuestions(Object.entries(item_question.data()));
             })
         }
@@ -136,23 +137,14 @@ export default function New() {
     let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA)
     let inputSelectResp = document.getElementById(indexA + "_select_" + question.questionId)
 
-    if (e.target.value === '' && textarea && inputimage && inputSelectResp) {
-      textarea.style.display = 'none'
-      inputimage.style.display = 'none'
-      inputSelectResp.style.display = 'none'
-      return
-    }
-
-    if (question.textarea === true) {
-      textarea.style.display = textarea.style.display === 'block' ? 'none' : 'block'
-    }
-
-    if (question.inputImages === true) {
-      inputimage.style.display = inputimage.style.display === 'flex' ? 'none' : 'flex'
-    }
-
-    if (question.listCheck === true) {
-      inputSelectResp.style.display = inputSelectResp.style.display === 'block' ? 'none' : 'block'
+    if (e.target.value === '') {
+      if (question.textarea === true) textarea.style.display = 'none'
+      if (question.inputImages === true) inputimage.style.display = 'none'
+      if (question.listCheck === true) inputSelectResp.style.display = 'none'
+    } else if (e.target.value !== '') {
+      if (question.textarea === true) textarea.style.display = 'block'
+      if (question.inputImages === true) inputimage.style.display = 'flex'
+      if (question.listCheck === true) inputSelectResp.style.display = 'block'
     }
   }
 
