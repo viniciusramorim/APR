@@ -57,9 +57,10 @@
     border-radius: 100px !important;
   }
 
-  div {
+  .question {
     display: flex;
-    margin: 0.5em 0 2em 0;
+    margin-bottom: 2em;
+    margin-top: 0.5em;
     justify-content: space-around;
     flex-direction: column;
   }

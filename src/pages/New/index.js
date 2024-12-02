@@ -16,8 +16,19 @@ import Title from '../../components/Title';
 import ModalLoading from '../../components/Modal_Loading';
 import Modal_Justificativa from '../../components/Modal_Justificativa';
 import CameraComponent from './CameraComponent';
-
 import InputComponent from './InputComponent';
+import { Checkbox, FormControl, InputLabel, ListItemText, MenuItem, OutlinedInput, Select } from '@mui/material';
+
+const ITEM_HEIGHT = 30;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 
 
 export default function New() {
@@ -58,7 +69,6 @@ export default function New() {
 
   const [justificativa, setJustificativa] = useState();
   const [openModalJust, setOpenModalJust] = useState(false);
-
   //PGR
   const [valorArmazenamento, setValorArmazenamento] = useState('');
   const [valorTransporte, setValorTransporte] = useState('');
@@ -66,6 +76,24 @@ export default function New() {
   //Loja
   const [tipoLoja, setTipoLoja] = useState('');
   const [valorEstoque, setValorEstoque] = useState('0');
+  //teste
+  const [personName, setPersonName] = useState([]);
+
+  const handleChangeSelect = (question, indexA, e) => {
+    const {
+      target: { value },
+    } = e;
+
+    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+
+    console.log(typeof value === 'string' ? value.split(',') : value)
+    
+    questions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
+
+    console.log(questions[indexA][1][objIndex] )
+
+    setQuestions(questions);
+  };
 
   async function getCheckLists() {
     const collections = await firebase.firestore().collection('question').get();
@@ -120,12 +148,6 @@ export default function New() {
     questions[indexA][1][objIndex].respTextArea = e.target.value;
     setQuestions(questions)
   }
-  //questions selectArea
-  function selectAreaValue(question, indexA, e) {
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
-    questions[indexA][1][objIndex].optionListResp = e.target.value;
-    setQuestions(questions)
-  }
   //questions sim ou não
   function radioSetValue(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
@@ -144,7 +166,7 @@ export default function New() {
     } else if (e.target.value !== '') {
       if (question.textarea === true) textarea.style.display = 'block'
       if (question.inputImages === true) inputimage.style.display = 'flex'
-      if (question.listCheck === true) inputSelectResp.style.display = 'block'
+      if (question.listCheck === true) inputSelectResp.style.display = 'inline-flex'
     }
   }
 
@@ -697,7 +719,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(getCheckLists())} />
+          <FiClipboard size={25} />
         </Title>
 
         <div className='container'>
@@ -815,7 +837,7 @@ export default function New() {
           <div id='checklist' className="form-new">
             {questions.map((area, indexA) => {
               return (
-                <div key={indexA}>
+                <div key={indexA} className='question'>
                   <i id='button-area' onClick={() => dropdownArea(indexA)}>{area[0]}</i>
                   <span id={`container-${indexA}`} style={{ display: 'block' }}>
                     {area[1].map((doc, indexDoc) => {
@@ -828,9 +850,9 @@ export default function New() {
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
 
                       if (exibition === true) return (
-                        <div key={indexDoc} className='container-perg'>
+                        <div key={indexDoc} className='container-perg question'>
                           {indexDoc + 1} - {doc.question}
-                          <div>
+                          <div className='question'>
                             {doc.selectOptions === true && (
                               <>
                                 <label>
@@ -894,20 +916,25 @@ export default function New() {
                               />
                             )}
                             {doc.listCheck === true && (
-                              <select
-                                id={indexA + "_select_" + doc.questionId}
-                                placeholder="Selecione uma resposta..."
-                                style={{ display: doc.resp !== '' ? 'block' : 'none' }}
-                                onChange={(e) => selectAreaValue(doc, indexA, e)}
-                                defaultValue={doc.optionListResp !== '' && doc.resp !== doc.respGabarito ? doc.optionListResp : ''}
-                              >
-                                <option key={"00_option_" + doc.questionId} value={''} disabled>Selecione uma resposta...</option>
-                                {doc.optionList.map((value, index) => {
-                                  return(
-                                    <option key={index + "_option_" + doc.questionId} value={value}>{value}</option>
-                                  )
-                                })}
-                              </select>
+                              <FormControl size="small" sx={{ marginTop: 1, display: 'none' }} id={indexA + "_select_" + doc.questionId}>
+                                <InputLabel id="demo-multiple-checkbox-label">Selecione uma resposta...</InputLabel>
+                                <Select
+                                  labelId="demo-multiple-checkbox-label"
+                                  id="demo-multiple-checkbox"
+                                  value={doc.optionListResp}
+                                  onChange={(e) => handleChangeSelect(doc, indexA, e)}
+                                  input={<OutlinedInput label="Selecione uma resposta..." />}
+                                  renderValue={(selected) => selected.join(', ')}
+                                  MenuProps={MenuProps}
+                                >
+                                  {doc.optionList.map((name) => (
+                                    <MenuItem key={name} value={name} sx={{height: '30px'}}>
+                                      <Checkbox checked={doc.optionListResp.includes(name)} />
+                                      <ListItemText primary={name} />
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
                             )}
                           </div>
                           <i className='clearQuestion' onClick={(() => clearQuestion(doc, indexA))}> Limpar </i>
