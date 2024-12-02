@@ -77,22 +77,20 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState('');
   const [valorEstoque, setValorEstoque] = useState('0');
   //teste
-  const [personName, setPersonName] = useState([]);
+  // Removed unused state
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
       target: { value },
     } = e;
 
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    let newQuestions = [...questions];
+    let objIndex = newQuestions[indexA][1].findIndex((obj => obj.questionId === question.questionId));
 
-    console.log(typeof value === 'string' ? value.split(',') : value)
-    
-    questions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
+    newQuestions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
 
-    console.log(questions[indexA][1][objIndex] )
-
-    setQuestions(questions);
+    setQuestions(newQuestions);
+    saveIndexedDB();
   };
 
   async function getCheckLists() {
@@ -916,19 +914,18 @@ export default function New() {
                               />
                             )}
                             {doc.listCheck === true && (
-                              <FormControl size="small" sx={{ marginTop: 1, display: 'none' }} id={indexA + "_select_" + doc.questionId}>
-                                <InputLabel id="demo-multiple-checkbox-label">Selecione uma resposta...</InputLabel>
+                              <FormControl size="small" sx={{ marginTop: 1, display: doc.resp !== '' ? 'block' : 'none' }} id={indexA + "_select_" + doc.questionId}>
                                 <Select
                                   labelId="demo-multiple-checkbox-label"
                                   id="demo-multiple-checkbox"
-                                  value={doc.optionListResp}
+                                  value={doc.optionListResp ? doc.optionListResp : []}
                                   onChange={(e) => handleChangeSelect(doc, indexA, e)}
                                   input={<OutlinedInput label="Selecione uma resposta..." />}
                                   renderValue={(selected) => selected.join(', ')}
                                   MenuProps={MenuProps}
                                 >
                                   {doc.optionList.map((name) => (
-                                    <MenuItem key={name} value={name} sx={{height: '30px'}}>
+                                    <MenuItem key={name} value={name} sx={{ height: '30px' }}>
                                       <Checkbox checked={doc.optionListResp.includes(name)} />
                                       <ListItemText primary={name} />
                                     </MenuItem>
