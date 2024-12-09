@@ -57,7 +57,7 @@ const QuestionModal = ({
     plano_acao: [],
     openPA: false,
     area: selectedBlocoTitle || "",
-    areaResponsavel: [],
+    areaResposavel: [],
     critical: "Baixo",
     user: user ? user.nome : "",
     lastUpdate: new Date(),
@@ -71,6 +71,9 @@ const QuestionModal = ({
     optionList: [],
     listCheck: false,
     optionListResp: "",
+    multipleCheck: false,
+    inputNumber: false,
+    respInputNumber: '',
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -84,7 +87,7 @@ const QuestionModal = ({
         ...question,
         lastUpdate: new Date(),
         area: selectedBlocoTitle || "",
-        areaResponsavel: question.areaResponsavel || [],
+        areaResposavel: question.areaResposavel || [],
         listCheck: question.listCheck || false,
       });
     } else {
@@ -125,7 +128,7 @@ const QuestionModal = ({
     const { value } = event.target;
     setFormData((prevData) => ({
       ...prevData,
-      areaResponsavel: typeof value === "string" ? value.split(",") : value,
+      areaResposavel: typeof value === "string" ? value.split(",") : value,
     }));
   };
 
@@ -135,7 +138,7 @@ const QuestionModal = ({
     setAreaOptions((prevOptions) => [...prevOptions, newArea]);
     setFormData((prevData) => ({
       ...prevData,
-      areaResponsavel: [...prevData.areaResponsavel, newArea],
+      areaResposavel: [...prevData.areaResposavel, newArea],
     }));
 
     setNewArea("");
@@ -324,9 +327,9 @@ const QuestionModal = ({
         <FormControl fullWidth margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
-            name="areaResponsavel"
+            name="areaResposavel"
             multiple
-            value={formData.areaResponsavel}
+            value={formData.areaResposavel}
             onChange={handleAreaResponsavelChange}
             fullWidth
           >
@@ -339,7 +342,7 @@ const QuestionModal = ({
           </Select>
         </FormControl>
 
-        {formData.areaResponsavel.includes("addNew") && (
+        {formData.areaResposavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
               label="Nova Área Responsável"
@@ -444,6 +447,29 @@ const QuestionModal = ({
           label="Possui upload de imagens?"
         />
 
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.multipleCheck}
+              onChange={handleChange}
+              name="multipleCheck"
+              disabled={!formData.listCheck}
+            />
+          }
+          label="Possui multipla seleção?"
+        />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.inputNumber}
+              onChange={handleChange}
+              name="inputNumber"
+            />
+          }
+          label="Possui campo quantitativo?"
+        />
+
         {/* Input para adicionar novas opções ao Select */}
         {formData.listCheck && (
           <Box display="flex" mb={2} className="new-option">
@@ -518,7 +544,7 @@ const QuestionModal = ({
         />
 
         <Button
-        className="save-button"
+          className="save-button"
           variant="contained"
           onClick={handleSave}
           fullWidth

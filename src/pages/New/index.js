@@ -1,6 +1,6 @@
 
 import { useContext, useEffect, useState } from 'react';
-import { FiClipboard, FiCheck, FiX, FiUpload } from 'react-icons/fi';
+import { FiClipboard, FiCheck, FiX } from 'react-icons/fi';
 import { useParams } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'react-toastify';
@@ -17,7 +17,7 @@ import ModalLoading from '../../components/Modal_Loading';
 import Modal_Justificativa from '../../components/Modal_Justificativa';
 import CameraComponent from './CameraComponent';
 import InputComponent from './InputComponent';
-import { Checkbox, FormControl, InputLabel, ListItemText, MenuItem, OutlinedInput, Select } from '@mui/material';
+import { Checkbox, FormControl, ListItemText, MenuItem, OutlinedInput, Select, TextField } from '@mui/material';
 
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
@@ -90,6 +90,7 @@ export default function New() {
     newQuestions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
 
     setQuestions(newQuestions);
+    console.log(questions)
     saveIndexedDB();
   };
 
@@ -140,6 +141,12 @@ export default function New() {
       })
 
   }
+  //questions number amount
+  function inputNumber(question, indexA, e) {
+    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    questions[indexA][1][objIndex].respInputNumber = e.target.value;
+    setQuestions(questions)
+  }
   //questions textarea
   function textareaValue(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
@@ -156,15 +163,18 @@ export default function New() {
     let textarea = document.getElementById(indexA + "_textarea_" + question.questionId)
     let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA)
     let inputSelectResp = document.getElementById(indexA + "_select_" + question.questionId)
+    let inputNumber = document.getElementById(indexA + "_numberarea_" + question.questionId)
 
     if (e.target.value === '') {
       if (question.textarea === true) textarea.style.display = 'none'
       if (question.inputImages === true) inputimage.style.display = 'none'
       if (question.listCheck === true) inputSelectResp.style.display = 'none'
+      if (question.inputNumber === true) inputNumber.style.display = 'none'
     } else if (e.target.value !== '') {
       if (question.textarea === true) textarea.style.display = 'block'
       if (question.inputImages === true) inputimage.style.display = 'flex'
       if (question.listCheck === true) inputSelectResp.style.display = 'inline-flex'
+      if (question.inputNumber === true) inputNumber.style.display = 'block'
     }
   }
 
@@ -358,6 +368,11 @@ export default function New() {
                       openPA: question.openPA,
                       areaResposavel: question.areaResposavel,
                       respGabarito: question.respGabarito,
+                      optionList: question.optionList,
+                      optionListResp: question.optionListResp,
+                      listCheck: question.listCheck,
+                      respInputNumber: question.respInputNumber,
+                      inputNumber: question.inputNumber,
                     }
                   )
 
@@ -428,6 +443,7 @@ export default function New() {
               })
 
               if (containsImage === false) {
+                console.log(checklist)
                 await firebase.firestore().collection(base)
                   .doc(index.id)
                   .update({
@@ -851,6 +867,7 @@ export default function New() {
                         <div key={indexDoc} className='container-perg question'>
                           {indexDoc + 1} - {doc.question}
                           <div className='question'>
+
                             {doc.selectOptions === true && (
                               <>
                                 <label>
@@ -913,11 +930,25 @@ export default function New() {
                                 defaultValue={doc.respTextArea !== '' && doc.resp !== doc.respGabarito ? doc.respTextArea : ''}
                               />
                             )}
+                            {doc.inputNumber === true && (
+                              <FormControl size="small" sx={{ marginTop: 1, display: doc.resp !== '' ? 'block' : 'none' }} id={indexA + "_numberarea_" + doc.questionId}>
+                                <TextField
+                                  id="outlined-basic"
+                                  label={'Quantidade'}
+                                  size='small'
+                                  fullWidth
+                                  type="number"
+                                  onChange={(e) => inputNumber(doc, indexA, e)}
+                                  defaultValue={doc.respInputNumber !== '' && doc.resp !== doc.respGabarito ? doc.respInputNumber : ''}
+                                />
+                              </FormControl>
+                            )}
                             {doc.listCheck === true && (
                               <FormControl size="small" sx={{ marginTop: 1, display: doc.resp !== '' ? 'block' : 'none' }} id={indexA + "_select_" + doc.questionId}>
                                 <Select
                                   labelId="demo-multiple-checkbox-label"
                                   id="demo-multiple-checkbox"
+                                  multiple={doc.multipleCheck}
                                   value={doc.optionListResp ? doc.optionListResp : []}
                                   onChange={(e) => handleChangeSelect(doc, indexA, e)}
                                   input={<OutlinedInput label="Selecione uma resposta..." />}

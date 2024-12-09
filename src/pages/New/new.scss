@@ -91,7 +91,7 @@
   }
 
   textarea,
-  input,
+  input:not([type="number"]),
   select {
     @include input-style;
     max-width: 600px;

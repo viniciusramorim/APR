@@ -65,7 +65,7 @@ export default function ModalEdit(props) {
 
           <Grid container spacing={2} marginTop={0.5}>
             <Grid item xs={12} md={12}>
-              {checklistCompleto[areaIndex][1][questionIndex].questionId} - {checklistCompleto[areaIndex][1][questionIndex].question}
+              {checklistCompleto[areaIndex][1][questionIndex].question}
             </Grid>
             <Grid item xs={12} md={12}>
               <FormControl>

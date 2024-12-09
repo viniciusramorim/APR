@@ -85,13 +85,21 @@
 
 .page-open .form-open {
   label {
-    margin: 0.8em 0;
     font-weight: bold;
   }
 
   i,
   span {
     margin-bottom: 0.8em;
+
+    .list_resp_question {
+      display: flex;
+      align-items: center;
+    }
+
+    svg {
+      margin-right: 0.8em;
+    }
 
     &[data-text="Sim"] {
       background-color: $btn-action-green;

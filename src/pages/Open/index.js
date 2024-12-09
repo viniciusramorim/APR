@@ -1,7 +1,7 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../contexts/auth';
-import { FiClipboard, FiCheck } from 'react-icons/fi';
+import { FiClipboard, FiCheck, FiCheckSquare } from 'react-icons/fi';
 import { useParams, useHistory } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -51,7 +51,7 @@ export default function Open() {
 
   useEffect(() => {
     addBodyClass('page-open');
-    
+
   }, []);
   useEffect(() => {
     ReloadAPR()
@@ -199,7 +199,7 @@ export default function Open() {
           apr.checklist[indexA][1][indexQ].imagesURL[indexI].url = await getBase64ImageFromURL(imgs.url)
         })
         pdf.content.push({
-          text: `${doc.questionId} - ${doc.question}`,
+          text: `${indexQ} - ${doc.question}`,
           margin: [0, 20, 0, 0]
         })
         pdf.content.push({
@@ -399,7 +399,6 @@ export default function Open() {
     }
   }
 
-
   return (
     <div>
       <Header />
@@ -551,9 +550,19 @@ export default function Open() {
                                 if (doc.openPA === true && doc.respGabarito !== doc.resp && area === true) {
                                   return (
                                     <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
-                                      <label>{doc.questionId} - {doc.question}</label>
+                                      <label>{indexQ} - {doc.question}</label>
                                       Resposta:
                                       <span data-text={doc.resp}>{doc.resp}</span>
+                                      {doc.inputNumber && (
+                                        <span>Quantidade: {doc.respInputNumber}</span>
+                                      )}
+                                      {doc.listCheck && (
+                                        doc.optionListResp.map((value, index) => {
+                                          return (
+                                            <span className='list_resp_question'><FiCheckSquare />{value}</span>
+                                          )
+                                        })
+                                      )}
                                       {doc.respTextArea && (
                                         <>
                                           Comentario:
@@ -611,9 +620,19 @@ export default function Open() {
                                         loadApr={ReloadAPR}
                                       ></ModalEdit>
                                     )}
-                                    <label>{doc.questionId} - {doc.question}</label>
+                                    <label>{indexQ} - {doc.question}</label>
                                     Resposta:
                                     <span data-text={doc.resp}>{doc.resp}</span>
+                                    {doc.inputNumber && (
+                                      <span>Quantidade: {doc.respInputNumber}</span>
+                                    )}
+                                    {doc.listCheck && (
+                                      doc.optionListResp.map((value, index) => {
+                                        return (
+                                          <span className='list_resp_question'><FiCheckSquare />{value}</span>
+                                        )
+                                      })
+                                    )}
                                     {doc.respTextArea && (
                                       <>
                                         Comentario:
@@ -648,9 +667,19 @@ export default function Open() {
                               } else {
                                 return (
                                   <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
-                                    <label>{doc.questionId} - {doc.question}</label>
+                                    <label>{indexQ} - {doc.question}</label>
                                     Resposta:
                                     <span data-text={doc.resp}>{doc.resp}</span>
+                                    {doc.inputNumber && (
+                                      <span>Quantidade: {doc.respInputNumber}</span>
+                                    )}
+                                    {doc.listCheck && (
+                                      doc.optionListResp.map((value, index) => {
+                                        return (
+                                          <span className='list_resp_question'><FiCheckSquare />{value}</span>
+                                        )
+                                      })
+                                    )}
                                     {doc.respTextArea && (
                                       <>
                                         Comentario:
@@ -674,7 +703,6 @@ export default function Open() {
                                         </a>
                                       </label>
                                     )}
-
                                     {((user.nivel === 'administrador' || user.nivel === 'revisor') && doc.resp !== doc.respGabarito && doc.openPA === false) && (
                                       <span data-text='Ativar-PA' onClick={() => alterarPA(indexA, indexQ)}>
                                         Ativar PA
