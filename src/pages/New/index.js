@@ -368,11 +368,12 @@ export default function New() {
                       openPA: question.openPA,
                       areaResposavel: question.areaResposavel,
                       respGabarito: question.respGabarito,
-                      optionList: question.optionList,
-                      optionListResp: question.optionListResp,
-                      listCheck: question.listCheck,
-                      respInputNumber: question.respInputNumber,
-                      inputNumber: question.inputNumber,
+
+                      optionList: question.optionList ? question.optionList : [],
+                      optionListResp: question.optionListResp ? question.optionList : [],
+                      listCheck: question.listCheck ? question.optionList : '',
+                      respInputNumber: question.respInputNumber ? question.optionList : '',
+                      inputNumber: question.inputNumber ? question.optionList : '',
                     }
                   )
 
