@@ -550,7 +550,7 @@ export default function Open() {
                                 if (doc.openPA === true && doc.respGabarito !== doc.resp && area === true) {
                                   return (
                                     <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
-                                      <label>{indexQ} - {doc.question}</label>
+                                      <label>{indexQ+1} - {doc.question}</label>
                                       Resposta:
                                       <span data-text={doc.resp}>{doc.resp}</span>
                                       {doc.inputNumber && (
@@ -620,7 +620,7 @@ export default function Open() {
                                         loadApr={ReloadAPR}
                                       ></ModalEdit>
                                     )}
-                                    <label>{indexQ} - {doc.question}</label>
+                                    <label>{indexQ+1} - {doc.question}</label>
                                     Resposta:
                                     <span data-text={doc.resp}>{doc.resp}</span>
                                     {doc.inputNumber && (
@@ -667,7 +667,7 @@ export default function Open() {
                               } else {
                                 return (
                                   <div key={indexQ} className='container-perg-open' id={indexA + '-export-' + indexQ}>
-                                    <label>{indexQ} - {doc.question}</label>
+                                    <label>{indexQ+1} - {doc.question}</label>
                                     Resposta:
                                     <span data-text={doc.resp}>{doc.resp}</span>
                                     {doc.inputNumber && (

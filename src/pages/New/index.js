@@ -854,7 +854,7 @@ export default function New() {
               return (
                 <div key={indexA} className='question'>
                   <i id='button-area' onClick={() => dropdownArea(indexA)}>{area[0]}</i>
-                  <span id={`container-${indexA}`} style={{ display: 'block' }}>
+                  <span id={`container-${indexA}`} style={{ display: 'none' }}>
                     {area[1].map((doc, indexDoc) => {
                       let exibition = false
                       if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && doc.estados.includes(siteInfo.Estado) && (
