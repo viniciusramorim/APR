@@ -40,7 +40,10 @@ export default function ProfileADM() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
 
-  const permissionMaster = ['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2', 'wQzKfmkPgsV8PULa9t5JLg9Ta6j2']
+  const permissionMaster = [
+    'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2', 
+    'wQzKfmkPgsV8PULa9t5JLg9Ta6j2',
+    '5WBRPLgGmzUSLzrthSs9e9qnSnb2']
 
 
   useEffect(() => {
