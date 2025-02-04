@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { AuthContext } from "../../contexts/auth";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { v4 as uuidv4 } from "uuid";
 import "./styles/questionnaireForm.scss";
 
 const modalStyle = {
@@ -49,7 +50,7 @@ const QuestionModal = ({
     selectOptions: true,
     textarea: false,
     inputImages: false,
-    questionId: questionId || 0,
+    questionId: questionId || uuidv4(),
     resp: "",
     respTextArea: "",
     respGabarito: "",
@@ -73,7 +74,11 @@ const QuestionModal = ({
     optionListResp: "",
     multipleCheck: false,
     inputNumber: false,
-    respInputNumber: '',
+    respInputNumber: "",
+    valorArmazenado: {
+      max: 0,
+      min: 0,
+    },
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -118,10 +123,25 @@ const QuestionModal = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    setFormData((prevData) => {
+      const newValue = type === "checkbox" ? checked : value;
+
+      if (name === "storageMin" || name === "storageMax") {
+        return {
+          ...prevData,
+          valorArmazenado: {
+            ...prevData.valorArmazenado,
+            [name === "storageMin" ? "min" : "max"]: Number(newValue),
+          },
+        };
+      }
+
+      return {
+        ...prevData,
+        [name]: newValue,
+      };
+    });
   };
 
   const handleAreaResponsavelChange = (event) => {
@@ -176,8 +196,18 @@ const QuestionModal = ({
   const handleSave = () => {
     const formattedQuestion = {
       ...formData,
+      valorArmazenado: {
+        max: Number(formData.valorArmazenado.max) || 0,
+        min: Number(formData.valorArmazenado.min) || 0,
+      },
       lastUpdate: new Date(),
     };
+
+    if (!formattedQuestion.question.trim()) {
+      alert("A pergunta não pode estar vazia!");
+      return;
+    }
+
     onSave(formattedQuestion);
     onClose();
   };
@@ -360,6 +390,31 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
+        <FormControl
+          fullWidth
+          sx={{ display: "flex", flexDirection: "row", gap: 2 }}
+          margin="normal"
+        >
+          <TextField
+            sx={{ width: "50%" }}
+            label="Valor Mínimo de Armazenamento"
+            type="number"
+            name="storageMin"
+            value={formData.valorArmazenado?.min || ""}
+            onChange={handleChange}
+            margin="normal"
+          />
+
+          <TextField
+            sx={{ width: "50%" }}
+            label="Valor Máximo de Armazenamento"
+            type="number"
+            name="storageMax"
+            value={formData.valorArmazenado?.max || ""}
+            onChange={handleChange}
+            margin="normal"
+          />
+        </FormControl>
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>

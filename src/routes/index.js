@@ -19,6 +19,7 @@ import QuestionsPage from '../pages/Questionarios/Question';
 import Sites from '../pages/Sites/index';
 import Manager from '../pages/ManagerUsers/index';
 import LogManager from '../pages/LogManager/index';
+import InsertQuestions from '../components/Question/InserQuestion';
 
 export default function Routes() {
   return (
@@ -36,6 +37,7 @@ export default function Routes() {
       {/* paginas apr digital */}
       <Route exact path="/aprs" component={APRs} isPrivate />
       <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>
+      <Route exact path="/insert" component={InsertQuestions} isPrivate isAdm/>
       <Route exact path="/new" component={PreNew} isPrivate />
       <Route exact path="/new/:id" component={New} isPrivate />
       <Route exact path="/new/:id/:id_assign" component={New} isPrivate />
