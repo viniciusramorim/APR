@@ -198,7 +198,7 @@ export default function Modal({
   }
 
   return (
-    <div className="modal">
+    <div className="modal modal-pa">
       <div className="container">
         <button className="close" onClick={close}>
           <FiX size={23} color="#FFF" />
@@ -273,10 +273,8 @@ export default function Modal({
           </div>
 
           <div className="row">
+            <span>Nome Tecnico: </span>
             <span>
-              Nome Tecnico:{" "}
-              </span>
-              <span>
               <i>
                 {planoAcaoAtual
                   ? planoAcaoAtual.nomeTecnico
@@ -286,10 +284,8 @@ export default function Modal({
           </div>
 
           <div className="row">
+            <span>Aplicabilidade: </span>
             <span>
-              Aplicabilidade:{" "}
-              </span>
-              <span>
               <i>
                 {planoAcaoAtual
                   ? planoAcaoAtual.apicabilidade
@@ -314,10 +310,8 @@ export default function Modal({
           </div>
 
           <div className="row">
+            <span>SLA:</span>
             <span>
-              SLA:
-              </span>
-              <span>
               {conteudo.plano_acao.tempo ? (
                 <i>{conteudo.plano_acao.tempo}</i>
               ) : (
@@ -334,7 +328,7 @@ export default function Modal({
             </span>
           </div>
 
-          <div style={{paddingTop:'5px'}}>
+          <div style={{ paddingTop: "5px" }}>
             <span>Comentario / Justificativa:</span>
           </div>
 
@@ -351,6 +345,11 @@ export default function Modal({
               />
             </div>
           )}
+          <div className="btnAcao">
+          {conteudo.plano_acao.length === 0 && selectedOption && (
+            <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
+          )}
+        </div>
         </div>
 
         <div
@@ -400,6 +399,11 @@ export default function Modal({
               />
             </div>
           )}
+          <div className="btnAcao">
+            {conteudo.plano_acao.length === 0 && selectedOption && (
+              <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
+            )}
+          </div>
         </div>
 
         <div
@@ -430,7 +434,9 @@ export default function Modal({
               />
             </span>
           </div>
-          <span style={{paddingLeft:'10px'}}>Comentario / Justificativa:</span>
+          <span style={{ paddingLeft: "10px" }}>
+            Comentario / Justificativa:
+          </span>
           {conteudo.plano_acao.comentario ? (
             <div className="row">
               <i>{conteudo.plano_acao.comentario}</i>
@@ -442,8 +448,13 @@ export default function Modal({
                 value={comentario}
                 onChange={(e) => setComentario(e.target.value)}
               />
-              </div>
+            </div>
           )}
+          <div className="btnAcao">
+            {conteudo.plano_acao.length === 0 && selectedOption && (
+              <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
+            )}
+          </div>
         </div>
 
         {conteudo.resp_pa_user_name && (
@@ -459,12 +470,6 @@ export default function Modal({
             </div>
           </div>
         )}
-
-        <div className="btnAcao">
-          {conteudo.plano_acao.length === 0 && selectedOption && (
-            <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
-          )}
-        </div>
       </div>
     </div>
   );
