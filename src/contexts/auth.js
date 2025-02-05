@@ -32,7 +32,6 @@ function AuthProvider({ children }) {
       }
     });
   }
-
   //Fazendo login do usuario
   async function signIn(email, password) {
     setLoadingAuth(true);
@@ -106,6 +105,25 @@ function AuthProvider({ children }) {
         }
       });
   }
+  //Obter E-mail por UID
+  function obterUidEmail(email) {
+    return new Promise((resolve, reject) => {
+      const requestOptions = {
+        method: "POST",
+        redirect: "follow",
+      };
+
+      fetch(`https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/obterUidPorEmail?email=${email}`, requestOptions)
+        .then((response) => response.text())
+        .then((result) => {
+          resolve(JSON.parse(result));
+        })
+        .catch((error) => {
+          console.error(error);
+          reject(error);
+        });
+    });
+  }
   //Cadastrando um novo usuario
   async function signUp(email, password, nome, area, nivel, estado, status) {
     setLoadingAuth(true);
@@ -169,7 +187,25 @@ function AuthProvider({ children }) {
       })
       .catch((error) => {
         console.log(error);
-        toast.error(error.code);
+        if (error.code === 'auth/email-already-in-use') {
+          obterUidEmail(email).then(async (result) => {
+            await firebase
+              .firestore()
+              .collection("users")
+              .doc(result.uid)
+              .set({
+                nome: nome,
+                email: email,
+                area: area,
+                nivel: nivel,
+                uf: estado,
+                status: status,
+              })
+              .then(() => {
+                console.log('Usuario cadastrado com sucesso!' + email + " - " + password);
+              })
+          })
+        }
         setLoadingAuth(false);
       });
   }
@@ -183,7 +219,6 @@ function AuthProvider({ children }) {
     sessionStorage.removeItem("tablePage");
     sessionStorage.removeItem("lastButtonClicked");
   };
-
   //Logout do usuario
   async function signOut() {
     await firebase
@@ -282,28 +317,21 @@ function AuthProvider({ children }) {
             return toast.error(
               "E-mail já utilizado. Vá para a página de login."
             );
-            break;
           case "ERROR_WRONG_PASSWORD":
           case "auth/wrong-password":
             return toast.error("E-mail / Senha incorretos !");
-            break;
           case "ERROR_USER_NOT_FOUND":
           case "auth/user-not-found":
             return toast.error("E-mail inserido não cadastrado !");
-            break;
           case "auth/invalid-email":
             return toast.error("E-mail invalido !");
-            break;
           case "ERROR_USER_DISABLED":
           case "auth/user-disabled":
             return toast.error("Usuario desabilitado !");
-            break;
           case "auth/requires-recent-login":
             return toast.error("Renove seu login e tente novamente.");
-            break;
           default:
             return toast.error(error.code);
-            break;
         }
       });
   }
@@ -320,7 +348,7 @@ function AuthProvider({ children }) {
 
     try {
       nome = user.nome;
-    } catch {}
+    } catch { }
     try {
       const response = await fetch("https://api.ipify.org?format=json");
       const data = await response.json();
