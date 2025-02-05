@@ -76,8 +76,6 @@ export default function New() {
   //Loja
   const [tipoLoja, setTipoLoja] = useState('');
   const [valorEstoque, setValorEstoque] = useState('0');
-  //teste
-  // Removed unused state
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -122,8 +120,8 @@ export default function New() {
     navigator.permissions.query({ name: 'geolocation' })
       .then(async (item) => {
         if (item.state !== 'granted') {
-          alert('habilite a geolocation para realizar a APR')
-          return
+          alert('habilite a geolocation para realizar a APR');
+          return;
         } else {
           document.getElementById('container-questions').style.display = 'flex';
 
@@ -133,13 +131,16 @@ export default function New() {
             .doc(snapshot)
             .get()
             .then(async (item_question) => {
-              console.log(item_question.data())
-              console.log(Object.entries(item_question.data()))
-              setQuestions(Object.entries(item_question.data()));
-            })
-        }
-      })
+              const data = item_question.data();
+              console.log(data);
 
+              const orderedEntries = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+              console.log(orderedEntries);
+
+              setQuestions(orderedEntries);
+            });
+        }
+      });
   }
   //questions number amount
   function inputNumber(question, indexA, e) {
@@ -862,6 +863,7 @@ export default function New() {
                         doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
                         doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
                       )) exibition = true
+
                       if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
 
                       if (exibition === true) return (
