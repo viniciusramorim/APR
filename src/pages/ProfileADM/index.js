@@ -13,10 +13,13 @@ import Stack from "@mui/material/Stack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
+  Checkbox,
   Chip,
   FormControl,
   InputLabel,
+  ListItemText,
   MenuItem,
+  OutlinedInput,
   Paper,
   Select,
   Switch,
@@ -31,9 +34,22 @@ import {
 
 const listRef = firebase.firestore().collection("users");
 
+const ITEM_HEIGHT = 30;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
 export default function ProfileADM() {
   const { user, logSistem } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
+  const [checklists, setChecklists] = useState([]);
+  const [checklistsSelected, setChecklistsSelected] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -41,19 +57,33 @@ export default function ProfileADM() {
   const [search, setSearch] = useState("");
 
   const permissionMaster = [
-    'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2', 
+    'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2',
     'wQzKfmkPgsV8PULa9t5JLg9Ta6j2',
     '5WBRPLgGmzUSLzrthSs9e9qnSnb2']
 
 
+  const isDisabled = user.uid !== "wQzKfmkPgsV8PULa9t5JLg9Ta6j2";
+
+  const handleChangeChecklist = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setChecklistsSelected(
+      // On autofill we get a stringified value.
+      typeof value === 'string' ? value.split(',') : value,
+    );
+  };
+
   useEffect(() => {
     loadUsers();
+    loadChecklists();
     addBodyClass('page-profile-adm');
   }, []);
 
   useEffect(() => {
     filterUsers();
   }, [users, statusFilter, search, page, rowsPerPage]);
+
   async function loadUsers() {
     let query = listRef;
 
@@ -78,6 +108,23 @@ export default function ProfileADM() {
           });
         });
         setUsers(usuarios);
+      })
+      .catch((err) => {
+        console.log("Deu algum erro: ", err);
+      });
+  }
+
+  async function loadChecklists() {
+    let query = firebase.firestore().collection("question");
+
+    await query
+      .get()
+      .then((snapshot) => {
+        let checklist = [];
+        snapshot.forEach((doc) => {
+          checklist.push(doc.id)
+        });
+        setChecklists(checklist)
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
@@ -188,7 +235,6 @@ export default function ProfileADM() {
       .catch((error) => console.error(error));
   }
 
-  const isDisabled = user.uid !== "wQzKfmkPgsV8PULa9t5JLg9Ta6j2";
   return (
     <div>
       <Header />
@@ -261,7 +307,9 @@ export default function ProfileADM() {
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Área</TableCell>
+                  <TableCell align="center">Checklists</TableCell>
                   <TableCell align="center">Nível de Usuário</TableCell>
+                  <TableCell align="center">Regional</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -279,7 +327,7 @@ export default function ProfileADM() {
                           />
                         </TableCell>
                       )}
-                      <TableCell data-label="Status">
+                      <TableCell data-label="Status" sx={{textAlign: "center"}}>
                         <Switch
                           checked={item.status}
                           onChange={() =>
@@ -300,13 +348,35 @@ export default function ProfileADM() {
                         />
                       </TableCell>
                       <TableCell data-label="Email">{item.email}</TableCell>
-                      <TableCell data-label="Area">
+                      <TableCell data-label="Area" sx={{textAlign: "center"}}>
                         {item.area === "patrimonial"
                           ? "empresarial"
                           : item.area}
                       </TableCell>
-                      <TableCell className="level-users">
-                        <FormControl sx={{ minWidth: 120 }} size="small">
+                      <TableCell data-label="Checklists">
+                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
+                          <InputLabel id="demo-multiple-checkbox-label">CheckLists</InputLabel>
+                          <Select
+                            labelId="demo-multiple-checkbox-label"
+                            id="demo-multiple-checkbox"
+                            multiple={true}
+                            value={checklistsSelected}
+                            onChange={handleChangeChecklist}
+                            input={<OutlinedInput label="CheckLists" />}
+                            renderValue={(selected) => selected.join(', ')}
+                            MenuProps={MenuProps}
+                          >
+                            {checklists.map((name) => (
+                              <MenuItem key={name} value={name} sx={{ height: '30px' }}>
+                                <Checkbox checked={checklistsSelected.includes(name)} />
+                                <ListItemText primary={name} />
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </TableCell>
+                      <TableCell >
+                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
                           <InputLabel id="demo-select-small-label">
                             Nível de Usuário
                           </InputLabel>
@@ -319,6 +389,7 @@ export default function ProfileADM() {
                             onChange={(e) =>
                               updateNivel(item.id_user, e.target.value, item.nome)
                             }
+                            MenuProps={MenuProps}
                           >
                             <MenuItem
                               disabled={isDisabled}
@@ -332,14 +403,16 @@ export default function ProfileADM() {
                             <MenuItem value={"auditor"}>Auditor</MenuItem>
                           </Select>
                         </FormControl>
-                        <FormControl sx={{ minWidth: 120 }} size="small">
+                      </TableCell>
+                      <TableCell >
+                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
                           <InputLabel id="demo-select-small-label">
-                            Região
+                            Regional
                           </InputLabel>
                           <Select
                             labelId="demo-select-small-label"
                             id="demo-select-small"
-                            label="UF"
+                            label="Regional"
                             key={"regional-" + index}
                             value={
                               item.regional !== undefined ? item.regional : ""
@@ -347,7 +420,6 @@ export default function ProfileADM() {
                             onChange={(e) =>
                               updateRegional(item.id_user, e.target.value, item.nome)
                             }
-                            className="select-uf"
                           >
                             <MenuItem value={"SP"}>SP</MenuItem>
                             <MenuItem value={"SUL"}>SUL</MenuItem>
