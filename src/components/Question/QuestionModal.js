@@ -14,11 +14,17 @@ import {
   Switch,
   Divider,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid,
+  Grid2,
 } from "@mui/material";
 import { AuthContext } from "../../contexts/auth";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { v4 as uuidv4 } from "uuid";
 import "./styles/questionnaireForm.scss";
+import { ChevronLeft } from "@mui/icons-material";
 
 const modalStyle = {
   position: "absolute",
@@ -76,6 +82,14 @@ const QuestionModal = ({
     inputNumber: false,
     respInputNumber: "",
     valorArmazenado: {
+      max: 0,
+      min: 0,
+    },
+    ValorSinistro: {
+      max: 0,
+      min: 0,
+    },
+    valorTransporte: {
       max: 0,
       min: 0,
     },
@@ -390,31 +404,86 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
-        <FormControl
-          fullWidth
-          sx={{ display: "flex", flexDirection: "row", gap: 2 }}
-          margin="normal"
-        >
-          <TextField
-            sx={{ width: "50%" }}
-            label="Valor Mínimo de Armazenamento"
-            type="number"
-            name="storageMin"
-            value={formData.valorArmazenado?.min || ""}
-            onChange={handleChange}
-            margin="normal"
-          />
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ChevronLeft />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+              sx={{width:'100%'}}
+            >
+              <Typography component="span">Valores de Armazenagem/Sinistro/Transporte</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{display:'flex', gap:'10px'}}>
+              <div className="value-storage">
+                <h2>Valor Armazenamento</h2>
+                <TextField
+                  sx={{ width: "45%" }}
+                  label="Valor Min"
+                  type="number"
+                  name="storageMin"
+                  value={formData.valorArmazenado?.min || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
 
-          <TextField
-            sx={{ width: "50%" }}
-            label="Valor Máximo de Armazenamento"
-            type="number"
-            name="storageMax"
-            value={formData.valorArmazenado?.max || ""}
-            onChange={handleChange}
-            margin="normal"
-          />
-        </FormControl>
+                <TextField
+                  sx={{ width: "45%", marginLeft:'10px' }}
+                  label="Valor Max"
+                  type="number"
+                  name="storageMax"
+                  value={formData.valorArmazenado?.max || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </div>
+              <div className="value-storage">
+                <h2>Valor Sinistro</h2>
+                <TextField
+                gap={2}
+                  sx={{ width: "45%" }}
+                  label="Valor Min"
+                  type="number"
+                  name="storageMin"
+                  value={formData.valorSinistro?.min || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+
+                <TextField
+                  sx={{ width: "45%", marginLeft:'10px' }}
+                  label="Valor Max"
+                  type="number"
+                  name="storageMax"
+                  value={formData.valorSinistro?.max || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </div>
+              <div className="value-storage">
+                <h2>Valor Transporte</h2>
+                <TextField
+                gap={2}
+                  sx={{ width: "45%" }}
+                  label="Valor Min"
+                  type="number"
+                  name="storageMin"
+                  value={formData.valorArmazenado?.min || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+
+                <TextField
+                  sx={{ width: "45%", marginLeft:'10px' }}
+                  label="Valor Max"
+                  type="number"
+                  name="storageMax"
+                  value={formData.valorArmazenado?.max || ""}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </div>
+            </AccordionDetails>
+          </Accordion>
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>

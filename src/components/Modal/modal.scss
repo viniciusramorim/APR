@@ -125,6 +125,7 @@
   padding: 10px;
   cursor: pointer;
 }
+
 div#modal-sim,
 div#modal-nao,
 div#modal-detentora {
@@ -135,4 +136,28 @@ div#modal-nao .btnAcao a,
 div#modal-detentora .btnAcao a {
   position: absolute;
   bottom: -55px;
+}
+
+
+.save-plan {
+  background: #43057e !important;
+  position: absolute !important;
+  bottom: -100px !important;
+}
+
+.save-plan-edit {
+  position: absolute;
+  top: -35px;
+  right: 0px;
+  background: none !important;
+  color: #43057e !important;
+  height: fit-content !important;
+  border: 1px solid #43057e !important;
+  padding: 10px 20px !important;
+  cursor: pointer;
+
+  .save-plan-edit:hover {
+    background: #43057e !important;
+    color: #fff !important;
+  }
 }

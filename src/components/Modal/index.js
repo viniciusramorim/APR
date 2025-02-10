@@ -26,6 +26,7 @@ export default function Modal({
   const [selectedOption, setSelectedOption] = useState("");
   const [nomeDetentora, setNomeDetentora] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   const [planoAcaoAtual, setPlanoAcaoAtual] = useState("");
 
@@ -197,6 +198,10 @@ export default function Modal({
       });
   }
 
+  function enableEditing() {
+    setIsEditing(true);
+  }
+
   return (
     <div className="modal modal-pa">
       <div className="container">
@@ -312,7 +317,7 @@ export default function Modal({
           <div className="row">
             <span>SLA:</span>
             <span>
-              {conteudo.plano_acao.tempo ? (
+              {conteudo.plano_acao.tempo && !isEditing ? (
                 <i>{conteudo.plano_acao.tempo}</i>
               ) : (
                 <select value={tempo} onChange={handleChangeSelect}>
@@ -332,9 +337,10 @@ export default function Modal({
             <span>Comentario / Justificativa:</span>
           </div>
 
-          {conteudo.plano_acao.comentario ? (
+          {conteudo.plano_acao.comentario && !isEditing ? (
             <div className="row">
               <i>{conteudo.plano_acao.comentario}</i>
+              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
             </div>
           ) : (
             <div className="row">
@@ -346,10 +352,8 @@ export default function Modal({
             </div>
           )}
           <div className="btnAcao">
-          {conteudo.plano_acao.length === 0 && selectedOption && (
-            <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
-          )}
-        </div>
+            <a onClick={updatePlanoAcao}>Salvar Plano de Ação</a>
+          </div>
         </div>
 
         <div
@@ -362,7 +366,7 @@ export default function Modal({
               Justificativa:
               <select
                 value={justificativa}
-                disabled={conteudo.plano_acao.justificativa}
+                disabled={conteudo.plano_acao.justificativa && !isEditing}
                 onChange={(e) => setJutificativa(e.target.value)}
               >
                 <option value={""} disabled>
@@ -386,9 +390,10 @@ export default function Modal({
             <span>Comentario / Justificativa:</span>
           </div>
 
-          {conteudo.plano_acao.comentario ? (
+          {conteudo.plano_acao.comentario && !isEditing ? (
             <div className="row">
               <i>{conteudo.plano_acao.comentario}</i>
+              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
             </div>
           ) : (
             <div className="row">
@@ -400,9 +405,7 @@ export default function Modal({
             </div>
           )}
           <div className="btnAcao">
-            {conteudo.plano_acao.length === 0 && selectedOption && (
-              <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
-            )}
+            <a className="save-plan" onClick={updatePlanoAcao}>Salvar Plano de Ação</a> 
           </div>
         </div>
 
@@ -416,7 +419,7 @@ export default function Modal({
               Nome da Detentora:
               <input
                 type="text"
-                readOnly={conteudo.plano_acao.nome_detentora}
+                readOnly={conteudo.plano_acao.nome_detentora && !isEditing}
                 value={nomeDetentora}
                 onChange={(e) => setNomeDetentora(e.target.value.toUpperCase())}
               />
@@ -428,7 +431,7 @@ export default function Modal({
               Numero do Chamado:
               <input
                 type="text"
-                readOnly={conteudo.plano_acao.numero_chamado}
+                readOnly={conteudo.plano_acao.numero_chamado && !isEditing}
                 value={numeroChamado}
                 onChange={(e) => setNumeroChamado(e.target.value.toUpperCase())}
               />
@@ -437,9 +440,10 @@ export default function Modal({
           <span style={{ paddingLeft: "10px" }}>
             Comentario / Justificativa:
           </span>
-          {conteudo.plano_acao.comentario ? (
+          {conteudo.plano_acao.comentario && !isEditing ? (
             <div className="row">
               <i>{conteudo.plano_acao.comentario}</i>
+              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
             </div>
           ) : (
             <div className="row">
@@ -451,9 +455,7 @@ export default function Modal({
             </div>
           )}
           <div className="btnAcao">
-            {conteudo.plano_acao.length === 0 && selectedOption && (
-              <a onClick={updatePlanoAcao}>Criar Plano de Ação</a>
-            )}
+            <a className="save-plan" onClick={updatePlanoAcao}>Salvar Plano de Ação</a>
           </div>
         </div>
 
