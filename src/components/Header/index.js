@@ -1,14 +1,13 @@
 import "./header.scss";
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/auth";
-import logoRonda from "../../assets/logoRondaDigital-removebg.png";
 import logo from "../../assets/logoaprdigital-removebg.png";
 import logoMobile from "../../assets/logoaprdigital-removebg-mobile.png";
 import DrawerMyAccount from "../../components/DrawerMyAccount/DrawerMyAccount";
 
 import { Link } from "react-router-dom";
 import { FiHome } from "react-icons/fi";
-import { Avatar, IconButton, Tooltip, Button } from "@mui/material";
+import { Avatar, Tooltip } from "@mui/material";
 import MenuMobile from "./MenuMobile";
 import PlaylistAddCheckSharpIcon from "@mui/icons-material/PlaylistAddCheckSharp";
 import FileDownloadDoneSharpIcon from "@mui/icons-material/FileDownloadDoneSharp";
@@ -129,19 +128,14 @@ export default function Header() {
                 <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
-            {[
-              "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
-              "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
-              "J8Ktb51lucTxok00HAi2qTv7jQH2",
-              "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
-            ].includes(user.uid) && (
-                <Tooltip title="Questionários" placement="right" arrow>
-                  <Link to="/questions">
-                    <ContentPasteIcon color="#000" size={20} />
-                    <i id="label-menu">Questionário</i>
-                  </Link>
-                </Tooltip>
-              )}
+
+            <Tooltip title="Questionários" placement="right" arrow>
+              <Link to="/questions">
+                <ContentPasteIcon color="#000" size={20} />
+                <i id="label-menu">Questionário</i>
+              </Link>
+            </Tooltip>
+
             <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
               <Link
                 to={location.pathname}
@@ -153,6 +147,7 @@ export default function Header() {
                 <i id="label-menu">Cadastrar Usuário</i>
               </Link>
             </Tooltip>
+
             <Tooltip title="Gerenciamento de Logs" placement="right" arrow>
               <Link to="/manager-logs">
                 <AddModerator color="#000" size={20} />

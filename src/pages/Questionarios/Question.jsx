@@ -32,7 +32,7 @@ import "../../pages/Questionarios/Question.scss";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
 const ChecklistManager = () => {
-  const { logSistem } = useContext(AuthContext);
+  const { user, logSistem, getUser } = useContext(AuthContext);
 
   const [checklists, setChecklists] = useState({});
   const [selectedChecklist, setSelectedChecklist] = useState(null);
@@ -49,21 +49,28 @@ const ChecklistManager = () => {
 
   const max_title_length = 20;
 
-  useEffect(() => {
-    addBodyClass("page-questions");
-    const fetchChecklists = async () => {
+  const fetchChecklists = async () => {
+    getUser(user.uid).then(async value => {
       try {
+        const userChecklistPermission = value.data().checklist
         const checklistsRef = firebase.firestore().collection("question");
         const snapshot = await checklistsRef.get();
         const data = {};
         snapshot.forEach((doc) => {
-          data[doc.id] = doc.data();
+          if(userChecklistPermission.includes(doc.id)){
+            data[doc.id] = doc.data();
+          }
         });
         setChecklists(data);
-      } catch (error) {
-        console.error("Erro ao buscar checklists:", error);
+      } catch (err) {
+        console.error("Erro ao buscar checklists:", err);
       }
-    };
+    });
+
+  };
+
+  useEffect(() => {
+    addBodyClass("page-questions");
     fetchChecklists();
   }, []);
 

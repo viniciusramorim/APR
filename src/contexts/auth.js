@@ -373,6 +373,16 @@ function AuthProvider({ children }) {
       });
   }
 
+  async function getUser(id) {
+    let userProfile = await firebase
+          .firestore()
+          .collection("users")
+          .doc(id)
+          .get();
+
+    return userProfile;
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -391,6 +401,7 @@ function AuthProvider({ children }) {
         authStateChanged,
         redefinirEmail,
         logSistem,
+        getUser,
       }}
     >
       {children}

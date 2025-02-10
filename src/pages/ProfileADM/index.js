@@ -49,7 +49,6 @@ export default function ProfileADM() {
   const { user, logSistem } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [checklists, setChecklists] = useState([]);
-  const [checklistsSelected, setChecklistsSelected] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -64,14 +63,17 @@ export default function ProfileADM() {
 
   const isDisabled = user.uid !== "wQzKfmkPgsV8PULa9t5JLg9Ta6j2";
 
-  const handleChangeChecklist = (event) => {
+  const handleChangeChecklist = async (event, id) => {
     const {
       target: { value },
     } = event;
-    setChecklistsSelected(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-    );
+
+    await listRef.doc(id)
+      .update({ checklist: value })
+      .then(() => {
+        loadUsers();
+      })
+      .catch((err) => console.log(err))
   };
 
   useEffect(() => {
@@ -105,6 +107,7 @@ export default function ProfileADM() {
             area: doc.data().area,
             email: doc.data().email,
             regional: doc.data().regional,
+            checklist: doc.data().checklist,
           });
         });
         setUsers(usuarios);
@@ -307,7 +310,9 @@ export default function ProfileADM() {
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Área</TableCell>
-                  <TableCell align="center">Checklists</TableCell>
+                  {permissionMaster.includes(user.uid) && (
+                    <TableCell align="center">Checklists</TableCell>
+                  )}
                   <TableCell align="center">Nível de Usuário</TableCell>
                   <TableCell align="center">Regional</TableCell>
                 </TableRow>
@@ -327,7 +332,7 @@ export default function ProfileADM() {
                           />
                         </TableCell>
                       )}
-                      <TableCell data-label="Status" sx={{textAlign: "center"}}>
+                      <TableCell data-label="Status" sx={{ textAlign: "center" }}>
                         <Switch
                           checked={item.status}
                           onChange={() =>
@@ -348,33 +353,35 @@ export default function ProfileADM() {
                         />
                       </TableCell>
                       <TableCell data-label="Email">{item.email}</TableCell>
-                      <TableCell data-label="Area" sx={{textAlign: "center"}}>
+                      <TableCell data-label="Area" sx={{ textAlign: "center" }}>
                         {item.area === "patrimonial"
                           ? "empresarial"
                           : item.area}
                       </TableCell>
-                      <TableCell data-label="Checklists">
-                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                          <InputLabel id="demo-multiple-checkbox-label">CheckLists</InputLabel>
-                          <Select
-                            labelId="demo-multiple-checkbox-label"
-                            id="demo-multiple-checkbox"
-                            multiple={true}
-                            value={checklistsSelected}
-                            onChange={handleChangeChecklist}
-                            input={<OutlinedInput label="CheckLists" />}
-                            renderValue={(selected) => selected.join(', ')}
-                            MenuProps={MenuProps}
-                          >
-                            {checklists.map((name) => (
-                              <MenuItem key={name} value={name} sx={{ height: '30px' }}>
-                                <Checkbox checked={checklistsSelected.includes(name)} />
-                                <ListItemText primary={name} />
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </TableCell>
+                      {permissionMaster.includes(user.uid) && (
+                        <TableCell data-label="Checklists">
+                          <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
+                            <InputLabel id="demo-multiple-checkbox-label">CheckLists</InputLabel>
+                            <Select
+                              labelId="demo-multiple-checkbox-label"
+                              id="demo-multiple-checkbox"
+                              multiple={true}
+                              value={item.checklist ? item.checklist : []}
+                              onChange={(e) => handleChangeChecklist(e, item.id_user)}
+                              input={<OutlinedInput label="CheckLists" />}
+                              renderValue={(selected) => selected.join(', ')}
+                              MenuProps={MenuProps}
+                            >
+                              {checklists.map((name) => (
+                                <MenuItem key={name} value={name} sx={{ height: '30px' }}>
+                                  <Checkbox checked={item.checklist && item.checklist.includes(name)} />
+                                  <ListItemText primary={name} />
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </TableCell>
+                      )}
                       <TableCell >
                         <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
                           <InputLabel id="demo-select-small-label">
