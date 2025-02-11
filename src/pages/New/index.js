@@ -88,7 +88,6 @@ export default function New() {
     newQuestions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
 
     setQuestions(newQuestions);
-    console.log(questions)
     saveIndexedDB();
   };
 
@@ -735,7 +734,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} />
+          <FiClipboard size={25} onClick={() => console.log(siteInfo.tipoSite)} />
         </Title>
 
         <div className='container'>
@@ -796,7 +795,7 @@ export default function New() {
           </select>
         </div>
 
-        {(siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
+        {(siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR")) && (
           <div className='container' id='container-pgr'>
             <label name='valor-armazenamento'>Valor Armazenamento
               <input id='selectValorArmazenamento' name='valor-armazenamento' type='text' value={
@@ -821,7 +820,7 @@ export default function New() {
           </div>
         )}
 
-        {(siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
+        {(siteInfo.tipoSite && (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER')) && (
           <div className='container' id='container-loja'>
             <label name='valor-estoque'>Tipo de Loja
               <select id='selectTipoLoja' defaultValue={''} value={tipoLoja} onChange={e => setTipoLoja(e.target.value)}>
@@ -858,13 +857,14 @@ export default function New() {
                   <span id={`container-${indexA}`} style={{ display: 'none' }}>
                     {area[1].map((doc, indexDoc) => {
                       let exibition = false
-                      if ((siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && doc.estados.includes(siteInfo.Estado) && (
+
+                      if ((siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR")) && doc.estados.includes(siteInfo.Estado) && (
                         doc.valorArmazenado && (((valorArmazenamento / 100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento / 100))) ||
                         doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
                         doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
                       )) exibition = true
 
-                      if (siteInfo.tipoSite !== 'AUDIT PGR FIXA' && siteInfo.tipoSite !== 'AUDIT PGR MOVEL') exibition = true
+                      if (!siteInfo.tipoSite.includes("PGR")) exibition = true
 
                       if (exibition === true) return (
                         <div key={indexDoc} className='container-perg question'>
@@ -952,9 +952,8 @@ export default function New() {
                                   labelId="demo-multiple-checkbox-label"
                                   id="demo-multiple-checkbox"
                                   multiple={doc.multipleCheck}
-                                  value={doc.optionListResp ? doc.optionListResp : []}
+                                  value={doc.optionListResp && doc.optionListResp.length > 0 ? doc.optionListResp : [doc.optionList[0]]}
                                   onChange={(e) => handleChangeSelect(doc, indexA, e)}
-                                  input={<OutlinedInput label="Selecione uma resposta..." />}
                                   renderValue={(selected) => selected.join(', ')}
                                   MenuProps={MenuProps}
                                 >
