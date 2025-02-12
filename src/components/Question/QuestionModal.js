@@ -137,24 +137,38 @@ const QuestionModal = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : Number(value);
 
     setFormData((prevData) => {
-      const newValue = type === "checkbox" ? checked : value;
+      let updatedData = { ...prevData };
 
-      if (name === "storageMin" || name === "storageMax") {
-        return {
+      if (name.includes("storage")) {
+        updatedData = {
           ...prevData,
           valorArmazenado: {
             ...prevData.valorArmazenado,
-            [name === "storageMin" ? "min" : "max"]: Number(newValue),
+            [name === "storageMin" ? "min" : "max"]: newValue,
+          },
+        };
+      } else if (name.includes("sinistro")) {
+        updatedData = {
+          ...prevData,
+          valorSinistro: {
+            ...prevData.valorSinistro,
+            [name === "sinistroMin" ? "min" : "max"]: newValue,
+          },
+        };
+      } else if (name.includes("transporte")) {
+        updatedData = {
+          ...prevData,
+          valorTransporte: {
+            ...prevData.valorTransporte,
+            [name === "transporteMin" ? "min" : "max"]: newValue,
           },
         };
       }
 
-      return {
-        ...prevData,
-        [name]: newValue,
-      };
+      return updatedData;
     });
   };
 
@@ -404,86 +418,88 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ChevronLeft />}
-              aria-controls="panel1-content"
-              id="panel1-header"
-              sx={{width:'100%'}}
-            >
-              <Typography component="span">Valores de Armazenagem/Sinistro/Transporte</Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{display:'flex', gap:'10px'}}>
-              <div className="value-storage">
-                <h2>Valor Armazenamento</h2>
-                <TextField
-                  sx={{ width: "45%" }}
-                  label="Valor Min"
-                  type="number"
-                  name="storageMin"
-                  value={formData.valorArmazenado?.min || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ChevronLeft />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+            sx={{ width: "100%", backgroundColor:'#c4c4c4', borderRadius:'5px' }}
+          >
+            <Typography component="span">
+              Valores de Armazenagem/Sinistro/Transporte
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ display: "flex", gap: "10px" }}>
+            <div className="value-storage">
+              <h2>Valor Armazenamento</h2>
+              <TextField
+                sx={{ width: "45%" }}
+                label="Valor Min"
+                type="number"
+                name="storageMin"
+                value={formData.valorArmazenado?.min || ""}
+                onChange={(e) => handleChange(e, "valorArmazenado", "min")}
+                margin="normal"
+              />
 
-                <TextField
-                  sx={{ width: "45%", marginLeft:'10px' }}
-                  label="Valor Max"
-                  type="number"
-                  name="storageMax"
-                  value={formData.valorArmazenado?.max || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
-              </div>
-              <div className="value-storage">
-                <h2>Valor Sinistro</h2>
-                <TextField
-                gap={2}
-                  sx={{ width: "45%" }}
-                  label="Valor Min"
-                  type="number"
-                  name="storageMin"
-                  value={formData.valorSinistro?.min || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
+              <TextField
+                sx={{ width: "45%", marginLeft: "10px" }}
+                label="Valor Max"
+                type="number"
+                name="storageMax"
+                value={formData.valorArmazenado?.max || ""}
+                onChange={(e) => handleChange(e, "valorArmazenado", "max")}
+                margin="normal"
+              />
+            </div>
 
-                <TextField
-                  sx={{ width: "45%", marginLeft:'10px' }}
-                  label="Valor Max"
-                  type="number"
-                  name="storageMax"
-                  value={formData.valorSinistro?.max || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
-              </div>
-              <div className="value-storage">
-                <h2>Valor Transporte</h2>
-                <TextField
-                gap={2}
-                  sx={{ width: "45%" }}
-                  label="Valor Min"
-                  type="number"
-                  name="storageMin"
-                  value={formData.valorArmazenado?.min || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
+            <div className="value-storage">
+              <h2>Valor Sinistro</h2>
+              <TextField
+                sx={{ width: "45%" }}
+                label="Valor Min"
+                type="number"
+                name="sinistroMin"
+                value={formData.valorSinistro?.min || ""}
+                onChange={(e) => handleChange(e, "valorSinistro", "min")}
+                margin="normal"
+              />
 
-                <TextField
-                  sx={{ width: "45%", marginLeft:'10px' }}
-                  label="Valor Max"
-                  type="number"
-                  name="storageMax"
-                  value={formData.valorArmazenado?.max || ""}
-                  onChange={handleChange}
-                  margin="normal"
-                />
-              </div>
-            </AccordionDetails>
-          </Accordion>
+              <TextField
+                sx={{ width: "45%", marginLeft: "10px" }}
+                label="Valor Max"
+                type="number"
+                name="sinistroMax"
+                value={formData.valorSinistro?.max || ""}
+                onChange={(e) => handleChange(e, "valorSinistro", "max")}
+                margin="normal"
+              />
+            </div>
+
+            <div className="value-storage">
+              <h2>Valor Transporte</h2>
+              <TextField
+                sx={{ width: "45%" }}
+                label="Valor Min"
+                type="number"
+                name="transporteMin"
+                value={formData.valorTransporte?.min || ""}
+                onChange={(e) => handleChange(e, "valorTransporte", "min")}
+                margin="normal"
+              />
+
+              <TextField
+                sx={{ width: "45%", marginLeft: "10px" }}
+                label="Valor Max"
+                type="number"
+                name="transporteMax"
+                value={formData.valorTransporte?.max || ""}
+                onChange={(e) => handleChange(e, "valorTransporte", "max")}
+                margin="normal"
+              />
+            </div>
+          </AccordionDetails>
+        </Accordion>
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>
