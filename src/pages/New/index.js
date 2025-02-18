@@ -370,10 +370,10 @@ export default function New() {
                       respGabarito: question.respGabarito,
 
                       optionList: question.optionList ? question.optionList : [],
-                      optionListResp: question.optionListResp ? question.optionList : [],
-                      listCheck: question.listCheck ? question.optionList : '',
-                      respInputNumber: question.respInputNumber ? question.optionList : '',
-                      inputNumber: question.inputNumber ? question.optionList : '',
+                      optionListResp: question.optionListResp ? question.optionListResp : [],
+                      listCheck: question.listCheck ? question.listCheck : '',
+                      respInputNumber: question.respInputNumber ? question.respInputNumber : '',
+                      inputNumber: question.inputNumber ? question.inputNumber : '',
                     }
                   )
 
@@ -734,7 +734,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(siteInfo.tipoSite)} />
+          <FiClipboard size={25} onClick={() => console.log(questions)} />
         </Title>
 
         <div className='container'>
