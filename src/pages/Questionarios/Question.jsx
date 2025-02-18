@@ -488,7 +488,7 @@ const ChecklistManager = () => {
                                 aria-label="delete"
                                 color="error"
                                 onClick={() => {
-                                  if (window.confirm('Tem certeza que deseja excluir esta pergunta?')) {
+                                  if (window.confirm('Tem certeza que deseja excluir este bloco?')) {
                                   handleDeleteBloco(blocoId)}}}
                               >
                                 <DeleteIcon />

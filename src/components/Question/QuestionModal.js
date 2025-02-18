@@ -250,7 +250,6 @@ const QuestionModal = ({
           Preencha as Informações da Pergunta
         </Typography>
         <Divider sx={{ my: 2 }} />
-
         <TextField
           label="Pergunta"
           name="question"
@@ -259,7 +258,6 @@ const QuestionModal = ({
           fullWidth
           margin="normal"
         />
-
         <div className="type-weight">
           <TextField
             sx={{
@@ -385,66 +383,71 @@ const QuestionModal = ({
           </div>
         </div>
 
-        <FormControl fullWidth sx={{display:'flex', flexDirection:'row', gap:'10px'}} margin="normal">
-          <InputLabel>Área Responsável</InputLabel>
-          <Select
-            name="areaResposavel"
-            multiple
-            value={formData.areaResposavel}
-            onChange={handleAreaResponsavelChange}
-            sx={{ width: "50%" }}
-          >
-            {areaOptions.map((option, index) => (
-              <MenuItem key={index} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-            <MenuItem value="addNew">Adicionar nova área</MenuItem>
-          </Select>
-          <InputLabel>Estados</InputLabel>
-          <Select
-            multiple
-            sx={{width:'50%'}}
-            name="estados"
-            value={formData.estados || []}
-            onChange={handleChange}
-          >
-            {[
-              "AC",
-              "AL",
-              "AP",
-              "AM",
-              "BA",
-              "CE",
-              "DF",
-              "ES",
-              "GO",
-              "MA",
-              "MT",
-              "MS",
-              "MG",
-              "PA",
-              "PB",
-              "PR",
-              "PE",
-              "PI",
-              "RJ",
-              "RN",
-              "RS",
-              "RO",
-              "RR",
-              "SC",
-              "SP",
-              "SE",
-              "TO",
-            ].map((estado) => (
-              <MenuItem key={estado} value={estado}>
-                {estado}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+        <div className="area-estado">
+          <FormControl fullWidth margin="normal">
+            <p sx={{ marginTop: "=10px" }}>Área Responsável</p>
+            <Select
+              name="areaResposavel"
+              multiple
+              size="small"
+              value={formData.areaResposavel}
+              onChange={handleAreaResponsavelChange}
+              sx={{ width: "100%" }}
+            >
+              {areaOptions.map((option, index) => (
+                <MenuItem key={index} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+              <MenuItem value="addNew">Adicionar nova área</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth>
+            <p sx={{ marginBottom: "10px" }}>Estados que se aplica </p>
+            <Select
+              multiple
+              size="small"
+              sx={{ width: "100%" }}
+              name="estados"
+              value={formData.estados || []}
+              onChange={handleChange}
+            >
+              {[
+                "AC",
+                "AL",
+                "AP",
+                "AM",
+                "BA",
+                "CE",
+                "DF",
+                "ES",
+                "GO",
+                "MA",
+                "MT",
+                "MS",
+                "MG",
+                "PA",
+                "PB",
+                "PR",
+                "PE",
+                "PI",
+                "RJ",
+                "RN",
+                "RS",
+                "RO",
+                "RR",
+                "SC",
+                "SP",
+                "SE",
+                "TO",
+              ].map((estado) => (
+                <MenuItem key={estado} value={estado}>
+                  {estado}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
         {formData.areaResposavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
@@ -452,6 +455,7 @@ const QuestionModal = ({
               value={newArea}
               onChange={(e) => setNewArea(e.target.value)}
               fullWidth
+              size="small"
               margin="normal"
             />
             <Button
@@ -549,7 +553,6 @@ const QuestionModal = ({
             </div>
           </AccordionDetails>
         </Accordion>
-
         <FormControl fullWidth margin="normal">
           <InputLabel>Gabarito da Questão</InputLabel>
           <Select
@@ -562,7 +565,6 @@ const QuestionModal = ({
             <MenuItem value="Ambas">Ambas</MenuItem>
           </Select>
         </FormControl>
-
         <FormControl fullWidth margin="normal">
           <InputLabel>Criticidade</InputLabel>
           <Select
@@ -575,18 +577,7 @@ const QuestionModal = ({
             <MenuItem value="Alto">Alto</MenuItem>
           </Select>
         </FormControl>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.openPA}
-              onChange={handleChange}
-              name="openPA"
-            />
-          }
-          label="Habilitar Plano de Ação"
-        />
-
+        <Divider sx={{ padding: "10px 0px" }}>Status da pergunta</Divider>
         <FormControlLabel
           control={
             <Switch
@@ -602,63 +593,91 @@ const QuestionModal = ({
           }
           label="Status (Ativa/Inativa)"
         />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.listCheck}
-              onChange={handleChange}
-              name="listCheck"
+        <Divider sx={{ padding: "10px 0px" }}>
+          Configurações da pergunta
+        </Divider>
+        <Grid2
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-arround",
+            width: "100%",
+          }}
+        >
+          <Grid2
+            sx={{ width: "50%", display: "flex", flexDirection: "column" }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.openPA}
+                  onChange={handleChange}
+                  name="openPA"
+                />
+              }
+              label="Habilitar Plano de Ação"
             />
-          }
-          label="Adicionar Lista de Opções?"
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.textarea}
-              onChange={handleChange}
-              name="textarea"
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.listCheck}
+                  onChange={handleChange}
+                  name="listCheck"
+                />
+              }
+              label="Adicionar Lista de Opções?"
             />
-          }
-          label="Possui campo de texto adicional?"
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.inputImages}
-              onChange={handleChange}
-              name="inputImages"
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.textarea}
+                  onChange={handleChange}
+                  name="textarea"
+                />
+              }
+              label="Possui campo de texto adicional?"
             />
-          }
-          label="Possui upload de imagens?"
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.multipleCheck}
-              onChange={handleChange}
-              name="multipleCheck"
-              disabled={!formData.listCheck}
+          </Grid2>
+          <Grid2
+            sx={{ width: "50%", display: "flex", flexDirection: "column" }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.inputImages}
+                  onChange={handleChange}
+                  name="inputImages"
+                />
+              }
+              label="Possui upload de imagens?"
             />
-          }
-          label="Possui multipla seleção?"
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.inputNumber}
-              onChange={handleChange}
-              name="inputNumber"
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.multipleCheck}
+                  onChange={handleChange}
+                  name="multipleCheck"
+                  disabled={!formData.listCheck}
+                />
+              }
+              label="Possui multipla seleção?"
             />
-          }
-          label="Possui campo quantitativo?"
-        />
-
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.inputNumber}
+                  onChange={handleChange}
+                  name="inputNumber"
+                />
+              }
+              label="Possui campo quantitativo?"
+            />
+          </Grid2>
+        </Grid2>
+        <Divider sx={{ padding: "10px 0px" }}>
+          *
+        </Divider>
         {/* Input para adicionar novas opções ao Select */}
         {formData.listCheck && (
           <Box display="flex" mb={2} className="new-option">
@@ -678,7 +697,6 @@ const QuestionModal = ({
             </Button>
           </Box>
         )}
-
         {/* Exibir Select com as opções dinâmicas */}
         {formData.listCheck && (
           <>
@@ -713,7 +731,6 @@ const QuestionModal = ({
             </FormControl>
           </>
         )}
-
         <TextField
           label="Criado por"
           name="user"
@@ -722,7 +739,6 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
-
         <TextField
           label="ID da Pergunta"
           name="questionId"
@@ -731,7 +747,6 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
-
         <TextField
           label="Última Atualização"
           name="lastUpdate"
@@ -740,7 +755,6 @@ const QuestionModal = ({
           margin="normal"
           disabled
         />
-
         <Button
           className="save-button"
           variant="contained"
