@@ -137,34 +137,37 @@ const QuestionModal = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : Number(value);
+    let newValue;
+
+    if (type === "checkbox") {
+      newValue = checked;
+    } else if (
+      name.includes("storage") ||
+      name.includes("sinistro") ||
+      name.includes("transporte")
+    ) {
+      newValue = Number(value);
+    } else {
+      newValue = value;
+    }
 
     setFormData((prevData) => {
-      let updatedData = { ...prevData };
+      let updatedData = { ...prevData, [name]: newValue };
 
       if (name.includes("storage")) {
-        updatedData = {
-          ...prevData,
-          valorArmazenado: {
-            ...prevData.valorArmazenado,
-            [name === "storageMin" ? "min" : "max"]: newValue,
-          },
+        updatedData.valorArmazenado = {
+          ...prevData.valorArmazenado,
+          [name === "storageMin" ? "min" : "max"]: newValue,
         };
       } else if (name.includes("sinistro")) {
-        updatedData = {
-          ...prevData,
-          valorSinistro: {
-            ...prevData.valorSinistro,
-            [name === "sinistroMin" ? "min" : "max"]: newValue,
-          },
+        updatedData.valorSinistro = {
+          ...prevData.valorSinistro,
+          [name === "sinistroMin" ? "min" : "max"]: newValue,
         };
       } else if (name.includes("transporte")) {
-        updatedData = {
-          ...prevData,
-          valorTransporte: {
-            ...prevData.valorTransporte,
-            [name === "transporteMin" ? "min" : "max"]: newValue,
-          },
+        updatedData.valorTransporte = {
+          ...prevData.valorTransporte,
+          [name === "transporteMin" ? "min" : "max"]: newValue,
         };
       }
 
@@ -382,14 +385,14 @@ const QuestionModal = ({
           </div>
         </div>
 
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth sx={{display:'flex', flexDirection:'row', gap:'10px'}} margin="normal">
           <InputLabel>Área Responsável</InputLabel>
           <Select
             name="areaResposavel"
             multiple
             value={formData.areaResposavel}
             onChange={handleAreaResponsavelChange}
-            fullWidth
+            sx={{ width: "50%" }}
           >
             {areaOptions.map((option, index) => (
               <MenuItem key={index} value={option}>
@@ -397,6 +400,48 @@ const QuestionModal = ({
               </MenuItem>
             ))}
             <MenuItem value="addNew">Adicionar nova área</MenuItem>
+          </Select>
+          <InputLabel>Estados</InputLabel>
+          <Select
+            multiple
+            sx={{width:'50%'}}
+            name="estados"
+            value={formData.estados || []}
+            onChange={handleChange}
+          >
+            {[
+              "AC",
+              "AL",
+              "AP",
+              "AM",
+              "BA",
+              "CE",
+              "DF",
+              "ES",
+              "GO",
+              "MA",
+              "MT",
+              "MS",
+              "MG",
+              "PA",
+              "PB",
+              "PR",
+              "PE",
+              "PI",
+              "RJ",
+              "RN",
+              "RS",
+              "RO",
+              "RR",
+              "SC",
+              "SP",
+              "SE",
+              "TO",
+            ].map((estado) => (
+              <MenuItem key={estado} value={estado}>
+                {estado}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
@@ -423,7 +468,11 @@ const QuestionModal = ({
             expandIcon={<ChevronLeft />}
             aria-controls="panel1-content"
             id="panel1-header"
-            sx={{ width: "100%", backgroundColor:'#c4c4c4', borderRadius:'5px' }}
+            sx={{
+              width: "100%",
+              backgroundColor: "#c4c4c4",
+              borderRadius: "5px",
+            }}
           >
             <Typography component="span">
               Valores de Armazenagem/Sinistro/Transporte
@@ -643,8 +692,17 @@ const QuestionModal = ({
                 {formData.optionList.map((option, index) => (
                   <MenuItem key={index} value={option}>
                     {option}
+
                     <IconButton
-                      onClick={() => handleDeleteOption(option)}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Tem certeza que deseja deletar? Essa ação não poderá ser desfeita"
+                          )
+                        ) {
+                          handleDeleteOption(option);
+                        }
+                      }}
                       sx={{ marginLeft: "auto" }}
                     >
                       <DeleteIcon />

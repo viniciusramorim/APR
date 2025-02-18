@@ -57,7 +57,7 @@ const ChecklistManager = () => {
         const snapshot = await checklistsRef.get();
         const data = {};
         snapshot.forEach((doc) => {
-          if(userChecklistPermission.includes(doc.id)){
+          if (userChecklistPermission.includes(doc.id)) {
             data[doc.id] = doc.data();
           }
         });
@@ -487,7 +487,9 @@ const ChecklistManager = () => {
                               <IconButton
                                 aria-label="delete"
                                 color="error"
-                                onClick={() => handleDeleteBloco(blocoId)}
+                                onClick={() => {
+                                  if (window.confirm('Tem certeza que deseja excluir esta pergunta?')) {
+                                  handleDeleteBloco(blocoId)}}}
                               >
                                 <DeleteIcon />
                               </IconButton>
@@ -526,7 +528,6 @@ const ChecklistManager = () => {
                       checklists[selectedChecklist][selectedBloco]
                     ) &&
                       checklists[selectedChecklist][selectedBloco]
-                        .sort((a, b) => a.order - b.order) // Ordena pelo campo `order`
                         .map((question, index) => (
                           <ListItem
                             key={question.questionId}
@@ -589,13 +590,15 @@ const ChecklistManager = () => {
                                 edge="end"
                                 aria-label="delete"
                                 color="error"
-                                onClick={() =>
-                                  handleDeleteQuestion(
-                                    selectedChecklist,
-                                    selectedBloco,
-                                    question.questionId
-                                  )
-                                }
+                                onClick={() => {
+                                  if (window.confirm('Tem certeza que deseja excluir esta pergunta?')) {
+                                    handleDeleteQuestion(
+                                      selectedChecklist,
+                                      selectedBloco,
+                                      question.questionId
+                                    )
+                                  }
+                                }}
                               >
                                 <DeleteIcon />
                               </IconButton>
