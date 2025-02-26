@@ -178,10 +178,8 @@ function AuthProvider({ children }) {
               status: status,
             })
             .then(() => {
+              console.log('Usuario cadastrado com sucesso!' + email + " - " + password);
               setLoadingAuth(false);
-              setTimeout(function () {
-                window.location.href = "/"; //move para pagina inicial
-              }, 1000);
             });
         }
       })

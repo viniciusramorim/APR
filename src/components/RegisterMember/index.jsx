@@ -115,6 +115,7 @@ function SignUpModal({ open, onClose }) {
                 </MenuItem>
                 <MenuItem value="patrimonial">Segurança Patrimonial</MenuItem>
                 <MenuItem value="oem">O&M</MenuItem>
+                <MenuItem value="pci">PCI</MenuItem>
               </Select>
             </FormControl>
 
