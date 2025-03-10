@@ -91,7 +91,7 @@ export default function Header() {
           </>
         )}
 
-        {(user.area === "patrimonial" || user.area === "oem") && (
+        {(user.area === "patrimonial" || user.area === "oem" || user.area === "pci") && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">
