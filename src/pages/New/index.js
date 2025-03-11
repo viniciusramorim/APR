@@ -780,6 +780,7 @@ export default function New() {
             <option value={'Projeto Veneza'}>Projeto Veneza (internalização Loja Dealer)</option>
             <option value={'Estoque Avançado'}>Estoque Avançado</option>
             <option value={'Instalação Tag'}>Instalação Tag</option>
+            <option value={'Programada'}>Programada</option>
             <option value={'Não Opinada'}>Não Opinada</option>
           </select>
         </div>

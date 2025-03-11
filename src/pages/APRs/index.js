@@ -155,6 +155,7 @@ export default function Dashboard() {
     query = user.nivel === 'supervisor' ? query.where('site_id.Estado', 'in', regional) : query
     query = user.nivel === 'revisor' ? query.where('site_id.Estado', 'in', regional) : query
     query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area', 'Revisado']) : query
+    query = user.area === 'pci' ? query.where('site_id.tipoSite', 'in', ['PCI', 'RPCI']) : query
     query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query
 
     let lista = [];
@@ -168,7 +169,7 @@ export default function Dashboard() {
           let respondidas = 0;
           let pgr_inconformidade = 0;
 
-          if (doc.data().site_id.tipoSite === 'AUDIT PGR FIXA' || doc.data().site_id.tipoSite === 'AUDIT PGR MOVEL'){
+          if (doc.data().site_id.tipoSite === 'AUDIT PGR FIXA' || doc.data().site_id.tipoSite === 'AUDIT PGR MOVEL') {
             doc.data().checklist.forEach((area, indexA) => {
               area[1].forEach((question, indexQ) => {
                 if (question.respGabarito !== question.resp && question.resp !== '') {
@@ -434,6 +435,8 @@ export default function Dashboard() {
                   </MenuItem>
                   <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
                   <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
+                  <MenuItem value={'Programada'}>Programada</MenuItem>
+                  <MenuItem value={'Não Opinada'}>Não Opinada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -569,6 +572,8 @@ export default function Dashboard() {
                   <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>
                   <MenuItem value="INDOOR">INDOOR</MenuItem>
                   <MenuItem value="SMARTTAG2">SMARTTAG</MenuItem>
+                  <MenuItem value="RPCI">RPCI</MenuItem>
+                  <MenuItem value="PCI">PCI</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
