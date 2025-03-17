@@ -113,7 +113,10 @@ function AuthProvider({ children }) {
         redirect: "follow",
       };
 
-      fetch(`https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/obterUidPorEmail?email=${email}`, requestOptions)
+      fetch(
+        `https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/obterUidPorEmail?email=${email}`,
+        requestOptions
+      )
         .then((response) => response.text())
         .then((result) => {
           resolve(JSON.parse(result));
@@ -178,14 +181,16 @@ function AuthProvider({ children }) {
               status: status,
             })
             .then(() => {
-              console.log('Usuario cadastrado com sucesso!' + email + " - " + password);
+              console.log(
+                "Usuario cadastrado com sucesso!" + email + " - " + password
+              );
               setLoadingAuth(false);
             });
         }
       })
       .catch((error) => {
         console.log(error);
-        if (error.code === 'auth/email-already-in-use') {
+        if (error.code === "auth/email-already-in-use") {
           obterUidEmail(email).then(async (result) => {
             await firebase
               .firestore()
@@ -200,9 +205,11 @@ function AuthProvider({ children }) {
                 status: status,
               })
               .then(() => {
-                console.log('Usuario cadastrado com sucesso!' + email + " - " + password);
-              })
-          })
+                console.log(
+                  "Usuario cadastrado com sucesso!" + email + " - " + password
+                );
+              });
+          });
         }
         setLoadingAuth(false);
       });
@@ -346,7 +353,7 @@ function AuthProvider({ children }) {
 
     try {
       nome = user.nome;
-    } catch { }
+    } catch {}
     try {
       const response = await fetch("https://api.ipify.org?format=json");
       const data = await response.json();
@@ -373,12 +380,31 @@ function AuthProvider({ children }) {
 
   async function getUser(id) {
     let userProfile = await firebase
-          .firestore()
-          .collection("users")
-          .doc(id)
-          .get();
+      .firestore()
+      .collection("users")
+      .doc(id)
+      .get();
 
     return userProfile;
+  }
+
+  function trocaSenha(id) {
+    const requestOptions = {
+      method: "POST",
+      redirect: "follow",
+    };
+
+    fetch(
+      `https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/alterarSenhaUsuario?userId=${id}`,
+      requestOptions
+    )
+      .then((response) => response.text())
+      .then((result) => {
+        console.log(result);
+        alert(result);
+        return result;
+      })
+      .catch((error) => console.error(error));
   }
 
   return (
@@ -400,6 +426,7 @@ function AuthProvider({ children }) {
         redefinirEmail,
         logSistem,
         getUser,
+        trocaSenha,
       }}
     >
       {children}

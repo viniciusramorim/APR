@@ -52,7 +52,7 @@ const QuestionModal = ({
 
   const initialFormData = {
     question: "",
-    answers: ["Sim", "Não"],
+    answers: "",
     selectOptions: true,
     textarea: false,
     inputImages: false,
@@ -673,11 +673,25 @@ const QuestionModal = ({
               }
               label="Possui campo quantitativo?"
             />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.answers}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      answers: checked ? ["Sim", "Não"] : "",
+                    }));
+                  }}
+                  name="inputAnswers"
+                />
+              }
+              label="Possui campo de escolha (Sim ou Não) ?"
+            />
           </Grid2>
         </Grid2>
-        <Divider sx={{ padding: "10px 0px" }}>
-          *
-        </Divider>
+        <Divider sx={{ padding: "10px 0px" }}>*</Divider>
         {/* Input para adicionar novas opções ao Select */}
         {formData.listCheck && (
           <Box display="flex" mb={2} className="new-option">

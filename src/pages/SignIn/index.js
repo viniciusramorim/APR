@@ -1,10 +1,11 @@
 import { useState, useContext, useEffect } from "react";
 import { BsEye } from "react-icons/bs";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-
-import "./signin.scss";
 import { AuthContext } from "../../contexts/auth";
+import firebase from "../../services/firebaseConnection";
+import "./signin.scss";
 import logo from "../../assets/logoaprdigital-removebg.png";
+import { toast } from "react-toastify";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -12,7 +13,7 @@ export default function SignIn() {
   const { signIn, loadingAuth } = useContext(AuthContext);
 
   useEffect(() => {
-    addBodyClass('page-apply-apr');
+    addBodyClass("page-apply-apr");
   }, []);
 
   function handleSubmit(e) {
@@ -29,6 +30,41 @@ export default function SignIn() {
       x.type = "text";
     } else {
       x.type = "password";
+    }
+  }
+
+  function handleResetPassword() {
+    if (email !== "") {
+      firebase
+        .auth()
+        .fetchSignInMethodsForEmail(email)
+        .then((signInMethods) => {
+          if (signInMethods.length > 0) {
+            firebase
+              .auth()
+              .sendPasswordResetEmail(email)
+              .then(() => {
+                alert(
+                  "Por favor, verifique seu e-mail para redefinir sua senha."
+                );
+              })
+              .catch((error) => {
+                toast.error(
+                  "Erro ao enviar e-mail de redefinição de senha. Por favor, tente novamente."
+                );
+                console.error(error);
+              });
+          } else {
+            toast.error("E-mail não existente");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else {
+      toast.error(
+        "Por favor, insira seu e-mail antes de tentar redefinir a senha."
+      );
     }
   }
 
@@ -60,6 +96,18 @@ export default function SignIn() {
           <button type="submit">
             {loadingAuth ? "Carregando..." : "Acessar"}
           </button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            <span className="btn-reset" onClick={handleResetPassword}>
+              Esqueci minha senha
+            </span>
+          </div>
         </form>
       </div>
     </div>
