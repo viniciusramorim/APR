@@ -26,6 +26,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { Label } from "@mui/icons-material";
 
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
@@ -907,18 +908,20 @@ export default function New() {
             </a>
           </div>
         </div>
-
         <div className="container" id="container-motivo">
           <Select
             id="selectMotivo"
             value={motivoAPR}
             onChange={(e) => selectMotivoAPR(e)}
             size="small"
+            displayEmpty
+            placeholder="Selecione um motivo..."
             sx={{ width: "600px", borderRadius: "8px" }}
           >
             <MenuItem disabled value="">
               Selecione uma indicação...
             </MenuItem>
+
             <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
             <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
             <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
