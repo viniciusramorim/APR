@@ -1,23 +1,31 @@
-
-import { useContext, useEffect, useState } from 'react';
-import { FiClipboard, FiCheck, FiX } from 'react-icons/fi';
-import { useParams } from 'react-router-dom';
-import { createRoot } from 'react-dom/client';
-import { toast } from 'react-toastify';
-import { format } from 'date-fns'
-import * as geofire from 'geofire-common';
+import { useContext, useEffect, useState } from "react";
+import { FiClipboard, FiCheck, FiX } from "react-icons/fi";
+import { useParams } from "react-router-dom";
+import { createRoot } from "react-dom/client";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import * as geofire from "geofire-common";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-import './new.scss'
+import "./new.scss";
 
-import { AuthContext } from '../../contexts/auth';
-import firebase from '../../services/firebaseConnection';
-import Header from '../../components/Header';
-import Title from '../../components/Title';
-import ModalLoading from '../../components/Modal_Loading';
-import Modal_Justificativa from '../../components/Modal_Justificativa';
-import CameraComponent from './CameraComponent';
-import InputComponent from './InputComponent';
-import { Checkbox, FormControl, ListItemText, MenuItem, OutlinedInput, Select, TextField } from '@mui/material';
+import { AuthContext } from "../../contexts/auth";
+import firebase from "../../services/firebaseConnection";
+import Header from "../../components/Header";
+import Title from "../../components/Title";
+import ModalLoading from "../../components/Modal_Loading";
+import Modal_Justificativa from "../../components/Modal_Justificativa";
+import CameraComponent from "./CameraComponent";
+import InputComponent from "./InputComponent";
+import {
+  Checkbox,
+  FormControl,
+  ListItemText,
+  ListSubheader,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  TextField,
+} from "@mui/material";
 
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
@@ -30,52 +38,49 @@ const MenuProps = {
   },
 };
 
-
 export default function New() {
-
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
   const { id_assign } = useParams();
 
   useEffect(() => {
-    addBodyClass('page-new');
+    addBodyClass("page-new");
 
     loadSite();
     getCheckLists();
 
     navigator.geolocation.getCurrentPosition(function (position) {
-      setLocation(position.coords)
-    })
+      setLocation(position.coords);
+    });
+  }, [id]);
 
-  }, [id])
-
-  const base = 'aprs-producao' //aprs-producao
-  const storage = 'images' //images
+  const base = "aprs-producao"; //aprs-producao
+  const storage = "images"; //images
 
   //question
   const [questions, setQuestions] = useState([]);
   const [listQuestions, setListQuestions] = useState([]);
 
-  const [motivoAPR, setMotivoAPR] = useState('');
+  const [motivoAPR, setMotivoAPR] = useState("");
 
   const [siteInfo, setSiteInfo] = useState([]);
   const [showPostModal, setShowPostModal] = useState(false);
 
   const [location, setLocation] = useState([]);
-  const [inicio, setInicio] = useState('');
-  const [lastAPR, setLastAPR] = useState('');
+  const [inicio, setInicio] = useState("");
+  const [lastAPR, setLastAPR] = useState("");
 
-  const [loadingImages, setLoadingImages] = useState('');
+  const [loadingImages, setLoadingImages] = useState("");
 
   const [justificativa, setJustificativa] = useState();
   const [openModalJust, setOpenModalJust] = useState(false);
   //PGR
-  const [valorArmazenamento, setValorArmazenamento] = useState('');
-  const [valorTransporte, setValorTransporte] = useState('');
-  const [valorSinistro, setValorSinistro] = useState('');
+  const [valorArmazenamento, setValorArmazenamento] = useState("");
+  const [valorTransporte, setValorTransporte] = useState("");
+  const [valorSinistro, setValorSinistro] = useState("");
   //Loja
-  const [tipoLoja, setTipoLoja] = useState('');
-  const [valorEstoque, setValorEstoque] = useState('0');
+  const [tipoLoja, setTipoLoja] = useState("");
+  const [valorEstoque, setValorEstoque] = useState("0");
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -83,163 +88,199 @@ export default function New() {
     } = e;
 
     let newQuestions = [...questions];
-    let objIndex = newQuestions[indexA][1].findIndex((obj => obj.questionId === question.questionId));
+    let objIndex = newQuestions[indexA][1].findIndex(
+      (obj) => obj.questionId === question.questionId
+    );
 
-    newQuestions[indexA][1][objIndex].optionListResp = typeof value === 'string' ? value.split(',') : value;
+    newQuestions[indexA][1][objIndex].optionListResp =
+      typeof value === "string" ? value.split(",") : value;
 
     setQuestions(newQuestions);
     saveIndexedDB();
   };
 
   async function getCheckLists() {
-    const collections = await firebase.firestore().collection('question').get();
+    const collections = await firebase.firestore().collection("question").get();
     setListQuestions(collections.docs);
   }
 
   async function loadSite() {
-    await firebase.firestore().collection('sites')
+    await firebase
+      .firestore()
+      .collection("sites")
       .doc(id)
       .get()
       .then((snapshot) => {
         setSiteInfo(snapshot.data());
         if (snapshot.data().last_apr !== undefined) {
           setLastAPR({
-            data: format(snapshot.data().last_apr.toDate(), 'dd/MM/yyyy HH:mm'),
-            motivo: snapshot.data().last_motivo
-          })
+            data: format(snapshot.data().last_apr.toDate(), "dd/MM/yyyy HH:mm"),
+            motivo: snapshot.data().last_motivo,
+          });
         }
         setInicio(new Date());
       })
       .catch((error) => {
-        console.log('DEU ALGUM ERRO!', error);
-      })
+        console.log("DEU ALGUM ERRO!", error);
+      });
   }
 
   async function getQuestions(snapshot) {
-    navigator.permissions.query({ name: 'geolocation' })
-      .then(async (item) => {
-        if (item.state !== 'granted') {
-          alert('habilite a geolocation para realizar a APR');
-          return;
-        } else {
-          document.getElementById('container-questions').style.display = 'flex';
+    navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
+      if (item.state !== "granted") {
+        alert("habilite a geolocation para realizar a APR");
+        return;
+      } else {
+        document.getElementById("container-questions").style.display = "flex";
 
-          siteInfo.tipoSite = snapshot;
+        siteInfo.tipoSite = snapshot;
 
-          await firebase.firestore().collection('question')
-            .doc(snapshot)
-            .get()
-            .then(async (item_question) => {
-              const data = item_question.data();
-              console.log(data);
+        await firebase
+          .firestore()
+          .collection("question")
+          .doc(snapshot)
+          .get()
+          .then(async (item_question) => {
+            const data = item_question.data();
+            console.log(data);
 
-              const orderedEntries = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
-              console.log(orderedEntries);
+            const orderedEntries = Object.entries(data).sort((a, b) =>
+              a[0].localeCompare(b[0])
+            );
+            console.log(orderedEntries);
 
-              setQuestions(orderedEntries);
-            });
-        }
-      });
+            setQuestions(orderedEntries);
+          });
+      }
+    });
   }
   //questions number amount
   function inputNumber(question, indexA, e) {
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    let objIndex = questions[indexA][1].findIndex(
+      (obj) => obj.questionId == question.questionId
+    );
     questions[indexA][1][objIndex].respInputNumber = e.target.value;
-    setQuestions(questions)
+    setQuestions(questions);
   }
   //questions textarea
   function textareaValue(question, indexA, e) {
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    let objIndex = questions[indexA][1].findIndex(
+      (obj) => obj.questionId == question.questionId
+    );
     questions[indexA][1][objIndex].respTextArea = e.target.value;
-    setQuestions(questions)
+    setQuestions(questions);
   }
   //questions sim ou não
   function radioSetValue(question, indexA, e) {
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    let objIndex = questions[indexA][1].findIndex(
+      (obj) => obj.questionId == question.questionId
+    );
     questions[indexA][1][objIndex].resp = e.target.value;
     setQuestions(questions);
-    saveIndexedDB()
+    saveIndexedDB();
 
-    let textarea = document.getElementById(indexA + "_textarea_" + question.questionId)
-    let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA)
-    let inputSelectResp = document.getElementById(indexA + "_select_" + question.questionId)
-    let inputNumber = document.getElementById(indexA + "_numberarea_" + question.questionId)
+    let textarea = document.getElementById(
+      indexA + "_textarea_" + question.questionId
+    );
+    let inputimage = document.getElementById(
+      "inputimg_" + question.questionId + "_" + indexA
+    );
+    let inputSelectResp = document.getElementById(
+      indexA + "_select_" + question.questionId
+    );
+    let inputNumber = document.getElementById(
+      indexA + "_numberarea_" + question.questionId
+    );
 
-    if (e.target.value === '') {
-      if (question.textarea === true) textarea.style.display = 'none'
-      if (question.inputImages === true) inputimage.style.display = 'none'
-      if (question.listCheck === true) inputSelectResp.style.display = 'none'
-      if (question.inputNumber === true) inputNumber.style.display = 'none'
-    } else if (e.target.value !== '') {
-      if (question.textarea === true) textarea.style.display = 'block'
-      if (question.inputImages === true) inputimage.style.display = 'flex'
-      if (question.listCheck === true) inputSelectResp.style.display = 'inline-flex'
-      if (question.inputNumber === true) inputNumber.style.display = 'block'
+    if (e.target.value === "") {
+      if (question.textarea === true) textarea.style.display = "none";
+      if (question.inputImages === true) inputimage.style.display = "none";
+      if (question.listCheck === true) inputSelectResp.style.display = "none";
+      if (question.inputNumber === true) inputNumber.style.display = "none";
+    } else if (e.target.value !== "") {
+      if (question.textarea === true) textarea.style.display = "block";
+      if (question.inputImages === true) inputimage.style.display = "flex";
+      if (question.listCheck === true)
+        inputSelectResp.style.display = "inline-flex";
+      if (question.inputNumber === true) inputNumber.style.display = "block";
     }
   }
 
   function clearQuestion(question, indexA) {
-    var element = document.getElementsByName(indexA + '-' + question.questionId);
-    let objIndex = questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    var element = document.getElementsByName(
+      indexA + "-" + question.questionId
+    );
+    let objIndex = questions[indexA][1].findIndex(
+      (obj) => obj.questionId == question.questionId
+    );
     saveIndexedDB();
 
-    document.querySelectorAll("#inputimg_" + question.questionId + "_" + indexA).forEach(item => {
-      for (let index = 0; index < item.children.length; index++) {
-        if (item.children.length > 1) {
-          item.lastChild.remove()
+    document
+      .querySelectorAll("#inputimg_" + question.questionId + "_" + indexA)
+      .forEach((item) => {
+        for (let index = 0; index < item.children.length; index++) {
+          if (item.children.length > 1) {
+            item.lastChild.remove();
+          }
         }
-      }
-    });
+      });
 
-    let textarea = document.getElementById(indexA + "_textarea_" + question.questionId);
-    let inputimage = document.getElementById("inputimg_" + question.questionId + "_" + indexA);
+    let textarea = document.getElementById(
+      indexA + "_textarea_" + question.questionId
+    );
+    let inputimage = document.getElementById(
+      "inputimg_" + question.questionId + "_" + indexA
+    );
 
-    textarea && (textarea.style.display = textarea.style.display === 'block' && 'none')
-    inputimage && (inputimage.style.display = inputimage.style.display === 'flex' && 'none')
+    textarea &&
+      (textarea.style.display = textarea.style.display === "block" && "none");
+    inputimage &&
+      (inputimage.style.display =
+        inputimage.style.display === "flex" && "none");
 
-    textarea && (textarea.value = "")
+    textarea && (textarea.value = "");
 
-    questions[indexA][1][objIndex].resp = '';
+    questions[indexA][1][objIndex].resp = "";
     questions[indexA][1][objIndex].images = [];
-    questions[indexA][1][objIndex].respTextArea = '';
+    questions[indexA][1][objIndex].respTextArea = "";
 
     setQuestions(questions);
-    for (var i = 0; i < element.length; i++)
-      element[i].checked = false;
-
+    for (var i = 0; i < element.length; i++) element[i].checked = false;
   }
   //função do botão remover imagem da lista
   function removeImg(indexA, objIndex, file) {
-    let imageArray = []
-    let arrayQuestion = questions[indexA][1][objIndex]
-    let index = arrayQuestion.images.findIndex((obj => obj.name === file.name));
+    let imageArray = [];
+    let arrayQuestion = questions[indexA][1][objIndex];
+    let index = arrayQuestion.images.findIndex((obj) => obj.name === file.name);
 
-    delete arrayQuestion.images[index]
+    delete arrayQuestion.images[index];
 
     arrayQuestion.images.forEach((file) => {
-      imageArray.push(file)
-    })
+      imageArray.push(file);
+    });
 
     questions[indexA][1][objIndex].images = imageArray;
     setQuestions(questions);
   }
 
   async function updateAssignments() {
-    await firebase.firestore().collection('atribuicoes')
+    await firebase
+      .firestore()
+      .collection("atribuicoes")
       .doc(id_assign)
       .update({
-        status: 'APR Criada'
+        status: "APR Criada",
       })
       .then(() => {
-        console.log('Apr Criada')
+        console.log("Apr Criada");
       })
-      .catch(err => {
-        console.log(err)
-      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   function togglePostModal() {
-    setShowPostModal(!showPostModal) //trocando de true pra false
+    setShowPostModal(!showPostModal); //trocando de true pra false
   }
 
   function submit() {
@@ -247,60 +288,76 @@ export default function New() {
 
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
-        if (question.resp !== '') {
+        if (question.resp !== "") {
           notBlankChecklist = notBlankChecklist + 1;
         }
-      })
-    })
+      });
+    });
 
     if (notBlankChecklist <= 0) {
-      if (justificativa == null || justificativa == "" || justificativa.motivo === '' || justificativa.desc === '') {
-        setOpenModalJust(true)
-        console.log('Insira uma justificativa')
-        return
+      if (
+        justificativa == null ||
+        justificativa == "" ||
+        justificativa.motivo === "" ||
+        justificativa.desc === ""
+      ) {
+        setOpenModalJust(true);
+        console.log("Insira uma justificativa");
+        return;
       }
-      console.log(justificativa)
+      console.log(justificativa);
     }
 
-    navigator.permissions.query({ name: 'geolocation' })
-      .then(async (item) => {
-        if (item.state === 'granted') {
-          getPerimetro(location.latitude, location.longitude).then(async perimeter => {
+    navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
+      if (item.state === "granted") {
+        getPerimetro(location.latitude, location.longitude)
+          .then(async (perimeter) => {
             togglePostModal(); //abre modal de loading
             insertData(perimeter);
-          }).catch(err => {
-            alert('Erro na geolocation, contate um administrador')
-            console.log('Erro na geolocation, contate um administrador' + err)
           })
-        } else {
-          alert('habilite a geolocation para realizar a APR')
-          console.log('habilite a geolocation para realizar a APR')
-        }
-      })
+          .catch((err) => {
+            alert("Erro na geolocation, contate um administrador");
+            console.log("Erro na geolocation, contate um administrador" + err);
+          });
+      } else {
+        alert("habilite a geolocation para realizar a APR");
+        console.log("habilite a geolocation para realizar a APR");
+      }
+    });
   }
 
   async function incrementID() {
     try {
-      const snapshot = await firebase.firestore().collection('incrementID').doc('currentID').get();
+      const snapshot = await firebase
+        .firestore()
+        .collection("incrementID")
+        .doc("currentID")
+        .get();
       const currentID = snapshot.data().ID;
 
-      await firebase.firestore().collection('incrementID').doc('currentID').update({
-        ID: currentID + 1
-      });
+      await firebase
+        .firestore()
+        .collection("incrementID")
+        .doc("currentID")
+        .update({
+          ID: currentID + 1,
+        });
 
       return currentID;
     } catch (error) {
-      console.error('Erro:', error);
-      throw error;  // Lança o erro para que possa ser tratado fora da função se necessário
+      console.error("Erro:", error);
+      throw error; // Lança o erro para que possa ser tratado fora da função se necessário
     }
   }
 
   async function setSite(id, motivo) {
-    const querySnapshot = await firebase.firestore().collection('sites')
+    const querySnapshot = await firebase
+      .firestore()
+      .collection("sites")
       .doc(id)
       .update({
         last_apr: new Date(),
-        last_motivo: motivo
+        last_motivo: motivo,
       });
 
     return querySnapshot;
@@ -317,195 +374,230 @@ export default function New() {
     const result_peso = calculatePontos();
 
     incrementID()
-      .then(async result => {
-        setSite(id, motivoAPR).then(async () => {
-          console.log('ID Atual:', result);
+      .then(async (result) => {
+        setSite(id, motivoAPR)
+          .then(async () => {
+            console.log("ID Atual:", result);
 
-          await firebase.firestore().collection(base)
-            .add({
-              user_id: user,
-              apr_id: result,
-              site_id: siteInfo,
-              created: new Date(),
-              motivo_apr: motivoAPR,
-              valor_armazenamento: valorArmazenamento,
-              valor_transporte: valorTransporte,
-              valor_sinistro: valorSinistro,
-              valor_estoque: valorEstoque,
-              tipo_loja: tipoLoja,
-              status: justificativa ? 'Com Exceção' : 'Em Aberto',
-              peso: result_peso,
-              justificativa: justificativa ? justificativa : '',
-              locationCreated: {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                perimetro: perimeter,
-              },
-              tempoConclusao: {
-                inicio: inicio === undefined ? new Date() : inicio,
-                conclusao: new Date(),
-              }
-            })
-            .then(async (index) => {
-
-              let containsImage = verifyContainsImage()
-
-              questions.forEach(async (area, indexA) => {
-                checklist.push({
-                  0: area[0],
-                  1: []
-                })
-                area[1].forEach(async (question, indexQ) => {
-
-                  question.question && checklist[indexA][1].push(
-                    {
-                      imagesURL: [],
-                      resp: question.resp,
-                      respTextArea: question.respTextArea,
-                      questionId: question.questionId,
-                      question: question.question,
-                      plano_acao: question.plano_acao,
-                      openPA: question.openPA,
-                      areaResposavel: question.areaResposavel,
-                      respGabarito: question.respGabarito,
-
-                      optionList: question.optionList ? question.optionList : [],
-                      optionListResp: question.optionListResp ? question.optionListResp : [],
-                      listCheck: question.listCheck ? question.listCheck : '',
-                      respInputNumber: question.respInputNumber ? question.respInputNumber : '',
-                      inputNumber: question.inputNumber ? question.inputNumber : '',
-                    }
-                  )
-
-                  //Verifica antes de carregar no banco se contem resposta
-                  if (question.resp !== '') {
-                    let imageList = [] // criar uma lista de imagem e reseta a cada questao
-                    //inserção de dados no banco OBS: se contem imagem ou não
-                    if (containsImage === true) {
-                      question.images && question.images.forEach(async file => {
-                        let imgName = file.name
-                        let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`
-
-                        let storageRef = await firebase.storage().ref(imgPath)
-                        let upload = storageRef.put(file)
-
-                        qtdImages = qtdImages + 1
-
-                        let uploadCompleted = new Promise((resolve, reject) => { // promise para concluir apos termino de upload geral de fotos
-                          trackUpload(upload).then(() => {
-                            storageRef.getDownloadURL()
-                              .then((downloadUrl) => {
-                                imageList.push({
-                                  url: downloadUrl,
-                                  ref: storageRef.fullPath
-                                })
-                                try {
-                                  console.log(indexA + "-" + indexQ)
-                                  checklist[indexA][1][indexQ].imagesURL = imageList; //define a lista em uma pergunta
-                                } catch (error) {
-                                  console.log(indexA + "-" + indexQ)
-                                  console.log('Erro ao obter url da imagem' + error)
-                                }
-                                imagesCompleted = imagesCompleted + 1 // conta quantos imagens foi obtida a url
-                                // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                                console.log(imagesCompleted + ' / ' + qtdImages); // mostra o status de imagens concluida vs pendentes
-                                setLoadingImages(imagesCompleted + ' / ' + qtdImages)
-                                if (imagesCompleted === qtdImages) { // retorna como concluido apenas quantos os valores estiverem ok
-                                  resolve()
-                                }
-                              }).catch(err => {
-                                console.log("Erro ao obter URL" + err)
-                              })
-                          }).catch((err) => {
-                            console.log("Erro no upload: " + err)
-                          })
-                        })
-
-                        uploadCompleted.then(async () => {
-                          await firebase.firestore().collection(base)
-                            .doc(index.id)
-                            .update({
-                              checklist: checklist,
-                            })
-                            .then(() => {
-                              console.log('Completed')
-                              logSistem('A APR foi criada', index.id)
-                              conclusionApr(index.id)
-                            })
-                            .catch((err) => {
-                              console.log(err)
-                            })
-                        })
-                      })
-                    }
-                  }
-
-                })
+            await firebase
+              .firestore()
+              .collection(base)
+              .add({
+                user_id: user,
+                apr_id: result,
+                site_id: siteInfo,
+                created: new Date(),
+                motivo_apr: motivoAPR,
+                valor_armazenamento: valorArmazenamento,
+                valor_transporte: valorTransporte,
+                valor_sinistro: valorSinistro,
+                valor_estoque: valorEstoque,
+                tipo_loja: tipoLoja,
+                status: justificativa ? "Com Exceção" : "Em Aberto",
+                peso: result_peso,
+                justificativa: justificativa ? justificativa : "",
+                locationCreated: {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  perimetro: perimeter,
+                },
+                tempoConclusao: {
+                  inicio: inicio === undefined ? new Date() : inicio,
+                  conclusao: new Date(),
+                },
               })
+              .then(async (index) => {
+                let containsImage = verifyContainsImage();
 
-              if (containsImage === false) {
-                console.log(checklist)
-                await firebase.firestore().collection(base)
-                  .doc(index.id)
-                  .update({
-                    checklist: checklist,
-                  })
-                  .then(async () => {
-                    console.log('Completed not contains Image')
-                    logSistem('A APR foi criado', index.id)
-                    conclusionApr(index.id)
-                  })
-                  .catch((err) => {
-                    console.log('Erro ao inserir APR (sem imagens)')
-                  })
-              }
+                questions.forEach(async (area, indexA) => {
+                  checklist.push({
+                    0: area[0],
+                    1: [],
+                  });
+                  area[1].forEach(async (question, indexQ) => {
+                    question.question &&
+                      checklist[indexA][1].push({
+                        imagesURL: [],
+                        resp: question.resp,
+                        respTextArea: question.respTextArea,
+                        questionId: question.questionId,
+                        question: question.question,
+                        plano_acao: question.plano_acao,
+                        openPA: question.openPA,
+                        areaResposavel: question.areaResposavel,
+                        respGabarito: question.respGabarito,
 
-              if (id_assign !== undefined) {
-                updateAssignments();
-              }
+                        optionList: question.optionList
+                          ? question.optionList
+                          : [],
+                        optionListResp: question.optionListResp
+                          ? question.optionListResp
+                          : [],
+                        listCheck: question.listCheck ? question.listCheck : "",
+                        respInputNumber: question.respInputNumber
+                          ? question.respInputNumber
+                          : "",
+                        inputNumber: question.inputNumber
+                          ? question.inputNumber
+                          : "",
+                      });
 
-            })
-            .catch(err => [
-              console.log(err)
-            ])
-        }).catch(err => console.log('Erro ao inserir informações no SITE: ' + err))
+                    //Verifica antes de carregar no banco se contem resposta
+                    if (question.resp !== "") {
+                      let imageList = []; // criar uma lista de imagem e reseta a cada questao
+                      //inserção de dados no banco OBS: se contem imagem ou não
+                      if (containsImage === true) {
+                        question.images &&
+                          question.images.forEach(async (file) => {
+                            let imgName = file.name;
+                            let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
+
+                            let storageRef = await firebase
+                              .storage()
+                              .ref(imgPath);
+                            let upload = storageRef.put(file);
+
+                            qtdImages = qtdImages + 1;
+
+                            let uploadCompleted = new Promise(
+                              (resolve, reject) => {
+                                // promise para concluir apos termino de upload geral de fotos
+                                trackUpload(upload)
+                                  .then(() => {
+                                    storageRef
+                                      .getDownloadURL()
+                                      .then((downloadUrl) => {
+                                        imageList.push({
+                                          url: downloadUrl,
+                                          ref: storageRef.fullPath,
+                                        });
+                                        try {
+                                          console.log(indexA + "-" + indexQ);
+                                          checklist[indexA][1][
+                                            indexQ
+                                          ].imagesURL = imageList; //define a lista em uma pergunta
+                                        } catch (error) {
+                                          console.log(indexA + "-" + indexQ);
+                                          console.log(
+                                            "Erro ao obter url da imagem" +
+                                              error
+                                          );
+                                        }
+                                        imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
+                                        // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
+                                        console.log(
+                                          imagesCompleted + " / " + qtdImages
+                                        ); // mostra o status de imagens concluida vs pendentes
+                                        setLoadingImages(
+                                          imagesCompleted + " / " + qtdImages
+                                        );
+                                        if (imagesCompleted === qtdImages) {
+                                          // retorna como concluido apenas quantos os valores estiverem ok
+                                          resolve();
+                                        }
+                                      })
+                                      .catch((err) => {
+                                        console.log("Erro ao obter URL" + err);
+                                      });
+                                  })
+                                  .catch((err) => {
+                                    console.log("Erro no upload: " + err);
+                                  });
+                              }
+                            );
+
+                            uploadCompleted.then(async () => {
+                              await firebase
+                                .firestore()
+                                .collection(base)
+                                .doc(index.id)
+                                .update({
+                                  checklist: checklist,
+                                })
+                                .then(() => {
+                                  console.log("Completed");
+                                  logSistem("A APR foi criada", index.id);
+                                  conclusionApr(index.id);
+                                })
+                                .catch((err) => {
+                                  console.log(err);
+                                });
+                            });
+                          });
+                      }
+                    }
+                  });
+                });
+
+                if (containsImage === false) {
+                  console.log(checklist);
+                  await firebase
+                    .firestore()
+                    .collection(base)
+                    .doc(index.id)
+                    .update({
+                      checklist: checklist,
+                    })
+                    .then(async () => {
+                      console.log("Completed not contains Image");
+                      logSistem("A APR foi criado", index.id);
+                      conclusionApr(index.id);
+                    })
+                    .catch((err) => {
+                      console.log("Erro ao inserir APR (sem imagens)");
+                    });
+                }
+
+                if (id_assign !== undefined) {
+                  updateAssignments();
+                }
+              })
+              .catch((err) => [console.log(err)]);
+          })
+          .catch((err) =>
+            console.log("Erro ao inserir informações no SITE: " + err)
+          );
       })
-      .catch(err => console.log('Erro ao inserir ID: ' + err))
-
+      .catch((err) => console.log("Erro ao inserir ID: " + err));
   }
   // função de monitoramento de upload de imagens
   function trackUpload(upload) {
-    return new Promise((resolve, reject) => { // promise para retornar somente quando concluido.
-      upload.on('state_changed',
+    return new Promise((resolve, reject) => {
+      // promise para retornar somente quando concluido.
+      upload.on(
+        "state_changed",
         (snapshot) => {
-          let percent = (snapshot.bytesTransferred / snapshot.totalBytes * 100).toFixed(2) + '%' // exibe em porcentagem o processo de upload
-          console.log(percent)
+          let percent =
+            ((snapshot.bytesTransferred / snapshot.totalBytes) * 100).toFixed(
+              2
+            ) + "%"; // exibe em porcentagem o processo de upload
+          console.log(percent);
         },
         (error) => {
-          toast.error("Erro ao carregar imagem !")
-          console.log(error)
-          reject("Erro ao carregar imagem", error)
-          document.getElementById('modalLoading').style.display = 'none'
+          toast.error("Erro ao carregar imagem !");
+          console.log(error);
+          reject("Erro ao carregar imagem", error);
+          document.getElementById("modalLoading").style.display = "none";
         },
         () => {
-          resolve() // retorna quando concluido a imagem
+          resolve(); // retorna quando concluido a imagem
         }
-      )
-    })
+      );
+    });
   }
 
   function verifyContainsImage() {
-    let containsImage = false
+    let containsImage = false;
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
         // verifica se contem imagem
         if (question.images && question.images.length > 0) {
-          containsImage = true
+          containsImage = true;
         }
-      })
-    })
+      });
+    });
 
-    return containsImage
+    return containsImage;
   }
 
   function calculatePontos() {
@@ -513,140 +605,147 @@ export default function New() {
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
         // verifica se contem imagem
-        if (question.resp !== '' && (question.resp !== question.respGabarito)) {
+        if (question.resp !== "" && question.resp !== question.respGabarito) {
           peso = peso + question.peso;
         }
-      })
-    })
+      });
+    });
 
-    return peso
+    return peso;
   }
 
   async function getPerimetro(lat, lng) {
     const center = [parseFloat(lat), parseFloat(lng)];
-    const radiusInM = 1 * 1000
+    const radiusInM = 1 * 1000;
 
-    let latitude = parseFloat(siteInfo.Latitude.replace(',', '.'));
-    let longitude = parseFloat(siteInfo.Longitude.replace(',', '.'));
-    console.log(latitude)
-    console.log(longitude)
+    let latitude = parseFloat(siteInfo.Latitude.replace(",", "."));
+    let longitude = parseFloat(siteInfo.Longitude.replace(",", "."));
+    console.log(latitude);
+    console.log(longitude);
     const distanceInKm = geofire.distanceBetween([latitude, longitude], center);
     const distanceInM = distanceInKm * 1000;
     if (distanceInM <= radiusInM) {
-      return ('Esta dentro do Perimetro')
+      return "Esta dentro do Perimetro";
     } else {
-      return ('fora perimetro')
+      return "fora perimetro";
     }
   }
 
   function conclusionApr(id) {
-    document.getElementById('container-conclusion').style.display = 'flex';
-    document.getElementById('container-questions').style.display = 'none';
-    document.getElementById('container-save').style.display = 'none';
-    document.getElementById('container-motivo').style.display = 'none';
-    (siteInfo.tipoSite === 'AUDIT PGR FIXA' || siteInfo.tipoSite === 'AUDIT PGR MOVEL') && (
-      document.getElementById('container-pgr').style.display = 'none'
-    )
-      (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER') && (
-        document.getElementById('container-loja').style.display = 'none'
-      )
-    document.getElementById('container').style.display = 'none';
-    document.getElementById('modalLoading').style.display = 'none'
+    document.getElementById("container-conclusion").style.display = "flex";
+    document.getElementById("container-questions").style.display = "none";
+    document.getElementById("container-save").style.display = "none";
+    document.getElementById("container-motivo").style.display = "none";
+    (siteInfo.tipoSite === "AUDIT PGR FIXA" ||
+      siteInfo.tipoSite === "AUDIT PGR MOVEL") &&
+      (document.getElementById("container-pgr").style.display = "none")(
+        siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER"
+      ) &&
+      (document.getElementById("container-loja").style.display = "none");
+    document.getElementById("container").style.display = "none";
+    document.getElementById("modalLoading").style.display = "none";
 
-    var container = document.getElementById('container-conclusion');
+    var container = document.getElementById("container-conclusion");
     var root = createRoot(container);
 
     let peso = calculatePontos();
-    let classificacao = ''
+    let classificacao = "";
 
     if (peso < 10) {
-      classificacao = `Risco Baixo - RB`
+      classificacao = `Risco Baixo - RB`;
     } else if (peso >= 10 && peso < 40) {
-      classificacao = `Risco Médio - RM`
+      classificacao = `Risco Médio - RM`;
     } else if (peso >= 40 && peso < 80) {
-      classificacao = `Risco Alto - RA`
+      classificacao = `Risco Alto - RA`;
     } else if (peso >= 80) {
-      classificacao = `Risco Extremo - RE`
+      classificacao = `Risco Extremo - RE`;
     }
 
     return root.render(
       <>
         <span>APR Finalizada com Sucesso !</span>
-        <span>ID da sua APR : <i>{id}</i></span>
-        <span>Classificação : <i>{classificacao}</i></span>
+        <span>
+          ID da sua APR : <i>{id}</i>
+        </span>
+        <span>
+          Classificação : <i>{classificacao}</i>
+        </span>
 
-        <a href={'/aprs'} >Ir Pagina Inicial</a>
-        <a href={`/open/${id}`} >Ir APR Criada</a>
+        <a href={"/aprs"}>Ir Pagina Inicial</a>
+        <a href={`/open/${id}`}>Ir APR Criada</a>
       </>
     );
   }
 
   function dropdownArea(indexA) {
-    let element = document.getElementById(`container-${indexA}`).style.display
-    document.getElementById(`container-${indexA}`).style.display = element === 'none' ? 'block' : 'none'
+    let element = document.getElementById(`container-${indexA}`).style.display;
+    document.getElementById(`container-${indexA}`).style.display =
+      element === "none" ? "block" : "none";
   }
 
   function loadIndexedDB() {
-    // Abrir ou criar um banco de dados no IndexedDB 
-    var request = indexedDB.open('SaveAPR', 1);
+    // Abrir ou criar um banco de dados no IndexedDB
+    var request = indexedDB.open("SaveAPR", 1);
     var db;
 
     request.onerror = function (event) {
-      console.error('Erro ao abrir o banco de dados:', event.target.error);
+      console.error("Erro ao abrir o banco de dados:", event.target.error);
     };
 
     request.onsuccess = function (event) {
       db = event.target.result;
 
-      // Função para ler o objeto do IndexedDB 
+      // Função para ler o objeto do IndexedDB
       function lerObjetoDoIndexedDB(id) {
-        var transaction = db.transaction(['dados'], 'readonly');
-        var objectStore = transaction.objectStore('dados');
+        var transaction = db.transaction(["dados"], "readonly");
+        var objectStore = transaction.objectStore("dados");
         var request = objectStore.get(id);
 
         request.onsuccess = function (event) {
           var objeto = event.target.result;
           if (objeto) {
             // delete objeto.id;
-            let newObj = []
-            let date
+            let newObj = [];
+            let date;
             try {
-              date = new Date(objeto.inicio)
+              date = new Date(objeto.inicio);
             } catch (error) {
-              console.log('Erro ao converter data' + error)
+              console.log("Erro ao converter data" + error);
             }
-            setInicio(date)
-            document.getElementById('selectSite').value = objeto.tipo_site
-            siteInfo.tipoSite = objeto.tipo_site
-            setMotivoAPR(objeto.motivo_apr)
-            delete objeto.id
-            delete objeto.inicio
-            delete objeto.tipo_site
-            delete objeto.motivo_apr
+            setInicio(date);
+            document.getElementById("selectSite").value = objeto.tipo_site;
+            siteInfo.tipoSite = objeto.tipo_site;
+            setMotivoAPR(objeto.motivo_apr);
+            delete objeto.id;
+            delete objeto.inicio;
+            delete objeto.tipo_site;
+            delete objeto.motivo_apr;
             Object.entries(objeto).forEach((doc, index) => {
-              newObj.push(doc[1])
-            })
-            setQuestions(newObj)
-            document.getElementById('container-questions').style.display = 'flex';
-            document.getElementById('container').style.display = 'flex';
+              newObj.push(doc[1]);
+            });
+            setQuestions(newObj);
+            document.getElementById("container-questions").style.display =
+              "flex";
+            document.getElementById("container").style.display = "flex";
           } else {
-            alert('Voce nao tem nenhuma APR salva.');
-            console.log('Usuario não possui APR Salva')
+            alert("Voce nao tem nenhuma APR salva.");
+            console.log("Usuario não possui APR Salva");
           }
         };
 
         request.onerror = function (event) {
-          console.error('Erro ao ler o objeto do IndexedDB:', event.target.error);
+          console.error(
+            "Erro ao ler o objeto do IndexedDB:",
+            event.target.error
+          );
         };
       }
 
-      // Chamar a função para ler o objeto do IndexedDB 
-      lerObjetoDoIndexedDB(1); // Passar o ID do objeto que deseja ler 
-
+      // Chamar a função para ler o objeto do IndexedDB
+      lerObjetoDoIndexedDB(1); // Passar o ID do objeto que deseja ler
     };
 
-
-    setQuestions(questions)
+    setQuestions(questions);
   }
 
   function saveIndexedDB(button) {
@@ -655,78 +754,85 @@ export default function New() {
       inicio: inicio,
       motivo_apr: motivoAPR,
       tipo_site: siteInfo.tipoSite,
-      ...questions
+      ...questions,
     };
 
-    // Abrir ou criar um banco de dados no IndexedDB 
-    var request = indexedDB.open('SaveAPR', 1);
+    // Abrir ou criar um banco de dados no IndexedDB
+    var request = indexedDB.open("SaveAPR", 1);
     var db;
 
     request.onerror = function (event) {
-      console.error('Erro ao abrir o banco de dados:', event.target.error);
+      console.error("Erro ao abrir o banco de dados:", event.target.error);
     };
 
     request.onupgradeneeded = function (event) {
       db = event.target.result;
-      // Cria uma nova tabela (object store) chamada "dados" 
-      var objectStore = db.createObjectStore('dados', { keyPath: 'id' });
+      // Cria uma nova tabela (object store) chamada "dados"
+      var objectStore = db.createObjectStore("dados", { keyPath: "id" });
     };
 
     request.onsuccess = function (event) {
       db = event.target.result;
 
-      // Função para salvar/atualizar o objeto JSON no IndexedDB 
+      // Função para salvar/atualizar o objeto JSON no IndexedDB
       function salvarObjetoNoIndexedDB(objeto) {
-        var transaction = db.transaction(['dados'], 'readwrite');
-        var objectStore = transaction.objectStore('dados');
+        var transaction = db.transaction(["dados"], "readwrite");
+        var objectStore = transaction.objectStore("dados");
         var request = objectStore.put(objeto);
         request.onsuccess = function (event) {
           toast.success(button);
           // toast.success('APR salvo/atualizado com sucesso.');
         };
         request.onerror = function (event) {
-          toast.error('Erro ao salvar/atualizar o objeto no IndexedDB:', event.target.error);
-          console.log('Erro ao salvar/atualizar o objeto no IndexedDB:')
+          toast.error(
+            "Erro ao salvar/atualizar o objeto no IndexedDB:",
+            event.target.error
+          );
+          console.log("Erro ao salvar/atualizar o objeto no IndexedDB:");
         };
       }
-      // Função para realizar as atualizações no objeto 
+      // Função para realizar as atualizações no objeto
       function realizarAtualizacoes(objeto) {
         salvarObjetoNoIndexedDB(objeto);
       }
-      // Verificar se o objeto já existe no IndexedDB 
+      // Verificar se o objeto já existe no IndexedDB
       function verificarObjetoExistente() {
-        var transaction = db.transaction(['dados'], 'readonly');
-        var objectStore = transaction.objectStore('dados');
-        var request = objectStore.get(1); // Obter o objeto pelo ID (1) 
+        var transaction = db.transaction(["dados"], "readonly");
+        var objectStore = transaction.objectStore("dados");
+        var request = objectStore.get(1); // Obter o objeto pelo ID (1)
         request.onsuccess = function (event) {
           var objetoExistente = event.target.result;
           if (objetoExistente) {
-            // Se o objeto já existe, realize as atualizações 
+            // Se o objeto já existe, realize as atualizações
             realizarAtualizacoes(questiosSave);
           } else {
-            // Se o objeto não existe, salve-o no IndexedDB 
+            // Se o objeto não existe, salve-o no IndexedDB
             salvarObjetoNoIndexedDB(questiosSave);
           }
         };
         request.onerror = function (event) {
-          console.error('Erro ao verificar o objeto no IndexedDB:', event.target.error);
+          console.error(
+            "Erro ao verificar o objeto no IndexedDB:",
+            event.target.error
+          );
         };
       }
-      // Chamada da função para verificar se o objeto já existe e realizar as atualizações ou salvá-lo 
+      // Chamada da função para verificar se o objeto já existe e realizar as atualizações ou salvá-lo
       verificarObjetoExistente();
     };
   }
 
   function selectMotivoAPR(e) {
-    let value = e.target.value
-    if (value !== undefined || value !== '') {
-      setMotivoAPR(value)
-      document.getElementById('container').style.display = 'flex'
+    let value = e.target.value;
+    if (value !== undefined || value !== "") {
+      setMotivoAPR(value);
+      document.getElementById("container").style.display = "flex";
     } else {
-      setMotivoAPR(value)
-      document.getElementById('container').style.display = 'none'
+      setMotivoAPR(value);
+      document.getElementById("container").style.display = "none";
     }
   }
+  const maisUtilizados = [2, 4, 5, 6, 7, 8, 9, 10, 16];
 
   return (
     <div>
@@ -737,260 +843,519 @@ export default function New() {
           <FiClipboard size={25} onClick={() => console.log(questions)} />
         </Title>
 
-        <div className='container'>
-          <div className='siteInfo'>
+        <div className="container">
+          <div className="siteInfo">
             <ul>
-              <li><span>Unidade: </span>{siteInfo.Nome}</li>
-              <li><span>Endereço: </span>{siteInfo.Endereco}</li>
-              <li><span>Estado: </span>{siteInfo.Estado}</li>
-              <li><span>Criticidade: </span>{siteInfo.critical}</li>
+              <li>
+                <span>Unidade: </span>
+                {siteInfo.Nome}
+              </li>
+              <li>
+                <span>Endereço: </span>
+                {siteInfo.Endereco}
+              </li>
+              <li>
+                <span>Estado: </span>
+                {siteInfo.Estado}
+              </li>
+              <li>
+                <span>Criticidade: </span>
+                {siteInfo.critical}
+              </li>
             </ul>
             <ul>
-              <li><span>Cidade: </span>{siteInfo.Cidade}</li>
-              <li><span>Latitude: </span>{siteInfo.Latitude}</li>
-              <li><span>Longitude: </span>{siteInfo.Longitude}</li>
+              <li>
+                <span>Cidade: </span>
+                {siteInfo.Cidade}
+              </li>
+              <li>
+                <span>Latitude: </span>
+                {siteInfo.Latitude}
+              </li>
+              <li>
+                <span>Longitude: </span>
+                {siteInfo.Longitude}
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className='container'>
-          <div className='siteInfo'>
+        <div className="container">
+          <div className="siteInfo">
             <ul>
-              <li><span>Ultima APR: </span>{lastAPR.data}</li>
+              <li>
+                <span>Ultima APR: </span>
+                {lastAPR.data}
+              </li>
             </ul>
             <ul>
-              <li><span>Ultima APR Motivo: </span>{lastAPR.motivo}</li>
+              <li>
+                <span>Ultima APR Motivo: </span>
+                {lastAPR.motivo}
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className='container' id='container-save'>
-          <div className='save'>
+        <div className="container" id="container-save">
+          <div className="save">
             <a onClick={() => loadIndexedDB()}>Carregar Salvo</a>
-            <a onClick={() => saveIndexedDB('APR salvo/atualizado com sucesso.')}>Salvar APR</a>
+            <a
+              onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
+            >
+              Salvar APR
+            </a>
           </div>
         </div>
 
-        <div className='container' id='container-motivo'>
-          <select id='selectMotivo' value={motivoAPR} onChange={e => selectMotivoAPR(e)}>
-            <option disabled value={''}>Selecione uma opção...</option>
-            <option value={'Mapa de Calor'}>Mapa de Calor</option>
-            <option value={'Retrofit'}>Retrofit</option>
-            <option value={'Rota Critica DWDM'}>Rota Critica DWDM</option>
-            <option value={'Projeto Veneza'}>Projeto Veneza (internalização Loja Dealer)</option>
-            <option value={'Estoque Avançado'}>Estoque Avançado</option>
-            <option value={'Instalação Tag'}>Instalação Tag</option>
-            <option value={'Programada'}>Programada</option>
-            <option value={'Não Opinada'}>Não Opinada</option>
-          </select>
+        <div className="container" id="container-motivo">
+          <Select
+            id="selectMotivo"
+            value={motivoAPR}
+            onChange={(e) => selectMotivoAPR(e)}
+            size="small"
+            sx={{ width: "600px", borderRadius: "8px" }}
+          >
+            <MenuItem disabled value="">
+              Selecione uma indicação...
+            </MenuItem>
+            <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
+            <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
+            <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
+            <MenuItem value={"Projeto Veneza"}>
+              Projeto Veneza (internalização Loja Dealer)
+            </MenuItem>
+            <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
+            <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
+            <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
+          </Select>
         </div>
 
-        <div className='container' id='container' style={{ display: 'none' }}>
-          <select id='selectSite' defaultValue={'0'} onChange={e => getQuestions(e.target.value)}>
-            <option disabled value={'0'}>Selecione um tipo de site...</option>
+        <div className="container" id="container" style={{ display: "none" }}>
+          <Select
+            id="selectSite"
+            defaultValue=""
+            onChange={(e) => getQuestions(e.target.value)}
+            displayEmpty
+            size="small"
+            style={{ width: "600px", borderRadius: "8px" }}
+          >
+            <MenuItem disabled value="">
+              Selecione um checklist...
+            </MenuItem>
+
+            <ListSubheader>Mais Utilizados</ListSubheader>
             {listQuestions.map((value, index) => {
-              return (
-                <option key={index} value={value.id}>{value.id}</option>
-              )
+              if (maisUtilizados.includes(index)) {
+                return (
+                  <MenuItem key={index} value={value.id}>
+                    {value.id}
+                  </MenuItem>
+                );
+              }
+              return null;
             })}
-          </select>
+
+            <ListSubheader>Outros</ListSubheader>
+            {listQuestions.map((value, index) => {
+              if (!maisUtilizados.includes(index)) {
+                return (
+                  <MenuItem key={index} value={value.id}>
+                    {value.id}
+                  </MenuItem>
+                );
+              }
+              return null;
+            })}
+          </Select>
         </div>
 
-        {(siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR")) && (
-          <div className='container' id='container-pgr'>
-            <label name='valor-armazenamento'>Valor Armazenamento
-              <input id='selectValorArmazenamento' name='valor-armazenamento' type='text' value={
-                new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(valorArmazenamento / 100)
-              } onChange={e => setValorArmazenamento(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Armazenamento'></input>
-            </label>
-            <label name='valor-transporte'>Valor Transporte
-              <input id='selectValorTransporte' name='valor-transporte' type='text' value={new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              }).format(valorTransporte / 100)} onChange={e => setValorTransporte(e.target.value.replace(/\D/g, ''))} placeholder='Valor de Transporte'></input>
-            </label>
-            <label name='valor-sinistro'>Valor Sinistro
-              <input id='selectValorSinistro' name='valor-sinistro' type='text' value={new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              }).format(valorSinistro / 100)} onChange={e => setValorSinistro(e.target.value.replace(/\D/g, ''))} placeholder='Valor do Sinistro'></input>
-            </label>
-          </div>
-        )}
-
-        {(siteInfo.tipoSite && (siteInfo.tipoSite === 'LOJA' || siteInfo.tipoSite === 'LOJA DEALER')) && (
-          <div className='container' id='container-loja'>
-            <label name='valor-estoque'>Tipo de Loja
-              <select id='selectTipoLoja' defaultValue={''} value={tipoLoja} onChange={e => setTipoLoja(e.target.value)}>
-                <option disabled value={''}>Selecione um tipo de loja...</option>
-                <option value={'LOJA RUA'}>LOJA RUA</option>
-                <option value={'LOJA GALERIA'}>LOJA GALERIA</option>
-                <option value={'LOJA SHOP TERREO'}>LOJA SHOP TERREO</option>
-                <option value={'LOJA SHOP 1° PISO'}>LOJA SHOP 1° PISO</option>
-                <option value={'LOJA SHOP ELITE'}>LOJA SHOP ELITE</option>
-              </select>
-            </label>
-            <label name='valor-estoque'>Valor Estoque
+        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
+          <div className="container" id="container-pgr">
+            <label name="valor-armazenamento">
+              Valor Armazenamento
               <input
-                id='selectValorEstoque'
-                name='valor-estoque'
-                type='text'
-                value={new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(valorEstoque / 100)}
-                onChange={(e) => setValorEstoque(e.target.value.replace(/\D/g, ''))}
-                placeholder='Valor de Estoque'
-              />
+                id="selectValorArmazenamento"
+                name="valor-armazenamento"
+                type="text"
+                value={new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(valorArmazenamento / 100)}
+                onChange={(e) =>
+                  setValorArmazenamento(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Valor de Armazenamento"
+              ></input>
+            </label>
+            <label name="valor-transporte">
+              Valor Transporte
+              <input
+                id="selectValorTransporte"
+                name="valor-transporte"
+                type="text"
+                value={new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(valorTransporte / 100)}
+                onChange={(e) =>
+                  setValorTransporte(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Valor de Transporte"
+              ></input>
+            </label>
+            <label name="valor-sinistro">
+              Valor Sinistro
+              <input
+                id="selectValorSinistro"
+                name="valor-sinistro"
+                type="text"
+                value={new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(valorSinistro / 100)}
+                onChange={(e) =>
+                  setValorSinistro(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Valor do Sinistro"
+              ></input>
             </label>
           </div>
         )}
 
-        <div className='container' id='container-questions' style={{ display: 'none' }}>
-          <div id='checklist' className="form-new">
+        {siteInfo.tipoSite &&
+          (siteInfo.tipoSite === "LOJA" ||
+            siteInfo.tipoSite === "LOJA DEALER") && (
+            <div className="container" id="container-loja">
+              <label name="valor-estoque">
+                Tipo de Loja
+                <select
+                  id="selectTipoLoja"
+                  defaultValue={""}
+                  value={tipoLoja}
+                  onChange={(e) => setTipoLoja(e.target.value)}
+                >
+                  <option disabled value={""}>
+                    Selecione um tipo de loja...
+                  </option>
+                  <option value={"LOJA RUA"}>LOJA RUA</option>
+                  <option value={"LOJA GALERIA"}>LOJA GALERIA</option>
+                  <option value={"LOJA SHOP TERREO"}>LOJA SHOP TERREO</option>
+                  <option value={"LOJA SHOP 1° PISO"}>LOJA SHOP 1° PISO</option>
+                  <option value={"LOJA SHOP ELITE"}>LOJA SHOP ELITE</option>
+                </select>
+              </label>
+              <label name="valor-estoque">
+                Valor Estoque
+                <input
+                  id="selectValorEstoque"
+                  name="valor-estoque"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorEstoque / 100)}
+                  onChange={(e) =>
+                    setValorEstoque(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor de Estoque"
+                />
+              </label>
+            </div>
+          )}
+
+        <div
+          className="container"
+          id="container-questions"
+          style={{ display: "none" }}
+        >
+          <div id="checklist" className="form-new">
             {questions.map((area, indexA) => {
               return (
-                <div key={indexA} className='question'>
-                  <i id='button-area' onClick={() => dropdownArea(indexA)}>{area[0]}</i>
-                  <span id={`container-${indexA}`} style={{ display: 'none' }}>
+                <div key={indexA} className="question">
+                  <i id="button-area" onClick={() => dropdownArea(indexA)}>
+                    {area[0]}
+                  </i>
+                  <span id={`container-${indexA}`} style={{ display: "none" }}>
                     {area[1].map((doc, indexDoc) => {
-                      let exibition = false
+                      let exibition = false;
 
-                      if ((siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR")) && doc.estados.includes(siteInfo.Estado) && (
-                        doc.valorArmazenado && (((valorArmazenamento / 100) > doc.valorArmazenado.min) && (doc.valorArmazenado.max >= (valorArmazenamento / 100))) ||
-                        doc.valorTransporte && (((valorTransporte / 100) > doc.valorTransporte.min) && (doc.valorTransporte.max >= (valorTransporte / 100))) ||
-                        doc.valorSinistro && (((valorSinistro / 100) > doc.valorSinistro.min) && (doc.valorSinistro.max >= (valorSinistro / 100)))
-                      )) exibition = true
+                      if (
+                        siteInfo.tipoSite &&
+                        siteInfo.tipoSite.includes("PGR") &&
+                        doc.estados.includes(siteInfo.Estado) &&
+                        ((doc.valorArmazenado &&
+                          valorArmazenamento / 100 > doc.valorArmazenado.min &&
+                          doc.valorArmazenado.max >=
+                            valorArmazenamento / 100) ||
+                          (doc.valorTransporte &&
+                            valorTransporte / 100 > doc.valorTransporte.min &&
+                            doc.valorTransporte.max >= valorTransporte / 100) ||
+                          (doc.valorSinistro &&
+                            valorSinistro / 100 > doc.valorSinistro.min &&
+                            doc.valorSinistro.max >= valorSinistro / 100))
+                      )
+                        exibition = true;
 
-                      if (!siteInfo.tipoSite.includes("PGR")) exibition = true
+                      if (!siteInfo.tipoSite.includes("PGR")) exibition = true;
 
-                      if (exibition === true) return (
-                        <div key={indexDoc} className='container-perg question'>
-                          {indexDoc + 1} - {doc.question}
-                          <div className='question'>
-
-                            {doc.selectOptions === true && (
-                              <>
-                                <label>
-                                  <input className='yes' type="radio" name={indexA + '-' + doc.questionId} value={doc.answers[0]} defaultChecked={doc.resp === 'Sim' ? true : false} onChange={(e) => radioSetValue(doc, indexA, e)} />
-                                  <FiCheck size={25} /> {doc.answers[0]}
-                                </label>
-                                <label>
-                                  <input className='no' type="radio" name={indexA + '-' + doc.questionId} value={doc.answers[1]} defaultChecked={doc.resp === 'Não' ? true : false} onChange={(e) => radioSetValue(doc, indexA, e)} />
-                                  <FiX size={25} /> {doc.answers[1]}
-                                </label>
-                                <label>
-                                  <input className='no' type="radio" name={indexA + '-' + doc.questionId} value={''} onChange={(e) => radioSetValue(doc, indexA, e)} />
-                                  <FiX size={25} /> N/A
-                                </label>
-                              </>
-                            )}
-                            {doc.inputImages === true && (
-                              <ul className='imageList' id={"inputimg_" + doc.questionId + "_" + indexA} style={{ display: doc.resp !== '' && doc.resp !== doc.respGabarito ? 'flex' : 'none' }}>
-                                <li className='notremove' style={{ marginRight: 10 }}>
-                                  <CameraComponent
-                                    saveIndexedDB={saveIndexedDB}
-                                    questions={questions}
-                                    doc={doc}
-                                    indexA={indexA}
-                                  />
-                                </li>
-                                {doc.inputImagesLibrary === true && (
-                                  <li className='notremove'>
-                                    <InputComponent
+                      if (exibition === true)
+                        return (
+                          <div
+                            key={indexDoc}
+                            className="container-perg question"
+                          >
+                            {indexDoc + 1} - {doc.question}
+                            <div className="question">
+                              {doc.selectOptions === true && (
+                                <>
+                                  <label>
+                                    <input
+                                      className="yes"
+                                      type="radio"
+                                      name={indexA + "-" + doc.questionId}
+                                      value={doc.answers[0]}
+                                      defaultChecked={
+                                        doc.resp === "Sim" ? true : false
+                                      }
+                                      onChange={(e) =>
+                                        radioSetValue(doc, indexA, e)
+                                      }
+                                    />
+                                    <FiCheck size={25} /> {doc.answers[0]}
+                                  </label>
+                                  <label>
+                                    <input
+                                      className="no"
+                                      type="radio"
+                                      name={indexA + "-" + doc.questionId}
+                                      value={doc.answers[1]}
+                                      defaultChecked={
+                                        doc.resp === "Não" ? true : false
+                                      }
+                                      onChange={(e) =>
+                                        radioSetValue(doc, indexA, e)
+                                      }
+                                    />
+                                    <FiX size={25} /> {doc.answers[1]}
+                                  </label>
+                                  <label>
+                                    <input
+                                      className="no"
+                                      type="radio"
+                                      name={indexA + "-" + doc.questionId}
+                                      value={""}
+                                      onChange={(e) =>
+                                        radioSetValue(doc, indexA, e)
+                                      }
+                                    />
+                                    <FiX size={25} /> N/A
+                                  </label>
+                                </>
+                              )}
+                              {doc.inputImages === true && (
+                                <ul
+                                  className="imageList"
+                                  id={
+                                    "inputimg_" + doc.questionId + "_" + indexA
+                                  }
+                                  style={{
+                                    display:
+                                      doc.resp !== "" &&
+                                      doc.resp !== doc.respGabarito
+                                        ? "flex"
+                                        : "none",
+                                  }}
+                                >
+                                  <li
+                                    className="notremove"
+                                    style={{ marginRight: 10 }}
+                                  >
+                                    <CameraComponent
                                       saveIndexedDB={saveIndexedDB}
                                       questions={questions}
                                       doc={doc}
                                       indexA={indexA}
                                     />
                                   </li>
-                                )}
-                                {doc.images.length > 0 && (
-                                  doc.images.map((img, indexImg) => {
-                                    return (
-                                      <li id={doc.questionId + "_image_" + indexImg} style={{ background: `url(${URL.createObjectURL(img)}) round` }}>
-                                        <i id={doc.questionId + "_removeimg_" + indexImg} onClick={() => {
-                                          document.getElementById(doc.questionId + "_image_" + indexImg).remove()
-                                          removeImg(indexA, '0', doc.images[0])
-                                        }}>
-                                          X
-                                        </i>
-                                      </li>
-                                    )
-                                  })
-                                )}
-                              </ul>
-                            )}
-                            {doc.textarea === true && (
-                              <textarea
-                                id={indexA + "_textarea_" + doc.questionId}
-                                type="text"
-                                placeholder="Descreva o problema (obrigatorio)."
-                                style={{ display: doc.resp !== '' ? 'block' : 'none' }}
-                                onChange={(e) => textareaValue(doc, indexA, e)}
-                                defaultValue={doc.respTextArea !== '' && doc.resp !== doc.respGabarito ? doc.respTextArea : ''}
-                              />
-                            )}
-                            {doc.inputNumber === true && (
-                              <FormControl size="small" sx={{ marginTop: 1, display: doc.resp !== '' ? 'block' : 'none' }} id={indexA + "_numberarea_" + doc.questionId}>
-                                <TextField
-                                  id="outlined-basic"
-                                  label={'Quantidade'}
-                                  size='small'
-                                  fullWidth
-                                  type="number"
-                                  onChange={(e) => inputNumber(doc, indexA, e)}
-                                  defaultValue={doc.respInputNumber !== '' && doc.resp !== doc.respGabarito ? doc.respInputNumber : ''}
+                                  {doc.inputImagesLibrary === true && (
+                                    <li className="notremove">
+                                      <InputComponent
+                                        saveIndexedDB={saveIndexedDB}
+                                        questions={questions}
+                                        doc={doc}
+                                        indexA={indexA}
+                                      />
+                                    </li>
+                                  )}
+                                  {doc.images.length > 0 &&
+                                    doc.images.map((img, indexImg) => {
+                                      return (
+                                        <li
+                                          id={
+                                            doc.questionId +
+                                            "_image_" +
+                                            indexImg
+                                          }
+                                          style={{
+                                            background: `url(${URL.createObjectURL(
+                                              img
+                                            )}) round`,
+                                          }}
+                                        >
+                                          <i
+                                            id={
+                                              doc.questionId +
+                                              "_removeimg_" +
+                                              indexImg
+                                            }
+                                            onClick={() => {
+                                              document
+                                                .getElementById(
+                                                  doc.questionId +
+                                                    "_image_" +
+                                                    indexImg
+                                                )
+                                                .remove();
+                                              removeImg(
+                                                indexA,
+                                                "0",
+                                                doc.images[0]
+                                              );
+                                            }}
+                                          >
+                                            X
+                                          </i>
+                                        </li>
+                                      );
+                                    })}
+                                </ul>
+                              )}
+                              {doc.textarea === true && (
+                                <textarea
+                                  id={indexA + "_textarea_" + doc.questionId}
+                                  type="text"
+                                  placeholder="Descreva o problema (obrigatorio)."
+                                  style={{
+                                    display: doc.resp !== "" ? "block" : "none",
+                                  }}
+                                  onChange={(e) =>
+                                    textareaValue(doc, indexA, e)
+                                  }
+                                  defaultValue={
+                                    doc.respTextArea !== "" &&
+                                    doc.resp !== doc.respGabarito
+                                      ? doc.respTextArea
+                                      : ""
+                                  }
                                 />
-                              </FormControl>
-                            )}
-                            {doc.listCheck === true && (
-                              <FormControl size="small" sx={{ marginTop: 1, display: doc.resp !== '' ? 'block' : 'none' }} id={indexA + "_select_" + doc.questionId}>
-                                <Select
-                                  labelId="demo-multiple-checkbox-label"
-                                  id="demo-multiple-checkbox"
-                                  multiple={doc.multipleCheck}
-                                  value={doc.optionListResp && doc.optionListResp.length > 0 ? doc.optionListResp : [doc.optionList[0]]}
-                                  onChange={(e) => handleChangeSelect(doc, indexA, e)}
-                                  renderValue={(selected) => selected.join(', ')}
-                                  MenuProps={MenuProps}
+                              )}
+                              {doc.inputNumber === true && (
+                                <FormControl
+                                  size="small"
+                                  sx={{
+                                    marginTop: 1,
+                                    display: doc.resp !== "" ? "block" : "none",
+                                  }}
+                                  id={indexA + "_numberarea_" + doc.questionId}
                                 >
-                                  {doc.optionList.map((name) => (
-                                    <MenuItem key={name} value={name} sx={{ height: '30px' }}>
-                                      <Checkbox checked={doc.optionListResp.includes(name)} />
-                                      <ListItemText primary={name} />
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
+                                  <TextField
+                                    id="outlined-basic"
+                                    label={"Quantidade"}
+                                    size="small"
+                                    fullWidth
+                                    type="number"
+                                    onChange={(e) =>
+                                      inputNumber(doc, indexA, e)
+                                    }
+                                    defaultValue={
+                                      doc.respInputNumber !== "" &&
+                                      doc.resp !== doc.respGabarito
+                                        ? doc.respInputNumber
+                                        : ""
+                                    }
+                                  />
+                                </FormControl>
+                              )}
+                              {doc.listCheck === true && (
+                                <FormControl
+                                  size="small"
+                                  sx={{
+                                    marginTop: 1,
+                                    display: doc.resp !== "" ? "block" : "none",
+                                  }}
+                                  id={indexA + "_select_" + doc.questionId}
+                                >
+                                  <Select
+                                    labelId="demo-multiple-checkbox-label"
+                                    id="demo-multiple-checkbox"
+                                    multiple={doc.multipleCheck}
+                                    value={
+                                      doc.optionListResp &&
+                                      doc.optionListResp.length > 0
+                                        ? doc.optionListResp
+                                        : [doc.optionList[0]]
+                                    }
+                                    onChange={(e) =>
+                                      handleChangeSelect(doc, indexA, e)
+                                    }
+                                    renderValue={(selected) =>
+                                      selected.join(", ")
+                                    }
+                                    MenuProps={MenuProps}
+                                  >
+                                    {doc.optionList.map((name) => (
+                                      <MenuItem
+                                        key={name}
+                                        value={name}
+                                        sx={{ height: "30px" }}
+                                      >
+                                        <Checkbox
+                                          checked={doc.optionListResp.includes(
+                                            name
+                                          )}
+                                        />
+                                        <ListItemText primary={name} />
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                              )}
+                            </div>
+                            <i
+                              className="clearQuestion"
+                              onClick={() => clearQuestion(doc, indexA)}
+                            >
+                              {" "}
+                              Limpar{" "}
+                            </i>
                           </div>
-                          <i className='clearQuestion' onClick={(() => clearQuestion(doc, indexA))}> Limpar </i>
-                        </div>
-                      )
+                        );
                     })}
                   </span>
                 </div>
-              )
+              );
             })}
-            <button className="submit-apr" onClick={() => submit()}>Concluir APR</button>
+            <button className="submit-apr" onClick={() => submit()}>
+              Concluir APR
+            </button>
           </div>
         </div>
 
-        <div className='container' id='container-conclusion' style={{ display: 'none' }}>
-        </div>
+        <div
+          className="container"
+          id="container-conclusion"
+          style={{ display: "none" }}
+        ></div>
 
-        <Modal_Justificativa openModal={openModalJust} setModal={setOpenModalJust} setJustificativa={setJustificativa} />
+        <Modal_Justificativa
+          openModal={openModalJust}
+          setModal={setOpenModalJust}
+          setJustificativa={setJustificativa}
+        />
 
-        {showPostModal && (
-          <ModalLoading
-            carregamento={loadingImages}
-          />
-        )}
+        {showPostModal && <ModalLoading carregamento={loadingImages} />}
       </div>
     </div>
-  )
+  );
 }
