@@ -1107,7 +1107,7 @@ export default function New() {
                           >
                             {indexDoc + 1} - {doc.question}
                             <div className="question">
-                              {doc.selectOptions === true && (
+                              {doc.selectOptions === true && doc.answers && (
                                 <>
                                   <label>
                                     <input
@@ -1159,13 +1159,6 @@ export default function New() {
                                   id={
                                     "inputimg_" + doc.questionId + "_" + indexA
                                   }
-                                  style={{
-                                    display:
-                                      doc.resp !== "" &&
-                                      doc.resp !== doc.respGabarito
-                                        ? "flex"
-                                        : "none",
-                                  }}
                                 >
                                   <li
                                     className="notremove"
@@ -1237,7 +1230,8 @@ export default function New() {
                                   type="text"
                                   placeholder="Descreva o problema (obrigatorio)."
                                   style={{
-                                    display: doc.resp !== "" ? "block" : "none",
+                                    display:
+                                      doc.resp !== "" ? "block" : "block",
                                   }}
                                   onChange={(e) =>
                                     textareaValue(doc, indexA, e)
@@ -1253,10 +1247,7 @@ export default function New() {
                               {doc.inputNumber === true && (
                                 <FormControl
                                   size="small"
-                                  sx={{
-                                    marginTop: 1,
-                                    display: doc.resp !== "" ? "block" : "none",
-                                  }}
+                                  sx={{ marginTop: 1 }}
                                   id={indexA + "_numberarea_" + doc.questionId}
                                 >
                                   <TextField
@@ -1280,10 +1271,7 @@ export default function New() {
                               {doc.listCheck === true && (
                                 <FormControl
                                   size="small"
-                                  sx={{
-                                    marginTop: 1,
-                                    display: doc.resp !== "" ? "block" : "none",
-                                  }}
+                                  sx={{ marginTop: 1 }}
                                   id={indexA + "_select_" + doc.questionId}
                                 >
                                   <Select
