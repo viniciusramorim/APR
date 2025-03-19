@@ -116,7 +116,7 @@ export default function ModalEdit(props) {
     <>
       <label className="Edit">
         <a onClick={() => handleOpen()}>
-          <FiEdit></FiEdit>Editar
+          <FiEdit></FiEdit>{questionResp ? 'Editar' : 'Responder'}
         </a>
       </label>
       <Modal

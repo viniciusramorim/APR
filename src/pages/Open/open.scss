@@ -187,14 +187,14 @@
     padding: 5px;
     cursor: pointer;
     display: flex;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
-    width: 130px;
     border-radius: 5px;
 
     &[data-check="Não"] {
       background-color: $btn-action-red;
       color: $white-color;
+      justify-content: center;
     }
 
     &[data-check="Sim"] {
