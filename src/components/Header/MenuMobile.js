@@ -59,7 +59,7 @@ export default function MenuMobile({ user, signOut, redefinirPassword }) {
           </Box>
         )}
 
-        {(user.area === "patrimonial" || user.area === "oem") && (
+        {(user.area === "patrimonial" || user.area === "oem" || user.area === "pci" ) && (
           <Box>
             <MenuItem>
               <Link to="/new">
