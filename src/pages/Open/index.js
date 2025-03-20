@@ -50,7 +50,6 @@ export default function Open() {
   useEffect(() => {
     addBodyClass("page-open");
   }, []);
-  
 
   async function ReloadAPR() {
     await firebase
@@ -61,6 +60,14 @@ export default function Open() {
       .then((snapshot) => {
         let apr = snapshot.data();
         setAprCompleta(snapshot.data());
+        apr.checklist.forEach((area, indexA) => {
+          area[1].forEach((doc, indexQ) => {
+            if (doc.resp === "" && user.nivel !== 'revisor') {
+              delete apr.checklist[indexA][1][indexQ];
+            } 
+          });
+        });
+
         setApr(apr);
         setLoadApr(true);
       })
@@ -805,7 +812,11 @@ export default function Open() {
                                       key={indexQ}
                                       className="container-perg-open"
                                       id={indexA + "-export-" + indexQ}
-                                      style={{background: doc.resp ? 'transparent' : '#e7e6e6'}}
+                                      style={{
+                                        background: doc.resp
+                                          ? "transparent"
+                                          : "#e7e6e6",
+                                      }}
                                     >
                                       {apr.status === "Em Aberto" && (
                                         <ModalEdit

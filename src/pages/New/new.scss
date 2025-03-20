@@ -225,6 +225,8 @@
 
 .page-new .imageList {
   margin-bottom: 0.8em;
+  display: flex;
+  border-radius:8px;
 
   li {
     background-color: var($container-bg-color);
