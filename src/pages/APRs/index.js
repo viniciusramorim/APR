@@ -118,14 +118,29 @@ export default function Dashboard() {
     let query = listRef;
 
     const regionMap = {
-      CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR"],
+      CO_N: [
+        "DF",
+        "GO",
+        "TO",
+        "AC",
+        "MS",
+        "MT",
+        "RO",
+        "AM",
+        "AP",
+        "MA",
+        "PA",
+        "RR",
+      ],
       NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
       RJ_ES_MG: ["RJ", "ES", "MG"],
       SP: ["SP"],
       SUL: ["RS", "PR", "SC"],
     };
 
-    query = novasAPRs ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc") : query.orderBy("created", "desc");
+    query = novasAPRs
+      ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc")
+      : query.orderBy("created", "desc");
 
     // Aplicar os filtros
     if (filterID !== "")
@@ -151,83 +166,166 @@ export default function Dashboard() {
     const regional = regionMap[user.regional];
 
     //filtro por perfil
-    query = user.nivel === 'aplicador' && user.area !== 'oem' ? query.where('user_id.uid', '==', user.uid) : query
-    query = user.nivel === 'supervisor' ? query.where('site_id.Estado', 'in', regional) : query
-    query = user.nivel === 'revisor' ? query.where('site_id.Estado', 'in', regional) : query
-    query = user.area === 'oem' ? query.where('status', 'in', ['Enviado', 'Respondido pela Area', 'Revisado']) : query
-    query = user.area === 'pci' ? query.where('site_id.tipoSite', 'in', ['PCI', 'RPCI']) : query
-    query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query
+    query =
+      user.nivel === "aplicador" && user.area !== "oem"
+        ? query.where("user_id.uid", "==", user.uid)
+        : query;
+    query =
+      user.nivel === "supervisor"
+        ? query.where("site_id.Estado", "in", regional)
+        : query;
+    query =
+      user.nivel === "revisor"
+        ? query.where("site_id.Estado", "in", regional)
+        : query;
+    query =
+      user.area === "oem"
+        ? query.where("status", "in", [
+            "Enviado",
+            "Respondido pela Area",
+            "Revisado",
+          ])
+        : query;
+    query =
+      user.area === "pci"
+        ? query.where("site_id.tipoSite", "in", ["PCI", "RPCI"])
+        : query;
+    query =
+      user.nivel === "auditor"
+        ? query.where("site_id.tipoSite", "in", [
+            "AUDIT PGR FIXA",
+            "AUDIT PGR MOVEL",
+          ])
+        : query;
 
     let lista = [];
+
+    const contarQuestions = (checklist) => {
+      let totalQuestions = 0;
+      let totalRespondidas = 0;
+
+      if (checklist) {
+        checklist.forEach((area) => {
+          if (Array.isArray(area[1])) {
+            totalQuestions += area[1].length;
+
+            area[1].forEach((question) => {
+              if (question.resp && question.resp !== "") {
+                totalRespondidas++;
+              }
+            });
+          }
+        });
+      }
+
+      return { totalQuestions, totalRespondidas };
+    };
 
     await query
       .get()
       .then((snapshot) => {
-        snapshot.forEach((doc) => {
+        const lista = [];
 
+        snapshot.forEach((doc) => {
           let questoes = 0;
           let respondidas = 0;
           let pgr_inconformidade = 0;
+          const checklist = doc.data().checklist;
+          const { totalQuestions, totalRespondidas } =
+            contarQuestions(checklist);
 
-          if (doc.data().site_id.tipoSite === 'AUDIT PGR FIXA' || doc.data().site_id.tipoSite === 'AUDIT PGR MOVEL') {
-            doc.data().checklist.forEach((area, indexA) => {
-              area[1].forEach((question, indexQ) => {
-                if (question.respGabarito !== question.resp && question.resp !== '') {
-                  pgr_inconformidade = pgr_inconformidade + 1;
+          if (
+            doc.data().site_id.tipoSite === "AUDIT PGR FIXA" ||
+            doc.data().site_id.tipoSite === "AUDIT PGR MOVEL"
+          ) {
+            checklist.forEach((area) => {
+              area[1].forEach((question) => {
+                if (
+                  question.respGabarito !== question.resp &&
+                  question.resp !== ""
+                ) {
+                  pgr_inconformidade++;
                 }
-              })
-            })
+              });
+            });
           }
 
           if (doc.data().status === "Respondido pela Area") {
-            // teste de contagem
-            doc.data().checklist.forEach((area, indexA) => {
-              area[1].forEach((question, indexQ) => {
-                if (question.openPA === true && question.respGabarito !== question.resp && question.resp !== '') {
-                  questoes = questoes + 1
+            checklist.forEach((area) => {
+              area[1].forEach((question) => {
+                if (
+                  question.openPA === true &&
+                  question.respGabarito !== question.resp &&
+                  question.resp !== ""
+                ) {
+                  questoes++;
                   if (question.plano_acao.comentario) {
-                    respondidas = respondidas + 1
+                    respondidas++;
                   }
                 }
-              })
-            })
+              });
+            });
           }
 
-          if (user.area === 'oem' && doc.data().checklist !== undefined) {
+          if (user.area === "oem" && checklist !== undefined) {
             let paTrue = false;
-            doc.data().checklist.forEach((area, indexA) => {
-              area[1].forEach((question, indexQ) => {
-                if (question.openPA === true && question.respGabarito !== question.resp) {
+            checklist.forEach((area) => {
+              area[1].forEach((question) => {
+                if (
+                  question.openPA === true &&
+                  question.respGabarito !== question.resp
+                ) {
                   paTrue = true;
                 }
-              })
-            })
+              });
+            });
+
             if (paTrue === true) {
               lista.push({
                 id: doc.id,
-                nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
+                nome:
+                  doc.data().user_id.nome !== undefined
+                    ? doc.data().user_id.nome
+                    : "",
                 motivo_apr: doc.data().motivo_apr,
                 site_id: doc.data().site_id,
                 status: doc.data().status,
-                created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
-                porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
+                created: format(
+                  doc.data().created.toDate(),
+                  "dd/MM/yyyy HH:mma"
+                ),
+                porcentagem_resp_area:
+                  questoes !== 0
+                    ? ((respondidas / questoes) * 100).toFixed(2) + "%"
+                    : "-",
                 pgr_inconformidade: pgr_inconformidade,
-              })
+                totalQuestions: totalQuestions,
+                totalRespondidas: totalRespondidas,
+              });
             }
           } else {
             lista.push({
               id: doc.id,
               apr_id: doc.data().apr_id,
-              nome: doc.data().user_id.nome !== undefined ? doc.data().user_id.nome : '',
+              nome:
+                doc.data().user_id.nome !== undefined
+                  ? doc.data().user_id.nome
+                  : "",
               motivo_apr: doc.data().motivo_apr,
               site_id: doc.data().site_id,
               status: doc.data().status,
-              created: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mma'),
-              porcentagem_resp_area: questoes !== 0 ? ((respondidas / questoes) * 100).toFixed(2) + "%" : '-',
+              created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+              porcentagem_resp_area:
+                questoes !== 0
+                  ? ((respondidas / questoes) * 100).toFixed(2) + "%"
+                  : "-",
               pgr_inconformidade: pgr_inconformidade,
-            })
+              totalQuestions: totalQuestions,
+              totalRespondidas: totalRespondidas,
+            });
           }
         });
+
         setChamados(lista);
         setLoading(false);
       })
@@ -435,8 +533,8 @@ export default function Dashboard() {
                   </MenuItem>
                   <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
                   <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
-                  <MenuItem value={'Programada'}>Programada</MenuItem>
-                  <MenuItem value={'Não Opinada'}>Não Opinada</MenuItem>
+                  <MenuItem value={"Programada"}>Programada</MenuItem>
+                  <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

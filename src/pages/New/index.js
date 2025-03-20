@@ -193,7 +193,7 @@ export default function New() {
       indexA + "_numberarea_" + question.questionId
     );
 
-    if (e.target.value === "") {
+    if (e.target.value === "" || e.target.value === "N/A") {
       if (question.textarea === true) textarea.style.display = "none";
       if (question.inputImages === true) inputimage.style.display = "none";
       if (question.listCheck === true) inputSelectResp.style.display = "none";
@@ -281,7 +281,7 @@ export default function New() {
   }
 
   function togglePostModal() {
-    setShowPostModal(!showPostModal); //trocando de true pra false
+    setShowPostModal(!showPostModal);
   }
 
   function submit() {
@@ -1117,7 +1117,7 @@ export default function New() {
                                       className="yes"
                                       type="radio"
                                       name={indexA + "-" + doc.questionId}
-                                      value={doc.answers[0]}
+                                      value={doc.answers[2]}
                                       defaultChecked={
                                         doc.resp === "Sim" ? true : false
                                       }
@@ -1144,15 +1144,18 @@ export default function New() {
                                   </label>
                                   <label>
                                     <input
-                                      className="no"
+                                      className="na"
                                       type="radio"
                                       name={indexA + "-" + doc.questionId}
-                                      value={""}
+                                      value={"N/A"}
+                                      defaultChecked={
+                                        doc.resp === "N/A" ? true : false
+                                      }
                                       onChange={(e) =>
                                         radioSetValue(doc, indexA, e)
                                       }
                                     />
-                                    <FiX size={25} /> N/A
+                                    <FiX size={25} /> {doc.answers[2] ? doc.answers[2] : "N/A"}
                                   </label>
                                 </>
                               )}

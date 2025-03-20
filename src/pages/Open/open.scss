@@ -120,6 +120,15 @@
       padding: 5px;
       font-weight: bold;
     }
+    &[data-text="N/A"] {
+      background-color: #FFD700;
+      color: $white-color;
+      max-width: 60px;
+      max-height: 50px;
+      text-align: center;
+      padding: 5px;
+      font-weight: bold;
+    }
 
     &[data-text="Ativar-PA"] {
       background-color: $btn-activate-pa-bg;

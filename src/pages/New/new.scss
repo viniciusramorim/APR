@@ -166,6 +166,13 @@
       background-color: rgb(238, 65, 12);
       border-radius: 0.5em;
     }
+    &.na:hover+svg,
+    &.na:checked+svg,
+    &.na:focus+svg {
+      color: $white-color;
+      background-color: #FFD700;
+      border-radius: 0.5em;
+    }
   }
 }
 

@@ -681,7 +681,7 @@ const QuestionModal = ({
                     const checked = e.target.checked;
                     setFormData((prevData) => ({
                       ...prevData,
-                      answers: checked ? ["Sim", "Não"] : "",
+                      answers: checked ? ["Sim", "Não", "N/A"] : "",
                     }));
                   }}
                   name="inputAnswers"

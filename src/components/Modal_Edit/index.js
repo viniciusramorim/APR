@@ -163,7 +163,7 @@ export default function ModalEdit(props) {
                     control={<Radio />}
                     label="Não"
                   />
-                  <FormControlLabel value="" control={<Radio />} label="N/A" />
+                  <FormControlLabel value="N/A" control={<Radio />} label="N/A" />
                 </RadioGroup>
               </FormControl>
             </Grid>

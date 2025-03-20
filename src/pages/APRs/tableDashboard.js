@@ -101,7 +101,7 @@ TablePaginationActions.propTypes = {
 };
 
 export default function CustomPaginationActionsTable(props) {
-  const { chamados, user, updateStatus } = props;
+  const { chamados, user, updateStatus, totalQuestion } = props;
 
   // Carregar a página inicial do localStorage
   const [page, setPage] = React.useState(loadPageFromLocalStorage());
@@ -230,7 +230,7 @@ export default function CustomPaginationActionsTable(props) {
                 direction={orderBy === "pgr_inconformidade" ? order : "asc"}
                 onClick={() => handleRequestSort("pgr_inconformidade")}
               >
-                Inc
+                Questões
               </TableSortLabel>
             </TableCell>
             <TableCell align="center">
@@ -248,9 +248,9 @@ export default function CustomPaginationActionsTable(props) {
         <TableBody>
           {(rowsPerPage > 0
             ? sortedRows.slice(
-              page * rowsPerPage,
-              page * rowsPerPage + rowsPerPage
-            )
+                page * rowsPerPage,
+                page * rowsPerPage + rowsPerPage
+              )
             : sortedRows
           ).map((row, index) => (
             <TableRow key={row.id}>
@@ -279,7 +279,7 @@ export default function CustomPaginationActionsTable(props) {
                 {row.created}
               </TableCell>
               <TableCell data-label="Inconformidades" align="center">
-                {row.pgr_inconformidade}
+                {row.totalRespondidas}/{row.totalQuestions}
               </TableCell>
               <TableCell data-label="%" align="center">
                 {row.porcentagem_resp_area}
@@ -292,14 +292,14 @@ export default function CustomPaginationActionsTable(props) {
                 </Link>
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && (
-                    <IconButton
-                      onClick={() => updateStatus(row.id, index)}
-                      color="error"
-                      aria-label="add an alarm"
-                    >
-                      <Close />
-                    </IconButton>
-                  )}
+                  <IconButton
+                    onClick={() => updateStatus(row.id, index)}
+                    color="error"
+                    aria-label="add an alarm"
+                  >
+                    <Close />
+                  </IconButton>
+                )}
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
               </TableCell>
@@ -334,6 +334,6 @@ export default function CustomPaginationActionsTable(props) {
           </TableRow>
         </TableFooter>
       </Table>
-    </TableContainer >
+    </TableContainer>
   );
 }
