@@ -5,9 +5,18 @@ const BlocoModal = ({ open, onClose, onSave, bloco }) => {
   const [blocoTitle, setBlocoTitle] = useState(bloco?.title || "");
 
   const handleSave = () => {
-    const newBloco = { title: blocoTitle, id: bloco?.id || new Date().getTime() };
+    const newBloco = {
+      title: blocoTitle,
+      id: bloco?.id || new Date().getTime(),
+    };
     onSave(newBloco);
     onClose();
+  };
+
+  const handleTitleChange = (e) => {
+    const value = e.target.value;
+    const sanitizedValue = value.replace(/[^a-zA-Z0-9 ]/g, "");
+    setBlocoTitle(sanitizedValue);
   };
 
   return (
@@ -33,13 +42,17 @@ const BlocoModal = ({ open, onClose, onSave, bloco }) => {
           margin="normal"
           label="Título do Bloco"
           value={blocoTitle}
-          onChange={(e) => setBlocoTitle(e.target.value)}
+          onChange={handleTitleChange}
         />
+        <i style={{ fontSize: "12px", color: "#d32f2f" }}>
+          *Caracteres especiais não são aceitos*
+        </i>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSave}
           sx={{ mt: 2 }}
+          fullWidth
         >
           Salvar
         </Button>

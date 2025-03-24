@@ -27,16 +27,25 @@ const ChecklistModal = ({ open, onClose, onSave, checklist }) => {
     onClose();
   };
 
+  const handleTitleChange = (e) => {
+    const value = e.target.value;
+    const sanitizedValue = value.replace(/[^a-zA-Z0-9\s]/g, "");
+    setTitle(sanitizedValue);
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <TextField
           label="Título do Checklist"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={handleTitleChange}
           fullWidth
           margin="normal"
         />
+        <i style={{ fontSize: "12px", color: "#d32f2f" }}>
+          *Caracteres especiais não são aceitos*
+        </i>
         <Button
           variant="contained"
           onClick={handleSave}
