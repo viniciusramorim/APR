@@ -482,7 +482,7 @@ export default function New() {
                                           console.log(indexA + "-" + indexQ);
                                           console.log(
                                             "Erro ao obter url da imagem" +
-                                              error
+                                            error
                                           );
                                         }
                                         imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
@@ -1092,7 +1092,7 @@ export default function New() {
                         ((doc.valorArmazenado &&
                           valorArmazenamento / 100 > doc.valorArmazenado.min &&
                           doc.valorArmazenado.max >=
-                            valorArmazenamento / 100) ||
+                          valorArmazenamento / 100) ||
                           (doc.valorTransporte &&
                             valorTransporte / 100 > doc.valorTransporte.min &&
                             doc.valorTransporte.max >= valorTransporte / 100) ||
@@ -1214,8 +1214,8 @@ export default function New() {
                                               document
                                                 .getElementById(
                                                   doc.questionId +
-                                                    "_image_" +
-                                                    indexImg
+                                                  "_image_" +
+                                                  indexImg
                                                 )
                                                 .remove();
                                               removeImg(
@@ -1246,7 +1246,7 @@ export default function New() {
                                   }
                                   defaultValue={
                                     doc.respTextArea !== "" &&
-                                    doc.resp !== doc.respGabarito
+                                      doc.resp !== doc.respGabarito
                                       ? doc.respTextArea
                                       : ""
                                   }
@@ -1269,7 +1269,7 @@ export default function New() {
                                     }
                                     defaultValue={
                                       doc.respInputNumber !== "" &&
-                                      doc.resp !== doc.respGabarito
+                                        doc.resp !== doc.respGabarito
                                         ? doc.respInputNumber
                                         : ""
                                     }
@@ -1288,7 +1288,7 @@ export default function New() {
                                     multiple={doc.multipleCheck}
                                     value={
                                       doc.optionListResp &&
-                                      doc.optionListResp.length > 0
+                                        doc.optionListResp.length > 0
                                         ? doc.optionListResp
                                         : [doc.optionList[0]]
                                     }
