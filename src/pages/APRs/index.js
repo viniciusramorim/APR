@@ -665,6 +665,8 @@ export default function Dashboard() {
                   <MenuItem value="PREDIO CORE">PREDIO CORE</MenuItem>
                   <MenuItem value="LOJA">LOJA</MenuItem>
                   <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
+                  <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
+                  <MenuItem value="CHECK SEG PROTEÇÃO">CHECK SEG PROTEÇÃO</MenuItem>
                   <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
                   <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>
                   <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>

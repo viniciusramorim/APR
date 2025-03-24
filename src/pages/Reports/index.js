@@ -208,22 +208,22 @@ export default function Reports() {
                       BAIRRO_SITE: doc.site_id.Bairro,
                       CEP_SITE: doc.site_id.CEP,
                       CRITICIDADE_SITE: doc.site_id.critical,
-                      ABERTURA_LAT: doc.locationCreated.latitude,
-                      ABERTURA_LNG: doc.locationCreated.logitude,
-                      ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-                      TEMP_INCIO: format(
+                      ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
+                      ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                      ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
+                      TEMP_INCIO: doc.tempoConclusao ? format(
                         doc.tempoConclusao.inicio.toDate(),
                         "dd/MM/yyyy HH:mm:ss"
-                      ),
-                      TEMP_TERMINO: format(
+                      ) : "-",
+                      TEMP_TERMINO: doc.tempoConclusao ?  format(
                         doc.tempoConclusao.conclusao.toDate(),
                         "dd/MM/yyyy HH:mm:ss"
-                      ),
-                      TEMP_EFETUADO: Math.ceil(
+                      ) : '-',
+                      TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
                         (doc.tempoConclusao.conclusao.toDate() -
                           doc.tempoConclusao.inicio.toDate()) /
                         (1000 * 60)
-                      ),
+                      ) : '-',
                       USER_ID: doc.user_id.uid,
                       USER_NOME: doc.user_id.nome,
                       USER_UF: doc.user_id.uf,
@@ -249,22 +249,22 @@ export default function Reports() {
                 BAIRRO_SITE: doc.site_id.Bairro,
                 CEP_SITE: doc.site_id.CEP,
                 CRITICIDADE_SITE: doc.site_id.critical,
-                ABERTURA_LAT: doc.locationCreated.latitude,
-                ABERTURA_LNG: doc.locationCreated.logitude,
-                ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-                TEMP_INCIO: format(
+                ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
+                ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
+                TEMP_INCIO: doc.tempoConclusao ? format(
                   doc.tempoConclusao.inicio.toDate(),
                   "dd/MM/yyyy HH:mm:ss"
-                ),
-                TEMP_TERMINO: format(
+                ) : "-",
+                TEMP_TERMINO: doc.tempoConclusao ?  format(
                   doc.tempoConclusao.conclusao.toDate(),
                   "dd/MM/yyyy HH:mm:ss"
-                ),
-                TEMP_EFETUADO: Math.ceil(
+                ) : '-',
+                TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
                   (doc.tempoConclusao.conclusao.toDate() -
                     doc.tempoConclusao.inicio.toDate()) /
                   (1000 * 60)
-                ),
+                ) : '-',
                 USER_ID: doc.user_id.uid,
                 USER_NOME: doc.user_id.nome,
                 USER_UF: doc.user_id.uf,
@@ -291,22 +291,22 @@ export default function Reports() {
               BAIRRO_SITE: doc.site_id.Bairro,
               CEP_SITE: doc.site_id.CEP,
               CRITICIDADE_SITE: doc.site_id.critical,
-              ABERTURA_LAT: doc.locationCreated.latitude,
-              ABERTURA_LNG: doc.locationCreated.logitude,
-              ABERTURA_PERIMETRO: doc.locationCreated.perimetro,
-              TEMP_INCIO: format(
+              ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
+              ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+              ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
+              TEMP_INCIO: doc.tempoConclusao ? format(
                 doc.tempoConclusao.inicio.toDate(),
                 "dd/MM/yyyy HH:mm:ss"
-              ),
-              TEMP_TERMINO: format(
+              ) : "-",
+              TEMP_TERMINO: doc.tempoConclusao ?  format(
                 doc.tempoConclusao.conclusao.toDate(),
                 "dd/MM/yyyy HH:mm:ss"
-              ),
-              TEMP_EFETUADO: Math.ceil(
+              ) : '-',
+              TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
                 (doc.tempoConclusao.conclusao.toDate() -
                   doc.tempoConclusao.inicio.toDate()) /
                 (1000 * 60)
-              ),
+              ) : '-',
               USER_ID: doc.user_id.uid,
               USER_NOME: doc.user_id.nome,
               USER_UF: doc.user_id.uf,

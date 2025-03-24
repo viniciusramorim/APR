@@ -83,6 +83,8 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState("");
   const [valorEstoque, setValorEstoque] = useState("0");
 
+  const maisUtilizados = [2, 4, 5, 6, 7, 8, 9, 10, 16];
+
   const handleChangeSelect = (question, indexA, e) => {
     const {
       target: { value },
@@ -193,7 +195,7 @@ export default function New() {
       indexA + "_numberarea_" + question.questionId
     );
 
-    if (e.target.value === "" || e.target.value === "N/A") {
+    if (e.target.value === "N/A") {
       if (question.textarea === true) textarea.style.display = "none";
       if (question.inputImages === true) inputimage.style.display = "none";
       if (question.listCheck === true) inputSelectResp.style.display = "none";
@@ -201,8 +203,7 @@ export default function New() {
     } else if (e.target.value !== "") {
       if (question.textarea === true) textarea.style.display = "block";
       if (question.inputImages === true) inputimage.style.display = "flex";
-      if (question.listCheck === true)
-        inputSelectResp.style.display = "inline-flex";
+      if (question.listCheck === true) inputSelectResp.style.display = "inline-flex";
       if (question.inputNumber === true) inputNumber.style.display = "block";
     }
   }
@@ -833,7 +834,7 @@ export default function New() {
       document.getElementById("container").style.display = "none";
     }
   }
-  const maisUtilizados = [2, 4, 5, 6, 7, 8, 9, 10, 16];
+
 
   return (
     <div>
@@ -908,6 +909,7 @@ export default function New() {
             </a>
           </div>
         </div>
+
         <div className="container" id="container-motivo">
           <Select
             id="selectMotivo"
@@ -937,7 +939,7 @@ export default function New() {
         <div className="container" id="container" style={{ display: "none" }}>
           <Select
             id="selectSite"
-            defaultValue=""
+            defaultValue={siteInfo.tipoSite}
             onChange={(e) => getQuestions(e.target.value)}
             displayEmpty
             size="small"
