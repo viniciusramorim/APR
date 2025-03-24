@@ -40,12 +40,15 @@ export default function ModalEdit(props) {
   } = props;
 
   const [open, setOpen] = useState(false);
+  
   const [questionResp, setQuestionResp] = useState(
     checklistCompleto[areaIndex][1][questionIndex].resp
   );
+
   const [questionComentario, setQuestionComentario] = useState(
     checklistCompleto[areaIndex][1][questionIndex].respTextArea
   );
+
   const [uploading, setUploading] = useState(false);
 
   const handleUploadImage = (e) => {
@@ -83,6 +86,7 @@ export default function ModalEdit(props) {
   };
 
   const handleOpen = () => setOpen(true);
+  
   const handleClose = () => setOpen(false);
 
   const concluirEdit = () => {

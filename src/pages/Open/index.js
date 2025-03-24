@@ -62,9 +62,9 @@ export default function Open() {
         setAprCompleta(snapshot.data());
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
-            if (doc.resp === "" && user.nivel !== 'revisor') {
+            if (doc.resp === "" && user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid) {
               delete apr.checklist[indexA][1][indexQ];
-            } 
+            }
           });
         });
 
@@ -469,8 +469,8 @@ export default function Open() {
                     <li>
                       <span>MOTIVO: </span>
                       {user.nivel === "administrador" ||
-                      (user.nivel === "revisor" &&
-                        apr.status === "Em Aberto") ? (
+                        (user.nivel === "revisor" &&
+                          apr.status === "Em Aberto") ? (
                         <select
                           value={apr.motivo_apr}
                           onChange={(e) => updateMotivoAPR(e, id)}
@@ -560,7 +560,7 @@ export default function Open() {
                       {Math.ceil(
                         (apr.tempoConclusao.conclusao.toDate() -
                           apr.tempoConclusao.inicio.toDate()) /
-                          (1000 * 60)
+                        (1000 * 60)
                       )}{" "}
                       Min.
                     </li>
@@ -601,23 +601,23 @@ export default function Open() {
               {(apr.valor_armazenamento ||
                 apr.valor_transporte ||
                 apr.valor_sinistro) && (
-                <div className="container">
-                  <div className="siteInfo" style={{ flexDirection: "column" }}>
-                    <span>Valor Armazenamento:</span>{" "}
-                    {apr.valor_armazenamento
-                      ? formatarValor(parseInt(apr.valor_armazenamento))
-                      : "R$ 0"}
-                    <span>Valor Transporte:</span>{" "}
-                    {apr.valor_transporte
-                      ? formatarValor(parseInt(apr.valor_transporte))
-                      : "R$ 0"}
-                    <span>Valor Sinistro:</span>{" "}
-                    {apr.valor_sinistro
-                      ? formatarValor(parseInt(apr.valor_sinistro))
-                      : "R$ 0"}
+                  <div className="container">
+                    <div className="siteInfo" style={{ flexDirection: "column" }}>
+                      <span>Valor Armazenamento:</span>{" "}
+                      {apr.valor_armazenamento
+                        ? formatarValor(parseInt(apr.valor_armazenamento))
+                        : "R$ 0"}
+                      <span>Valor Transporte:</span>{" "}
+                      {apr.valor_transporte
+                        ? formatarValor(parseInt(apr.valor_transporte))
+                        : "R$ 0"}
+                      <span>Valor Sinistro:</span>{" "}
+                      {apr.valor_sinistro
+                        ? formatarValor(parseInt(apr.valor_sinistro))
+                        : "R$ 0"}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {apr.valor_estoque && apr.tipo_loja && (
                 <>
@@ -758,8 +758,8 @@ export default function Open() {
                                           </>
                                         )}
                                         {doc.openPA === true &&
-                                        doc.resp !== doc.respGabarito &&
-                                        user.uid !== apr.id_user ? (
+                                          doc.resp !== doc.respGabarito &&
+                                          user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -788,16 +788,16 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                              <>
-                                                <label>Plano de Ação:</label>
-                                                Tempo:{" "}
-                                                <i>{doc.plano_acao.tempo}</i>
-                                                Comentario:{" "}
-                                                <i>
-                                                  {doc.plano_acao.comentario}
-                                                </i>
-                                              </>
-                                            )}
+                                                <>
+                                                  <label>Plano de Ação:</label>
+                                                  Tempo:{" "}
+                                                  <i>{doc.plano_acao.tempo}</i>
+                                                  Comentario:{" "}
+                                                  <i>
+                                                    {doc.plano_acao.comentario}
+                                                  </i>
+                                                </>
+                                              )}
                                           </>
                                         )}
                                       </div>
@@ -805,7 +805,8 @@ export default function Open() {
                                   }
                                 } else if (
                                   user.nivel === "revisor" ||
-                                  user.nivel === "administrador"
+                                  user.nivel === "administrador" ||
+                                  user.uid === apr.user_id.uid
                                 ) {
                                   return (
                                     <div
@@ -883,6 +884,8 @@ export default function Open() {
                                       )}
                                       {doc.openPA === true &&
                                         doc.resp !== doc.respGabarito &&
+                                        doc.resp !== "N/A" &&
+                                        doc.resp !== "" &&
                                         user.uid !== apr.id_user && (
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
