@@ -353,6 +353,7 @@ export default function New() {
   }
 
   async function setSite(id, motivo) {
+    console.log('atualizou site...')
     const querySnapshot = await firebase
       .firestore()
       .collection("sites")
@@ -360,8 +361,8 @@ export default function New() {
       .update({
         last_apr: new Date(),
         last_motivo: motivo,
-      });
-
+      })
+    console.log('atualizou site concluido')
     return querySnapshot;
   }
 
@@ -417,38 +418,35 @@ export default function New() {
                     1: [],
                   });
                   area[1].forEach(async (question, indexQ) => {
-                    question.question &&
-                      checklist[indexA][1].push({
-                        imagesURL: [],
-                        resp: question.resp,
-                        respTextArea: question.respTextArea,
-                        questionId: question.questionId,
-                        question: question.question,
-                        plano_acao: question.plano_acao,
-                        openPA: question.openPA,
-                        areaResposavel: question.areaResposavel,
-                        respGabarito: question.respGabarito,
+                    question.question && checklist[indexA][1].push({
+                      imagesURL: [],
+                      resp: question.resp,
+                      respTextArea: question.respTextArea,
+                      questionId: question.questionId,
+                      question: question.question,
+                      plano_acao: question.plano_acao,
+                      openPA: question.openPA,
+                      areaResposavel: question.areaResposavel,
+                      respGabarito: question.respGabarito,
 
-                        optionList: question.optionList
-                          ? question.optionList
-                          : [],
-                        optionListResp: question.optionListResp
-                          ? question.optionListResp
-                          : [],
-                        listCheck: question.listCheck ? question.listCheck : "",
-                        respInputNumber: question.respInputNumber
-                          ? question.respInputNumber
-                          : "",
-                        inputNumber: question.inputNumber
-                          ? question.inputNumber
-                          : "",
-                      });
-
+                      optionList: question.optionList
+                        ? question.optionList
+                        : [],
+                      optionListResp: question.optionListResp
+                        ? question.optionListResp
+                        : [],
+                      listCheck: question.listCheck ? question.listCheck : "",
+                      respInputNumber: question.respInputNumber
+                        ? question.respInputNumber
+                        : "",
+                      inputNumber: question.inputNumber
+                        ? question.inputNumber
+                        : "",
+                    });
                     //Verifica antes de carregar no banco se contem resposta
                     if (question.resp !== "N/A" && question.resp !== "") {
                       let imageList = []; // criar uma lista de imagem e reseta a cada questao
                       //inserção de dados no banco OBS: se contem imagem ou não
-                      console.log(question.question + ": " + question.resp)
                       if (containsImage === true) {
                         question.images &&
                           question.images.forEach(async (file) => {
@@ -555,7 +553,7 @@ export default function New() {
                   updateAssignments();
                 }
               })
-              .catch((err) => [console.log(err)]);
+              .catch((err) => console.log(err));
           })
           .catch((err) =>
             console.log("Erro ao inserir informações no SITE: " + err)
@@ -563,6 +561,7 @@ export default function New() {
       })
       .catch((err) => console.log("Erro ao inserir ID: " + err));
   }
+
   // função de monitoramento de upload de imagens
   function trackUpload(upload) {
     return new Promise((resolve, reject) => {
@@ -607,7 +606,6 @@ export default function New() {
     let peso = 0;
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
-        // verifica se contem imagem
         if (question.resp !== "N/A" && question.resp !== "" && question.resp !== question.respGabarito) {
           peso = peso + question.peso;
         }
@@ -1120,7 +1118,7 @@ export default function New() {
                                       className="yes"
                                       type="radio"
                                       name={indexA + "-" + doc.questionId}
-                                      value={doc.answers[2]}
+                                      value={doc.answers[0]}
                                       defaultChecked={
                                         doc.resp === "Sim" ? true : false
                                       }
