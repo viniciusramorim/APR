@@ -290,7 +290,7 @@ export default function New() {
 
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
-        if (question.resp !== "") {
+        if (question.resp !== "N/A" && question.resp !== "") {
           notBlankChecklist = notBlankChecklist + 1;
         }
       });
@@ -445,9 +445,10 @@ export default function New() {
                       });
 
                     //Verifica antes de carregar no banco se contem resposta
-                    if (question.resp !== "") {
+                    if (question.resp !== "N/A" && question.resp !== "") {
                       let imageList = []; // criar uma lista de imagem e reseta a cada questao
                       //inserção de dados no banco OBS: se contem imagem ou não
+                      console.log(question.question + ": " + question.resp)
                       if (containsImage === true) {
                         question.images &&
                           question.images.forEach(async (file) => {
@@ -607,7 +608,7 @@ export default function New() {
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
         // verifica se contem imagem
-        if (question.resp !== "" && question.resp !== question.respGabarito) {
+        if (question.resp !== "N/A" && question.resp !== "" && question.resp !== question.respGabarito) {
           peso = peso + question.peso;
         }
       });

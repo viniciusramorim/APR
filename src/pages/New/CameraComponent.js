@@ -1,7 +1,7 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Modal from "react-modal";
-import { FiCamera, FiCameraOff, FiUpload, FiX } from "react-icons/fi";
+import { FiCamera, FiCameraOff, FiX } from "react-icons/fi";
 
 import "./new.scss";
 
@@ -55,7 +55,7 @@ const CameraComponent = (item) => {
     //se for imagem entao
     let imageArray = [];
     let objIndex = item.questions[indexA][1].findIndex(
-      (obj) => obj.questionId == question.questionId
+      (obj) => obj.questionId === question.questionId
     );
     let arrayQuestion = item.questions[indexA][1][objIndex].images;
 
