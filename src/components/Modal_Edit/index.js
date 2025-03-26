@@ -34,6 +34,7 @@ export default function ModalEdit(props) {
     id,
     areaIndex,
     questionIndex,
+    questionId,
     checklistCompleto,
     loadApr,
     logSistem,
@@ -56,14 +57,17 @@ export default function ModalEdit(props) {
     if (file) {
       setUploading(true);
 
-      const storageRef = firebase.storage().ref(`images/${id}/${file.name}`);
+      const storageRef = firebase.storage().ref(`images/${id}/${[areaIndex]}/${questionId}/${file.name}`);
       storageRef.put(file).then(() => {
         storageRef.getDownloadURL().then((url) => {
           const updatedChecklist = [...checklistCompleto];
           if (!updatedChecklist[areaIndex][1][questionIndex].imagesURL) {
             updatedChecklist[areaIndex][1][questionIndex].imagesURL = [];
           }
-          updatedChecklist[areaIndex][1][questionIndex].imagesURL.push(url);
+          updatedChecklist[areaIndex][1][questionIndex].imagesURL.push({
+            ref: storageRef.fullPath,
+            url: url
+          });
 
           firebase
             .firestore()
@@ -256,7 +260,7 @@ export default function ModalEdit(props) {
               )}
               <Grid item xs={12} md={12}>
                 <input
-                  accept="image/*"
+                  accept="image/png, image/jpeg"
                   id="upload-button"
                   type="file"
                   style={{ display: "none" }}

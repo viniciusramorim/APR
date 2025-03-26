@@ -76,6 +76,7 @@ export default function Open() {
         setLoadApr(false);
       });
   }
+  
   useEffect(() => {
     ReloadAPR();
   }, []);
@@ -96,15 +97,21 @@ export default function Open() {
         ctx.drawImage(img, 0, 0);
 
         var dataURL = canvas.toDataURL("image/png");
-
         resolve(dataURL);
       };
 
       img.onerror = (error) => {
-        reject(error);
+        reject(new Error("Erro ao carregar a imagem: " + error.message));
       };
 
       img.src = url;
+
+      // Adiciona um timeout para rejeitar a promessa se a imagem não carregar em um tempo razoável
+      setTimeout(() => {
+        if (!img.complete) {
+          reject(new Error("Erro ao carregar a imagem: tempo limite excedido"));
+        }
+      }, 10000); // 10 segundos de timeout
     });
   }
 
@@ -199,20 +206,21 @@ export default function Open() {
       ],
     });
 
-    apr.checklist.forEach((area, indexA) => {
+    for (const area of apr.checklist) {
       pdf.content.push({
         text: area[0],
         bold: true,
         margin: [0, 30, 0, 0],
         fontSize: 18,
       });
-      area[1].forEach((doc, indexQ) => {
-        doc.imagesURL.forEach(async (imgs, indexI) => {
-          apr.checklist[indexA][1][indexQ].imagesURL[indexI].url =
-            await getBase64ImageFromURL(imgs.url);
-        });
+      for (const doc of area[1]) {
+        for (const imgs of doc.imagesURL) {
+          console.log(doc.questionId)
+          imgs.url = await getBase64ImageFromURL(imgs.url);
+        }
+
         pdf.content.push({
-          text: `${indexQ} - ${doc.question}`,
+          text: `${doc.question}`,
           margin: [0, 20, 0, 0],
         });
         pdf.content.push({
@@ -226,31 +234,34 @@ export default function Open() {
           ],
           background: doc.resp === "Sim" ? "green" : "red",
         });
-        if (doc.respTextArea !== "") {
+        if (doc.respTextArea !== "" && doc.respTextArea !== "N/A") {
           pdf.content.push({
             text: `Obs: ${doc.respTextArea}`,
             margin: [0, 5, 0, 5],
             italics: true,
           });
         }
-        doc.imagesURL.forEach(async (imgs, indexI) => {
-          pdf.content.push({
-            image: imgs.url,
-            width: 150,
-            height: 150,
-            margin: [0, 10, 0, 0],
-          });
-        });
-      });
-    });
+        for (const imgs of doc.imagesURL) {
+          try {
+            pdf.content.push({
+              image: imgs.url,
+              width: 150,
+              height: 150,
+              margin: [0, 10, 0, 0],
+            });
+          } catch (error) {
+            console.log(imgs);
+            console.log("Erro ao adicionar foto no documento." + error);
+          }
+        }
+      }
+    }
 
     console.log(pdf);
 
     pdfMake
       .createPdf(pdf)
-      .download(
-        `APR Digital ${apr.site_id.Sigla + "_" + apr.site_id.Estado}.pdf`
-      );
+      .download(`APR Digital ${apr.site_id.Sigla + "_" + apr.site_id.Estado}.pdf`);
   }
 
   // -------------------------------------
@@ -823,6 +834,7 @@ export default function Open() {
                                         <ModalEdit
                                           areaIndex={indexA}
                                           questionIndex={indexQ}
+                                          questionId={doc.questionId}
                                           checklistCompleto={
                                             aprCompleta.checklist
                                           }
