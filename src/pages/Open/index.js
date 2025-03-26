@@ -62,8 +62,12 @@ export default function Open() {
         setAprCompleta(snapshot.data());
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
-            if (doc.resp === "" && user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid) {
+            if (apr.status !== "Em Aberto" && doc.resp === ""){
               delete apr.checklist[indexA][1][indexQ];
+            } else if (apr.status === "Em Aberto" && doc.resp === ""){
+              if (user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid){
+                delete apr.checklist[indexA][1][indexQ];
+              }
             }
           });
         });
@@ -76,7 +80,7 @@ export default function Open() {
         setLoadApr(false);
       });
   }
-  
+
   useEffect(() => {
     ReloadAPR();
   }, []);
@@ -706,11 +710,7 @@ export default function Open() {
                                   let area = doc.areaResposavel.includes(
                                     user.area
                                   );
-                                  if (
-                                    doc.openPA === true &&
-                                    doc.respGabarito !== doc.resp &&
-                                    area === true
-                                  ) {
+                                  if (doc.openPA === true && doc.respGabarito !== doc.resp && area === true) {
                                     return (
                                       <div
                                         key={indexQ}
@@ -729,17 +729,16 @@ export default function Open() {
                                             Quantidade: {doc.respInputNumber}
                                           </span>
                                         )}
-                                        {doc.listCheck &&
-                                          doc.optionListResp.map(
-                                            (value, index) => {
-                                              return (
-                                                <span className="list_resp_question">
-                                                  <FiCheckSquare />
-                                                  {value}
-                                                </span>
-                                              );
-                                            }
-                                          )}
+                                        {doc.listCheck && doc.optionListResp.map(
+                                          (value, index) => {
+                                            return (
+                                              <span className="list_resp_question">
+                                                <FiCheckSquare />
+                                                {value}
+                                              </span>
+                                            );
+                                          }
+                                        )}
                                         {doc.respTextArea && (
                                           <>
                                             Comentario:
@@ -768,9 +767,7 @@ export default function Open() {
                                             )}
                                           </>
                                         )}
-                                        {doc.openPA === true &&
-                                          doc.resp !== doc.respGabarito &&
-                                          user.uid !== apr.id_user ? (
+                                        {doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -814,11 +811,7 @@ export default function Open() {
                                       </div>
                                     );
                                   }
-                                } else if (
-                                  user.nivel === "revisor" ||
-                                  user.nivel === "administrador" ||
-                                  user.uid === apr.user_id.uid
-                                ) {
+                                } else if (user.nivel === "revisor" || user.nivel === "administrador" || user.uid === apr.user_id.uid) {
                                   return (
                                     <div
                                       key={indexQ}
