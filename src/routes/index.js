@@ -17,6 +17,8 @@ import Sites from '../pages/Sites/index';
 import Manager from '../pages/ManagerUsers/index';
 import LogManager from '../pages/LogManager/index';
 import InsertQuestions from '../components/Question/InserQuestion';
+import UploadJsonToFirestore from '../components/Email/uploadEmail';
+import ContactEmail from '../components/Email/contactEmail';
 
 export default function Routes() {
   return (
@@ -39,6 +41,8 @@ export default function Routes() {
       <Route exact path="/new/:id/:id_assign" component={New} isPrivate />
       <Route exact path="/open/:id" component={Open} isPrivate />
       <Route exact path="/assignments" component={Assignments} isPrivate />
+      <Route exact path="/upload-email" component={UploadJsonToFirestore} isPrivate />
+      <Route exact path="/contact-email" component={ContactEmail} isPrivate isAdm/>
     </Switch>
   );
 }
