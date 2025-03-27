@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { FiClipboard, FiCheck, FiX } from "react-icons/fi";
+import { FiClipboard, FiCheck, FiX, FiAlertCircle } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import { toast } from "react-toastify";
@@ -203,7 +203,8 @@ export default function New() {
     } else if (e.target.value !== "") {
       if (question.textarea === true) textarea.style.display = "block";
       if (question.inputImages === true) inputimage.style.display = "flex";
-      if (question.listCheck === true) inputSelectResp.style.display = "inline-flex";
+      if (question.listCheck === true)
+        inputSelectResp.style.display = "inline-flex";
       if (question.inputNumber === true) inputNumber.style.display = "block";
     }
   }
@@ -285,6 +286,18 @@ export default function New() {
     setShowPostModal(!showPostModal);
   }
 
+  function hasRequired() {
+    for (let area of questions) {
+      for (let question of area[1]) {
+        if (question.isRequired && question.resp === "") {
+          toast.error(`A questão "${question.question}" é obrigatória`);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function submit() {
     let notBlankChecklist = 0;
 
@@ -297,18 +310,20 @@ export default function New() {
     });
 
     if (notBlankChecklist <= 0) {
-      if (
-        justificativa == null ||
-        justificativa == "" ||
-        justificativa.motivo === "" ||
-        justificativa.desc === ""
-      ) {
-        setOpenModalJust(true);
-        console.log("Insira uma justificativa");
-        return;
-      }
-      console.log(justificativa);
+      return;
     }
+
+    if (
+      justificativa == null ||
+      justificativa == "" ||
+      justificativa.motivo === "" ||
+      justificativa.desc === ""
+    ) {
+      setOpenModalJust(true);
+      console.log("Insira uma justificativa");
+      return;
+    }
+    console.log(justificativa);
 
     navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
       if (item.state === "granted") {
@@ -482,7 +497,7 @@ export default function New() {
                                           console.log(indexA + "-" + indexQ);
                                           console.log(
                                             "Erro ao obter url da imagem" +
-                                            error
+                                              error
                                           );
                                         }
                                         imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
@@ -835,7 +850,6 @@ export default function New() {
     }
   }
 
-
   return (
     <div>
       <Header />
@@ -1092,7 +1106,7 @@ export default function New() {
                         ((doc.valorArmazenado &&
                           valorArmazenamento / 100 > doc.valorArmazenado.min &&
                           doc.valorArmazenado.max >=
-                          valorArmazenamento / 100) ||
+                            valorArmazenamento / 100) ||
                           (doc.valorTransporte &&
                             valorTransporte / 100 > doc.valorTransporte.min &&
                             doc.valorTransporte.max >= valorTransporte / 100) ||
@@ -1111,6 +1125,13 @@ export default function New() {
                             className="container-perg question"
                           >
                             {indexDoc + 1} - {doc.question}
+                            {doc.isRequired === true && (
+                              <FiAlertCircle
+                                className="icon-required"
+                                size={15}
+                                color="#FF0000"
+                              />
+                            )}
                             <div className="question">
                               {doc.selectOptions === true && doc.answers && (
                                 <>
@@ -1157,7 +1178,8 @@ export default function New() {
                                         radioSetValue(doc, indexA, e)
                                       }
                                     />
-                                    <FiX size={25} /> {doc.answers[2] ? doc.answers[2] : "N/A"}
+                                    <FiX size={25} />{" "}
+                                    {doc.answers[2] ? doc.answers[2] : "N/A"}
                                   </label>
                                 </>
                               )}
@@ -1214,8 +1236,8 @@ export default function New() {
                                               document
                                                 .getElementById(
                                                   doc.questionId +
-                                                  "_image_" +
-                                                  indexImg
+                                                    "_image_" +
+                                                    indexImg
                                                 )
                                                 .remove();
                                               removeImg(
@@ -1246,7 +1268,7 @@ export default function New() {
                                   }
                                   defaultValue={
                                     doc.respTextArea !== "" &&
-                                      doc.resp !== doc.respGabarito
+                                    doc.resp !== doc.respGabarito
                                       ? doc.respTextArea
                                       : ""
                                   }
@@ -1269,7 +1291,7 @@ export default function New() {
                                     }
                                     defaultValue={
                                       doc.respInputNumber !== "" &&
-                                        doc.resp !== doc.respGabarito
+                                      doc.resp !== doc.respGabarito
                                         ? doc.respInputNumber
                                         : ""
                                     }
@@ -1288,7 +1310,7 @@ export default function New() {
                                     multiple={doc.multipleCheck}
                                     value={
                                       doc.optionListResp &&
-                                        doc.optionListResp.length > 0
+                                      doc.optionListResp.length > 0
                                         ? doc.optionListResp
                                         : [doc.optionList[0]]
                                     }
@@ -1332,7 +1354,16 @@ export default function New() {
                 </div>
               );
             })}
-            <button className="submit-apr" onClick={() => submit()}>
+            <button
+              className="submit-apr"
+              onClick={() => {
+                const hasUnanswered = hasRequired();
+                if (hasUnanswered) {
+                  return;
+                }
+                submit();
+              }}
+            >
               Concluir APR
             </button>
           </div>
