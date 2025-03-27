@@ -4,7 +4,6 @@ import Route from './Route';
 import SignIn from '../pages/SignIn';
 
 import APRs from '../pages/APRs';
-import DashboardRondas from '../pages/Dashboard_Rondas';
 import Profile from '../pages/Profile';
 import New from '../pages/New';
 import PreNew from '../pages/PreNew';
@@ -12,7 +11,6 @@ import New_Site from '../pages/New_Site';
 import Open from '../pages/Open';
 import ProfileADM from '../pages/ProfileADM';
 import Assignments from '../pages/Assignments';
-import NewRonda from '../pages/New_Ronda';
 import Reports from '../pages/Reports';
 import QuestionsPage from '../pages/Questionarios/Question';
 import Sites from '../pages/Sites/index';
@@ -41,14 +39,6 @@ export default function Routes() {
       <Route exact path="/new/:id/:id_assign" component={New} isPrivate />
       <Route exact path="/open/:id" component={Open} isPrivate />
       <Route exact path="/assignments" component={Assignments} isPrivate />
-      {/* paginas ronda digital */}
-      <Route
-        exact
-        path="/dashboardrondas"
-        component={DashboardRondas}
-        isPrivate
-      />
-      <Route exact path="/newronda" component={NewRonda} isPrivate />
     </Switch>
   );
 }
