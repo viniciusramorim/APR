@@ -96,6 +96,7 @@ export default function SignIn() {
           <button type="submit">
             {loadingAuth ? "Carregando..." : "Acessar"}
           </button>
+          <div id="recaptcha-container"></div>
           <div
             style={{
               display: "flex",
