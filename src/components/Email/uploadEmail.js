@@ -20,7 +20,9 @@ export default function UploadJsonToFirestore() {
           await firebase.firestore().collection('contact_email').doc(docId).set({
             estado,
             municipio,
-            emails,
+            email_oem: emails,
+            email_patrimonial: [],
+            email_predial: [],
           });
         }
       }

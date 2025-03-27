@@ -18,8 +18,8 @@ import {
   ListItemText,
   MenuItem,
   Select,
-  CircularProgress,
   Pagination,
+  Autocomplete,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -36,13 +36,18 @@ export default function ContactEmailAccordionView() {
   const [filterEstado, setFilterEstado] = useState("");
   const [filterMunicipio, setFilterMunicipio] = useState("");
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [formEstado, setFormEstado] = useState("");
-  const [formMunicipios, setFormMunicipios] = useState([""]);
-  const [formEmails, setFormEmails] = useState("");
+  const [editDocId, setEditDocId] = useState(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editTipo, setEditTipo] = useState("");
+  const [editEstado, setEditEstado] = useState("");
+  const [editMunicipio, setEditMunicipio] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newEstado, setNewEstado] = useState("");
+  const [newMunicipio, setNewMunicipio] = useState("");
+  const [newTipo, setNewTipo] = useState("");
+  const [newEmails, setNewEmails] = useState("");
   const [allEstados, setAllEstados] = useState([]);
   const [municipiosPorEstado, setMunicipiosPorEstado] = useState({});
-  const [formTipo, setFormTipo] = useState("");
   const pageSize = 10;
 
   useEffect(() => {
@@ -59,7 +64,6 @@ export default function ContactEmailAccordionView() {
 
     const estadosSet = new Set();
     const grouped = {};
-
     list.forEach((item) => {
       estadosSet.add(item.estado);
       if (!grouped[item.estado]) grouped[item.estado] = [];
@@ -67,72 +71,91 @@ export default function ContactEmailAccordionView() {
         grouped[item.estado].push(item.municipio);
       }
     });
-
     setAllEstados(Array.from(estadosSet).sort());
     setMunicipiosPorEstado(grouped);
   };
 
-  const handleEdit = (record) => {
-    setEditId(record.id);
-    setFormEstado(record.estado);
-    setFormMunicipios([record.municipio]);
-    setFormEmails(record.emails.join(", "));
+  const handleEdit = (docId, email, tipo, estado, municipio) => {
+    setEditDocId(docId);
+    setEditEmail(email);
+    setEditTipo(tipo);
+    setEditEstado(estado);
+    setEditMunicipio(municipio);
     setOpen(true);
   };
 
-  const handleCreate = () => {
-    setEditId(null);
-    setFormEstado("");
-    setFormMunicipios([""]);
-    setFormEmails("");
-    setOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este município?")) {
-      await firebase.firestore().collection("contact_email").doc(id).delete();
-      loadData();
-    }
+  const handleDeleteEmail = async (docId, email, tipo) => {
+    const key = `email_${tipo.toLowerCase()}`;
+    const ref = firebase.firestore().collection("contact_email").doc(docId);
+    const snap = await ref.get();
+    if (!snap.exists) return;
+    const data = snap.data();
+    data[key] = (data[key] || []).filter((e) => e !== email);
+    await ref.set(data);
+    loadData();
   };
 
   const handleSave = async () => {
-    const emails = formEmails
-      .split(",")
-      .map((e) => e.trim())
-      .filter((e) => e !== "");
-
-    for (const municipio of formMunicipios) {
-      const newDoc = {
-        estado: formEstado,
-        municipio,
-        emails,
-        area_responsavel:formTipo,
-      };
-      if (editId && formMunicipios.length === 1) {
-        await firebase
-          .firestore()
-          .collection("contact_email")
-          .doc(editId)
-          .set(newDoc);
-      } else {
-        await firebase.firestore().collection("contact_email").add(newDoc);
-      }
+    if (!editDocId || !editTipo || !editEmail) return;
+    const docRef = firebase
+      .firestore()
+      .collection("contact_email")
+      .doc(editDocId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) return;
+    const data = docSnap.data();
+    const tipos = ["email_oem", "email_patrimonial", "email_predial"];
+    tipos.forEach((key) => {
+      data[key] = (data[key] || []).filter((e) => e !== editEmail);
+    });
+    const targetKey = `email_${editTipo.toLowerCase()}`;
+    if (!data[targetKey]) data[targetKey] = [];
+    if (!data[targetKey].includes(editEmail)) {
+      data[targetKey].push(editEmail);
     }
+    await docRef.set(data);
     setOpen(false);
     loadData();
   };
 
-  const filteredData = docs.filter((item) => {
-    const estadoMatch =
-      filterEstado === "" ||
-      item.estado.toLowerCase().includes(filterEstado.toLowerCase());
-    const municipioMatch =
-      filterMunicipio === "" ||
-      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase());
-    return estadoMatch && municipioMatch;
-  });
+  const handleCreate = async () => {
+    const docId = `${newEstado}-${newMunicipio}`;
+    const docRef = firebase.firestore().collection("contact_email").doc(docId);
+    const docSnap = await docRef.get();
+    const targetKey = `email_${newTipo.toLowerCase()}`;
+    const emails = newEmails
+      .split(",")
+      .map((e) => e.trim())
+      .filter((e) => e);
 
-  const groupedByEstado = filteredData.reduce((acc, item) => {
+    if (docSnap.exists) {
+      const data = docSnap.data();
+      const currentEmails = data[targetKey] || [];
+      const updatedEmails = Array.from(new Set([...currentEmails, ...emails]));
+      await docRef.update({ [targetKey]: updatedEmails });
+    } else {
+      const newData = {
+        estado: newEstado,
+        municipio: newMunicipio,
+        email_oem: [],
+        email_patrimonial: [],
+        email_predial: [],
+        [targetKey]: emails,
+      };
+      await docRef.set(newData);
+    }
+
+    setCreateOpen(false);
+    loadData();
+  };
+
+  const filteredDocs = docs.filter(
+    (item) =>
+      item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
+      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase())
+  );
+
+  const groupedByEstado = filteredDocs.reduce((acc, item) => {
     if (!acc[item.estado]) acc[item.estado] = [];
     acc[item.estado].push(item);
     return acc;
@@ -157,189 +180,223 @@ export default function ContactEmailAccordionView() {
     }));
   };
 
-  const handleChangeMunicipio = (index, value) => {
-    const updated = [...formMunicipios];
-    updated[index] = value;
-    setFormMunicipios(updated);
-  };
-
   return (
     <div className="apr-contact-email">
       <Header />
       <div className="content">
         <Title name="Contato">
-          {" "}
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
+          <FiMessageSquare size={25} />
         </Title>
-        <Box>
-          <Box display="flex" gap={2} mb={2}>
-            <TextField
-              label="Filtrar por Estado"
-              value={filterEstado}
-              size="small"
-              onChange={(e) => setFilterEstado(e.target.value)}
-            />
-            <TextField
-              label="Filtrar por Município"
-              value={filterMunicipio}
-              size="small"
-              onChange={(e) => setFilterMunicipio(e.target.value)}
-            />
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleCreate}
-            >
-              Novo Registro
-            </Button>
-          </Box>
-
-          {paginatedEstados.map((estado) => (
-            <Accordion key={estado}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{estado}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                {getMunicipiosPaginados(estado).map((item) => (
-                  <Accordion key={item.id}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        width="100%"
-                      >
-                        <Typography>{item.municipio}</Typography>
-                        <Box>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <List dense>
-                        <Typography sx={{fontWeight:'bold'}}>Equipe OEM</Typography>
-                        {item.emails.map((email, index) => (
-                          <ListItem key={index}>
-                            <ListItemText primary={email} />
-                          </ListItem>
-                        ))}
-                      </List>
-                      <List dense>
-                      <Typography sx={{fontWeight:'bold'}}>Equipe Patrimonial</Typography>
-                      </List>
-                      <List dense>
-                      <Typography sx={{fontWeight:'bold'}}>Equipe Predial</Typography>
-                      </List>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-                {groupedByEstado[estado].length >
-                  (municipioPages[estado] || 1) * pageSize && (
-                  <Box textAlign="center" mt={1}>
-                    <Button onClick={() => loadMoreMunicipios(estado)}>
-                      Carregar mais municípios
-                    </Button>
-                  </Box>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-
-          <Box display="flex" justifyContent="center" mt={2}>
-            <Pagination
-              count={Math.ceil(estadoKeys.length / pageSize)}
-              page={estadoPage}
-              onChange={(e, value) => setEstadoPage(value)}
-            />
-          </Box>
-          <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
-            <DialogTitle>
-              {editId ? "Editar Registro" : "Novo Registro"}
-            </DialogTitle>
-            <DialogContent>
-              <Select
-                fullWidth
-                value={formEstado}
-                style={{ marginBottom: "20px" }}
-                onChange={(e) => {
-                  setFormEstado(e.target.value);
-                  setFormMunicipios([""]);
-                }}
-                displayEmpty
-                margin="normal"
-              >
-                <MenuItem disabled value="">
-                  Selecione um Estado
-                </MenuItem>
-                {allEstados.map((estado) => (
-                  <MenuItem key={estado} value={estado}>
-                    {estado}
-                  </MenuItem>
-                ))}
-              </Select>
-              {formMunicipios.map((municipio, index) => (
-                <Select
-                  key={index}
-                  fullWidth
-                  value={municipio}
-                  onChange={(e) => handleChangeMunicipio(index, e.target.value)}
-                  displayEmpty
-                  margin="dense"
-                  sx={{ mb: 1 }}
-                >
-                  <MenuItem disabled value="">
-                    Selecione um Município
-                  </MenuItem>
-                  {(municipiosPorEstado[formEstado] || []).sort().map((m) => (
-                    <MenuItem key={m} value={m}>
-                      {m}
-                    </MenuItem>
-                  ))}
-                </Select>
-              ))}
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Select
-                  value={formTipo || ''}
-                  onChange={(e) => setFormTipo(e.target.value)}
-                  displayEmpty
-                  fullWidth
-                  sx={{mt: 1.5}}
-                >
-                  <MenuItem disabled value="">Selecione o tipo</MenuItem>
-                  <MenuItem value="OEM">OEM</MenuItem>
-                  <MenuItem value="Patrimonial">Patrimonial</MenuItem> 
-                  <MenuItem value="Predial">Predial</MenuItem>
-                </Select>
-              </Box>
-              <TextField
-                fullWidth
-                multiline
-                minRows={3}
-                label="E-mails (separados por vírgula)"
-                value={formEmails}
-                onChange={(e) => setFormEmails(e.target.value)}
-                margin="normal"
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpen(false)}>Cancelar</Button>
-              <Button variant="contained" onClick={handleSave}>
-                Salvar
-              </Button>
-            </DialogActions>
-          </Dialog>
+        <Box display="flex" gap={2} mb={2}>
+          <TextField
+            label="Filtrar por Estado"
+            value={filterEstado}
+            onChange={(e) => setFilterEstado(e.target.value)}
+            size="small"
+          />
+          <TextField
+            label="Filtrar por Município"
+            value={filterMunicipio}
+            onChange={(e) => setFilterMunicipio(e.target.value)}
+            size="small"
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateOpen(true)}
+          >
+            Novo Registro
+          </Button>
         </Box>
+
+        {paginatedEstados.map((estado) => (
+          <Accordion key={estado}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography>{estado}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              {getMunicipiosPaginados(estado).map((item) => (
+                <Accordion key={item.id}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>{item.municipio}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {["OEM", "Patrimonial", "Predial"].map((tipo) => {
+                      const key = `email_${tipo.toLowerCase()}`;
+                      return (
+                        <Box key={tipo} mb={2}>
+                          <Typography fontWeight="bold">
+                            Equipe {tipo}
+                          </Typography>
+                          <List dense>
+                            {(item[key] || []).map((email, index) => (
+                              <ListItem
+                                key={index}
+                                secondaryAction={
+                                  <>
+                                    <IconButton
+                                      edge="end"
+                                      onClick={() =>
+                                        handleEdit(
+                                          item.id,
+                                          email,
+                                          tipo,
+                                          item.estado,
+                                          item.municipio
+                                        )
+                                      }
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      edge="end"
+                                      onClick={() =>
+                                        handleDeleteEmail(item.id, email, tipo)
+                                      }
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </>
+                                }
+                              >
+                                <ListItemText primary={email} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      );
+                    })}
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {groupedByEstado[estado].length >
+                (municipioPages[estado] || 1) * pageSize && (
+                <Box textAlign="center" mt={1}>
+                  <Button onClick={() => loadMoreMunicipios(estado)}>
+                    Carregar mais municípios
+                  </Button>
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
+        ))}
+
+        <Box display="flex" justifyContent="center" mt={2}>
+          <Pagination
+            count={Math.ceil(estadoKeys.length / pageSize)}
+            page={estadoPage}
+            onChange={(e, value) => setEstadoPage(value)}
+          />
+        </Box>
+
+        <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+          <DialogTitle>Editar E-mail</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="E-mail"
+              value={editEmail}
+              onChange={(e) => setEditEmail(e.target.value)}
+            />
+            <Select
+              fullWidth
+              margin="dense"
+              value={editTipo}
+              onChange={(e) => setEditTipo(e.target.value)}
+              displayEmpty
+              sx={{ mt: 2 }}
+            >
+              <MenuItem disabled value="">
+                Selecione a área responsável
+              </MenuItem>
+              <MenuItem value="OEM">OEM</MenuItem>
+              <MenuItem value="Patrimonial">Patrimonial</MenuItem>
+              <MenuItem value="Predial">Predial</MenuItem>
+            </Select>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleSave}>
+              Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          fullWidth
+        >
+          <DialogTitle>Novo Registro</DialogTitle>
+          <DialogContent>
+            <Select
+              fullWidth
+              margin="dense"
+              value={newEstado}
+              onChange={(e) => {
+                setNewEstado(e.target.value);
+                setNewMunicipio("");
+              }}
+              displayEmpty
+            >
+              <MenuItem disabled value="">
+                Selecione um Estado
+              </MenuItem>
+              {allEstados.map((estado) => (
+                <MenuItem key={estado} value={estado}>
+                  {estado}
+                </MenuItem>
+              ))}
+            </Select>
+            <Autocomplete
+              freeSolo
+              options={(municipiosPorEstado[newEstado] || []).sort()}
+              value={newMunicipio}
+              onInputChange={(event, newInputValue) =>
+                setNewMunicipio(newInputValue)
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  margin="dense"
+                  label="Município (existente ou novo)"
+                  fullWidth
+                />
+              )}
+            />
+            <Select
+              fullWidth
+              margin="dense"
+              value={newTipo}
+              onChange={(e) => setNewTipo(e.target.value)}
+              displayEmpty
+              sx={{ mt: 2 }}
+            >
+              <MenuItem disabled value="">
+                Selecione a área responsável
+              </MenuItem>
+              <MenuItem value="OEM">OEM</MenuItem>
+              <MenuItem value="Patrimonial">Patrimonial</MenuItem>
+              <MenuItem value="Predial">Predial</MenuItem>
+            </Select>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="E-mails (separados por vírgula)"
+              value={newEmails}
+              onChange={(e) => setNewEmails(e.target.value)}
+              multiline
+              minRows={3}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCreateOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleCreate}>
+              Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );
