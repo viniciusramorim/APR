@@ -267,7 +267,7 @@ export default function Open() {
     pdfMake
       .createPdf(pdf)
       .download(
-        `APR Digital ${apr.site_id.Sigla + "_" + apr.site_id.Estado}.pdf`
+        `APR Digital ${apr.site_id.Sigla + "_" + apr.apr_id + "_" + apr.site_id.Estado}.pdf`
       );
   }
 
