@@ -81,6 +81,7 @@ const QuestionModal = ({
     multipleCheck: false,
     inputNumber: false,
     respInputNumber: "",
+    isRequired: false,
     valorArmazenado: {
       max: 0,
       min: 0,
@@ -637,6 +638,22 @@ const QuestionModal = ({
                 />
               }
               label="Possui campo de texto adicional?"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.isRequired}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      isRequired: checked ? true : false,
+                    }));
+                  }}
+                  name="isRequired"
+                />
+              }
+              label="Resposta Obrigatória?"
             />
           </Grid2>
           <Grid2

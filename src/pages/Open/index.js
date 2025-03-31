@@ -58,7 +58,12 @@ export default function Open() {
         setAprCompleta(snapshot.data());
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
-            if (apr.status !== "Em Aberto" && doc.resp === "") {
+            if (
+              doc.resp === "" &&
+              user.nivel !== "revisor" &&
+              user.nivel !== "administrador" &&
+              user.uid !== apr.user_id.uid
+            ) {
               delete apr.checklist[indexA][1][indexQ];
             } else if (apr.status === "Em Aberto" && doc.resp === "") {
               if (user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid) {
@@ -149,6 +154,19 @@ export default function Open() {
         widths: [300, 300],
         body: [
           [
+            "ID:" + apr.apr_id,
+          ],
+        ],
+      },
+      layout: "noBorders",
+    });
+    pdf.content.push({
+      margin: [0, 20, 0, 0],
+      table: {
+        widths: [300, 300],
+        body: [
+          [
+            // "ID:" + id,
             "Nome: " + apr.user_id.nome,
             "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm"),
           ],
@@ -262,7 +280,9 @@ export default function Open() {
 
     pdfMake
       .createPdf(pdf)
-      .download(`APR Digital ${apr.site_id.Sigla + "_" + apr.site_id.Estado}.pdf`);
+      .download(
+        `APR Digital ${apr.site_id.Sigla + "_" + apr.apr_id + "_" + apr.site_id.Estado}.pdf`
+      );
   }
 
   // -------------------------------------
@@ -481,8 +501,8 @@ export default function Open() {
                     <li>
                       <span>MOTIVO: </span>
                       {user.nivel === "administrador" ||
-                        (user.nivel === "revisor" &&
-                          apr.status === "Em Aberto") ? (
+                      (user.nivel === "revisor" &&
+                        apr.status === "Em Aberto") ? (
                         <select
                           value={apr.motivo_apr}
                           onChange={(e) => updateMotivoAPR(e, id)}
@@ -566,7 +586,7 @@ export default function Open() {
                       {Math.ceil(
                         (apr.tempoConclusao.conclusao.toDate() -
                           apr.tempoConclusao.inicio.toDate()) /
-                        (1000 * 60)
+                          (1000 * 60)
                       )}{" "}
                       Min.
                     </li>
@@ -785,16 +805,16 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                                <>
-                                                  <label>Plano de Ação:</label>
-                                                  Tempo:{" "}
-                                                  <i>{doc.plano_acao.tempo}</i>
-                                                  Comentario:{" "}
-                                                  <i>
-                                                    {doc.plano_acao.comentario}
-                                                  </i>
-                                                </>
-                                              )}
+                                              <>
+                                                <label>Plano de Ação:</label>
+                                                Tempo:{" "}
+                                                <i>{doc.plano_acao.tempo}</i>
+                                                Comentario:{" "}
+                                                <i>
+                                                  {doc.plano_acao.comentario}
+                                                </i>
+                                              </>
+                                            )}
                                           </>
                                         )}
                                       </div>
