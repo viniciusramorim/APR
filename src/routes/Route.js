@@ -14,8 +14,7 @@ export default function RouteWrapper({
   const location = useLocation();
 
   function pageTo() {
-    if (user.area === 'ronda') return '/dashboardrondas';
-    else if (user.area === 'patrimonial' || user.area === 'oem' || user.area === 'pci') return previousLocation !== null ? previousLocation : '/aprs';
+    if (user.area === 'patrimonial' || user.area === 'oem' || user.area === 'pci') return previousLocation !== null ? previousLocation : '/aprs';
   }
 
   useEffect(() => {

@@ -47,10 +47,6 @@ export default function Open() {
     return result;
   };
 
-  useEffect(() => {
-    addBodyClass("page-open");
-  }, []);
-
   async function ReloadAPR() {
     await firebase
       .firestore()
@@ -62,10 +58,10 @@ export default function Open() {
         setAprCompleta(snapshot.data());
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
-            if (apr.status !== "Em Aberto" && doc.resp === ""){
+            if (apr.status !== "Em Aberto" && doc.resp === "") {
               delete apr.checklist[indexA][1][indexQ];
-            } else if (apr.status === "Em Aberto" && doc.resp === ""){
-              if (user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid){
+            } else if (apr.status === "Em Aberto" && doc.resp === "") {
+              if (user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid) {
                 delete apr.checklist[indexA][1][indexQ];
               }
             }
@@ -82,6 +78,7 @@ export default function Open() {
   }
 
   useEffect(() => {
+    addBodyClass("page-open");
     ReloadAPR();
   }, []);
 
@@ -613,26 +610,24 @@ export default function Open() {
                 </div>
               </div>
 
-              {(apr.valor_armazenamento ||
-                apr.valor_transporte ||
-                apr.valor_sinistro) && (
-                  <div className="container">
-                    <div className="siteInfo" style={{ flexDirection: "column" }}>
-                      <span>Valor Armazenamento:</span>{" "}
-                      {apr.valor_armazenamento
-                        ? formatarValor(parseInt(apr.valor_armazenamento))
-                        : "R$ 0"}
-                      <span>Valor Transporte:</span>{" "}
-                      {apr.valor_transporte
-                        ? formatarValor(parseInt(apr.valor_transporte))
-                        : "R$ 0"}
-                      <span>Valor Sinistro:</span>{" "}
-                      {apr.valor_sinistro
-                        ? formatarValor(parseInt(apr.valor_sinistro))
-                        : "R$ 0"}
-                    </div>
+              {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
+                <div className="container">
+                  <div className="siteInfo" style={{ flexDirection: "column" }}>
+                    <span>Valor Armazenamento:</span>{" "}
+                    {apr.valor_armazenamento
+                      ? formatarValor(parseInt(apr.valor_armazenamento))
+                      : "R$ 0"}
+                    <span>Valor Transporte:</span>{" "}
+                    {apr.valor_transporte
+                      ? formatarValor(parseInt(apr.valor_transporte))
+                      : "R$ 0"}
+                    <span>Valor Sinistro:</span>{" "}
+                    {apr.valor_sinistro
+                      ? formatarValor(parseInt(apr.valor_sinistro))
+                      : "R$ 0"}
                   </div>
-                )}
+                </div>
+              )}
 
               {apr.valor_estoque && apr.tipo_loja && (
                 <>
@@ -1022,6 +1017,7 @@ export default function Open() {
                   </form>
                 </div>
               )}
+              
             </>
           ) : (
             <div className="container">Carregando dados APR...</div>
