@@ -934,9 +934,7 @@ export default function New() {
             <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
             <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
             <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
-            <MenuItem value={"Projeto Veneza"}>
-              Projeto Veneza (internalização Loja Dealer)
-            </MenuItem>
+            <MenuItem value={"Projeto Veneza"}>Projeto Veneza (internalização Loja Dealer)</MenuItem>
             <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
             <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
             <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
