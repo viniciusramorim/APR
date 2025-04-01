@@ -8,7 +8,6 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [captchaToken, setCaptchaToken] = useState(null); // <- token salvo aqui
 
   useEffect(() => {
     function loadStorage() {
@@ -34,148 +33,78 @@ function AuthProvider({ children }) {
     });
   }
   //Fazendo login do usuario
-  // async function signIn(email, password) {
-  //   setLoadingAuth(true);
-
-  //   // efetua login
-  //   await firebase
-  //     .auth()
-  //     .signInWithEmailAndPassword(email, password)
-  //     .then(async (value) => {
-  //       let uid = value.user.uid;
-  //       let userProfile = await firebase
-  //         .firestore()
-  //         .collection("users")
-  //         .doc(uid)
-  //         .get();
-
-  //       if (userProfile.data().status === false) {
-  //         toast.info("Ops... Você precisa ter permissão para acessar!");
-  //         setLoadingAuth(false);
-  //       } else {
-  //         let data = {
-  //           uid: uid,
-  //           nome: userProfile.data().nome,
-  //           email: value.user.email,
-  //           area: userProfile.data().area,
-  //           nivel: userProfile.data().nivel,
-  //           uf: userProfile.data().uf,
-  //           status: userProfile.data().status,
-  //           regional:
-  //             userProfile.data().regional === undefined
-  //               ? ""
-  //               : userProfile.data().regional,
-  //         };
-  //         setUser(data);
-  //         storageUser(data);
-  //         setLoadingAuth(false);
-  //         toast.success("Bem vindo de volta!");
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //       setLoadingAuth(false);
-  //       switch (error.code) {
-  //         case "ERROR_EMAIL_ALREADY_IN_USE":
-  //         case "account-exists-with-different-credential":
-  //         case "auth/email-already-in-use":
-  //           return toast.error(
-  //             "E-mail já utilizado. Vá para a página de login."
-  //           );
-  //         case "ERROR_WRONG_PASSWORD":
-  //         case "auth/wrong-password":
-  //           return toast.error("E-mail / Senha incorretos !");
-  //         case "ERROR_USER_NOT_FOUND":
-  //         case "auth/user-not-found":
-  //           return toast.error("E-mail inserido não cadastrado !");
-  //         case "auth/invalid-email":
-  //           return toast.error("E-mail invalido !");
-  //         case "ERROR_USER_DISABLED":
-  //         case "auth/user-disabled":
-  //           return toast.error("Usuario desabilitado !");
-  //         default:
-  //           return toast.error(error.code);
-  //       }
-  //     });
-  // }
-
-  //Fazendo login do usuario com reCAPTCHA
-  const signIn = async (email, password) => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        size: 'normal', // ou 'compact'
-        callback: (response) => {
-          console.log("reCAPTCHA resolvido:", response);
-          setCaptchaToken(response); // <- salva o token quando resolver
-        },
-        'expired-callback': () => {
-          console.warn('reCAPTCHA expirado.');
-          setCaptchaToken(null); // invalida o token
-        }
-      });
-
-      window.recaptchaVerifier.render();
-    }
-
-
-    if (!captchaToken) {
-      return toast.error("Por favor, resolva o reCAPTCHA.");
-    }
-
+  async function signIn(email, password) {
     setLoadingAuth(true);
 
-    try {
-      const value = await firebase.auth().signInWithEmailAndPassword(email, password);
-      const uid = value.user.uid;
-      const userProfile = await firebase.firestore().collection("users").doc(uid).get();
-
-      if (!userProfile.exists || userProfile.data().status === false) {
-        toast.info("Ops... Você precisa ter permissão para acessar!");
+    // efetua login
+    await firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(async (value) => {
+        let uid = value.user.uid;
+        let userProfile = await firebase
+          .firestore()
+          .collection("users")
+          .doc(uid)
+          .get();
+        // if (value.user.emailVerified === false) {
+        //   let text = "Para entrar você precisa verificar seu e-mail!\nClique em  OK para reenviar seu e-mail.";
+        //   if (window.confirm(text) == true) {
+        //     value.user.sendEmailVerification().catch(err => console.log(err));
+        //     toast.success("Email de verificação enviado!");
+        //     logSistem(`e-mail de verificação enviado para ${email}`);
+        //   }
+        //   setLoadingAuth(false);
+        // } else
+        if (userProfile.data().status === false) {
+          toast.info("Ops... Você precisa ter permissão para acessar!");
+          setLoadingAuth(false);
+        } else {
+          let data = {
+            uid: uid,
+            nome: userProfile.data().nome,
+            email: value.user.email,
+            area: userProfile.data().area,
+            nivel: userProfile.data().nivel,
+            uf: userProfile.data().uf,
+            status: userProfile.data().status,
+            regional:
+              userProfile.data().regional === undefined
+                ? ""
+                : userProfile.data().regional,
+          };
+          setUser(data);
+          storageUser(data);
+          setLoadingAuth(false);
+          toast.success("Bem vindo de volta!");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
         setLoadingAuth(false);
-        return;
-      }
-
-      const data = {
-        uid,
-        nome: userProfile.data().nome,
-        email: value.user.email,
-        area: userProfile.data().area,
-        nivel: userProfile.data().nivel,
-        uf: userProfile.data().uf,
-        status: userProfile.data().status,
-        regional: userProfile.data().regional || "",
-      };
-
-      setUser(data);
-      storageUser(data);
-      toast.success("Bem-vindo de volta!");
-    } catch (error) {
-      console.log(error);
-      switch (error.code) {
-        case "auth/email-already-in-use":
-          toast.error("E-mail já utilizado.");
-          break;
-        case "auth/wrong-password":
-          toast.error("E-mail / Senha incorretos!");
-          break;
-        case "auth/user-not-found":
-          toast.error("E-mail não cadastrado!");
-          break;
-        case "auth/invalid-email":
-          toast.error("E-mail inválido!");
-          break;
-        case "auth/user-disabled":
-          toast.error("Usuário desabilitado!");
-          break;
-        default:
-          toast.error(error.code);
-          break;
-      }
-    }
-
-    setLoadingAuth(false);
-  };
-
+        switch (error.code) {
+          case "ERROR_EMAIL_ALREADY_IN_USE":
+          case "account-exists-with-different-credential":
+          case "auth/email-already-in-use":
+            return toast.error(
+              "E-mail já utilizado. Vá para a página de login."
+            );
+          case "ERROR_WRONG_PASSWORD":
+          case "auth/wrong-password":
+            return toast.error("E-mail / Senha incorretos !");
+          case "ERROR_USER_NOT_FOUND":
+          case "auth/user-not-found":
+            return toast.error("E-mail inserido não cadastrado !");
+          case "auth/invalid-email":
+            return toast.error("E-mail invalido !");
+          case "ERROR_USER_DISABLED":
+          case "auth/user-disabled":
+            return toast.error("Usuario desabilitado !");
+          default:
+            return toast.error(error.code);
+        }
+      });
+  }
   //Obter E-mail por UID
   function obterUidEmail(email) {
     return new Promise((resolve, reject) => {
@@ -424,7 +353,7 @@ function AuthProvider({ children }) {
 
     try {
       nome = user.nome;
-    } catch { }
+    } catch {}
     try {
       const response = await fetch("https://api.ipify.org?format=json");
       const data = await response.json();

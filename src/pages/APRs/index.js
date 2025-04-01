@@ -180,7 +180,11 @@ export default function Dashboard() {
         : query;
     query =
       user.area === "oem"
-        ? query.where("status", "in", ["Enviado","Respondido pela Area"])
+        ? query.where("status", "in", [
+            "Enviado",
+            "Respondido pela Area",
+            "Revisado",
+          ])
         : query;
     query =
       user.area === "pci"
