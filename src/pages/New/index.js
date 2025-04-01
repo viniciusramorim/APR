@@ -310,19 +310,14 @@ export default function New() {
     });
 
     if (notBlankChecklist <= 0) {
+      if (justificativa == null || justificativa == "" || justificativa.motivo === "" ||justificativa.desc === "") {
+        setOpenModalJust(true);
+        console.log("Insira uma justificativa");
+        return;
+      }
       return;
     }
 
-    if (
-      justificativa == null ||
-      justificativa == "" ||
-      justificativa.motivo === "" ||
-      justificativa.desc === ""
-    ) {
-      setOpenModalJust(true);
-      console.log("Insira uma justificativa");
-      return;
-    }
     console.log(justificativa);
 
     navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
@@ -576,7 +571,6 @@ export default function New() {
       })
       .catch((err) => console.log("Erro ao inserir ID: " + err));
   }
-
   // função de monitoramento de upload de imagens
   function trackUpload(upload) {
     return new Promise((resolve, reject) => {
