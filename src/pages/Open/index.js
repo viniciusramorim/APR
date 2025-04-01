@@ -509,13 +509,19 @@ export default function Open() {
                         >
                           <option value={"Mapa de Calor"}>Mapa de Calor</option>
                           <option value={"Retrofit"}>Retrofit</option>
-                          <option value={"Rota Critica DWDM"}>Rota Critica DWDM</option>
-                          <option value={"Projeto Veneza"}>Projeto Veneza (internalização Loja Dealer)</option>
-                          <option value={"Estoque Avançado"}>Estoque Avançado</option>
-                          <option value={"Instalação Tag"}>Instalação Tag</option>
-                          <option value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</option>
+                          <option value={"Rota Critica DWDM"}>
+                            Rota Critica DWDM
+                          </option>
+                          <option value={"Projeto Veneza"}>
+                            Projeto Veneza
+                          </option>
+                          <option value={"Estoque Avançado"}>
+                            Estoque Avançado
+                          </option>
+                          <option value={"Instalação Tag"}>
+                            Instalação Tag
+                          </option>
                           <option value={"Não Opinada"}>Não Opinada</option>
-                          <option value={"Opinada"}>Opinada</option>
                         </select>
                       ) : (
                         apr.motivo_apr
@@ -1031,7 +1037,7 @@ export default function Open() {
                   </form>
                 </div>
               )}
-
+              
             </>
           ) : (
             <div className="container">Carregando dados APR...</div>
