@@ -939,7 +939,9 @@ export default function New() {
             </MenuItem>
             <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
             <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
+            <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
             <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
+            <MenuItem value={"Opinada"}>Opinada</MenuItem>
           </Select>
         </div>
 
