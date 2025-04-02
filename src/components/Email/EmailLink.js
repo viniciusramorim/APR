@@ -1,74 +1,172 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-
 import firebase from '../../services/firebaseConnection';
-import stateRecipients from './statateRecipient';
-import './email.scss'
+import './email.scss';
 
 const EmailLink = ({ apr, id, logSistem }) => {
-  const base = 'aprs-producao'
-  var emails = stateRecipients[apr.site_id.Estado][apr.site_id.Cidade.toUpperCase()]
+  const [emails, setEmails] = useState('');
+  const docRef = `${apr.site_id.Estado}-${apr.site_id.Cidade.toUpperCase()}`;
+  const base = 'aprs-producao';
 
-  if (emails !== undefined && emails.length > 1) {
-    emails = emails.toString().replace(',',';')
-  }
+  useEffect(() => {
+    const loadContact = async () => {
+      try {
+        const doc = await firebase.firestore().collection('contact_email').doc(docRef).get();
+        if (doc.exists) {
+          const emailList = doc.data().email_patrimonial?.toString().replace(',', ';') || '';
+          setEmails(emailList);
+        } else {
+          console.warn('Documento de e-mail não encontrado:', docRef);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar contatos:', error);
+      }
+    };
 
-  var cc = 'Pedro.Oliveira@telefonica.com; priscila.mirancos.ext@telefonica.com'
+    loadContact();
+  }, [docRef]);
 
-  const recipient = emails || "Destinatário padrão";
 
-  const subject = `APR Vivo Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`;
+  const sendEmailExec = async () => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
 
-  const body = `
-Identificamos inconformidade(s) em um site da sua região.
+    const emailContent = {
+      remetente: "gestao.qualid.seg.br@telefonica.com",
+      assunto: `APR Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
+      destinatario: emails,
+      texto: `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title></title>
+      <style>
+        body {
+          font-family: Vivo Type;
+          margin: 0;
+          padding: 0;
+          background-color: #f4f4f4;
+          border-radius:8px;
+        }
+        .container {
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #fff;
+          padding: 20px;
+          border-radius:9px;
+          box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+        }
+        .header {
+          background-color: #1976d2;
+          font-family: Vivo Type!important;
+          color: #ffffff;
+          padding: 10px 0;
+          text-align: center;
+          border-radius:8px;
+        }
+        .header h2 {
+          font-size:16px;
+        }
+        .content {
+          margin: 20px 0;
+          padding:10px;
+          box-shadow:none;
+        }
+        .content p {
+          line-height: 15px;
+        }
+        .button {
+          font-family: Vivo Type;
+          padding:8px 30px;
+          background:#1976d2;
+          border-radius:7px;
+          color:#fff;
+          width:100%;
+        }
+        .footer {
+          padding:20px;
+          text-align: center;
+          font-size: 12px;
+          color: #000;
+          background-color:#c3c3c3;
+          margin-top: 20px;
+        }
+      </style>
+      </head>
+      <body>
+      <div class="container">
+        <div class="header">
+        <span>APR Digital</span>
+          <h2>
+          Olá,<br/>​
+          👨‍💻 Identificamos inconformidade(s) em um site da sua região ​👨‍💻
+          </h2>
+        </div>
+        <div class="content">
+        <p><strong>ID APR:</strong> ${apr.apr_id}</p>
+        <p><strong>Nome do Site:</strong> ${apr.site_id.Nome}</p>
+        <p><strong>Sigla do Site:</strong> ${apr.site_id.Sigla}</p>
+        <p><strong>Municipio:</strong> ${apr.site_id.Cidade}</p>
+        <p><strong>UF:</strong> ${apr.site_id.Estado}</p>
+        <p>Favor acessar o link abaixo para verificar as inconformidades identificadas pelo time da Segurança Patrimonial. 
+        Será necessário apontar as ações a serem tomadas conforme recomendado para a efetiva proteção do patrimônio.</p>
+        <p>
+        Link para APR: <br/>​
+        <a href="${'https://seguranca-patrimonial-385514.web.app/open/' + id}">${'https://seguranca-patrimonial-385514.web.app/open/' + id}</a>
+        </p>
+        </div>
+        <div class="footer">
+          <p>Este é um e-mail automático. Por favor, não responda.<br> © Todos os Direitos Reservados</p>
+        </div>
+      </div>
+      </body>
+      </html>
+      `,
+    };
 
-Nome do Site: ${apr.site_id.Nome}
-Sigla do Site: ${apr.site_id.Sigla}
-Municipio: ${apr.site_id.Cidade}
-UF: ${apr.site_id.Estado}
-  
-Favor acessar o link abaixo, onde será direcionado para a APR, a fim de conhecer as inconformidade(s) identificadas pelo time da Segurança Patrimonial, bem como será necessário que aponte as ações a serem tomadas dentro do que foi recomendado para a efetiva proteção do referido patrimônio.
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: JSON.stringify(emailContent),
+    };
 
-${'https://seguranca-patrimonial-385514.web.app/open/' + id}
+    try {
+      console.log("Tentando enviar o e-mail...");
+      const response = await fetch(
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail",
+        requestOptions
+      );
 
-Grato pela parceria!!
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Erro HTTP! status: ${response.status}, mensagem: ${errorText}`
+        );
+      }
 
-APR Vivo Digital`;
+      const result = await response.text();
+      console.log("E-mail enviado com sucesso. Resposta:", result);
+    } catch (error) {
+      console.error("Detalhes do erro:", error);
+      alert(`Erro ao enviar o e-mail: ${error.message}`);
+    }
+  };
 
-  const encodedBody = encodeURIComponent(body);
-
-  const mailtoLink = `mailto:${recipient}?cc=${cc}&subject=${encodeURIComponent(
-    subject
-  )}&body=${encodedBody}`;
-
-  async function updateAPR(id) {
-    await firebase.firestore().collection(base)
-      .doc(id)
-      .update({
-        status: 'Enviado',
-        data_alteracao: new Date()
-      })
-      .then(() => {
-        toast.success('Status apr atualizado com sucesso!');
-        logSistem('APR Enviada', id)
-      })
-      .catch((error) => {
-        toast.error('Erro ao atualizar status da apr:', error);
-        console.log('Erro ao atualizar status da apr:', error);
-      });
-  }
 
   return (
-    <div className='emails'>
+    <div className="emails">
       <p>
-        Siga o seguintes passos: <br/><br/>
-        1 - Clique em "Enviar E-mail" para enviar da sua caixa de e-mail aos destinatarios responsaveis. <br/>
-        2 - Clique em confirmar Envio. <br/>
+        Siga os seguintes passos: <br /><br />
+        1 - Clique em <strong>"Enviar E-mail"</strong> para abrir sua caixa de e-mail com os destinatários.<br />
+        2 - Após o envio, clique em <strong>"Confirmar Envio"</strong>.<br />
       </p>
-      <a href={mailtoLink}>Enviar E-mail</a>
-      <a onClick={() => updateAPR(id)}>Confirmar Envio</a>
+
+      <button onClick={sendEmailExec} className="confirm-button">Confirmar Envio</button>
     </div>
-  )
+  );
 };
 
 export default EmailLink;
