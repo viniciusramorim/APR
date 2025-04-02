@@ -27,7 +27,7 @@ const EmailLink = ({ apr, id, logSistem }) => {
   }, [docRef]);
 
 
-  const sendEmailExec = async () => {
+  const sendEmail = async () => {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
@@ -164,7 +164,7 @@ const EmailLink = ({ apr, id, logSistem }) => {
         2 - Após o envio, clique em <strong>"Confirmar Envio"</strong>.<br />
       </p>
 
-      <button onClick={sendEmailExec} className="confirm-button">Confirmar Envio</button>
+      <button onClick={sendEmail} className="confirm-button">Confirmar Envio</button>
     </div>
   );
 };
