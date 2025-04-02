@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import firebase from "../../services/firebaseConnection";
 import { FiEdit } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const style = {
   position: "absolute",
@@ -55,8 +56,16 @@ export default function ModalEdit(props) {
   const handleUploadImage = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const today = new Date();
+      const threeDaysAgo = new Date(today.setDate(today.getDate() - 3));
+  
+      if (!file.lastModifiedDate || file.lastModifiedDate < threeDaysAgo) {
+        toast.error('A imagem tem mais de 3 dias ou não possui data válida.');
+        return;
+      }
+  
       setUploading(true);
-
+  
       const storageRef = firebase.storage().ref(`images/${id}/${[areaIndex]}/${questionId}/${file.name}`);
       storageRef.put(file).then(() => {
         storageRef.getDownloadURL().then((url) => {
@@ -68,7 +77,7 @@ export default function ModalEdit(props) {
             ref: storageRef.fullPath,
             url: url
           });
-
+  
           firebase
             .firestore()
             .collection("aprs-producao")
