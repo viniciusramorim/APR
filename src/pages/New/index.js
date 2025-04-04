@@ -300,6 +300,7 @@ export default function New() {
 
   function submit() {
     let notBlankChecklist = 0;
+    console.log(justificativa);
 
     questions.forEach(async (area) => {
       area[1].forEach(async (question) => {
@@ -315,10 +316,7 @@ export default function New() {
         console.log("Insira uma justificativa");
         return;
       }
-      return;
     }
-
-    console.log(justificativa);
 
     navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
       if (item.state === "granted") {

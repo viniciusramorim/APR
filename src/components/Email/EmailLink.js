@@ -1,22 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import firebase from '../../services/firebaseConnection';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import './email.scss';
 
-const EmailLink = ({ apr, id, logSistem }) => {
+const EmailLink = ({ apr, id, logSistem, setApr }) => {
   const [emails, setEmails] = useState('');
-  const docRef = `${apr.site_id.Estado}-${apr.site_id.Cidade.toUpperCase()}`;
-  const base = 'aprs-producao';
+  const [openDialog, setOpenDialog] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [hasEmailToSend, setHasEmailToSend] = useState(true);
+  const [emailTypes, setEmailTypes] = useState([]); // Armazena quais tipos de e-mail carregar
 
+  const docRef = `${apr.site_id.Estado}-${apr.site_id.Cidade.toUpperCase()}`;
+
+  // Carregar contatos apenas se houver e-mails necessários
   useEffect(() => {
+    if (emailTypes.length === 0) return;
+
     const loadContact = async () => {
       try {
         const doc = await firebase.firestore().collection('contact_email').doc(docRef).get();
         if (doc.exists) {
-          const emailList = doc.data().email_patrimonial?.toString().replace(',', ';') || '';
-          setEmails(emailList);
+          const data = doc.data();
+
+          // Filtra apenas os e-mails que foram solicitados por verifyQuestions
+          const emailFields = [];
+          if (emailTypes.includes('oem') && data.email_oem) emailFields.push(data.email_oem);
+          if (emailTypes.includes('CMC') && data.email_patrimonial) emailFields.push(data.email_patrimonial);
+          if (emailTypes.includes('Predial') && data.email_predial) emailFields.push(data.email_predial);
+
+          // Unindo os e-mails em uma string única, removendo espaços extras e duplicatas
+          const allEmails = [...new Set(emailFields.join(';').replace(/\s+/g, '').split(';'))].join(';');
+
+          if (allEmails) {
+            setEmails(allEmails);
+          } else {
+            console.warn(`Nenhum e-mail encontrado para ${docRef}`);
+          }
         } else {
-          console.warn('Documento de e-mail não encontrado:', docRef);
+          console.warn(`Documento de e-mail não encontrado: ${docRef}`);
         }
       } catch (error) {
         console.error('Erro ao carregar contatos:', error);
@@ -24,12 +46,40 @@ const EmailLink = ({ apr, id, logSistem }) => {
     };
 
     loadContact();
-  }, [docRef]);
+  }, [docRef, emailTypes]);
 
+
+  // Verificar perguntas antes de abrir o modal
+  const handleOpenDialog = () => {
+    const foundEmailTypes = new Set();
+
+    apr.checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        if (question.resp !== "" && question.resp !== "N/A") {
+          if (question.resp !== question.respGabarito && question.openPA === true) {
+            if (question.areaResposavel.includes("oem")) foundEmailTypes.add("oem");
+            if (question.areaResposavel.includes("CMC")) foundEmailTypes.add("CMC");
+            if (question.areaResposavel.includes("Predial")) foundEmailTypes.add("Predial");
+          }
+        }
+      });
+    });
+
+    const emailTypesArray = [...foundEmailTypes];
+    setEmailTypes(emailTypesArray);
+    setHasEmailToSend(emailTypesArray.length > 0);
+    setOpenDialog(true);
+  };
 
   const sendEmail = async () => {
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+    if (!agreeTerms) {
+      toast.warning("Você precisa concordar com os termos antes de enviar o e-mail.");
+      return;
+    }
+
+    setAgreeTerms(false);
+
+    console.log(emails)
 
     const emailContent = {
       remetente: "gestao.qualid.seg.br@telefonica.com",
@@ -127,44 +177,115 @@ const EmailLink = ({ apr, id, logSistem }) => {
       `,
     };
 
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: JSON.stringify(emailContent),
-    };
-
     try {
-      console.log("Tentando enviar o e-mail...");
       const response = await fetch(
         "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail",
-        requestOptions
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailContent),
+        }
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Erro HTTP! status: ${response.status}, mensagem: ${errorText}`
-        );
+        throw new Error(`Erro HTTP! status: ${response.status}`);
       }
 
-      const result = await response.text();
-      console.log("E-mail enviado com sucesso. Resposta:", result);
+      // Atualizar status da APR no Firestore
+      await firebase.firestore().collection('aprs-producao').doc(id).update({
+        status: "Enviado",
+        data_envio_email: firebase.firestore.FieldValue.serverTimestamp(),
+        terms: agreeTerms
+      })
+
+      logSistem('APR revisada e enviado por e-mail', id)
+
+      setApr({
+        ...apr,
+        status: "Enviado"
+      })
+
+      toast.success("E-mail enviado com sucesso e APR atualizada!");
+      setOpenDialog(false);
     } catch (error) {
-      console.error("Detalhes do erro:", error);
-      alert(`Erro ao enviar o e-mail: ${error.message}`);
+      toast.error(`Erro ao enviar o e-mail: ${error.message}`);
     }
   };
 
+  const concludeWithoutEmail = async () => {
+    try {
+      await firebase.firestore().collection('aprs-producao').doc(id).update({
+        status: "Concluído",
+        data_conclusao_sem_email: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      logSistem('APR revisada e concluída sem necessidade de e-mail', id);
+
+      setApr({
+        ...apr,
+        status: "Concluído"
+      });
+
+      toast.success("APR concluída com sucesso, sem necessidade de envio de e-mail.");
+      setOpenDialog(false);
+    } catch (error) {
+      toast.error(`Erro ao concluir a APR: ${error.message}`);
+    }
+  };
 
   return (
     <div className="emails">
-      <p>
-        Siga os seguintes passos: <br /><br />
-        1 - Clique em <strong>"Enviar E-mail"</strong> para abrir sua caixa de e-mail com os destinatários.<br />
-        2 - Após o envio, clique em <strong>"Confirmar Envio"</strong>.<br />
-      </p>
+      <Button variant="contained" color="primary" onClick={handleOpenDialog} fullWidth>
+        Confirmar Revisão e Enviar E-mail
+      </Button>
 
-      <button onClick={sendEmail} className="confirm-button">Confirmar Envio</button>
+      {/* Dialog de confirmação */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>
+          {hasEmailToSend ? "Confirmar Revisão e Enviar E-mail" : "Confirmar Revisão"}
+        </DialogTitle>
+
+        <DialogContent>
+          {hasEmailToSend ? (
+            <>
+              <Typography variant="body1"><strong>Destinatários:</strong></Typography>
+              <Typography variant="body2" sx={{ wordBreak: 'break-word', mt: 1 }}>
+                {emails}
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Eu concordo com os termos de envio deste e-mail."
+                sx={{ mt: 2 }}
+              />
+            </>
+          ) : (
+            <Typography variant="body2">
+              Nenhum e-mail precisa ser enviado para esta APR. Deseja apenas concluir o processo?
+            </Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="secondary">
+            Cancelar
+          </Button>
+          {hasEmailToSend ? (
+            <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms}>
+              Confirmar Revisão e Enviar E-mail
+            </Button>
+          ) : (
+            <Button onClick={concludeWithoutEmail} color="primary" variant="contained">
+              Concluir
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

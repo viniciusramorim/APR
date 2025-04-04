@@ -117,7 +117,6 @@ function AuthProvider({ children }) {
       window.recaptchaVerifier.render();
     }
 
-
     if (!captchaToken) {
       return toast.error("Por favor, resolva o reCAPTCHA.");
     }
@@ -135,6 +134,20 @@ function AuthProvider({ children }) {
         return;
       }
 
+      if (!userProfile.exists || userProfile.data().ultimo_login) {
+        const ultimoLogin = userProfile.data().ultimo_login.toDate();
+        const hoje = new Date();
+        const diffTime = Math.abs(hoje - ultimoLogin);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 30) {
+          toast.error('Você foi inativado por ficar mais de 30 dias sem acessar, contate um administrador!');
+          setLoadingAuth(false);
+          return;
+        }
+      }
+
+
       const data = {
         uid,
         nome: userProfile.data().nome,
@@ -145,6 +158,10 @@ function AuthProvider({ children }) {
         status: userProfile.data().status,
         regional: userProfile.data().regional || "",
       };
+
+      await firebase.firestore().collection("users").doc(uid).update({
+        ultimo_login: new Date()
+      });
 
       setUser(data);
       storageUser(data);

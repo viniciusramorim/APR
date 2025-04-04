@@ -470,12 +470,6 @@ export default function Open() {
 
           {loadApr ? (
             <>
-              {user.nivel === "administrador" && apr.status === "Revisado" && (
-                <div className="container">
-                  <EmailLink apr={apr} id={id} logSistem={logSistem} />
-                </div>
-              )}
-
               <div className="container">
                 <div className="siteInfo">
                   <ul>
@@ -500,9 +494,7 @@ export default function Open() {
                     </li>
                     <li>
                       <span>MOTIVO: </span>
-                      {user.nivel === "administrador" ||
-                      (user.nivel === "revisor" &&
-                        apr.status === "Em Aberto") ? (
+                      {user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto") ? (
                         <select
                           value={apr.motivo_apr}
                           onChange={(e) => updateMotivoAPR(e, id)}
@@ -586,7 +578,7 @@ export default function Open() {
                       {Math.ceil(
                         (apr.tempoConclusao.conclusao.toDate() -
                           apr.tempoConclusao.inicio.toDate()) /
-                          (1000 * 60)
+                        (1000 * 60)
                       )}{" "}
                       Min.
                     </li>
@@ -805,16 +797,16 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                              <>
-                                                <label>Plano de Ação:</label>
-                                                Tempo:{" "}
-                                                <i>{doc.plano_acao.tempo}</i>
-                                                Comentario:{" "}
-                                                <i>
-                                                  {doc.plano_acao.comentario}
-                                                </i>
-                                              </>
-                                            )}
+                                                <>
+                                                  <label>Plano de Ação:</label>
+                                                  Tempo:{" "}
+                                                  <i>{doc.plano_acao.tempo}</i>
+                                                  Comentario:{" "}
+                                                  <i>
+                                                    {doc.plano_acao.comentario}
+                                                  </i>
+                                                </>
+                                              )}
                                           </>
                                         )}
                                       </div>
@@ -1023,10 +1015,8 @@ export default function Open() {
                     })}
 
                     <button onClick={generatePDF}>Gerar PDF</button>
-                    {apr.status === "Em Aberto" && user.nivel === "revisor" && (
-                      <button onClick={(e) => updateRevisor(e, id)}>
-                        Confirmar Revisão
-                      </button>
+                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado")) && (
+                      <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
                     )}
                   </form>
                 </div>
