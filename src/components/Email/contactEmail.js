@@ -28,6 +28,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Header from "../Header";
 import Title from "../Title";
 import { FiMessageSquare } from "react-icons/fi";
+import { read, utils } from "xlsx";
+import { toast } from "react-toastify";
+import Input from "@mui/material/Input";
+import { ca } from "date-fns/locale";
 
 export default function ContactEmailAccordionView() {
   const [docs, setDocs] = useState([]);
@@ -48,6 +52,7 @@ export default function ContactEmailAccordionView() {
   const [newEmails, setNewEmails] = useState("");
   const [allEstados, setAllEstados] = useState([]);
   const [municipiosPorEstado, setMunicipiosPorEstado] = useState({});
+  const [loadingUpload, setLoadingUpload] = useState(false);
   const pageSize = 10;
 
   useEffect(() => {
@@ -180,6 +185,60 @@ export default function ContactEmailAccordionView() {
     }));
   };
 
+  const handleUploadXLSX = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoadingUpload(true);
+
+      const data = await file.arrayBuffer();
+      const workbook = read(data);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = utils.sheet_to_json(sheet);
+
+      for (const row of json) {
+        const { email, area, estado, municipio } = row;
+        if (!email || !area || !estado || !municipio) continue;
+
+        const areaKey = `email_${area.toLowerCase()}`;
+        const docId = `${estado}-${municipio}`;
+        const docRef = firebase
+          .firestore()
+          .collection("contact_email")
+          .doc(docId);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+          const docData = docSnap.data();
+          const currentEmails = docData[areaKey] || [];
+          const updatedEmails = Array.from(
+            new Set([...currentEmails, email.trim()])
+          );
+          await docRef.update({ [areaKey]: updatedEmails });
+        } else {
+          await docRef.set({
+            estado,
+            municipio,
+            email_oem: [],
+            email_patrimonial: [],
+            email_predial: [],
+            [areaKey]: [email.trim()],
+          });
+        }
+      }
+
+      toast.success("Upload concluído com sucesso!");
+      loadData();
+    } catch (error) {
+      console.error("Erro ao importar XLSX:", error);
+      toast.error("Erro no upload. Verifique o arquivo.");
+    } finally {
+      setLoadingUpload(false);
+      e.target.value = null;
+    }
+  };
+
   return (
     <div className="apr-contact-email">
       <Header />
@@ -187,7 +246,7 @@ export default function ContactEmailAccordionView() {
         <Title name="Contato">
           <FiMessageSquare size={25} />
         </Title>
-        <Box display="flex" gap={2} mb={2}>
+        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor:"rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
           <TextField
             label="Filtrar por Estado"
             value={filterEstado}
@@ -207,6 +266,24 @@ export default function ContactEmailAccordionView() {
           >
             Novo Registro
           </Button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            id="upload-xlsx"
+            style={{ display: "none" }}
+            onChange={handleUploadXLSX}
+          />
+
+          <label htmlFor="upload-xlsx">
+            <Button
+              variant="outlined"
+              component="span"
+              startIcon={<AddIcon />}
+              disabled={loadingUpload}
+            >
+              {loadingUpload ? "Carregando..." : "Upload XLSX"}
+            </Button>
+          </label>
         </Box>
 
         {paginatedEstados.map((estado) => (
