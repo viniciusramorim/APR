@@ -186,6 +186,7 @@ export default function Reports() {
                       PESO: doc.peso,
                       QUESTIONS: question.question,
                       QUESTIONS_RESP: question.resp,
+                      QUESTIONS_RESPTEXTAREA: question.respTextArea,
                       QUESTIONS_RESPGABARITO: question.respGabarito,
                       QUESTIONS_PA: question.openPA,
                       QUESTION_PA_DATA: question.resp_pa_data
@@ -424,17 +425,17 @@ export default function Reports() {
                     onChange={(e) => setFilterTipoSite(e.target.value)}
                   >
                     <MenuItem value="">Todos</MenuItem>
-                    <MenuItem value="audit-pgr-fixa">AUDIT PGR FIXA</MenuItem>
-                    <MenuItem value="audit-pgr-movel">AUDIT PGR MÓVEL</MenuItem>
-                    <MenuItem value="cd">CD</MenuItem>
-                    <MenuItem value="ct">CT</MenuItem>
-                    <MenuItem value="erb">ERB</MenuItem>
-                    <MenuItem value="erb-ct">ERB CT</MenuItem>
-                    <MenuItem value="indoor">INDOOR</MenuItem>
-                    <MenuItem value="loja">LOJA</MenuItem>
-                    <MenuItem value="loja-dealer">LOJA DEALER</MenuItem>
-                    <MenuItem value="outdoor">OUTDOOR</MenuItem>
-                    <MenuItem value="predio-core">PRÉDIO CORE</MenuItem>
+                    <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
+                    <MenuItem value="AUDIT PGR MÓVEL">AUDIT PGR MÓVEL</MenuItem>
+                    <MenuItem value="CD">CD</MenuItem>
+                    <MenuItem value="CT">CT</MenuItem>
+                    <MenuItem value="ERB">ERB</MenuItem>
+                    <MenuItem value="ERB-CT">ERB CT</MenuItem>
+                    <MenuItem value="INDOOR">INDOOR</MenuItem>
+                    <MenuItem value="LOJA">LOJA</MenuItem>
+                    <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
+                    <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>
+                    <MenuItem value="PRÉDIO CORE">PRÉDIO CORE</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
