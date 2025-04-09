@@ -260,7 +260,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
                     color="primary"
                   />
                 }
-                label="Eu concordo com os termos de envio deste e-mail."
+                label="Confirmo que os destinatários dos e-mails mencionados acima estão corretos e que a Análise Preventiva de Riscos (APR) já foi revisada e aprovada.."
                 sx={{ mt: 2 }}
               />
             </>

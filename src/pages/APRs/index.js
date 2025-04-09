@@ -523,10 +523,9 @@ export default function Dashboard() {
                   size="small"
                 >
                   <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
+                  <MenuItem value="Sites Criticos (Mapa de Proteção)">Sites Criticos (Mapa de Proteção)</MenuItem>
                   <MenuItem value="Retrofit">Retrofit</MenuItem>
-                  <MenuItem value="Rota Critica DWDM">
-                    Rota Critica DWDM
-                  </MenuItem>
+                  <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
                   <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
                   <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
                   <MenuItem value={"Programada"}>Programada</MenuItem>
