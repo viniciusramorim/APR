@@ -181,6 +181,7 @@ export default function ProfileADM() {
       .doc(id_user)
       .update({
         status: status,
+        ultimo_login: new Date(),
       })
       .then(() => {
         toast.info("Usuario foi alterado !");

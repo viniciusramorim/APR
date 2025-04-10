@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { toast } from 'react-toastify';
 import firebase from '../../services/firebaseConnection';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Checkbox, FormControlLabel, Typography } from '@mui/material';
@@ -212,6 +212,35 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     }
   };
 
+  const revisado = async () => {
+    if (!agreeTerms) {
+      toast.warning("Você precisa concordar com os termos antes de enviar o e-mail.");
+      return;
+    }
+
+    setAgreeTerms(false);
+
+    try {
+      // Atualizar status da APR no Firestore
+      await firebase.firestore().collection('aprs-producao').doc(id).update({
+        status: "Revisado",
+        terms: agreeTerms
+      })
+
+      logSistem('APR Revisada', id)
+
+      setApr({
+        ...apr,
+        status: "Revisado"
+      })
+
+      toast.success("APR Revisada com sucesso!");
+      setOpenDialog(false);
+    } catch (error) {
+      toast.error(`Erro ao revisar a APR: ${error.message}`);
+    }
+  };
+
   const concludeWithoutEmail = async () => {
     try {
       await firebase.firestore().collection('aprs-producao').doc(id).update({
@@ -276,9 +305,14 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
             Cancelar
           </Button>
           {hasEmailToSend ? (
-            <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms}>
-              Confirmar Revisão e Enviar E-mail
-            </Button>
+            <Fragment>
+              <Button onClick={revisado} color="primary" variant="contained" disabled={!agreeTerms}>
+                Confirmar Revisão
+              </Button>
+              <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms}>
+                Confirmar Revisão e Enviar E-mail
+              </Button>
+            </Fragment>
           ) : (
             <Button onClick={concludeWithoutEmail} color="primary" variant="contained">
               Concluir

@@ -142,6 +142,9 @@ function AuthProvider({ children }) {
 
         if (diffDays > 30) {
           toast.error('Você foi inativado por ficar mais de 30 dias sem acessar, contate um administrador!');
+          await firebase.firestore().collection("users").doc(uid).update({
+            status: false
+          });
           setLoadingAuth(false);
           return;
         }
