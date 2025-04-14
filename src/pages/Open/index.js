@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../contexts/auth";
 import { FiClipboard, FiCheck, FiCheckSquare } from "react-icons/fi";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import pdfMake from "pdfmake/build/pdfmake";
@@ -27,7 +27,6 @@ export default function Open() {
 
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
-  const history = useHistory();
 
   const [apr, setApr] = useState([]);
   const [aprCompleta, setAprCompleta] = useState([]);
@@ -121,7 +120,7 @@ export default function Open() {
     });
   }
 
-  async function generatePDF(e) {
+  async function generatePDF(e, exportarea) {
     e.preventDefault();
 
     let pdf = {
@@ -160,6 +159,7 @@ export default function Open() {
       },
       layout: "noBorders",
     });
+
     pdf.content.push({
       margin: [0, 20, 0, 0],
       table: {
@@ -232,51 +232,108 @@ export default function Open() {
         margin: [0, 30, 0, 0],
         fontSize: 18,
       });
-      for (const doc of area[1]) {
-        for (const imgs of doc.imagesURL) {
-          console.log(doc.questionId)
-          imgs.url = await getBase64ImageFromURL(imgs.url);
-        }
-
-        pdf.content.push({
-          text: `${doc.question}`,
-          margin: [0, 20, 0, 0],
-        });
-        pdf.content.push({
-          stack: [
-            {
-              text: `\t${doc.resp}\t `,
-              bold: true,
-              color: "white",
-              margin: [10, 10, 0, 20],
-            },
-          ],
-          background: doc.resp === "Sim" ? "green" : "red",
-        });
-        if (doc.respTextArea !== "" && doc.respTextArea !== "N/A") {
-          pdf.content.push({
-            text: `Obs: ${doc.respTextArea}`,
-            margin: [0, 5, 0, 5],
-            italics: true,
-          });
-        }
-        for (const imgs of doc.imagesURL) {
-          try {
+      if (exportarea === "All") {
+        for (const doc of area[1]) {
+          for (const imgs of doc.imagesURL) {
+            console.log(doc.questionId)
+            imgs.url = await getBase64ImageFromURL(imgs.url);
+          }
+          if (doc.resp !== "") {
             pdf.content.push({
-              image: imgs.url,
-              width: 150,
-              height: 150,
-              margin: [0, 10, 0, 0],
+              text: `${doc.question}`,
+              margin: [0, 20, 0, 0],
             });
-          } catch (error) {
-            console.log(imgs);
-            console.log("Erro ao adicionar foto no documento." + error);
+
+            pdf.content.push({
+              stack: [
+                {
+                  text: `\t${doc.resp}\t `,
+                  bold: true,
+                  color: "white",
+                  margin: [10, 10, 0, 20],
+                },
+              ],
+              background: doc.resp === "Sim" ? "green" : doc.resp === "N/A" ? "yellow" : "red",
+            });
+
+            if (doc.respTextArea !== "") {
+              pdf.content.push({
+                text: `Obs: ${doc.respTextArea}`,
+                margin: [0, 5, 0, 5],
+                italics: true,
+              });
+            }
+
+            for (const imgs of doc.imagesURL) {
+              try {
+                pdf.content.push({
+                  image: imgs.url,
+                  width: 150,
+                  height: 150,
+                  margin: [0, 10, 0, 0],
+                });
+              } catch (error) {
+                console.log(imgs);
+                console.log("Erro ao adicionar foto no documento." + error);
+              }
+            }
+          }
+        }
+      } else if (exportarea === 'oem') {
+        for (const doc of area[1]) {
+          if (doc.resp !== "" &&
+            doc.resp !== "N/A" &&
+            doc.resp !== doc.respGabarito &&
+            doc.openPA === true &&
+            doc.areaResposavel?.includes('oem')) {
+
+            for (const imgs of doc.imagesURL) {
+              console.log(doc.questionId)
+              imgs.url = await getBase64ImageFromURL(imgs.url);
+            }
+
+            pdf.content.push({
+              text: `${doc.question}`,
+              margin: [0, 20, 0, 0],
+            });
+
+            pdf.content.push({
+              stack: [
+                {
+                  text: `\t${doc.resp}\t `,
+                  bold: true,
+                  color: "white",
+                  margin: [10, 10, 0, 20],
+                },
+              ],
+              background: doc.resp === "Sim" ? "green" : doc.resp === "N/A" ? "yellow" : "red",
+            });
+
+            if (doc.respTextArea !== "") {
+              pdf.content.push({
+                text: `Obs: ${doc.respTextArea}`,
+                margin: [0, 5, 0, 5],
+                italics: true,
+              });
+            }
+
+            for (const imgs of doc.imagesURL) {
+              try {
+                pdf.content.push({
+                  image: imgs.url,
+                  width: 150,
+                  height: 150,
+                  margin: [0, 10, 0, 0],
+                });
+              } catch (error) {
+                console.log(imgs);
+                console.log("Erro ao adicionar foto no documento." + error);
+              }
+            }
           }
         }
       }
     }
-
-    console.log(pdf);
 
     pdfMake
       .createPdf(pdf)
@@ -349,27 +406,6 @@ export default function Open() {
     } else if (peso >= 71) {
       return `Risco Muito Alto`;
     }
-  }
-
-  async function updateRevisor(e, id) {
-    e.preventDefault();
-    await firebase
-      .firestore()
-      .collection(base)
-      .doc(id)
-      .update({
-        status: apr.site_id.tipoSite === "SMARTTAG2" ? "Concluido" : "Revisado",
-        data_alteracao: new Date(),
-      })
-      .then(() => {
-        toast.success("Status apr atualizado com sucesso!");
-        logSistem("APR Revisada", id);
-        history.push("/dashboard");
-      })
-      .catch((error) => {
-        toast.error("Erro ao atualizar status da apr:", error);
-        console.log("Erro ao atualizar status da apr:", error);
-      });
   }
 
   async function updateMotivoAPR(e, id) {
@@ -1014,9 +1050,12 @@ export default function Open() {
                       );
                     })}
 
-                    <button onClick={generatePDF}>Gerar PDF</button>
+                    <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado")) && (
-                      <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                      <Fragment>
+                        <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
+                        <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                      </Fragment>
                     )}
                   </form>
                 </div>
