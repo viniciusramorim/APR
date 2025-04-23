@@ -311,7 +311,7 @@ export default function New() {
     });
 
     if (notBlankChecklist <= 0) {
-      if (justificativa == null || justificativa == "" || justificativa.motivo === "" ||justificativa.desc === "") {
+      if (justificativa == null || justificativa == "" || justificativa.motivo === "" || justificativa.desc === "") {
         setOpenModalJust(true);
         console.log("Insira uma justificativa");
         return;
@@ -489,7 +489,7 @@ export default function New() {
                                           console.log(indexA + "-" + indexQ);
                                           console.log(
                                             "Erro ao obter url da imagem" +
-                                              error
+                                            error
                                           );
                                         }
                                         imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
@@ -841,6 +841,31 @@ export default function New() {
     }
   }
 
+  function enableQuestions(doc) {
+    const isPGR = siteInfo?.tipoSite?.includes("PGR");
+    const isVENEZA = siteInfo?.tipoSite?.includes("PROJETO VENEZA");
+    const isEstadoValido = isPGR && doc.estados.includes(siteInfo.Estado);
+    const isTipoLojaValido = isVENEZA && doc.tipoLoja.includes(tipoLoja)
+
+    const valorDentroDoIntervalo = (valor, intervalo) => {
+      if (!intervalo) return false;
+      const convertido = valor / 100;
+      return convertido > intervalo.min && convertido <= intervalo.max;
+    };
+
+    const atendeAlgumValor =
+      valorDentroDoIntervalo(valorArmazenamento, doc.valorArmazenado) ||
+      valorDentroDoIntervalo(valorTransporte, doc.valorTransporte) ||
+      valorDentroDoIntervalo(valorSinistro, doc.valorSinistro) ||
+      valorDentroDoIntervalo(valorEstoque, doc.valorEstoque);
+
+    const exibition = (!isPGR && !isVENEZA) ||
+      (isPGR && isEstadoValido && atendeAlgumValor) ||
+      (isVENEZA && isTipoLojaValido && atendeAlgumValor);
+
+    return exibition
+  }
+
   return (
     <div>
       <Header />
@@ -1033,46 +1058,44 @@ export default function New() {
           </div>
         )}
 
-        {siteInfo.tipoSite &&
-          (siteInfo.tipoSite === "LOJA" ||
-            siteInfo.tipoSite === "LOJA DEALER") && (
-            <div className="container" id="container-loja">
-              <label name="valor-estoque">
-                Tipo de Loja
-                <select
-                  id="selectTipoLoja"
-                  defaultValue={""}
-                  value={tipoLoja}
-                  onChange={(e) => setTipoLoja(e.target.value)}
-                >
-                  <option disabled value={""}>
-                    Selecione um tipo de loja...
-                  </option>
-                  <option value={"LOJA RUA"}>LOJA RUA</option>
-                  <option value={"LOJA GALERIA"}>LOJA GALERIA</option>
-                  <option value={"LOJA SHOP TERREO"}>LOJA SHOP TERREO</option>
-                  <option value={"LOJA SHOP 1° PISO"}>LOJA SHOP 1° PISO</option>
-                  <option value={"LOJA SHOP ELITE"}>LOJA SHOP ELITE</option>
-                </select>
-              </label>
-              <label name="valor-estoque">
-                Valor Estoque
-                <input
-                  id="selectValorEstoque"
-                  name="valor-estoque"
-                  type="text"
-                  value={new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(valorEstoque / 100)}
-                  onChange={(e) =>
-                    setValorEstoque(e.target.value.replace(/\D/g, ""))
-                  }
-                  placeholder="Valor de Estoque"
-                />
-              </label>
-            </div>
-          )}
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA"].includes(siteInfo.tipoSite)) && (
+          <div className="container" id="container-loja">
+            <label name="valor-estoque">
+              Tipo de Loja
+              <select
+                id="selectTipoLoja"
+                defaultValue={""}
+                value={tipoLoja}
+                onChange={(e) => setTipoLoja(e.target.value)}
+              >
+                <option disabled value={""}>
+                  Selecione um tipo de loja...
+                </option>
+                <option value={"LOJA GALERIA"}>LOJA GALERIA</option>
+                <option value={"LOJA RUA"}>LOJA RUA</option>
+                <option value={"LOJA SHOP PISO TERREO"}>LOJA SHOP PISO TERREO</option>
+                <option value={"LOJA SHOP PISO SUPERIOR"}>LOJA SHOP PISO SUPERIOR</option>
+              </select>
+            </label>
+            <label name="valor-estoque">
+              Valor Estoque
+              <input
+                id="selectValorEstoque"
+                name="valor-estoque"
+                type="text"
+                value={new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(valorEstoque / 100)}
+                onChange={(e) => {
+                  setValorEstoque(e.target.value.replace(/\D/g, ""))
+                }
+                }
+                placeholder="Valor de Estoque"
+              />
+            </label>
+          </div>
+        )}
 
         <div
           className="container"
@@ -1088,28 +1111,7 @@ export default function New() {
                   </i>
                   <span id={`container-${indexA}`} style={{ display: "none" }}>
                     {area[1].map((doc, indexDoc) => {
-                      let exibition = false;
-
-                      if (
-                        siteInfo.tipoSite &&
-                        siteInfo.tipoSite.includes("PGR") &&
-                        doc.estados.includes(siteInfo.Estado) &&
-                        ((doc.valorArmazenado &&
-                          valorArmazenamento / 100 > doc.valorArmazenado.min &&
-                          doc.valorArmazenado.max >=
-                            valorArmazenamento / 100) ||
-                          (doc.valorTransporte &&
-                            valorTransporte / 100 > doc.valorTransporte.min &&
-                            doc.valorTransporte.max >= valorTransporte / 100) ||
-                          (doc.valorSinistro &&
-                            valorSinistro / 100 > doc.valorSinistro.min &&
-                            doc.valorSinistro.max >= valorSinistro / 100))
-                      )
-                        exibition = true;
-
-                      if (!siteInfo.tipoSite.includes("PGR")) exibition = true;
-
-                      if (exibition === true)
+                      if (enableQuestions(doc) === true) {
                         return (
                           <div
                             key={indexDoc}
@@ -1227,8 +1229,8 @@ export default function New() {
                                               document
                                                 .getElementById(
                                                   doc.questionId +
-                                                    "_image_" +
-                                                    indexImg
+                                                  "_image_" +
+                                                  indexImg
                                                 )
                                                 .remove();
                                               removeImg(
@@ -1259,7 +1261,7 @@ export default function New() {
                                   }
                                   defaultValue={
                                     doc.respTextArea !== "" &&
-                                    doc.resp !== doc.respGabarito
+                                      doc.resp !== doc.respGabarito
                                       ? doc.respTextArea
                                       : ""
                                   }
@@ -1282,7 +1284,7 @@ export default function New() {
                                     }
                                     defaultValue={
                                       doc.respInputNumber !== "" &&
-                                      doc.resp !== doc.respGabarito
+                                        doc.resp !== doc.respGabarito
                                         ? doc.respInputNumber
                                         : ""
                                     }
@@ -1301,7 +1303,7 @@ export default function New() {
                                     multiple={doc.multipleCheck}
                                     value={
                                       doc.optionListResp &&
-                                      doc.optionListResp.length > 0
+                                        doc.optionListResp.length > 0
                                         ? doc.optionListResp
                                         : [doc.optionList[0]]
                                     }
@@ -1331,15 +1333,13 @@ export default function New() {
                                 </FormControl>
                               )}
                             </div>
-                            <i
-                              className="clearQuestion"
-                              onClick={() => clearQuestion(doc, indexA)}
-                            >
+                            <i className="clearQuestion" onClick={() => clearQuestion(doc, indexA)}>
                               {" "}
                               Limpar{" "}
                             </i>
                           </div>
                         );
+                      }
                     })}
                   </span>
                 </div>

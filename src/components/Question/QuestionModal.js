@@ -94,6 +94,10 @@ const QuestionModal = ({
       max: 0,
       min: 0,
     },
+    valorEstoque: {
+      max: 0,
+      min: 0,
+    },
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -145,7 +149,8 @@ const QuestionModal = ({
     } else if (
       name.includes("storage") ||
       name.includes("sinistro") ||
-      name.includes("transporte")
+      name.includes("transporte") ||
+      name.includes("estoque")
     ) {
       newValue = Number(value);
     } else {
@@ -169,6 +174,11 @@ const QuestionModal = ({
         updatedData.valorTransporte = {
           ...prevData.valorTransporte,
           [name === "transporteMin" ? "min" : "max"]: newValue,
+        };
+      } else if (name.includes("estoque")) {
+        updatedData.valorEstoque = {
+          ...prevData.valorEstoque,
+          [name === "estoqueMin" ? "min" : "max"]: newValue,
         };
       }
 
@@ -449,6 +459,30 @@ const QuestionModal = ({
             </Select>
           </FormControl>
         </div>
+        <div className="area-estado">
+          <FormControl fullWidth>
+            <p sx={{ marginBottom: "10px" }}>Tipos de Lojas que se aplica </p>
+            <Select
+              multiple
+              size="small"
+              sx={{ width: "100%" }}
+              name="tipoLoja"
+              value={formData.tipoLoja || []}
+              onChange={handleChange}
+            >
+              {[
+                "LOJA GALERIA",
+                "LOJA RUA",
+                "LOJA SHOP PISO TERREO",
+                "LOJA SHOP PISO SUPERIOR",
+              ].map((tipoLoja) => (
+                <MenuItem key={tipoLoja} value={tipoLoja}>
+                  {tipoLoja}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
         {formData.areaResposavel.includes("addNew") && (
           <Box display="flex" alignItems="center">
             <TextField
@@ -480,12 +514,12 @@ const QuestionModal = ({
             }}
           >
             <Typography component="span">
-              Valores de Armazenagem/Sinistro/Transporte
+              Valores de Armazenagem/Sinistro/Transporte/Estoque
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ display: "flex", gap: "10px" }}>
             <div className="value-storage">
-              <h2>Valor Armazenamento</h2>
+              <h2>Valor Armazen.</h2>
               <TextField
                 sx={{ width: "45%" }}
                 label="Valor Min"
@@ -549,6 +583,29 @@ const QuestionModal = ({
                 name="transporteMax"
                 value={formData.valorTransporte?.max || ""}
                 onChange={(e) => handleChange(e, "valorTransporte", "max")}
+                margin="normal"
+              />
+            </div>
+
+            <div className="value-storage">
+              <h2>Valor Estoque</h2>
+              <TextField
+                sx={{ width: "45%" }}
+                label="Valor Min"
+                type="number"
+                name="estoqueMin"
+                value={formData.valorEstoque?.min || ""}
+                onChange={(e) => handleChange(e, "valorEstoque", "min")}
+                margin="normal"
+              />
+
+              <TextField
+                sx={{ width: "45%", marginLeft: "10px" }}
+                label="Valor Max"
+                type="number"
+                name="estoqueMax"
+                value={formData.valorEstoque?.max || ""}
+                onChange={(e) => handleChange(e, "valorEstoque", "max")}
                 margin="normal"
               />
             </div>
