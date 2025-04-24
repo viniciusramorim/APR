@@ -83,7 +83,7 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState("");
   const [valorEstoque, setValorEstoque] = useState("0");
 
-  const maisUtilizados = [2, 4, 5, 6, 7, 8, 9, 10, 16];
+  const maisUtilizados = [2, 4, 5, 6, 7, 9, 10, 16, 17];
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -872,7 +872,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(questions)} />
+          <FiClipboard size={25} onClick={() => console.log(listQuestions)} />
         </Title>
 
         <div className="container">
@@ -957,7 +957,8 @@ export default function New() {
             <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
             <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
             <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
-            <MenuItem value={"Projeto Veneza"}>Projeto Veneza (internalização Loja Dealer)</MenuItem>
+            <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
+            <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
             <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
             <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
             <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
@@ -984,7 +985,7 @@ export default function New() {
               if (maisUtilizados.includes(index)) {
                 return (
                   <MenuItem key={index} value={value.id}>
-                    {value.id}
+                    {value.id === "PROJETO VENEZA" ? `${value.id} ⚠` : value.id}
                   </MenuItem>
                 );
               }
