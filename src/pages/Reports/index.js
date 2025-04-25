@@ -216,7 +216,7 @@ export default function Reports() {
                         doc.tempoConclusao.inicio.toDate(),
                         "dd/MM/yyyy HH:mm:ss"
                       ) : "-",
-                      TEMP_TERMINO: doc.tempoConclusao ?  format(
+                      TEMP_TERMINO: doc.tempoConclusao ? format(
                         doc.tempoConclusao.conclusao.toDate(),
                         "dd/MM/yyyy HH:mm:ss"
                       ) : '-',
@@ -257,7 +257,7 @@ export default function Reports() {
                   doc.tempoConclusao.inicio.toDate(),
                   "dd/MM/yyyy HH:mm:ss"
                 ) : "-",
-                TEMP_TERMINO: doc.tempoConclusao ?  format(
+                TEMP_TERMINO: doc.tempoConclusao ? format(
                   doc.tempoConclusao.conclusao.toDate(),
                   "dd/MM/yyyy HH:mm:ss"
                 ) : '-',
@@ -299,7 +299,7 @@ export default function Reports() {
                 doc.tempoConclusao.inicio.toDate(),
                 "dd/MM/yyyy HH:mm:ss"
               ) : "-",
-              TEMP_TERMINO: doc.tempoConclusao ?  format(
+              TEMP_TERMINO: doc.tempoConclusao ? format(
                 doc.tempoConclusao.conclusao.toDate(),
                 "dd/MM/yyyy HH:mm:ss"
               ) : '-',
@@ -424,18 +424,22 @@ export default function Reports() {
                     value={filterTipoSite}
                     onChange={(e) => setFilterTipoSite(e.target.value)}
                   >
-                    <MenuItem value="">Todos</MenuItem>
-                    <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
-                    <MenuItem value="AUDIT PGR MÓVEL">AUDIT PGR MÓVEL</MenuItem>
-                    <MenuItem value="CD">CD</MenuItem>
-                    <MenuItem value="CT">CT</MenuItem>
+                    <MenuItem value="ERB-CT">ERB-CT</MenuItem>
                     <MenuItem value="ERB">ERB</MenuItem>
-                    <MenuItem value="ERB-CT">ERB CT</MenuItem>
-                    <MenuItem value="INDOOR">INDOOR</MenuItem>
+                    <MenuItem value="CT">CT</MenuItem>
+                    <MenuItem value="CD">CD</MenuItem>
+                    <MenuItem value="PREDIO CORE">PREDIO CORE</MenuItem>
                     <MenuItem value="LOJA">LOJA</MenuItem>
                     <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
+                    <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
+                    <MenuItem value="CHECK SEG PROTEÇÃO">CHECK SEG PROTEÇÃO</MenuItem>
+                    <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
+                    <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>
                     <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>
-                    <MenuItem value="PRÉDIO CORE">PRÉDIO CORE</MenuItem>
+                    <MenuItem value="INDOOR">INDOOR</MenuItem>
+                    <MenuItem value="SMARTTAG2">SMARTTAG</MenuItem>
+                    <MenuItem value="RPCI">RPCI</MenuItem>
+                    <MenuItem value="PCI">PCI</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
