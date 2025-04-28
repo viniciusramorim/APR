@@ -289,7 +289,8 @@ export default function New() {
   function hasRequired() {
     for (let area of questions) {
       for (let question of area[1]) {
-        if (question.isRequired && question.resp === "") {
+        let questionStatus = enableQuestions(question);
+        if (question.isRequired && question.resp === "" && questionStatus === true) {
           toast.error(`A questão "${question.question}" é obrigatória`);
           return true;
         }
