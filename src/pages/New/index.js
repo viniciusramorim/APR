@@ -290,9 +290,14 @@ export default function New() {
     for (let area of questions) {
       for (let question of area[1]) {
         let questionStatus = enableQuestions(question);
-        if (question.isRequired && question.resp === "" && questionStatus === true) {
-          toast.error(`A questão "${question.question}" é obrigatória`);
-          return true;
+        if (question.isRequired && questionStatus === true) {
+          if (question.answers === "" && question.optionListResp === "") {
+            toast.error(`A questão "${question.question}" é obrigatória`);
+            return true;
+          } else  if (question.answers !== "" && question.resp === "" ){
+            toast.error(`A questão "${question.question}" é obrigatória`);
+            return true;
+          }
         }
       }
     }
@@ -437,20 +442,14 @@ export default function New() {
                       openPA: question.openPA,
                       areaResposavel: question.areaResposavel,
                       respGabarito: question.respGabarito,
-
-                      optionList: question.optionList
-                        ? question.optionList
-                        : [],
-                      optionListResp: question.optionListResp
-                        ? question.optionListResp
-                        : [],
+                      answers: question.answers,
+                      
+                      isRequired: question.isRequired ? question.isRequired : false,
+                      optionList: question.optionList ? question.optionList : [],
+                      optionListResp: question.optionListResp ? question.optionListResp : [],
                       listCheck: question.listCheck ? question.listCheck : "",
-                      respInputNumber: question.respInputNumber
-                        ? question.respInputNumber
-                        : "",
-                      inputNumber: question.inputNumber
-                        ? question.inputNumber
-                        : "",
+                      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
+                      inputNumber: question.inputNumber ? question.inputNumber : "",
                     });
                     //Verifica antes de carregar no banco se contem resposta
                     if (question.resp !== "N/A" && question.resp !== "") {
@@ -873,7 +872,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(listQuestions)} />
+          <FiClipboard size={25} onClick={() => console.log(questions)} />
         </Title>
 
         <div className="container">

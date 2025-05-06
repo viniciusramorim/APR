@@ -57,15 +57,21 @@ export default function Open() {
         setAprCompleta(snapshot.data());
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
-            if (
-              doc.resp === "" &&
-              user.nivel !== "revisor" &&
-              user.nivel !== "administrador" &&
-              user.uid !== apr.user_id.uid
-            ) {
-              delete apr.checklist[indexA][1][indexQ];
-            } else if (apr.status === "Em Aberto" && doc.resp === "") {
-              if (user.nivel !== 'revisor' && user.nivel !== 'administrador' && user.uid !== apr.user_id.uid) {
+            const isEmAberto = apr.status === "Em Aberto";
+            const isRevisorOuAdmin = user.nivel === "revisor" || user.nivel === "administrador";
+            const isDono = user.uid === apr.user_id.uid;
+            const hasAnswer = doc.answers !== "";
+            const isRespVazio = doc.resp === "";
+
+            if (isRespVazio && hasAnswer) {
+              if (!isRevisorOuAdmin && !isEmAberto) {
+                // Caso 1: status diferente de "Em Aberto" e não é revisor/admin
+                delete apr.checklist[indexA][1][indexQ];
+              } else if (!isRevisorOuAdmin && isEmAberto && !isDono) {
+                // Caso 2: status "Em Aberto", não é revisor/admin, e não é o dono
+                delete apr.checklist[indexA][1][indexQ];
+              } else if (!isEmAberto && isRevisorOuAdmin) {
+                // Caso 3: status diferente de "Em Aberto", e é revisor ou admin
                 delete apr.checklist[indexA][1][indexQ];
               }
             }
@@ -855,7 +861,7 @@ export default function Open() {
                                       className="container-perg-open"
                                       id={indexA + "-export-" + indexQ}
                                       style={{
-                                        background: doc.resp
+                                        background: ((doc.resp && doc.answers) || (!doc.resp && !doc.answers))
                                           ? "transparent"
                                           : "#e7e6e6",
                                       }}

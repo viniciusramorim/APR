@@ -44,7 +44,11 @@ export default function ModalEdit(props) {
   const [open, setOpen] = useState(false);
   
   const [questionResp, setQuestionResp] = useState(
-    checklistCompleto[areaIndex][1][questionIndex].resp
+    checklistCompleto[areaIndex][1][questionIndex].resp 
+  );
+
+  const [questionAnswers, setQuestionAnswers] = useState(
+    checklistCompleto[areaIndex][1][questionIndex].answers 
   );
 
   const [questionComentario, setQuestionComentario] = useState(
@@ -133,7 +137,7 @@ export default function ModalEdit(props) {
     <>
       <label className="Edit">
         <a onClick={() => handleOpen()}>
-          <FiEdit></FiEdit>{questionResp ? 'Editar' : 'Responder'}
+          <FiEdit></FiEdit>{((questionResp && questionAnswers) ||(!questionResp && !questionAnswers)) ? 'Editar' : 'Responder'}
         </a>
       </label>
       <Modal
