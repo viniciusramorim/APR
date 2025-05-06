@@ -137,7 +137,7 @@ export default function ModalEdit(props) {
     <>
       <label className="Edit">
         <a onClick={() => handleOpen()}>
-          <FiEdit></FiEdit>{((questionResp && questionAnswers) ||(!questionResp && !questionAnswers)) ? 'Editar' : 'Responder'}
+          <FiEdit></FiEdit>{((questionResp && questionAnswers) ||(!questionResp && !questionAnswers)) ? 'Responder' : 'Editar'}
         </a>
       </label>
       <Modal

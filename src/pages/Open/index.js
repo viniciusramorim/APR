@@ -862,8 +862,8 @@ export default function Open() {
                                       id={indexA + "-export-" + indexQ}
                                       style={{
                                         background: ((doc.resp && doc.answers) || (!doc.resp && !doc.answers))
-                                          ? "transparent"
-                                          : "#e7e6e6",
+                                          ? "#e7e6e6" 
+                                          : "transparent",
                                       }}
                                     >
                                       {apr.status === "Em Aberto" && (

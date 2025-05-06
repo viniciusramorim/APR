@@ -528,8 +528,8 @@ export default function Dashboard() {
                   <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
                   <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
                   <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
-                  <MenuItem value={"Programada"}>Programada</MenuItem>
-                  <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
+                  <MenuItem value="Programada">Programada</MenuItem>
+                  <MenuItem value="Não Opinada">Não Opinada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -661,6 +661,9 @@ export default function Dashboard() {
                   <MenuItem value="LOJA">LOJA</MenuItem>
                   <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
                   <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
+                  <MenuItem value="PROJETO VENEZA">PROJETO VENEZA</MenuItem>
+                  <MenuItem value="RETROFIT">RETROFIT</MenuItem>
+                  <MenuItem value="TURNKEY">TURNKEY</MenuItem>
                   <MenuItem value="CHECK SEG PROTEÇÃO">CHECK SEG PROTEÇÃO</MenuItem>
                   <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
                   <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>
