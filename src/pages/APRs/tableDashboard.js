@@ -194,7 +194,7 @@ export default function CustomPaginationActionsTable(props) {
                 direction={orderBy === "site_id.tipoSite" ? order : "asc"}
                 onClick={() => handleRequestSort("site_id.tipoSite")}
               >
-                Tipo Site
+                Tipo Checklist
               </TableSortLabel>
             </TableCell>
             <TableCell align="center">
@@ -266,7 +266,7 @@ export default function CustomPaginationActionsTable(props) {
               <TableCell data-label="Nome" align="left">
                 {row.site_id.Nome}
               </TableCell>
-              <TableCell data-label="Tipo Site" align="center">
+              <TableCell data-label="Tipo Checklist" align="center">
                 {row.site_id.tipoSite}
               </TableCell>
               <TableCell data-label="Municipio" align="center">

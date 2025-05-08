@@ -18,7 +18,7 @@ import Manager from '../pages/ManagerUsers/index';
 import LogManager from '../pages/LogManager/index';
 import InsertQuestions from '../components/Question/InserQuestion';
 import UploadJsonToFirestore from '../components/Email/uploadEmail';
-import ContactEmail from '../components/Email/contactEmail';
+import ContactEmail from '../pages/ContactEmail/index' 
 
 export default function Routes() {
   return (

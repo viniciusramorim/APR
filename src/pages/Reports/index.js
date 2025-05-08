@@ -176,7 +176,7 @@ export default function Reports() {
             if (doc.checklist && doc.status !== "Com Exceção") {
               doc.checklist.forEach((blocoQuestion) => {
                 blocoQuestion[1].forEach((question) => {
-                  if (question.resp !== "") {
+                  if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
                     relatorioApr.push({
                       ID: doc.id,
                       DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
@@ -186,6 +186,7 @@ export default function Reports() {
                       PESO: doc.peso,
                       QUESTIONS: question.question,
                       QUESTIONS_RESP: question.resp,
+                      QUESTIONS_CHECKS: question.optionListResp.toString(),
                       QUESTIONS_RESPTEXTAREA: question.respTextArea,
                       QUESTIONS_RESPGABARITO: question.respGabarito,
                       QUESTIONS_PA: question.openPA,
@@ -199,7 +200,7 @@ export default function Reports() {
                       QUESTION_PA_NOME: question.resp_pa_user_name || "",
                       SIGLA: doc.site_id.Sigla,
                       SIGLA_GVT: doc.site_id.Sigla_GVT,
-                      TIPO_SITE: doc.site_id.tipoSite,
+                      TIPO_CHECKLIST: doc.site_id.tipoSite,
                       NOME_SITE: doc.site_id.Nome,
                       LAT_SITE: doc.site_id.Latitude,
                       LNG_SITE: doc.site_id.Longitude,
@@ -240,7 +241,7 @@ export default function Reports() {
                 STATUS: doc.status,
                 SIGLA: doc.site_id.Sigla,
                 SIGLA_GVT: doc.site_id.Sigla_GVT,
-                TIPO_SITE: doc.site_id.tipoSite,
+                TIPO_CHECKLIST: doc.site_id.tipoSite,
                 NOME_SITE: doc.site_id.Nome,
                 LAT_SITE: doc.site_id.Latitude,
                 LNG_SITE: doc.site_id.Longitude,
@@ -282,7 +283,7 @@ export default function Reports() {
               PESO: doc.peso,
               SIGLA: doc.site_id.Sigla,
               SIGLA_GVT: doc.site_id.Sigla_GVT,
-              TIPO_SITE: doc.site_id.tipoSite,
+              TIPO_CHECKLIST: doc.site_id.tipoSite,
               NOME_SITE: doc.site_id.Nome,
               LAT_SITE: doc.site_id.Latitude,
               LNG_SITE: doc.site_id.Longitude,
@@ -402,14 +403,19 @@ export default function Reports() {
                     onChange={(e) => setFilterMotivo(e.target.value)}
                   >
                     <MenuItem value="">Todos</MenuItem>
-                    <MenuItem value="Estoque Avançado">
-                      Estoque Avançado
-                    </MenuItem>
-                    <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
-                    <MenuItem value="Não Opinada">Não Opinada</MenuItem>
-                    <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
-                    <MenuItem value="Retrofit">Retrofit</MenuItem>
-                    <MenuItem value="Rota Critica DWDM">Rota Crítica DWDM</MenuItem>
+                    <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
+                    <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
+                    <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
+                    <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
+                    <MenuItem value={"TurnKey"}>TurnKey</MenuItem>
+                    <MenuItem value={"Conectividade nos Sites"}>Conectividade nos Sites</MenuItem>
+                    <MenuItem value={"Torre Segura"}>Torre Segura</MenuItem>
+                    <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
+                    <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
+                    <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
+                    <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
+                    <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
+                    <MenuItem value={"Opinada"}>Opinada</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -432,6 +438,9 @@ export default function Reports() {
                     <MenuItem value="LOJA">LOJA</MenuItem>
                     <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
                     <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
+                    <MenuItem value="PROJETO VENEZA">PROJETO VENEZA</MenuItem>
+                    <MenuItem value="RETROFIT">RETROFIT</MenuItem>
+                    <MenuItem value="TURNKEY">TURNKEY</MenuItem>
                     <MenuItem value="CHECK SEG PROTEÇÃO">CHECK SEG PROTEÇÃO</MenuItem>
                     <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
                     <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>

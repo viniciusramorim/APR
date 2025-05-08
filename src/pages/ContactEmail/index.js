@@ -20,20 +20,19 @@ import {
   Select,
   Pagination,
   Autocomplete,
+  Checkbox,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Header from "../Header";
-import Title from "../Title";
+import Header from "../../components/Header";
+import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
 import { read, utils } from "xlsx";
 import { toast } from "react-toastify";
-import Input from "@mui/material/Input";
-import { ca } from "date-fns/locale";
 
-export default function ContactEmailAccordionView() {
+export default function ContactEmail() {
   const [docs, setDocs] = useState([]);
   const [estadoPage, setEstadoPage] = useState(1);
   const [municipioPages, setMunicipioPages] = useState({});
@@ -53,6 +52,10 @@ export default function ContactEmailAccordionView() {
   const [allEstados, setAllEstados] = useState([]);
   const [municipiosPorEstado, setMunicipiosPorEstado] = useState({});
   const [loadingUpload, setLoadingUpload] = useState(false);
+  const [selectedEstados, setSelectedEstados] = useState({});
+  const [selectedMunicipios, setSelectedMunicipios] = useState({});
+  const [emailToAdd, setEmailToAdd] = useState("");
+  const [areaToAdd, setAreaToAdd] = useState("");
   const pageSize = 10;
 
   useEffect(() => {
@@ -154,6 +157,74 @@ export default function ContactEmailAccordionView() {
     loadData();
   };
 
+  const handleSelectEstado = (estado) => {
+    setSelectedEstados((prev) => ({
+      ...prev,
+      [estado]: !prev[estado],
+    }));
+  };
+
+  const handleSelectMunicipio = (estado, municipio) => {
+    setSelectedMunicipios((prev) => ({
+      ...prev,
+      [estado]: {
+        ...prev[estado],
+        [municipio]: !prev[estado]?.[municipio],
+      },
+    }));
+  };
+
+  const handleDeleteSelected = async () => {
+    const batch = firebase.firestore().batch();
+
+    Object.keys(selectedEstados).forEach((estado) => {
+      if (selectedEstados[estado]) {
+        docs
+          .filter((doc) => doc.estado === estado)
+          .forEach((doc) => {
+            const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+            batch.delete(docRef);
+          });
+      }
+    });
+
+    Object.keys(selectedMunicipios).forEach((estado) => {
+      Object.keys(selectedMunicipios[estado]).forEach((municipio) => {
+        if (selectedMunicipios[estado][municipio]) {
+          docs
+            .filter((doc) => doc.estado === estado && doc.municipio === municipio)
+            .forEach((doc) => {
+              const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+              batch.delete(docRef);
+            });
+        }
+      });
+    });
+
+    await batch.commit();
+    loadData();
+  };
+
+  const handleAddEmailToAll = async () => {
+    if (!emailToAdd || !areaToAdd) {
+      toast.error("Por favor, insira um e-mail e selecione uma área.");
+      return;
+    }
+
+    const batch = firebase.firestore().batch();
+    const areaKey = `email_${areaToAdd.toLowerCase()}`;
+
+    docs.forEach((doc) => {
+      const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+      const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), emailToAdd]));
+      batch.update(docRef, { [areaKey]: updatedEmails });
+    });
+
+    await batch.commit();
+    loadData();
+    toast.success(`E-mail adicionado a todos os municípios na área ${areaToAdd} com sucesso!`);
+  };
+
   const filteredDocs = docs.filter(
     (item) =>
       item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
@@ -167,6 +238,7 @@ export default function ContactEmailAccordionView() {
   }, {});
 
   const estadoKeys = Object.keys(groupedByEstado).sort();
+
   const paginatedEstados = estadoKeys.slice(
     (estadoPage - 1) * pageSize,
     estadoPage * pageSize
@@ -246,7 +318,7 @@ export default function ContactEmailAccordionView() {
         <Title name="Contato">
           <FiMessageSquare size={25} />
         </Title>
-        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor:"rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
+        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
           <TextField
             label="Filtrar por Estado"
             value={filterEstado}
@@ -284,17 +356,61 @@ export default function ContactEmailAccordionView() {
               {loadingUpload ? "Carregando..." : "Upload XLSX"}
             </Button>
           </label>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteSelected}
+          >
+            Remover Selecionados
+          </Button>
         </Box>
+
+        {/* <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
+          <TextField
+            label="E-mail para adicionar"
+            value={emailToAdd}
+            onChange={(e) => setEmailToAdd(e.target.value)}
+            size="small"
+          />
+          <Select
+            value={areaToAdd}
+            onChange={(e) => setAreaToAdd(e.target.value)}
+            displayEmpty
+            size="small"
+          >
+            <MenuItem disabled value="">
+              Selecione a área
+            </MenuItem>
+            <MenuItem value="OEM">OEM</MenuItem>
+            <MenuItem value="Patrimonial">Patrimonial</MenuItem>
+            <MenuItem value="Predial">Predial</MenuItem>
+          </Select>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddEmailToAll}
+          >
+            Adicionar e-mail a todos
+          </Button>
+        </Box> */}
 
         {paginatedEstados.map((estado) => (
           <Accordion key={estado}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Checkbox
+                checked={!!selectedEstados[estado]}
+                onChange={() => handleSelectEstado(estado)}
+              />
               <Typography>{estado}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               {getMunicipiosPaginados(estado).map((item) => (
                 <Accordion key={item.id}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Checkbox
+                      checked={!!selectedMunicipios[estado]?.[item.municipio]}
+                      onChange={() => handleSelectMunicipio(estado, item.municipio)}
+                    />
                     <Typography>{item.municipio}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
@@ -348,12 +464,12 @@ export default function ContactEmailAccordionView() {
               ))}
               {groupedByEstado[estado].length >
                 (municipioPages[estado] || 1) * pageSize && (
-                <Box textAlign="center" mt={1}>
-                  <Button onClick={() => loadMoreMunicipios(estado)}>
-                    Carregar mais municípios
-                  </Button>
-                </Box>
-              )}
+                  <Box textAlign="center" mt={1}>
+                    <Button onClick={() => loadMoreMunicipios(estado)}>
+                      Carregar mais municípios
+                    </Button>
+                  </Box>
+                )}
             </AccordionDetails>
           </Accordion>
         ))}
@@ -430,9 +546,7 @@ export default function ContactEmailAccordionView() {
               freeSolo
               options={(municipiosPorEstado[newEstado] || []).sort()}
               value={newMunicipio}
-              onInputChange={(event, newInputValue) =>
-                setNewMunicipio(newInputValue)
-              }
+              onInputChange={(event, newInputValue) => setNewMunicipio(newInputValue)}
               renderInput={(params) => (
                 <TextField
                   {...params}

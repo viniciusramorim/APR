@@ -180,7 +180,7 @@ export default function Dashboard() {
         : query;
     query =
       user.area === "oem"
-        ? query.where("status", "in", ["Enviado","Respondido pela Area"])
+        ? query.where("status", "in", ["Enviado", "Respondido pela Area"])
         : query;
     query =
       user.area === "pci"
@@ -189,9 +189,9 @@ export default function Dashboard() {
     query =
       user.nivel === "auditor"
         ? query.where("site_id.tipoSite", "in", [
-            "AUDIT PGR FIXA",
-            "AUDIT PGR MOVEL",
-          ])
+          "AUDIT PGR FIXA",
+          "AUDIT PGR MOVEL",
+        ])
         : query;
 
     let lista = [];
@@ -522,14 +522,19 @@ export default function Dashboard() {
                   }
                   size="small"
                 >
-                  <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
-                  <MenuItem value="Sites Criticos (Mapa de Proteção)">Sites Criticos (Mapa de Proteção)</MenuItem>
-                  <MenuItem value="Retrofit">Retrofit</MenuItem>
-                  <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
-                  <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
-                  <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
-                  <MenuItem value="Programada">Programada</MenuItem>
-                  <MenuItem value="Não Opinada">Não Opinada</MenuItem>
+                  <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
+                  <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
+                  <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
+                  <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
+                  <MenuItem value={"TurnKey"}>TurnKey</MenuItem>
+                  <MenuItem value={"Conectividade nos Sites"}>Conectividade nos Sites</MenuItem>
+                  <MenuItem value={"Torre Segura"}>Torre Segura</MenuItem>
+                  <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
+                  <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
+                  <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
+                  <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
+                  <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
+                  <MenuItem value={"Opinada"}>Opinada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

@@ -958,6 +958,9 @@ export default function New() {
             <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
             <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
             <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
+            <MenuItem value={"TurnKey"}>TurnKey</MenuItem>
+            <MenuItem value={"Conectividade nos Sites"}>Conectividade nos Sites</MenuItem>
+            <MenuItem value={"Torre Segura"}>Torre Segura</MenuItem>
             <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
             <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
             <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
