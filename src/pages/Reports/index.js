@@ -187,6 +187,7 @@ export default function Reports() {
                       QUESTIONS: question.question,
                       QUESTIONS_RESP: question.resp,
                       QUESTIONS_CHECKS: question.optionListResp.toString(),
+                      QUESTIONS_AREA_RESPONSAVEL: question.areaResposavel.toString(),
                       QUESTIONS_RESPTEXTAREA: question.respTextArea,
                       QUESTIONS_RESPGABARITO: question.respGabarito,
                       QUESTIONS_PA: question.openPA,

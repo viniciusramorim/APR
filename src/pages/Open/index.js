@@ -117,12 +117,11 @@ export default function Open() {
 
       img.src = url;
 
-      // Adiciona um timeout para rejeitar a promessa se a imagem não carregar em um tempo razoável
       setTimeout(() => {
         if (!img.complete) {
           reject(new Error("Erro ao carregar a imagem: tempo limite excedido"));
         }
-      }, 10000); // 10 segundos de timeout
+      }, 10000);
     });
   }
 
@@ -141,27 +140,14 @@ export default function Open() {
     });
 
     pdf.content.push({
-      canvas: [
-        {
-          type: "rect",
-          x: -20,
-          y: 0,
-          w: 560, // 70 percent completion
-          h: 1,
-          lineColor: "lightblue",
-        },
-      ],
+      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
     });
 
     pdf.content.push({
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [
-          [
-            "ID:" + apr.apr_id,
-          ],
-        ],
+        body: [["ID: " + apr.apr_id]],
       },
       layout: "noBorders",
     });
@@ -170,13 +156,7 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [
-          [
-            // "ID:" + id,
-            "Nome: " + apr.user_id.nome,
-            "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm"),
-          ],
-        ],
+        body: [["Nome: " + apr.user_id.nome, "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm")]],
       },
       layout: "noBorders",
     });
@@ -185,12 +165,7 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [
-          [
-            "Motivo: " + apr.motivo_apr,
-            "Classificação " + calculatePontos(apr.peso),
-          ],
-        ],
+        body: [["Motivo: " + apr.motivo_apr, "Classificação " + calculatePontos(apr.peso)]],
       },
       layout: "noBorders",
     });
@@ -200,152 +175,130 @@ export default function Open() {
       table: {
         widths: [300, 300],
         body: [
-          [
-            "Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado,
-            "Criticidade: " + apr.site_id.critical,
-          ],
+          ["Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
           ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
-          [
-            "Endereço: " + apr.site_id.Endereco,
-            "Latitude: " + apr.site_id.Latitude,
-          ],
-          [
-            "Bairro: " + apr.site_id.Bairro,
-            "Longitude: " + apr.site_id.Longitude,
-          ],
+          ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
+          ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
         ],
       },
       layout: "noBorders",
     });
 
     pdf.content.push({
-      canvas: [
-        {
-          type: "rect",
-          x: -20,
-          y: 0,
-          w: 560, // 70 percent completion
-          h: 1,
-          lineColor: "lightblue",
-        },
-      ],
+      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
     });
 
     for (const area of apr.checklist) {
       pdf.content.push({
         text: area[0],
         bold: true,
-        margin: [0, 30, 0, 0],
-        fontSize: 18,
+        fontSize: 20,
+        margin: [0, 30, 0, 10],
+        color: '#00529B',
+        decoration: 'underline',
       });
-      if (exportarea === "All") {
-        for (const doc of area[1]) {
-          for (const imgs of doc.imagesURL) {
-            console.log(doc.questionId)
-            imgs.url = await getBase64ImageFromURL(imgs.url);
-          }
-          if (doc.resp !== "") {
-            pdf.content.push({
-              text: `${doc.question}`,
-              margin: [0, 20, 0, 0],
-            });
 
-            pdf.content.push({
-              stack: [
+      const docs = area[1];
+
+      for (const doc of docs) {
+        if (!doc) continue;
+
+        const incluirDoc = exportarea === "All"
+          ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== ""
+          : exportarea === "oem"
+          && doc.resp !== ""
+          && doc.resp !== "N/A"
+          && doc.resp !== doc.respGabarito
+          && doc.openPA === true
+          && doc.areaResposavel?.includes("oem");
+
+        if (!incluirDoc) continue;
+
+        for (const imgs of doc.imagesURL) {
+          imgs.url = await getBase64ImageFromURL(imgs.url);
+        }
+
+        pdf.content.push({
+          text: `${doc.question}`,
+          fontSize: 12,
+          bold: true,
+          margin: [0, 10, 0, 5],
+          background: "#F2F2F2",
+          alignment: "left",
+        });
+
+        if (doc.resp !== "") {
+          const respColor = doc.resp === "Sim" ? "#4CAF50" : doc.resp === "N/A" ? "#FFA500" : "#F44336";
+        
+          pdf.content.push({
+            table: {
+              widths: ["*"],
+              body: [[
                 {
-                  text: `\t${doc.resp}\t `,
-                  bold: true,
+                  text: doc.resp,
+                  fillColor: respColor,
                   color: "white",
-                  margin: [10, 10, 0, 20],
-                },
-              ],
-              background: doc.resp === "Sim" ? "green" : doc.resp === "N/A" ? "yellow" : "red",
+                  alignment: "center",
+                  bold: true,
+                  margin: [0, 5, 0, 5],
+                }
+              ]]
+            },
+            layout: {
+              hLineWidth: function () { return 0; },
+              vLineWidth: function () { return 0; },
+            },
+            margin: [0, 5, 0, 5],
+          });
+        }
+
+        if (doc.optionListResp?.length > 0) {
+          pdf.content.push({
+            ul: doc.optionListResp.map(option => `${option}`),
+            margin: [10, 5, 0, 5],
+          });
+        }
+
+        if (doc.respQuantidade) {
+          pdf.content.push({
+            text: `Quantidade: ${doc.respQuantidade}`,
+            margin: [10, 5, 0, 5],
+            italics: true,
+          });
+        }
+
+        if (doc.respTextArea !== "") {
+          pdf.content.push({
+            text: `Observações: ${doc.respTextArea}`,
+            italics: true,
+            margin: [10, 5, 0, 5],
+          });
+        }
+
+        for (const imgs of doc.imagesURL) {
+          try {
+            pdf.content.push({
+              image: imgs.url,
+              width: 150,
+              height: 150,
+              margin: [0, 10, 10, 10],
             });
-
-            if (doc.respTextArea !== "") {
-              pdf.content.push({
-                text: `Obs: ${doc.respTextArea}`,
-                margin: [0, 5, 0, 5],
-                italics: true,
-              });
-            }
-
-            for (const imgs of doc.imagesURL) {
-              try {
-                pdf.content.push({
-                  image: imgs.url,
-                  width: 150,
-                  height: 150,
-                  margin: [0, 10, 0, 0],
-                });
-              } catch (error) {
-                console.log(imgs);
-                console.log("Erro ao adicionar foto no documento." + error);
-              }
-            }
+          } catch (error) {
+            console.log("Erro ao adicionar imagem: ", error);
           }
         }
-      } else if (exportarea === 'oem') {
-        for (const doc of area[1]) {
-          if (doc.resp !== "" &&
-            doc.resp !== "N/A" &&
-            doc.resp !== doc.respGabarito &&
-            doc.openPA === true &&
-            doc.areaResposavel?.includes('oem')) {
 
-            for (const imgs of doc.imagesURL) {
-              console.log(doc.questionId)
-              imgs.url = await getBase64ImageFromURL(imgs.url);
-            }
-
-            pdf.content.push({
-              text: `${doc.question}`,
-              margin: [0, 20, 0, 0],
-            });
-
-            pdf.content.push({
-              stack: [
-                {
-                  text: `\t${doc.resp}\t `,
-                  bold: true,
-                  color: "white",
-                  margin: [10, 10, 0, 20],
-                },
-              ],
-              background: doc.resp === "Sim" ? "green" : doc.resp === "N/A" ? "yellow" : "red",
-            });
-
-            if (doc.respTextArea !== "") {
-              pdf.content.push({
-                text: `Obs: ${doc.respTextArea}`,
-                margin: [0, 5, 0, 5],
-                italics: true,
-              });
-            }
-
-            for (const imgs of doc.imagesURL) {
-              try {
-                pdf.content.push({
-                  image: imgs.url,
-                  width: 150,
-                  height: 150,
-                  margin: [0, 10, 0, 0],
-                });
-              } catch (error) {
-                console.log(imgs);
-                console.log("Erro ao adicionar foto no documento." + error);
-              }
-            }
-          }
-        }
+        pdf.content.push({
+          canvas: [{
+            type: 'line', x1: 0, y1: 0, x2: 520, y2: 0,
+            lineWidth: 0.5, lineColor: "#ccc"
+          }],
+          margin: [0, 20, 0, 20],
+        });
       }
     }
 
-    pdfMake
-      .createPdf(pdf)
-      .download(
-        `APR Digital ${apr.site_id.Sigla + "_" + apr.apr_id + "_" + apr.site_id.Estado}.pdf`
-      );
+    pdfMake.createPdf(pdf).download(`APR Digital ${apr.site_id.Sigla}_${apr.apr_id}_${apr.site_id.Estado}.pdf`);
   }
 
   // -------------------------------------
@@ -544,7 +497,11 @@ export default function Open() {
                           <option value={"Mapa de Calor"}>Mapa de Calor</option>
                           <option value={"Retrofit"}>Retrofit</option>
                           <option value={"Rota Critica DWDM"}>Rota Critica DWDM</option>
-                          <option value={"Projeto Veneza"}>Projeto Veneza (internalização Loja Dealer)</option>
+                          <option value={"Projeto Veneza"}>Projeto Veneza</option>
+                          <option value={"TurnKey"}>TurnKey</option>
+                          <option value={"Conectividade nos Sites"}>Conectividade nos Sites</option>
+                          <option value={"Torre Segura"}>Torre Segura</option>
+                          <option value={"Internalização Loja Dealer"}>Internalização Loja Dealer</option>
                           <option value={"Estoque Avançado"}>Estoque Avançado</option>
                           <option value={"Instalação Tag"}>Instalação Tag</option>
                           <option value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</option>
@@ -556,7 +513,7 @@ export default function Open() {
                       )}
                     </li>
                     <li>
-                      <span>TIPO DE SITE: </span>
+                      <span>TIPO DE CHECKLIST: </span>
                       {apr.site_id.tipoSite}
                     </li>
                   </ul>
@@ -862,7 +819,7 @@ export default function Open() {
                                       id={indexA + "-export-" + indexQ}
                                       style={{
                                         background: ((doc.resp && doc.answers) || (!doc.resp && !doc.answers))
-                                          ? "#e7e6e6" 
+                                          ? "#e7e6e6"
                                           : "transparent",
                                       }}
                                     >

@@ -729,6 +729,16 @@ const QuestionModal = ({
             <FormControlLabel
               control={
                 <Checkbox
+                  checked={formData.inputImagesLibrary}
+                  onChange={handleChange}
+                  name="inputImagesLibrary"
+                />
+              }
+              label="Possui upload de imagens da biblioteca?"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
                   checked={formData.multipleCheck}
                   onChange={handleChange}
                   name="multipleCheck"
