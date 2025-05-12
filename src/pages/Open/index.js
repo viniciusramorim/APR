@@ -718,7 +718,7 @@ export default function Open() {
                                         id={indexA + "-export-" + indexQ}
                                       >
                                         <label>
-                                          {indexQ + 1} - {doc.question}
+                                          {indexQ + 1} - {doc.question} 
                                         </label>
                                         Resposta:
                                         <span data-text={doc.resp}>

@@ -101,7 +101,7 @@ const QuestionModal = ({
   };
 
   const [formData, setFormData] = useState(initialFormData);
-  const [areaOptions, setAreaOptions] = useState(["oem", "patrimonial"]);
+  const [areaOptions, setAreaOptions] = useState(["oem", "patrimonial", "patrimonio", "CMC", "predial"]);
   const [newArea, setNewArea] = useState("");
 
   useEffect(() => {
