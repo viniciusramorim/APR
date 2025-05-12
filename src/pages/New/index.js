@@ -294,7 +294,7 @@ export default function New() {
           if (question.answers === "" && question.optionListResp === "") {
             toast.error(`A questão "${question.question}" é obrigatória`);
             return true;
-          } else  if (question.answers !== "" && question.resp === "" ){
+          } else if (question.answers !== "" && question.resp === "") {
             toast.error(`A questão "${question.question}" é obrigatória`);
             return true;
           }
@@ -443,7 +443,6 @@ export default function New() {
                       areaResposavel: question.areaResposavel,
                       respGabarito: question.respGabarito,
                       answers: question.answers,
-                      
                       isRequired: question.isRequired ? question.isRequired : false,
                       optionList: question.optionList ? question.optionList : [],
                       optionListResp: question.optionListResp ? question.optionListResp : [],
@@ -451,89 +450,87 @@ export default function New() {
                       respInputNumber: question.respInputNumber ? question.respInputNumber : "",
                       inputNumber: question.inputNumber ? question.inputNumber : "",
                     });
-                    //Verifica antes de carregar no banco se contem resposta
-                    if (question.resp !== "N/A" && question.resp !== "") {
-                      let imageList = []; // criar uma lista de imagem e reseta a cada questao
-                      //inserção de dados no banco OBS: se contem imagem ou não
-                      if (containsImage === true) {
-                        question.images &&
-                          question.images.forEach(async (file) => {
-                            let imgName = file.name;
-                            let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
 
-                            let storageRef = await firebase
-                              .storage()
-                              .ref(imgPath);
-                            let upload = storageRef.put(file);
+                    let imageList = []; // criar uma lista de imagem e reseta a cada questao
+                    //inserção de dados no banco OBS: se contem imagem ou não
+                    if (containsImage === true) {
+                      question.images &&
+                        question.images.forEach(async (file) => {
+                          let imgName = file.name;
+                          let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
 
-                            qtdImages = qtdImages + 1;
+                          let storageRef = await firebase
+                            .storage()
+                            .ref(imgPath);
+                          let upload = storageRef.put(file);
 
-                            let uploadCompleted = new Promise(
-                              (resolve, reject) => {
-                                // promise para concluir apos termino de upload geral de fotos
-                                trackUpload(upload)
-                                  .then(() => {
-                                    storageRef
-                                      .getDownloadURL()
-                                      .then((downloadUrl) => {
-                                        imageList.push({
-                                          url: downloadUrl,
-                                          ref: storageRef.fullPath,
-                                        });
-                                        try {
-                                          console.log(indexA + "-" + indexQ);
-                                          checklist[indexA][1][
-                                            indexQ
-                                          ].imagesURL = imageList; //define a lista em uma pergunta
-                                        } catch (error) {
-                                          console.log(indexA + "-" + indexQ);
-                                          console.log(
-                                            "Erro ao obter url da imagem" +
-                                            error
-                                          );
-                                        }
-                                        imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
-                                        // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                                        console.log(
-                                          imagesCompleted + " / " + qtdImages
-                                        ); // mostra o status de imagens concluida vs pendentes
-                                        setLoadingImages(
-                                          imagesCompleted + " / " + qtdImages
-                                        );
-                                        if (imagesCompleted === qtdImages) {
-                                          // retorna como concluido apenas quantos os valores estiverem ok
-                                          resolve();
-                                        }
-                                      })
-                                      .catch((err) => {
-                                        console.log("Erro ao obter URL" + err);
-                                      });
-                                  })
-                                  .catch((err) => {
-                                    console.log("Erro no upload: " + err);
-                                  });
-                              }
-                            );
+                          qtdImages = qtdImages + 1;
 
-                            uploadCompleted.then(async () => {
-                              await firebase
-                                .firestore()
-                                .collection(base)
-                                .doc(index.id)
-                                .update({
-                                  checklist: checklist,
-                                })
+                          let uploadCompleted = new Promise(
+                            (resolve, reject) => {
+                              // promise para concluir apos termino de upload geral de fotos
+                              trackUpload(upload)
                                 .then(() => {
-                                  console.log("Completed");
-                                  logSistem("A APR foi criada", index.id);
-                                  conclusionApr(index.id);
+                                  storageRef
+                                    .getDownloadURL()
+                                    .then((downloadUrl) => {
+                                      imageList.push({
+                                        url: downloadUrl,
+                                        ref: storageRef.fullPath,
+                                      });
+                                      try {
+                                        console.log(indexA + "-" + indexQ);
+                                        checklist[indexA][1][
+                                          indexQ
+                                        ].imagesURL = imageList; //define a lista em uma pergunta
+                                      } catch (error) {
+                                        console.log(indexA + "-" + indexQ);
+                                        console.log(
+                                          "Erro ao obter url da imagem" +
+                                          error
+                                        );
+                                      }
+                                      imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
+                                      // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
+                                      console.log(
+                                        imagesCompleted + " / " + qtdImages
+                                      ); // mostra o status de imagens concluida vs pendentes
+                                      setLoadingImages(
+                                        imagesCompleted + " / " + qtdImages
+                                      );
+                                      if (imagesCompleted === qtdImages) {
+                                        // retorna como concluido apenas quantos os valores estiverem ok
+                                        resolve();
+                                      }
+                                    })
+                                    .catch((err) => {
+                                      console.log("Erro ao obter URL" + err);
+                                    });
                                 })
                                 .catch((err) => {
-                                  console.log(err);
+                                  console.log("Erro no upload: " + err);
                                 });
-                            });
+                            }
+                          );
+
+                          uploadCompleted.then(async () => {
+                            await firebase
+                              .firestore()
+                              .collection(base)
+                              .doc(index.id)
+                              .update({
+                                checklist: checklist,
+                              })
+                              .then(() => {
+                                console.log("Completed");
+                                logSistem("A APR foi criada", index.id);
+                                conclusionApr(index.id);
+                              })
+                              .catch((err) => {
+                                console.log(err);
+                              });
                           });
-                      }
+                        });
                     }
                   });
                 });
@@ -1299,37 +1296,30 @@ export default function New() {
                                 <FormControl
                                   size="small"
                                   sx={{ marginTop: 1 }}
-                                  id={indexA + "_select_" + doc.questionId}
+                                  id={`${indexA}_select_${doc.questionId}`}
                                 >
                                   <Select
                                     labelId="demo-multiple-checkbox-label"
                                     id="demo-multiple-checkbox"
                                     multiple={doc.multipleCheck}
                                     value={
-                                      doc.optionListResp &&
-                                        doc.optionListResp.length > 0
+                                      doc.optionListResp && doc.optionListResp.length > 0
                                         ? doc.optionListResp
-                                        : [doc.optionList[0]]
+                                        : [""]
                                     }
-                                    onChange={(e) =>
-                                      handleChangeSelect(doc, indexA, e)
-                                    }
+                                    onChange={(e) => handleChangeSelect(doc, indexA, e)}
                                     renderValue={(selected) =>
-                                      selected.join(", ")
+                                      selected.filter((value) => value !== "").join(", ")
                                     }
                                     MenuProps={MenuProps}
                                   >
+                                    <MenuItem key={""} value={""} sx={{ height: "30px" }} disabled>
+                                      <Checkbox checked={doc.optionListResp.includes("")} disabled />
+                                      <ListItemText primary={"Selecione uma opção"} />
+                                    </MenuItem>
                                     {doc.optionList.map((name) => (
-                                      <MenuItem
-                                        key={name}
-                                        value={name}
-                                        sx={{ height: "30px" }}
-                                      >
-                                        <Checkbox
-                                          checked={doc.optionListResp.includes(
-                                            name
-                                          )}
-                                        />
+                                      <MenuItem key={name} value={name} sx={{ height: "30px" }}>
+                                        <Checkbox checked={doc.optionListResp.includes(name)} />
                                         <ListItemText primary={name} />
                                       </MenuItem>
                                     ))}
