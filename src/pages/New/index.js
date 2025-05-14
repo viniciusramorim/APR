@@ -17,6 +17,7 @@ import Modal_Justificativa from "../../components/Modal_Justificativa";
 import CameraComponent from "./CameraComponent";
 import InputComponent from "./InputComponent";
 import {
+  Box,
   Checkbox,
   FormControl,
   ListItemText,
@@ -1295,7 +1296,7 @@ export default function New() {
                               {doc.listCheck === true && (
                                 <FormControl
                                   size="small"
-                                  sx={{ marginTop: 1 }}
+                                  sx={{ marginTop: 1, width: { xs: '100%', sm: '300px', md: '400px' } }}
                                   id={`${indexA}_select_${doc.questionId}`}
                                 >
                                   <Select
@@ -1308,19 +1309,47 @@ export default function New() {
                                         : [""]
                                     }
                                     onChange={(e) => handleChangeSelect(doc, indexA, e)}
-                                    renderValue={(selected) =>
-                                      selected.filter((value) => value !== "").join(", ")
-                                    }
+                                    renderValue={(selected) => (
+                                      <Box sx={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                                        {selected.filter((value) => value !== "").join(", ")}
+                                      </Box>
+                                    )}
                                     MenuProps={MenuProps}
+                                    sx={{
+                                      whiteSpace: 'normal',
+                                      wordWrap: 'break-word',
+                                    }}
                                   >
                                     <MenuItem key={""} value={""} sx={{ height: "30px" }} disabled>
                                       <Checkbox checked={doc.optionListResp.includes("")} disabled />
-                                      <ListItemText primary={"Selecione uma opção"} />
+                                      <ListItemText
+                                        primary={"Selecione uma opção"}
+                                        sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
+                                      />
                                     </MenuItem>
+
                                     {doc.optionList.map((name) => (
-                                      <MenuItem key={name} value={name} sx={{ height: "30px" }}>
-                                        <Checkbox checked={doc.optionListResp.includes(name)} />
-                                        <ListItemText primary={name} />
+                                      <MenuItem
+                                        key={name}
+                                        value={name}
+                                        sx={{
+                                          alignItems: 'center',
+                                          height: 'auto',
+                                          py: 1,
+                                        }}
+                                      >
+                                        <Checkbox
+                                          checked={doc.optionListResp.includes(name)}
+                                          sx={{ paddingTop: '4px' }}
+                                        />
+                                        <ListItemText
+                                          primary={name}
+                                          sx={{
+                                            whiteSpace: 'normal',
+                                            wordBreak: 'break-word',
+                                            margin: 0,
+                                          }}
+                                        />
                                       </MenuItem>
                                     ))}
                                   </Select>
