@@ -84,7 +84,7 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState("");
   const [valorEstoque, setValorEstoque] = useState("0");
 
-  const maisUtilizados = [2, 4, 5, 6, 7, 9, 10, 16, 17];
+  const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 19];
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -913,7 +913,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(questions)} />
+          <FiClipboard size={25} onClick={() => console.log(listQuestions.map(value => value.id))} />
         </Title>
 
         <div className="container">
