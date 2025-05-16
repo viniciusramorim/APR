@@ -710,7 +710,7 @@ export default function Open() {
                                   let area = doc.areaResposavel.includes(
                                     user.area
                                   );
-                                  if (doc.openPA === true && doc.respGabarito !== doc.resp && area === true) {
+                                  if (doc.openPA === true && doc.resp !== "N/A" && doc.respGabarito !== doc.resp && area === true) {
                                     return (
                                       <div
                                         key={indexQ}
@@ -767,7 +767,7 @@ export default function Open() {
                                             )}
                                           </>
                                         )}
-                                        {doc.openPA === true && doc.resp !== doc.respGabarito && user.uid !== apr.id_user ? (
+                                        {doc.openPA === true && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (

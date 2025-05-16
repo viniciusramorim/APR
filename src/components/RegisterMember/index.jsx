@@ -1,5 +1,4 @@
-import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
 import { toast } from "react-toastify";
 import { BsEye } from "react-icons/bs";
 import {
@@ -12,7 +11,6 @@ import {
   Typography,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -116,6 +114,7 @@ function SignUpModal({ open, onClose }) {
                 <MenuItem value="patrimonial">Segurança Patrimonial</MenuItem>
                 <MenuItem value="oem">O&M</MenuItem>
                 <MenuItem value="pci">PCI</MenuItem>
+                <MenuItem value="patrimonio">Patrimonio</MenuItem>
               </Select>
             </FormControl>
 

@@ -1,12 +1,26 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FiX } from "react-icons/fi";
-
-import { AuthContext } from "../../contexts/auth";
-import planoAcao from "./PlanoAcao/planoAcao";
-import "./modal.scss";
 import { toast } from "react-toastify";
-import { format } from "date-fns";
+import { AuthContext } from "../../contexts/auth";
+
+// MUI
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  TextField,
+  MenuItem,
+  Link,
+} from "@mui/material";
+import { Download } from "@mui/icons-material";
 
 export default function Modal({
   checklist,
@@ -21,458 +35,326 @@ export default function Modal({
 
   const [tempo, setTempo] = useState("");
   const [comentario, setComentario] = useState("");
-  const [cardapio, setCardapio] = useState([]);
-  const [justificativa, setJutificativa] = useState("");
+  const [justificativa, setJustificativa] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [nomeDetentora, setNomeDetentora] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-
-  const [planoAcaoAtual, setPlanoAcaoAtual] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const { user } = useContext(AuthContext);
   const { id } = useParams();
 
-  const index = checklist[area][1].findIndex((object) => {
-    if (object !== undefined) {
-      return object.question === conteudo.question;
-    }
-  });
+  const index = checklist[area][1].findIndex(
+    (object) => object?.question === conteudo.question
+  );
 
   useEffect(() => {
     function loadConstants() {
-      setTempo(conteudo.plano_acao.tempo ? conteudo.plano_acao.tempo : "");
-      setComentario(
-        conteudo.plano_acao.comentario ? conteudo.plano_acao.comentario : ""
-      );
+      setTempo(conteudo?.plano_acao?.tempo || "");
+      setComentario(conteudo?.plano_acao?.comentario || "");
       setSelectedOption(
-        conteudo.resp_pa_selectedOption
-          ? conteudo.resp_pa_selectedOption
-          : conteudo.plano_acao.selectedOption
+        conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || ""
       );
-      setJutificativa(
-        conteudo.plano_acao.justificativa
-          ? conteudo.plano_acao.justificativa
-          : ""
-      );
-      setNomeDetentora(
-        conteudo.plano_acao.nome_detentora
-          ? conteudo.plano_acao.nome_detentora
-          : ""
-      );
-      setNumeroChamado(
-        conteudo.plano_acao.numero_chamado
-          ? conteudo.plano_acao.numero_chamado
-          : ""
-      );
+      setJustificativa(conteudo?.plano_acao?.justificativa || "");
+      setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
+      setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
     }
 
     loadConstants();
-
-    if (planoAcao[0][tipoSite] !== undefined) {
-      let newArray = planoAcao[0][tipoSite].filter(
-        (item) => item.indexQ === index && item.indexA === area
-      ); // Filtra as strings com comprimento maior que 5
-      setPlanoAcaoAtual(newArray[0]);
-      setCardapio(newArray);
-    }
   }, []);
 
-  function handleChangeSelect(e) {
-    setTempo(e.target.value);
-  }
+  // Variável para bloquear edição se já existir plano de ação preenchido com anexo
+  const isReadOnly = conteudo?.resp_pa_selectedOption;
 
   async function alterarPA(indexA, indexQ) {
-    console.log(indexA + " - " + indexQ);
-    await firebase
-      .firestore()
-      .collection(base)
-      .doc(id)
-      .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          const dados = doc.data();
-          if (selectedOption === "Sim") {
-            if (tempo === "") return toast("Voce precisa selecionar um SLA.");
-            if (comentario === "")
-              return toast(
-                "Voce precisa preencher um comentario/justificativa."
-              );
-            dados.checklist[area][1][index].plano_acao = {
-              planoId: planoAcaoAtual ? planoAcaoAtual.planoId : "n/a",
-              nomeTecnico: planoAcaoAtual ? planoAcaoAtual.nomeTecnico : "n/a",
-              apicabilidade: planoAcaoAtual
-                ? planoAcaoAtual.apicabilidade
-                : "n/a",
-              ambiente: planoAcaoAtual ? planoAcaoAtual.ambiente : "n/a",
-              especificacao: planoAcaoAtual
-                ? planoAcaoAtual.especificacao
-                : "n/a",
-              tempo: tempo,
+    if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
 
-              comentario: comentario,
-            };
-          } else if (selectedOption === "Não") {
-            if (justificativa === "")
-              return toast("Voce precisa selecionar um Justificativa.");
-            if (comentario === "")
-              return toast(
-                "Voce precisa preencher um comentario/justificativa."
-              );
-            dados.checklist[area][1][index].plano_acao = {
-              justificativa: justificativa,
+    const docRef = firebase.firestore().collection(base).doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return toast.error("Documento não encontrado");
 
-              comentario: comentario,
-            };
-          } else if (selectedOption === "Detentora") {
-            if (nomeDetentora === "")
-              return toast("Voce precisa preencher a detentora.");
-            if (numeroChamado === "")
-              return toast("Voce precisa preencher o numero de chamado.");
-            if (comentario === "")
-              return toast(
-                "Voce precisa preencher um comentario/justificativa."
-              );
-            dados.checklist[area][1][index].plano_acao = {
-              nome_detentora: nomeDetentora,
-              numero_chamado: numeroChamado,
+    const dados = doc.data();
+    const plano = dados.checklist[area][1][index];
 
-              comentario: comentario,
-            };
-          }
-
-          dados.checklist[area][1][index].resp_pa_selectedOption =
-            selectedOption;
-          dados.checklist[area][1][index].resp_pa_data = new Date();
-          dados.checklist[area][1][index].resp_pa_user_name = user.nome;
-          dados.checklist[area][1][index].resp_pa_user_id = user.uid;
-
-          console.log(dados);
-          // Agora, atualize o documento no Firestore
-          await firebase
-            .firestore()
-            .collection(base)
-            .doc(id)
-            .update(dados)
-            .then(() => {
-              updateAPR(id);
-              toast.success("PA atualizado com sucesso!");
-              loadApr();
-              close();
-            })
-            .catch((error) => {
-              console.log("Erro ao atualizar valor:", error);
-              close();
-            });
-        } else {
-          console.log("O documento não existe.");
-        }
-      })
-      .catch((err) => {
-        console.log("Error ao inserir update!" + err);
-        close();
-      });
-  }
-
-  function updatePlanoAcao() {
-    if (index !== -1) {
-      alterarPA(area, index);
+    // Validações básicas
+    if (selectedOption === "Sim") {
+      if (!tempo) return toast("Selecione um SLA (data)");
+      if (!comentario) return toast("Preencha um comentário");
+    } else if (selectedOption === "Não") {
+      if (!justificativa) return toast("Selecione uma justificativa");
+      if (!comentario) return toast("Preencha um comentário");
+    } else if (selectedOption === "Detentora") {
+      if (!nomeDetentora) return toast("Preencha a detentora");
+      if (!numeroChamado) return toast("Preencha o número de chamado");
+      if (!comentario) return toast("Preencha um comentário");
+    } else if (selectedOption === "Patrimonio") {
+      if (!numeroChamado) return toast("Preencha o número de chamado");
+      if (!comentario) return toast("Preencha um comentário");
+    } else {
+      return toast("Selecione uma opção");
     }
+
+    // Monta o objeto plano_acao para salvar
+    let planoAcaoToSave = {};
+    if (selectedOption === "Sim") {
+      planoAcaoToSave = {
+        tempo,
+        comentario,
+      };
+    } else if (selectedOption === "Não") {
+      planoAcaoToSave = { justificativa, comentario };
+    } else if (selectedOption === "Detentora") {
+      planoAcaoToSave = {
+        nome_detentora: nomeDetentora,
+        numero_chamado: numeroChamado,
+        comentario,
+      };
+    } else if (selectedOption === "Patrimonio") {
+      planoAcaoToSave = {
+        numero_chamado: numeroChamado,
+        comentario,
+      };
+    }
+
+    // Preserva o anexo atual caso exista (não alterado aqui)
+    if (plano.plano_acao?.anexo_url) {
+      planoAcaoToSave.anexo_url = plano.plano_acao.anexo_url;
+      planoAcaoToSave.anexo_nome = plano.plano_acao.anexo_nome;
+    }
+
+    plano.plano_acao = planoAcaoToSave;
+    plano.resp_pa_selectedOption = selectedOption;
+    plano.resp_pa_data = new Date();
+    plano.resp_pa_user_name = user.nome;
+    plano.resp_pa_user_id = user.uid;
+
+    await docRef.update(dados);
+    await updateAPR(id);
+    toast.success("Plano de ação atualizado");
+    loadApr();
+    close();
   }
 
   async function updateAPR(id) {
-    await firebase
-      .firestore()
-      .collection(base)
-      .doc(id)
-      .update({
-        status: "Respondido pela Area",
-        data_alteracao: new Date(),
-      })
-      .then(() => {
-        console.log("Status APR atualizado com sucesso!");
-      })
-      .catch((error) => {
-        toast.error("Erro ao atualizar status da apr:", error);
-        console.log("Erro ao atualizar status da apr:", error);
-      });
+    await firebase.firestore().collection(base).doc(id).update({
+      status: "Respondido pela Area",
+      data_alteracao: new Date(),
+    });
   }
 
-  function enableEditing() {
-    setIsEditing(true);
+  // Upload do arquivo para Storage Firebase
+  async function handleArquivoChange(e) {
+    if (isReadOnly) return; // bloqueia upload se somente leitura
+    if (!e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    if (file.size > 10 * 1024 * 1024) {
+      return toast.error("Arquivo deve ter até 10MB");
+    }
+
+    setUploading(true);
+
+    try {
+      const storageRef = firebase.storage().ref();
+      const arquivoRef = storageRef.child(
+        `anexos_pa/${id}/${area}_q${index}_${file.name}`
+      );
+
+      // Faz upload
+      await arquivoRef.put(file);
+
+      // Pega URL do arquivo
+      const url = await arquivoRef.getDownloadURL();
+
+      // Atualiza o campo no Firestore
+      const docRef = firebase.firestore().collection(base).doc(id);
+      const doc = await docRef.get();
+      if (!doc.exists) return toast.error("Documento não encontrado");
+      const dados = doc.data();
+      const plano = dados.checklist[area][1][index];
+
+      // Atualiza anexo no plano_acao
+      plano.plano_acao = {
+        ...plano.plano_acao,
+        anexo_url: url,
+        anexo_nome: file.name,
+      };
+
+      await docRef.update(dados);
+
+      toast.success("Arquivo anexado com sucesso!");
+      loadApr();
+    } catch (error) {
+      toast.error("Erro ao enviar arquivo: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function renderOptionInputs() {
+    return (
+      <Box display="flex" flexDirection="column" gap={2}>
+        {selectedOption === "Sim" && (
+          <>
+            <TextField
+              label="SLA (Data)"
+              type="date"
+              value={tempo}
+              onChange={(e) => setTempo(e.target.value)}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+            <TextField
+              label="Comentário"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
+        {selectedOption === "Não" && (
+          <>
+            <TextField
+              label="Justificativa"
+              value={justificativa}
+              onChange={(e) => setJustificativa(e.target.value)}
+              select
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            >
+              <MenuItem value="Instalada solução similar">
+                Instalada solução similar
+              </MenuItem>
+              <MenuItem value="Sem orçamento">Sem orçamento</MenuItem>
+              <MenuItem value="Solução em desacordo">Solução em desacordo</MenuItem>
+              <MenuItem value="Discordância de necessidade">
+                Discordância de necessidade
+              </MenuItem>
+            </TextField>
+            <TextField
+              label="Comentário"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
+        {(selectedOption === "Detentora" || selectedOption === "Patrimonio") && (
+          <>
+            {selectedOption === "Detentora" && (
+              <TextField
+                label="Nome Detentora"
+                value={nomeDetentora}
+                onChange={(e) => setNomeDetentora(e.target.value.toUpperCase())}
+                fullWidth
+                slotProps={isReadOnly && {
+                  input: {
+                    readOnly: true,
+                  },
+                }}
+              />
+            )}
+            <TextField
+              label="Número Chamado"
+              value={numeroChamado}
+              onChange={(e) => setNumeroChamado(e.target.value.toUpperCase())}
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+            <TextField
+              label="Comentário"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
+
+        <Box>
+          {isReadOnly ? (
+            conteudo?.plano_acao?.anexo_url && (
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Download />}
+                href={conteudo.plano_acao.anexo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {conteudo.plano_acao.anexo_nome || "Baixar Anexo"}
+              </Button>
+            )
+          ) : (
+            <input type="file" onChange={handleArquivoChange} disabled={uploading} />
+          )}
+        </Box>
+      </Box>
+    );
   }
 
   return (
-    <div className="modal modal-pa">
-      <div className="container">
-        <button className="close" onClick={close}>
-          <FiX size={23} color="#FFF" />
-        </button>
-
-        <h2 className="titulo-planoacao">Plano de Ação</h2>
-
-        <div
-          className="selectOptions"
-          style={{
-            display:
-              conteudo.plano_acao.selected_option ||
-              conteudo.resp_pa_selectedOption
-                ? "none"
-                : "flex",
-          }}
-        >
-          <label>inconformidade sera tratada? </label>
-
-          <input
-            type="radio"
-            id="Sim"
-            name="option"
-            value="Sim"
+    <Dialog open={true} onClose={close} maxWidth="sm" fullWidth>
+      <DialogTitle>Plano de Ação</DialogTitle>
+      <DialogContent dividers>
+        <FormControl component="fieldset" fullWidth>
+          <FormLabel component="legend">Responsável</FormLabel>
+          <RadioGroup
+            row
+            value={selectedOption}
             onChange={(e) => setSelectedOption(e.target.value)}
-          />
-          <label htmlFor="Sim">Sim</label>
-
-          <input
-            type="radio"
-            id="Não"
-            name="option"
-            value="Não"
-            onChange={(e) => setSelectedOption(e.target.value)}
-          />
-          <label htmlFor="Não">Não</label>
-
-          <input
-            type="radio"
-            id="Detentora"
-            name="option"
-            value="Detentora"
-            onChange={(e) => setSelectedOption(e.target.value)}
-          />
-          <label htmlFor="Detentora">Detentora</label>
-        </div>
-
-        <div
-          id={"modal-sim"}
-          className="modal-body modal-planoacao"
-          style={{ display: selectedOption === "Sim" ? "block" : "none" }}
-        >
-          <div className="row">
-            <span>Sugestão de Proteção:</span>
-            <span>
-              <select
-                value={tempo}
-                onChange={(e) => setPlanoAcaoAtual(cardapio[e.target.value])}
-              >
-                {cardapio.map((item, index) => {
-                  console.log(item);
-                  return (
-                    <option key={index} value={index}>
-                      {item
-                        ? item.nomeTecnico + "-" + item.apicabilidade
-                        : "Sem Aplicabilidade"}
-                    </option>
-                  );
-                })}
-              </select>
-            </span>
-          </div>
-
-          <div className="row">
-            <span>Nome Tecnico: </span>
-            <span>
-              <i>
-                {planoAcaoAtual
-                  ? planoAcaoAtual.nomeTecnico
-                  : "Sem Nome Tecnico"}
-              </i>
-            </span>
-          </div>
-
-          <div className="row">
-            <span>Aplicabilidade: </span>
-            <span>
-              <i>
-                {planoAcaoAtual
-                  ? planoAcaoAtual.apicabilidade
-                  : "Sem Aplicabilidade"}
-              </i>
-            </span>
-          </div>
-
-          <div className="row">
-            <span>Especificação: </span>
-            <span>
-              <textarea
-                value={
-                  planoAcaoAtual
-                    ? planoAcaoAtual.especificacao
-                    : "Sem Especificação"
-                }
-                readOnly
-                style={{ height: "150px" }}
-              />
-            </span>
-          </div>
-
-          <div className="row">
-            <span>SLA:</span>
-            <span>
-              {conteudo.plano_acao.tempo && !isEditing ? (
-                <i>{conteudo.plano_acao.tempo}</i>
-              ) : (
-                <select value={tempo} onChange={handleChangeSelect}>
-                  <option value="" disabled>
-                    Selecione Tempo
-                  </option>
-                  <option value="03 meses">03 meses</option>
-                  <option value="06 meses">06 meses</option>
-                  <option value="09 meses">09 meses</option>
-                  <option value="12 meses">12 meses</option>
-                </select>
-              )}
-            </span>
-          </div>
-
-          <div style={{ paddingTop: "5px" }}>
-            <span>Comentario / Justificativa:</span>
-          </div>
-
-          {conteudo.plano_acao.comentario && !isEditing ? (
-            <div className="row">
-              <i>{conteudo.plano_acao.comentario}</i>
-              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
-            </div>
-          ) : (
-            <div className="row">
-              <textarea
-                type="text"
-                value={comentario}
-                onChange={(e) => setComentario(e.target.value)}
-              />
-            </div>
-          )}
-          <div className="btnAcao">
-            <a onClick={updatePlanoAcao}>Salvar Plano de Ação</a>
-          </div>
-        </div>
-
-        <div
-          id={"modal-nao"}
-          className="modal-body modal-planoacao"
-          style={{ display: selectedOption === "Não" ? "block" : "none" }}
-        >
-          <div className="row">
-            <span>
-              Justificativa:
-              <select
-                value={justificativa}
-                disabled={conteudo.plano_acao.justificativa && !isEditing}
-                onChange={(e) => setJutificativa(e.target.value)}
-              >
-                <option value={""} disabled>
-                  Selecione a justificativa...
-                </option>
-                <option value={"Instalada solução similar"}>
-                  Instalada solução similar
-                </option>
-                <option value={"Sem orçamento"}>Sem orçamento</option>
-                <option value={"Solução em desacordo"}>
-                  Solução em desacordo
-                </option>
-                <option value={"Discordância de necessidade"}>
-                  Discordância de necessidade
-                </option>
-              </select>
-            </span>
-          </div>
-
-          <div className="row">
-            <span>Comentario / Justificativa:</span>
-          </div>
-
-          {conteudo.plano_acao.comentario && !isEditing ? (
-            <div className="row">
-              <i>{conteudo.plano_acao.comentario}</i>
-              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
-            </div>
-          ) : (
-            <div className="row">
-              <textarea
-                type="text"
-                value={comentario}
-                onChange={(e) => setComentario(e.target.value)}
-              />
-            </div>
-          )}
-          <div className="btnAcao">
-            <a className="save-plan" onClick={updatePlanoAcao}>Salvar Plano de Ação</a> 
-          </div>
-        </div>
-
-        <div
-          id={"modal-detentora"}
-          className="modal-body modal-planoacao"
-          style={{ display: selectedOption === "Detentora" ? "block" : "none" }}
-        >
-          <div className="row">
-            <span>
-              Nome da Detentora:
-              <input
-                type="text"
-                readOnly={conteudo.plano_acao.nome_detentora && !isEditing}
-                value={nomeDetentora}
-                onChange={(e) => setNomeDetentora(e.target.value.toUpperCase())}
-              />
-            </span>
-          </div>
-
-          <div className="row">
-            <span>
-              Numero do Chamado:
-              <input
-                type="text"
-                readOnly={conteudo.plano_acao.numero_chamado && !isEditing}
-                value={numeroChamado}
-                onChange={(e) => setNumeroChamado(e.target.value.toUpperCase())}
-              />
-            </span>
-          </div>
-          <span style={{ paddingLeft: "10px" }}>
-            Comentario / Justificativa:
-          </span>
-          {conteudo.plano_acao.comentario && !isEditing ? (
-            <div className="row">
-              <i>{conteudo.plano_acao.comentario}</i>
-              <a className="save-plan-edit" onClick={enableEditing}>Editar</a>
-            </div>
-          ) : (
-            <div className="row">
-              <textarea
-                type="text"
-                value={comentario}
-                onChange={(e) => setComentario(e.target.value)}
-              />
-            </div>
-          )}
-          <div className="btnAcao">
-            <a className="save-plan" onClick={updatePlanoAcao}>Salvar Plano de Ação</a>
-          </div>
-        </div>
-
-        {conteudo.resp_pa_user_name && (
-          <div>
-            <div className="row">
-              <span>Nome: {conteudo.resp_pa_user_name}</span>
-            </div>
-            <div className="row">
-              <span>
-                Data:{" "}
-                {format(conteudo.resp_pa_data.toDate(), "dd/MM/yyyy HH:mm")}
-              </span>
-            </div>
-          </div>
+          >
+            <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
+            <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
+            <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
+            <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+          </RadioGroup>
+        </FormControl>
+        <Box mt={2}>{renderOptionInputs()}</Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={close} color="secondary">
+          Cancelar
+        </Button>
+        {!isReadOnly && (
+          <Button onClick={() => alterarPA(area, index)} variant="contained" color="primary">
+            Salvar
+          </Button>
         )}
-      </div>
-    </div>
+      </DialogActions>
+    </Dialog>
   );
 }
