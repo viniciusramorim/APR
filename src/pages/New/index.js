@@ -397,6 +397,31 @@ export default function New() {
           .then(async () => {
             console.log("ID Atual:", result);
 
+            console.log({
+              user_id: user,
+              apr_id: result,
+              site_id: siteInfo,
+              created: new Date(),
+              motivo_apr: motivoAPR,
+              valor_armazenamento: valorArmazenamento,
+              valor_transporte: valorTransporte,
+              valor_sinistro: valorSinistro,
+              valor_estoque: valorEstoque,
+              tipo_loja: tipoLoja,
+              status: justificativa ? "Com Exceção" : "Em Aberto",
+              peso: result_peso,
+              justificativa: justificativa ? justificativa : "",
+              locationCreated: {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                perimetro: perimeter,
+              },
+              tempoConclusao: {
+                inicio: inicio === undefined ? new Date() : inicio,
+                conclusao: new Date(),
+              },
+            })
+
             await firebase
               .firestore()
               .collection(base)
@@ -433,6 +458,24 @@ export default function New() {
                     1: [],
                   });
                   area[1].forEach(async (question, indexQ) => {
+                    console.log({
+                      imagesURL: [],
+                      resp: question.resp,
+                      respTextArea: question.respTextArea,
+                      questionId: question.questionId,
+                      question: question.question,
+                      plano_acao: question.plano_acao,
+                      openPA: question.openPA,
+                      areaResposavel: question.areaResposavel,
+                      respGabarito: question.respGabarito,
+                      answers: question.answers,
+                      isRequired: question.isRequired ? question.isRequired : false,
+                      optionList: question.optionList ? question.optionList : [],
+                      optionListResp: question.optionListResp ? question.optionListResp : [],
+                      listCheck: question.listCheck ? question.listCheck : "",
+                      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
+                      inputNumber: question.inputNumber ? question.inputNumber : "",
+                    })
                     question.question && checklist[indexA][1].push({
                       imagesURL: [],
                       resp: question.resp,
