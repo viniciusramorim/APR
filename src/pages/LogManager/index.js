@@ -162,12 +162,23 @@ export default function LogManagement() {
     XLSX.writeFile(workbook, `logs_${searchUser || filters.date}.xlsx`);
   };
 
+  const loadAllLogs = async () => {
+    const logSnapshot = await firebase.firestore().collection("log").get();
+    let logsList = [];
+    logSnapshot.forEach((doc) => {
+      logsList.push({ id: doc.id, ...doc.data() });
+    });
+
+    logsList.sort((a, b) => b.data.toDate() - a.data.toDate());
+    setLogs(logsList);
+  }
+
   return (
     <div className="apr-digital">
       <Header />
       <div className="content">
         <Title name="Gerenciamento de Logs">
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
+          <FiMessageSquare size={25} onClick={() => loadAllLogs()} />
         </Title>
         <div style={{ marginBottom: "20px" }} className="info-user">
           <Autocomplete
