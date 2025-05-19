@@ -120,6 +120,7 @@
       padding: 5px;
       font-weight: bold;
     }
+
     &[data-text="N/A"] {
       background-color: #FFD700;
       color: $white-color;
@@ -208,6 +209,11 @@
 
     &[data-check="Sim"] {
       background-color: $btn-action-green;
+      color: $white-color;
+    }
+
+    &[data-check="Concluido"] {
+      background-color: $btn-action-yellow;
       color: $white-color;
     }
   }

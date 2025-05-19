@@ -13,7 +13,7 @@ import "./open.scss";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
-import Modal from "../../components/Modal";
+import Modal_PA from "../../components/Modal_PA/index.js";
 import ModalLoading from "../../components/Modal_Loading";
 import telefonicaLogo from "../../assets/telefonica-logo.png";
 import EmailLink from "../../components/Email/EmailLink";
@@ -381,6 +381,28 @@ export default function Open() {
       .then(() => {
         toast.success("Motivo da apr atualizado com sucesso!");
         logSistem(`Motivo APR Atualizado para ${e.target.value}`, id);
+        ReloadAPR();
+      })
+      .catch((error) => {
+        toast.error("Erro ao atualizar status da apr:", error);
+        console.log("Erro ao atualizar status da apr:", error);
+      });
+  }
+
+  async function updateStatusAPR(e, id) {
+    e.preventDefault();
+    let confirm = window.confirm("Deseja realmente alterar o status para CONCLUIDO da APR?");
+    if (confirm === false) return;
+    await firebase
+      .firestore()
+      .collection(base)
+      .doc(id)
+      .update({
+        status: 'Concluido',
+      })
+      .then(() => {
+        toast.success("APR finalizada com sucesso!");
+        logSistem(`APR finalizada`, id);
         ReloadAPR();
       })
       .catch((error) => {
@@ -895,13 +917,13 @@ export default function Open() {
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a
-                                                data-check="Sim"
+                                                data-check= {doc.resp_pa_status === 'Concluido' ? 'Concluido' : 'Sim'}
                                                 onClick={() =>
                                                   togglePostModal(doc, indexA)
                                                 }
                                               >
                                                 <FiCheck size={20} />
-                                                Plano de Ação
+                                                {doc.resp_pa_status === 'Concluido' ? 'Plano de Ação Validado' : 'Plano de Ação'}
                                               </a>
                                             ) : (
                                               <a
@@ -1014,10 +1036,15 @@ export default function Open() {
                     })}
 
                     <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
+                    <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado")) && (
                       <Fragment>
-                        <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
                         <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                      </Fragment>
+                    )}
+                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
+                      <Fragment>
+                        <button onClick={(e) => updateStatusAPR(e, id)}>Finalizar APR</button>
                       </Fragment>
                     )}
                   </form>
@@ -1030,7 +1057,7 @@ export default function Open() {
           )}
 
           {showPostModal && (
-            <Modal
+            <Modal_PA
               checklist={apr.checklist}
               firebase={firebase}
               conteudo={detail}
@@ -1038,6 +1065,7 @@ export default function Open() {
               area={area}
               tipoSite={apr.site_id.tipoSite}
               loadApr={ReloadAPR}
+              apr={apr}
             />
           )}
 

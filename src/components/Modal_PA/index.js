@@ -19,10 +19,11 @@ import {
   TextField,
   MenuItem,
   Link,
+  Typography,
 } from "@mui/material";
 import { Download } from "@mui/icons-material";
 
-export default function Modal({
+export default function Modal_PA({
   checklist,
   firebase,
   conteudo,
@@ -30,6 +31,7 @@ export default function Modal({
   area,
   tipoSite,
   loadApr,
+  apr,
 }) {
   const base = "aprs-producao";
 
@@ -40,6 +42,7 @@ export default function Modal({
   const [nomeDetentora, setNomeDetentora] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [notaParecer, setNotaParecer] = useState("");
 
   const { user } = useContext(AuthContext);
   const { id } = useParams();
@@ -58,6 +61,7 @@ export default function Modal({
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
+      setNotaParecer(conteudo?.nota_parecer || "");
     }
 
     loadConstants();
@@ -66,7 +70,7 @@ export default function Modal({
   // Variável para bloquear edição se já existir plano de ação preenchido com anexo
   const isReadOnly = conteudo?.resp_pa_selectedOption;
 
-  async function alterarPA(indexA, indexQ) {
+  async function alterarPA() {
     if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
 
     const docRef = firebase.firestore().collection(base).doc(id);
@@ -131,6 +135,27 @@ export default function Modal({
     await docRef.update(dados);
     await updateAPR(id);
     toast.success("Plano de ação atualizado");
+    loadApr();
+    close();
+  }
+
+  async function UpdatePA() {
+    const docRef = firebase.firestore().collection(base).doc(id);
+
+    const doc = await docRef.get();
+    if (!doc.exists) return toast.error("Documento não encontrado");
+
+    const dados = doc.data();
+    const plano = dados.checklist[area][1][index];
+
+    plano.resp_pa_status_alterado_data = new Date();
+    plano.resp_pa_status_alterado = user.nome;
+    plano.resp_pa_status_parecer = notaParecer;
+    plano.resp_pa_status = "Concluido";
+
+    await docRef.update(dados);
+
+    toast.success("Plano de ação finalizado");
     loadApr();
     close();
   }
@@ -344,14 +369,44 @@ export default function Modal({
           </RadioGroup>
         </FormControl>
         <Box mt={2}>{renderOptionInputs()}</Box>
+        {conteudo?.resp_pa_user_name && (
+          <Box mt={2}>
+            <Typography variant="subtitle1"><strong>Respondido por:</strong> {conteudo.resp_pa_user_name}</Typography>
+            <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString() : ""}</Typography>
+          </Box>
+        )}
+        {conteudo?.resp_pa_status_alterado && (
+          <Box mt={2}>
+            <Typography variant="subtitle1"><strong>Validado por:</strong> {conteudo.resp_pa_status_alterado}</Typography>
+            <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString() : ""}</Typography>
+            <Typography variant="subtitle1"><strong>Status:</strong> {conteudo.resp_pa_status}</Typography>
+            <Typography variant="subtitle1"><strong>Parecer da segurança:</strong> {conteudo.resp_pa_status_parecer}</Typography>
+          </Box>
+        )}
+        {(user.nivel === "revisor" || user.nivel === "administrador") && isReadOnly && !conteudo.resp_pa_status && (
+          <TextField
+            label="Nota Parecer"
+            value={notaParecer}
+            onChange={(e) => setNotaParecer(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            margin="normal"
+          />
+        )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={close} color="secondary">
+        <Button onClick={close} color="error" variant="outlined">
           Cancelar
         </Button>
         {!isReadOnly && (
-          <Button onClick={() => alterarPA(area, index)} variant="contained" color="primary">
+          <Button onClick={() => alterarPA()} variant="contained" color="primary">
             Salvar
+          </Button>
+        )}
+        {(conteudo.resp_pa_status !== 'Concluido' && apr.status === "Respondido pela Area" && isReadOnly && (user.nivel === "revisor" || user.nivel === "administrador")) && (
+          <Button onClick={() => UpdatePA()} variant="contained" color="success">
+            Validar
           </Button>
         )}
       </DialogActions>

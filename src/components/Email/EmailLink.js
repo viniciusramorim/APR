@@ -82,8 +82,8 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     console.log(emails)
 
     const emailContent = {
-      remetente: "aprdigital.seg.br@telefonica.com",
-      assunto: `APR Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
+      remetente: "gestao.qualid.seg.br@telefonica.com",
+      assunto: `APR_Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
       destinatario: emails,
       texto: `
       <!DOCTYPE html>
@@ -179,7 +179,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     try {
       const response = await fetch(
-        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -309,7 +309,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
               <Button onClick={revisado} color="primary" variant="contained" disabled={!agreeTerms}>
                 Confirmar Revisão
               </Button>
-              <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms}>
+              <Button onClick={() => alert('Aviso: Estamos enfrentando problemas no envio de e-mails e estamos trabalhando para resolver. Agradecemos pela compreensão.')} color="primary" variant="contained" disabled={!agreeTerms}>
                 Confirmar Revisão e Enviar E-mail
               </Button>
             </Fragment>
