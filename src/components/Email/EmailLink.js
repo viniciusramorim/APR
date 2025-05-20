@@ -3,8 +3,10 @@ import { toast } from 'react-toastify';
 import firebase from '../../services/firebaseConnection';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import './email.scss';
+import { useHistory } from 'react-router-dom';
 
 const EmailLink = ({ apr, id, logSistem, setApr }) => {
+  const history = useHistory();
   const [emails, setEmails] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -78,8 +80,6 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     }
 
     setAgreeTerms(false);
-
-    console.log(emails.split(','))
 
     const emailContent = {
       remetente: "gestao.qualid.seg.br@telefonica.com",
@@ -206,6 +206,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       })
 
       toast.success("E-mail enviado com sucesso e APR atualizada!");
+      // history.push('/aprs')
       setOpenDialog(false);
     } catch (error) {
       toast.error(`Erro ao enviar o e-mail: ${error.message}`);
