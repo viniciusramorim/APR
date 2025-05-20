@@ -79,12 +79,12 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     setAgreeTerms(false);
 
-    console.log(emails)
+    console.log(emails.split(','))
 
     const emailContent = {
       remetente: "gestao.qualid.seg.br@telefonica.com",
       assunto: `APR_Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
-      destinatario: emails,
+      destinatario: emails.split(','),
       texto: `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -198,7 +198,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
         terms: agreeTerms
       })
 
-      logSistem('APR revisada e enviado por e-mail', id)
+      logSistem('APR revisada e enviado por e-mail', id, emails)
 
       setApr({
         ...apr,
@@ -309,7 +309,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
               <Button onClick={revisado} color="primary" variant="contained" disabled={!agreeTerms}>
                 Confirmar Revisão
               </Button>
-              <Button onClick={() => alert('Aviso: Estamos enfrentando problemas no envio de e-mails e estamos trabalhando para resolver. Agradecemos pela compreensão.')} color="primary" variant="contained" disabled={!agreeTerms}>
+              <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms}>
                 Confirmar Revisão e Enviar E-mail
               </Button>
             </Fragment>

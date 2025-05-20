@@ -437,7 +437,7 @@ function AuthProvider({ children }) {
     console.log(curentUsers);
   }
 
-  async function logSistem(evento, chamado) {
+  async function logSistem(evento, chamado, destinatario) {
     var ip = "null";
     let nome = "null";
     const currentURL = window.location.href;
@@ -460,6 +460,7 @@ function AuthProvider({ children }) {
         event: evento,
         user: nome,
         chamado: chamado ? chamado : "",
+        destinatario: destinatario ? destinatario : "",
         ip: ip,
         data: new Date(),
         rota: currentURL,
