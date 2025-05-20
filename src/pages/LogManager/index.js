@@ -147,6 +147,7 @@ export default function LogManagement() {
       Evento: log.event,
       Usuário: log.user || userDetails?.nome || "",
       Email: userDetails?.email || "",
+      Destinatario: log.destinatario || "",
       Região: userDetails?.regional || "",
       Nível: userDetails?.nivel || "",
       Chamado: log.chamado || "",
@@ -281,6 +282,15 @@ export default function LogManagement() {
                       Rota
                     </TableSortLabel>
                   </TableCell>
+                  <TableCell sortDirection={orderBy === "destinatario" ? order : false}>
+                    <TableSortLabel
+                      active={orderBy === "destinatario"}
+                      direction={orderBy === "destinatario" ? order : "asc"}
+                      onClick={() => handleRequestSort("destinatario")}
+                    >
+                      Destinatario
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell sortDirection={orderBy === "data" ? order : false}>
                     <TableSortLabel
                       active={orderBy === "data"}
@@ -299,6 +309,7 @@ export default function LogManagement() {
                     <TableCell>{log.event}</TableCell>
                     <TableCell>{log.ip || "N/A"}</TableCell>
                     <TableCell className="row-rota">{log.rota || "N/A"}</TableCell>
+                    <TableCell>{log.destinatario || "-"}</TableCell>
                     <TableCell>{log.data.toDate().toLocaleString()}</TableCell>
                   </TableRow>
                 ))}
