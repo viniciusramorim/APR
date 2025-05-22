@@ -203,14 +203,10 @@ export default function Open() {
       for (const doc of docs) {
         if (!doc) continue;
 
-        const incluirDoc = exportarea === "All"
-          ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== ""
-          : exportarea === "oem"
-          && doc.resp !== ""
-          && doc.resp !== "N/A"
-          && doc.resp !== doc.respGabarito
-          && doc.openPA === true
-          && doc.areaResposavel?.includes("oem");
+        const incluirDoc = exportarea === "All" 
+        ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== "" 
+        : (exportarea === "oem" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("oem"))
+          || (exportarea === "patrimonio" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("patrimonio"));
 
         if (!incluirDoc) continue;
 
@@ -229,7 +225,7 @@ export default function Open() {
 
         if (doc.resp !== "") {
           const respColor = doc.resp === "Sim" ? "#4CAF50" : doc.resp === "N/A" ? "#FFA500" : "#F44336";
-        
+
           pdf.content.push({
             table: {
               widths: ["*"],
@@ -740,7 +736,7 @@ export default function Open() {
                                         id={indexA + "-export-" + indexQ}
                                       >
                                         <label>
-                                          {indexQ + 1} - {doc.question} 
+                                          {indexQ + 1} - {doc.question}
                                         </label>
                                         Resposta:
                                         <span data-text={doc.resp}>
@@ -917,7 +913,7 @@ export default function Open() {
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a
-                                                data-check= {doc.resp_pa_status === 'Concluido' ? 'Concluido' : 'Sim'}
+                                                data-check={doc.resp_pa_status === 'Concluido' ? 'Concluido' : 'Sim'}
                                                 onClick={() =>
                                                   togglePostModal(doc, indexA)
                                                 }
@@ -1037,12 +1033,13 @@ export default function Open() {
 
                     <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
                     <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
+                    <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
                       <Fragment>
                         <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
                       </Fragment>
                     )}
-                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
+                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
                       <Fragment>
                         <button onClick={(e) => updateStatusAPR(e, id)}>Finalizar APR</button>
                       </Fragment>

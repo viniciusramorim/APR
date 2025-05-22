@@ -11,6 +11,12 @@ import {
   Radio,
   Checkbox,
   CircularProgress,
+  Typography,
+  Select,
+  MenuItem,
+  InputLabel,
+  Chip,
+  OutlinedInput,
 } from "@mui/material";
 import firebase from "../../services/firebaseConnection";
 import { FiEdit } from "react-icons/fi";
@@ -30,6 +36,8 @@ const style = {
   p: 4,
 };
 
+const areasDisponiveis = ['oem', 'patrimonio', 'CMC'];
+
 export default function ModalEdit(props) {
   const {
     id,
@@ -42,19 +50,18 @@ export default function ModalEdit(props) {
   } = props;
 
   const [open, setOpen] = useState(false);
-  
   const [questionResp, setQuestionResp] = useState(
     checklistCompleto[areaIndex][1][questionIndex].resp 
   );
-
   const [questionAnswers, setQuestionAnswers] = useState(
     checklistCompleto[areaIndex][1][questionIndex].answers 
   );
-
   const [questionComentario, setQuestionComentario] = useState(
     checklistCompleto[areaIndex][1][questionIndex].respTextArea
   );
-
+  const [questionArea, setQuestionArea] = useState(
+    checklistCompleto[areaIndex][1][questionIndex].areaResposavel || []
+  );
   const [uploading, setUploading] = useState(false);
 
   const handleUploadImage = (e) => {
@@ -103,13 +110,12 @@ export default function ModalEdit(props) {
   };
 
   const handleOpen = () => setOpen(true);
-  
   const handleClose = () => setOpen(false);
 
   const concluirEdit = () => {
     checklistCompleto[areaIndex][1][questionIndex].resp = questionResp;
-    checklistCompleto[areaIndex][1][questionIndex].respTextArea =
-      questionComentario;
+    checklistCompleto[areaIndex][1][questionIndex].respTextArea = questionComentario;
+    checklistCompleto[areaIndex][1][questionIndex].areaResposavel = questionArea;
     firebase
       .firestore()
       .collection("aprs-producao")
@@ -137,15 +143,15 @@ export default function ModalEdit(props) {
     <>
       <label className="Edit">
         <a onClick={() => handleOpen()}>
-          <FiEdit></FiEdit>{((questionResp && questionAnswers) ||(!questionResp && !questionAnswers)) ? 'Responder' : 'Editar'}
+          <FiEdit></FiEdit>Editar
         </a>
+        <a>{`( ${questionArea} )`}</a>
       </label>
       <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
-        sx={{}}
       >
         <Box sx={style}>
           <Grid container spacing={2} textAlign={"right"}>
@@ -163,7 +169,9 @@ export default function ModalEdit(props) {
 
           <Grid container spacing={2} marginTop={0.5}>
             <Grid item xs={12} md={12}>
-              {checklistCompleto[areaIndex][1][questionIndex].question}
+              <Typography variant="h6">
+                {checklistCompleto[areaIndex][1][questionIndex].question}
+              </Typography>
             </Grid>
             <Grid item xs={12} md={12}>
               <FormControl>
@@ -280,23 +288,21 @@ export default function ModalEdit(props) {
                   onChange={handleUploadImage}
                 />
                 <label htmlFor="upload-button">
-                  <label htmlFor="upload-button">
-                    <Button
-                      component="span"
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      fullWidth
-                      disabled={uploading}
-                      sx={{ marginTop: "20px" }}
-                    >
-                      {uploading ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        "Upload Imagem"
-                      )}
-                    </Button>
-                  </label>
+                  <Button
+                    component="span"
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    fullWidth
+                    disabled={uploading}
+                    sx={{ marginTop: "20px" }}
+                  >
+                    {uploading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      "Upload Imagem"
+                    )}
+                  </Button>
                 </label>
               </Grid>
             </Grid>
@@ -371,6 +377,32 @@ export default function ModalEdit(props) {
                 value={questionComentario}
                 onChange={(e) => setQuestionComentario(e.target.value)}
               />
+            </Grid>
+            <Grid item xs={12} md={12}>
+              <FormControl fullWidth>
+                <InputLabel id="area-label">Área Responsável</InputLabel>
+                <Select
+                  labelId="area-label"
+                  id="area-select"
+                  multiple
+                  value={questionArea}
+                  onChange={(e) => setQuestionArea(e.target.value)}
+                  input={<OutlinedInput id="select-multiple-chip" label="Área Responsável" />}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {areasDisponiveis.map((area) => (
+                    <MenuItem key={area} value={area}>
+                      {area}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
           <Grid container spacing={2} marginTop={0.5} textAlign={"left"}>
