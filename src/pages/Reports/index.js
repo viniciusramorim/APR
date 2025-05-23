@@ -165,175 +165,6 @@ export default function Reports() {
     }
   }
 
-  // async function updateState(snapshot) {
-  //   setLoading(true)
-  //   const relatorioApr = [];
-  //   const promises = snapshot.map(doc => {
-  //     // Verifica se o documento tem a propriedade
-  //     if (doc.created !== undefined) {
-  //       return v0(doc).then(result => {
-  //         if (includeQuestions) {
-  //           if (doc.checklist && doc.status !== "Com Exceção") {
-  //             doc.checklist.forEach((blocoQuestion) => {
-  //               blocoQuestion[1].forEach((question) => {
-  //                 if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
-  //                   console.log(question.areaResposavel, doc.id)
-  //                   relatorioApr.push({
-  //                     ID: doc.id,
-  //                     DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-  //                     STATUS: doc.status,
-  //                     MOTIVO: doc.motivo_apr,
-  //                     CLASSIFICACAO: calculatePontos(doc.peso),
-  //                     PESO: doc.peso,
-  //                     QUESTIONS: question.question,
-  //                     QUESTIONS_RESP: question.resp,
-  //                     QUESTIONS_CHECKS: question.optionListResp.toString(),
-  //                     QUESTIONS_AREA_RESPONSAVEL: question.areaResposavel ? question.areaResposavel.toString() : "",
-  //                     QUESTIONS_RESPTEXTAREA: question.respTextArea,
-  //                     QUESTIONS_RESPGABARITO: question.respGabarito,
-  //                     QUESTIONS_PA: question.openPA,
-  //                     QUESTION_PA_DATA: question.resp_pa_data
-  //                       ? format(
-  //                         question.resp_pa_data.toDate(),
-  //                         "dd/MM/yyyy HH:mm:ss"
-  //                       )
-  //                       : "",
-  //                     QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
-  //                     QUESTION_PA_NOME: question.resp_pa_user_name || "",
-  //                     SIGLA: doc.site_id.Sigla,
-  //                     SIGLA_GVT: doc.site_id.Sigla_GVT,
-  //                     TIPO_CHECKLIST: doc.site_id.tipoSite,
-  //                     NOME_SITE: doc.site_id.Nome,
-  //                     LAT_SITE: doc.site_id.Latitude,
-  //                     LNG_SITE: doc.site_id.Longitude,
-  //                     UF_SITE: doc.site_id.Estado,
-  //                     END_SITE: doc.site_id.Endereco,
-  //                     MUNICIPIO_SITE: doc.site_id.Cidade,
-  //                     BAIRRO_SITE: doc.site_id.Bairro,
-  //                     CEP_SITE: doc.site_id.CEP,
-  //                     CRITICIDADE_SITE: doc.site_id.critical,
-  //                     ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-  //                     ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
-  //                     ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
-  //                     TEMP_INCIO: doc.tempoConclusao ? format(
-  //                       doc.tempoConclusao.inicio.toDate(),
-  //                       "dd/MM/yyyy HH:mm:ss"
-  //                     ) : "-",
-  //                     TEMP_TERMINO: doc.tempoConclusao ? format(
-  //                       doc.tempoConclusao.conclusao.toDate(),
-  //                       "dd/MM/yyyy HH:mm:ss"
-  //                     ) : '-',
-  //                     TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
-  //                       (doc.tempoConclusao.conclusao.toDate() -
-  //                         doc.tempoConclusao.inicio.toDate()) /
-  //                       (1000 * 60)
-  //                     ) : '-',
-  //                     USER_ID: doc.user_id.uid,
-  //                     USER_NOME: doc.user_id.nome,
-  //                     USER_UF: doc.user_id.uf,
-  //                     V0: result,
-  //                   });
-  //                 }
-  //               });
-  //             });
-  //           } else if (doc.status === "Com Exceção") {
-  //             relatorioApr.push({
-  //               ID: doc.id,
-  //               DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-  //               STATUS: doc.status,
-  //               SIGLA: doc.site_id.Sigla,
-  //               SIGLA_GVT: doc.site_id.Sigla_GVT,
-  //               TIPO_CHECKLIST: doc.site_id.tipoSite,
-  //               NOME_SITE: doc.site_id.Nome,
-  //               LAT_SITE: doc.site_id.Latitude,
-  //               LNG_SITE: doc.site_id.Longitude,
-  //               UF_SITE: doc.site_id.Estado,
-  //               END_SITE: doc.site_id.Endereco,
-  //               MUNICIPIO_SITE: doc.site_id.Cidade,
-  //               BAIRRO_SITE: doc.site_id.Bairro,
-  //               CEP_SITE: doc.site_id.CEP,
-  //               CRITICIDADE_SITE: doc.site_id.critical,
-  //               ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-  //               ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
-  //               ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
-  //               TEMP_INCIO: doc.tempoConclusao ? format(
-  //                 doc.tempoConclusao.inicio.toDate(),
-  //                 "dd/MM/yyyy HH:mm:ss"
-  //               ) : "-",
-  //               TEMP_TERMINO: doc.tempoConclusao ? format(
-  //                 doc.tempoConclusao.conclusao.toDate(),
-  //                 "dd/MM/yyyy HH:mm:ss"
-  //               ) : '-',
-  //               TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
-  //                 (doc.tempoConclusao.conclusao.toDate() -
-  //                   doc.tempoConclusao.inicio.toDate()) /
-  //                 (1000 * 60)
-  //               ) : '-',
-  //               USER_ID: doc.user_id.uid,
-  //               USER_NOME: doc.user_id.nome,
-  //               USER_UF: doc.user_id.uf,
-  //               V0: "-",
-  //             });
-  //           }
-  //         } else {
-  //           relatorioApr.push({
-  //             ID: doc.id,
-  //             DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-  //             STATUS: doc.status,
-  //             MOTIVO: doc.motivo_apr,
-  //             CLASSIFICACAO: calculatePontos(doc.peso),
-  //             PESO: doc.peso,
-  //             SIGLA: doc.site_id.Sigla,
-  //             SIGLA_GVT: doc.site_id.Sigla_GVT,
-  //             TIPO_CHECKLIST: doc.site_id.tipoSite,
-  //             NOME_SITE: doc.site_id.Nome,
-  //             LAT_SITE: doc.site_id.Latitude,
-  //             LNG_SITE: doc.site_id.Longitude,
-  //             UF_SITE: doc.site_id.Estado,
-  //             END_SITE: doc.site_id.Endereco,
-  //             MUNICIPIO_SITE: doc.site_id.Cidade,
-  //             BAIRRO_SITE: doc.site_id.Bairro,
-  //             CEP_SITE: doc.site_id.CEP,
-  //             CRITICIDADE_SITE: doc.site_id.critical,
-  //             ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-  //             ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
-  //             ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
-  //             TEMP_INCIO: doc.tempoConclusao ? format(
-  //               doc.tempoConclusao.inicio.toDate(),
-  //               "dd/MM/yyyy HH:mm:ss"
-  //             ) : "-",
-  //             TEMP_TERMINO: doc.tempoConclusao ? format(
-  //               doc.tempoConclusao.conclusao.toDate(),
-  //               "dd/MM/yyyy HH:mm:ss"
-  //             ) : '-',
-  //             TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
-  //               (doc.tempoConclusao.conclusao.toDate() -
-  //                 doc.tempoConclusao.inicio.toDate()) /
-  //               (1000 * 60)
-  //             ) : '-',
-  //             USER_ID: doc.user_id.uid,
-  //             USER_NOME: doc.user_id.nome,
-  //             USER_UF: doc.user_id.uf,
-  //             V0: result,
-  //           });
-  //         }
-  //       });
-  //     } else {
-  //       return Promise.resolve(); // Retorna uma promise resolvida para documentos sem 'created'
-  //     }
-  //   });
-
-  //   // Aguarda a resolução de todas as Promises
-  //   Promise.all(promises).then(() => {
-  //     console.log(relatorioApr);
-  //     downloadExcel(relatorioApr);
-  //     setLoading(false)
-  //   }).catch(error => {
-  //     console.error("Erro ao processar documentos:", error);
-  //     setLoading(false)
-  //   });
-  // }
-
   async function updateState(snapshot) {
     setLoading(true)
     const relatorioApr = [];
@@ -347,10 +178,11 @@ export default function Reports() {
                   if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
                     relatorioApr.push({
                       ID: doc.id,
+                      ID_APR: doc.apr_id ? doc.apr_id : '-',
                       DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
                       STATUS: doc.status,
                       TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
-                      VALOR_ESTOQUE: doc.valor_estoque ? doc.valor_estoque : '-',
+                      VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
                       MOTIVO: doc.motivo_apr,
                       CLASSIFICACAO: calculatePontos(doc.peso),
                       PESO: doc.peso,
@@ -408,6 +240,7 @@ export default function Reports() {
             } else if (doc.status === "Com Exceção") {
               relatorioApr.push({
                 ID: doc.id,
+                ID_APR: doc.apr_id ? doc.apr_id : '-',
                 DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
                 STATUS: doc.status,
                 SIGLA: doc.site_id.Sigla,
@@ -447,10 +280,11 @@ export default function Reports() {
           } else {
             relatorioApr.push({
               ID: doc.id,
+              ID_APR: doc.apr_id ? doc.apr_id : '-',
               DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
               STATUS: doc.status,
               TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
-              VALOR_ESTOQUE: doc.valor_estoque ? doc.valor_estoque : '-',
+              VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
               MOTIVO: doc.motivo_apr,
               CLASSIFICACAO: calculatePontos(doc.peso),
               PESO: doc.peso,

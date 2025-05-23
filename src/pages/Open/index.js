@@ -407,70 +407,6 @@ export default function Open() {
       });
   }
 
-  function matrizRiscoLoja(valor, tipo) {
-    if (tipo === "LOJA RUA") {
-      if (valor === 0) {
-        return "Muito Baixo";
-      } else if (valor > 0 && valor <= 30000000) {
-        return "Baixo";
-      } else if (valor > 30000000 && valor <= 70000000) {
-        return "Alto";
-      } else if (valor > 70000000 && valor <= 150000000) {
-        return "Muito Alto";
-      } else if (valor > 150000000) {
-        return "Muito Alto";
-      }
-    } else if (tipo === "LOJA GALERIA") {
-      if (valor === 0) {
-        return "Muito Baixo";
-      } else if (valor > 0 && valor <= 30000000) {
-        return "Baixo";
-      } else if (valor > 30000000 && valor <= 70000000) {
-        return "Alto";
-      } else if (valor > 70000000 && valor <= 150000000) {
-        return "Muito Alto";
-      } else if (valor > 150000000) {
-        return "Muito Alto";
-      }
-    } else if (tipo === "LOJA SHOP TERREO") {
-      if (valor === 0) {
-        return "Muito Baixo";
-      } else if (valor > 0 && valor <= 30000000) {
-        return "Baixo";
-      } else if (valor > 30000000 && valor <= 70000000) {
-        return "Médio";
-      } else if (valor > 70000000 && valor <= 150000000) {
-        return "Alto";
-      } else if (valor > 150000000) {
-        return "Muito Alto";
-      }
-    } else if (tipo === "LOJA SHOP 1° PISO") {
-      if (valor === 0) {
-        return "Muito Baixo";
-      } else if (valor > 0 && valor <= 30000000) {
-        return "Muito Baixo";
-      } else if (valor > 30000000 && valor <= 70000000) {
-        return "Médio";
-      } else if (valor > 70000000 && valor <= 150000000) {
-        return "Alto";
-      } else if (valor > 150000000) {
-        return "Muito Alto";
-      }
-    } else if (tipo === "LOJA SHOP ELITE") {
-      if (valor === 0) {
-        return "Muito Baixo";
-      } else if (valor > 0 && valor <= 30000000) {
-        return "Muito Baixo";
-      } else if (valor > 30000000 && valor <= 70000000) {
-        return "Médio";
-      } else if (valor > 70000000 && valor <= 150000000) {
-        return "Médio";
-      } else if (valor > 150000000) {
-        return "Alto";
-      }
-    }
-  }
-
   return (
     <div>
       <Header />
@@ -659,15 +595,6 @@ export default function Open() {
                       <span>Tipo de Loja:</span> {apr.tipo_loja}
                       <span>Valor Transporte:</span>{" "}
                       {formatarValor(parseInt(apr.valor_estoque))}
-                    </div>
-                  </div>
-                  <div className="container">
-                    <div className="siteInfo">
-                      <span>Classificação Loja:</span>{" "}
-                      {matrizRiscoLoja(
-                        parseInt(apr.valor_estoque),
-                        apr.tipo_loja
-                      )}
                     </div>
                   </div>
                 </>

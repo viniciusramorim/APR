@@ -26,6 +26,12 @@ const styles = {
     padding: "6px",
     borderRadius: "8px",
   },
+  pendendia: {
+    background: "#ef0808e8",
+    color: "#fff",
+    padding: "6px",
+    borderRadius: "8px",
+  },
   gridContainer: {
     gap: "10px",
   },
@@ -194,7 +200,6 @@ export default function Dashboard() {
         ])
         : query;
 
-    let lista = [];
 
     const contarQuestions = (checklist) => {
       let totalQuestions = 0;
@@ -410,10 +415,33 @@ export default function Dashboard() {
     }
   };
 
+  // function contAprs(status) {
+  //   var quantidadeElementos = chamados.filter(
+  //     (x) => x.status === status
+  //   ).length;
+  //   return chamados.filter(x) => x.status === status).length;;
+  // }
+
   function contAprs(status) {
-    var quantidadeElementos = chamados.filter(
-      (x) => x.status === status
-    ).length;
+    const quantidadeElementos = chamados.filter((x) => {
+      if (x.status !== status) return false;
+
+      // Parse da data
+      const [datePart, timePartWithPeriod] = x.created.split(' ');
+      const [day, month, year] = datePart.split('/');
+      const timePart = timePartWithPeriod.slice(0, -2);
+      const period = timePartWithPeriod.slice(-2);
+      const formattedDateStr = `${year}-${month}-${day}`;
+      const createdDate = new Date(formattedDateStr);
+
+      const now = new Date();
+      const diffMs = now - createdDate;
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+      // Só conta se estiver em aberto E tiver mais de 5 dias
+      return diffDays > 10;
+    }).length;
+
     return quantidadeElementos;
   }
 
@@ -440,10 +468,23 @@ export default function Dashboard() {
               xs={5.5}
               sm={6}
               md={2.9}
+              sx={styles.pendendia}
+            >
+              <Grid>Pendencia de Revisão (10 dias)</Grid>
+              <Grid>{contAprs("Em Aberto")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
               sx={styles.containerDash}
             >
               <Grid>Em Aberto</Grid>
-              <Grid>{contAprs("Em Aberto")}</Grid>
+              <Grid>{chamados.filter((x) => x.status === "Em Aberto").length}</Grid>
             </Grid>
 
             <Grid
@@ -457,6 +498,19 @@ export default function Dashboard() {
             >
               <Grid>Cancelado</Grid>
               <Grid>{contAprs("Cancelado")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Revisado</Grid>
+              <Grid>{contAprs("Revisado")}</Grid>
             </Grid>
 
             <Grid
@@ -483,6 +537,32 @@ export default function Dashboard() {
             >
               <Grid>Respondido pela Área</Grid>
               <Grid>{contAprs("Respondido pela Area")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Concluido</Grid>
+              <Grid>{contAprs("Concluido")}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={5}
+              md={2.9}
+              sx={styles.containerDash}
+            >
+              <Grid>Total</Grid>
+              <Grid>{chamados.length}</Grid>
             </Grid>
           </Grid>
         )}

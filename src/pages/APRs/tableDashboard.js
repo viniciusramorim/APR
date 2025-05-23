@@ -110,8 +110,28 @@ export default function CustomPaginationActionsTable(props) {
   const [orderBy, setOrderBy] = React.useState("apr_id");
 
   // Evitar saltos na última página quando houver registros vazios.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - chamados.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - chamados.length) : 0;
+
+  const pendenciaAtiva = (row) => {
+    // Converte a string "17/05/2025 18:50PM" em uma data válida
+    const [datePart, timePartWithPeriod] = row.created.split(' ');
+    const [day, month, year] = datePart.split('/');
+
+    // Monta uma string no formato ISO para garantir compatibilidade
+    const formattedDateStr = `${year}-${month}-${day}`;
+    console.log(formattedDateStr)
+    const createdDate = new Date(formattedDateStr);
+
+    const now = new Date();
+    const diffMs = now - createdDate;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    console.log("Data criada:", createdDate);
+    console.log("Data atual:", now);
+    console.log("Diferença em dias:", diffDays);
+
+    return row.status === "Em Aberto" && diffDays > 10;
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -248,13 +268,13 @@ export default function CustomPaginationActionsTable(props) {
         <TableBody>
           {(rowsPerPage > 0
             ? sortedRows.slice(
-                page * rowsPerPage,
-                page * rowsPerPage + rowsPerPage
-              )
+              page * rowsPerPage,
+              page * rowsPerPage + rowsPerPage
+            )
             : sortedRows
           ).map((row, index) => (
-            <TableRow key={row.id}>
-              <TableCell data-label="ID" align="center">
+            <TableRow key={row.id} onClick={() => pendenciaAtiva(row)}>
+              <TableCell className={pendenciaAtiva(row) && "pendencias"} data-label="ID" align="center">
                 {row.apr_id}
               </TableCell>
               <TableCell data-label="Motivo APR" align="center">
@@ -292,14 +312,14 @@ export default function CustomPaginationActionsTable(props) {
                 </Link>
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && (
-                  <IconButton
-                    onClick={() => updateStatus(row.id, index)}
-                    color="error"
-                    aria-label="add an alarm"
-                  >
-                    <Close />
-                  </IconButton>
-                )}
+                    <IconButton
+                      onClick={() => updateStatus(row.id, index)}
+                      color="error"
+                      aria-label="add an alarm"
+                    >
+                      <Close />
+                    </IconButton>
+                  )}
                 {(user.nivel === "administrador" ||
                   user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
               </TableCell>
