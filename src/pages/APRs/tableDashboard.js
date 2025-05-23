@@ -119,18 +119,13 @@ export default function CustomPaginationActionsTable(props) {
 
     // Monta uma string no formato ISO para garantir compatibilidade
     const formattedDateStr = `${year}-${month}-${day}`;
-    console.log(formattedDateStr)
     const createdDate = new Date(formattedDateStr);
 
     const now = new Date();
     const diffMs = now - createdDate;
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
-    console.log("Data criada:", createdDate);
-    console.log("Data atual:", now);
-    console.log("Diferença em dias:", diffDays);
-
-    return row.status === "Em Aberto" && diffDays > 10;
+    return user.nivel === 'revisor' && row.status === "Em Aberto" && diffDays > 10;
   };
 
   const handleChangePage = (event, newPage) => {
