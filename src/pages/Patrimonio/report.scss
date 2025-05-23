@@ -1,0 +1,34 @@
+@import "../../styles/_variables.scss";
+@import "../../styles/_mixins.scss";
+
+.reports {
+  background-color: $reports-bg-color;
+
+  button {
+    padding: 0.8em;
+    border: 0;
+    @include button-style($reports-button-bg, $reports-button-hover-bg);
+    font-weight: $font-weight-bold;
+    justify-content: center;
+  }
+}
+
+.filter-reports-container {
+  padding: 20px 0px 10px 15px;
+  background: $reports-bg-color;
+}
+
+@include respond-to(medium) {
+  .filter-reports {
+    div {
+      display: flex;
+      flex-direction: column;
+      align-content: space-around;
+      flex-wrap: nowrap;
+
+      div {
+        min-width: 95%;
+      }
+    }
+  }
+}
