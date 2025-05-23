@@ -82,7 +82,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     setAgreeTerms(false);
 
     const emailContent = {
-      remetente: "gestao.qualid.seg.br@telefonica.com",
+      remetente: "aprdigital.seg.br@telefonica.com",
       assunto: `APR_Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
       destinatario: emails.split(','),
       texto: `
