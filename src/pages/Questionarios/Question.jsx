@@ -462,7 +462,17 @@ const ChecklistManager = () => {
                         <Grid className="card-block" key={blocoId}>
                           <Card>
                             <CardContent>
-                              <Typography variant="h6">
+                              <Typography variant="h6" 
+                                // onClick={() => {
+                                //   console.log(checklists[selectedChecklist]['2 - Segurança Interna'])
+                                //   console.log(checklists[selectedChecklist]['4 - Proposta de Internalização'])
+
+                                //   const checklistsRef = firebase.firestore().collection("question");
+                                //   checklistsRef.doc(selectedChecklist).update({
+                                //     '1 - Matriz de Risco': checklists[selectedChecklist]['2 - Segurança Interna'],
+                                //     '2 - Proposta de estoque avançado': checklists[selectedChecklist]['4 - Proposta de Internalização']
+                                //   })}}
+                                  >
                                 {blocoData.title || blocoId}
                               </Typography>
                               <Typography

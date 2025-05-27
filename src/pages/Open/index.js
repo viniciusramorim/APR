@@ -840,7 +840,7 @@ export default function Open() {
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a
-                                                data-check={doc.resp_pa_status === 'Concluido' ? 'Concluido' : 'Sim'}
+                                                data-check={doc.resp_pa_status === 'Concluido' ? 'Sim' : 'Concluido'}
                                                 onClick={() =>
                                                   togglePostModal(doc, indexA)
                                                 }
