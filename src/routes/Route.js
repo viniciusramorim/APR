@@ -15,6 +15,7 @@ export default function RouteWrapper({
 
   function pageTo() {
     if (user.area === 'patrimonial' || user.area === 'oem' || user.area === 'pci') return previousLocation !== null ? previousLocation : '/aprs';
+    else if (user.area === 'patrimonio') return previousLocation !== null ? previousLocation : '/patrimonio';
   }
 
   useEffect(() => {

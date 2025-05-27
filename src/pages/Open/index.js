@@ -46,6 +46,12 @@ export default function Open() {
     return result;
   };
 
+  const valorDentroDoIntervalo = (valor, intervalo) => {
+    if (!intervalo) return false;
+    const convertido = valor / 100;
+    return convertido > intervalo.min && convertido <= intervalo.max;
+  };
+
   async function ReloadAPR() {
     await firebase
       .firestore()
@@ -62,6 +68,12 @@ export default function Open() {
             const isDono = user.uid === apr.user_id.uid;
             const hasAnswer = doc.answers !== "";
             const isRespVazio = doc.resp === "";
+            const hasValorEstoque = doc.valorEstoque
+            const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin
+            const isQuestionActiveLoja = isRevisorLoja &&
+              valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
+              doc.tipoLoja?.includes(apr.tipo_loja)
+
 
             if (isRespVazio && hasAnswer) {
               if (!isRevisorOuAdmin && !isEmAberto) {
@@ -72,6 +84,9 @@ export default function Open() {
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isEmAberto && isRevisorOuAdmin) {
                 // Caso 3: status diferente de "Em Aberto", e é revisor ou admin
+                delete apr.checklist[indexA][1][indexQ];
+              } else if (!isQuestionActiveLoja) {
+                // Caso 4: remove questoes fora do valor min e max para revisor ou admin
                 delete apr.checklist[indexA][1][indexQ];
               }
             }
@@ -203,9 +218,9 @@ export default function Open() {
       for (const doc of docs) {
         if (!doc) continue;
 
-        const incluirDoc = exportarea === "All" 
-        ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== "" 
-        : (exportarea === "oem" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("oem"))
+        const incluirDoc = exportarea === "All"
+          ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== ""
+          : (exportarea === "oem" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("oem"))
           || (exportarea === "patrimonio" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("patrimonio"));
 
         if (!incluirDoc) continue;
@@ -674,7 +689,7 @@ export default function Open() {
                                             Quantidade: {doc.respInputNumber}
                                           </span>
                                         )}
-                                        {doc.listCheck && doc.optionListResp.map(
+                                        {(doc.listCheck && doc.optionListResp !== '') && doc.optionListResp.map(
                                           (value, index) => {
                                             return (
                                               <span className="list_resp_question">
@@ -793,7 +808,7 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {doc.listCheck &&
+                                      {(doc.listCheck && doc.optionListResp !== '') &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (
@@ -881,7 +896,7 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {doc.listCheck &&
+                                      {(doc.listCheck && doc.optionListResp !== '') &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (

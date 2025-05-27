@@ -10,6 +10,7 @@
   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-13p6a%40apr-digital-d962c.iam.gserviceaccount.com",
   "hosting": {
+    "site": "aprdigital",
     "public": "build",
     "ignore": [
       "firebase.json",

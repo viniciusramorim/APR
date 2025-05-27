@@ -34,6 +34,13 @@ export default function Patrimonio() {
   const [tempo, setTempo] = useState("");
   const [comentario, setComentario] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
+  const [isEditDisabled, setIsEditDisabled] = useState(false);
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+
+  const [totalPA, setTotalPA] = useState(0);
+  const [tratadosPA, setTratadosPA] = useState(0);
+  const [pendentesPA, setPendentesPA] = useState(0);
+
 
   useEffect(() => {
     addBodyClass("page-reports");
@@ -44,15 +51,14 @@ export default function Patrimonio() {
     try {
       let query = firebase.firestore().collection("aprs-producao");
       query =
-        user.area === "patrimonial"
+        user.area === "patrimonio" || user.nivel === "administrador"  || user.nivel === "revisor"
           ? query.where("status", "in", ["Respondido pela Area", "Enviado"])
-          : query;
+          : query.where("status", "in", ["Nenhum"]);
       const snapshot = await query.get();
       const list = [];
 
       snapshot.forEach((doc) => {
         doc.data().checklist.forEach((area) => {
-          console.log(area[0])
           area[1].forEach((question, idx) => {
             const docInclude =
               question.resp !== "" &&
@@ -80,6 +86,9 @@ export default function Patrimonio() {
       });
 
       setChamados(list);
+      setTotalPA(list.length);
+      setTratadosPA(list.filter(item => item.plano_acao?.comentario).length);
+      setPendentesPA(list.filter(item => !item.plano_acao?.comentario).length);
     } catch (err) {
       console.error("Deu algum erro: ", err);
     }
@@ -95,6 +104,8 @@ export default function Patrimonio() {
 
   const handleOpenModal = (question) => {
     console.log(question)
+    const hasPlanoAcao = !!question?.plano_acao?.comentario || !!question?.plano_acao?.numero_chamado || !!question?.plano_acao?.tempo;
+    setIsEditDisabled(hasPlanoAcao);
     setSelectedQuestion(question);
     setNumeroChamado(question?.plano_acao?.numero_chamado || "");
     setTempo(question?.plano_acao?.tempo || "");
@@ -178,6 +189,26 @@ export default function Patrimonio() {
                 </FormControl>
               </Grid>
             </Grid>
+            <Grid container spacing={2} sx={{ my: 2 }}>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="h6">Total de Planos de Ação</Typography>
+                  <Typography variant="h4" color="primary">{totalPA}</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 2, backgroundColor: "#e8f5e9" }}>
+                  <Typography variant="h6">Tratados</Typography>
+                  <Typography variant="h4" color="success.main">{tratadosPA}</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 2, backgroundColor: "#ffebee" }}>
+                  <Typography variant="h6">Pendentes</Typography>
+                  <Typography variant="h4" color="error.main">{pendentesPA}</Typography>
+                </Card>
+              </Grid>
+            </Grid>
           </div>
         </div>
 
@@ -198,7 +229,36 @@ export default function Patrimonio() {
                       </AccordionSummary>
                       <AccordionDetails>
                         {chamados.map((question, index) => (
-                          <Accordion key={index} sx={{ mb: 1, ml: 2 }}>
+                          <Accordion
+                            key={index}
+                            expanded={`${question.uid}-${question.index}` === expandedQuestionId}
+                            onChange={() =>
+                              setExpandedQuestionId(
+                                expandedQuestionId === `${question.uid}-${question.index}`
+                                  ? null
+                                  : `${question.uid}-${question.index}`
+                              )
+                            }
+                            sx={{
+                              mb: 1,
+                              ml: 2,
+                              border: question.plano_acao?.comentario
+                                ? '2px solid #4caf50' // verde
+                                : '2px solid #f44336', // vermelho
+                              backgroundColor:
+                                `${question.uid}-${question.index}` === expandedQuestionId
+                                  ? question.plano_acao?.comentario
+                                    ? '#e8f5e9' // verde claro
+                                    : '#ffebee' // vermelho claro
+                                  : 'white',
+                              boxShadow:
+                                `${question.uid}-${question.index}` === expandedQuestionId
+                                  ? '0 0 10px rgba(0, 0, 0, 0.2)'
+                                  : 'none',
+                              transition: 'all 0.3s ease-in-out',
+                              borderRadius: 2,
+                            }}
+                          >
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                               <Typography variant="body1">
                                 ID: {question.id} - {question.nome} -{" "}
@@ -299,6 +359,7 @@ export default function Patrimonio() {
             onChange={(e) => setNumeroChamado(e.target.value)}
             sx={{ mt: 2 }}
             InputLabelProps={{ shrink: true }}
+            disabled={isEditDisabled}
           />
           <TextField
             fullWidth
@@ -308,6 +369,7 @@ export default function Patrimonio() {
             onChange={(e) => setTempo(e.target.value)}
             sx={{ mt: 2 }}
             InputLabelProps={{ shrink: true }}
+            disabled={isEditDisabled}
           />
           <TextField
             fullWidth
@@ -315,12 +377,14 @@ export default function Patrimonio() {
             value={comentario}
             onChange={(e) => setComentario(e.target.value)}
             sx={{ mt: 2 }}
+            disabled={isEditDisabled}
           />
           <Button
             variant="contained"
             color="primary"
             onClick={alterarPA}
             sx={{ mt: 2 }}
+            disabled={isEditDisabled}
           >
             Salvar
           </Button>
