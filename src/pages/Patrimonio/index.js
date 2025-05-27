@@ -6,13 +6,26 @@ import Header from "../../components/Header/index.js";
 import Title from "../../components/Title/index.js";
 import { AuthContext } from "../../contexts/auth.js";
 import "./report.scss";
-import { Button, FormControl, Grid, Accordion, AccordionSummary, AccordionDetails, Typography, CardMedia, Box, Modal, TextField } from "@mui/material";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { toast } from 'react-toastify';
+import {
+  Button,
+  FormControl,
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  CardMedia,
+  Box,
+  Modal,
+  TextField,
+  Divider,
+  Card
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { toast } from "react-toastify";
 
 export default function Patrimonio() {
   const { user } = useContext(AuthContext);
-
   const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -23,24 +36,33 @@ export default function Patrimonio() {
   const [numeroChamado, setNumeroChamado] = useState("");
 
   useEffect(() => {
-    addBodyClass('page-reports');
+    addBodyClass("page-reports");
   }, []);
 
   async function loadChamados() {
     setLoading(true);
     try {
       let query = firebase.firestore().collection("aprs-producao");
-
-      query = user.area === 'patrimonial' ? query.where("status", "in", ["Respondido pela Area", "Enviado"]) : query
+      query =
+        user.area === "patrimonial"
+          ? query.where("status", "in", ["Respondido pela Area", "Enviado"])
+          : query;
       const snapshot = await query.get();
       const list = [];
 
       snapshot.forEach((doc) => {
         doc.data().checklist.forEach((area) => {
-          area[1].forEach((question) => {
-            const docInclude = question.resp !== "" && question.resp !== "N/A" && question.resp !== question.respGabarito && question.openPA === true && question.areaResposavel?.includes("patrimonio")
+          console.log(area[0])
+          area[1].forEach((question, idx) => {
+            const docInclude =
+              question.resp !== "" &&
+              question.resp !== "N/A" &&
+              question.resp !== question.respGabarito &&
+              question.openPA === true &&
+              question.areaResposavel?.includes("patrimonio");
             if (docInclude) {
               list.push({
+                uid: doc.id,
                 id: doc.data().apr_id,
                 sigla: doc.data().site_id.Sigla,
                 uf: doc.data().site_id.Estado,
@@ -48,11 +70,13 @@ export default function Patrimonio() {
                 endereco: doc.data().site_id.Endereco,
                 nome: doc.data().site_id.Nome,
                 status: doc.data().status,
+                area: area[0],
+                index: idx,
                 ...question
               });
             }
-          })
-        })
+          });
+        });
       });
 
       setChamados(list);
@@ -62,8 +86,19 @@ export default function Patrimonio() {
     setLoading(false);
   }
 
+  const groupByUF = chamados.reduce((acc, chamado) => {
+    if (!acc[chamado.uf]) acc[chamado.uf] = {};
+    if (!acc[chamado.uf][chamado.municipio]) acc[chamado.uf][chamado.municipio] = [];
+    acc[chamado.uf][chamado.municipio].push(chamado);
+    return acc;
+  }, {});
+
   const handleOpenModal = (question) => {
+    console.log(question)
     setSelectedQuestion(question);
+    setNumeroChamado(question?.plano_acao?.numero_chamado || "");
+    setTempo(question?.plano_acao?.tempo || "");
+    setComentario(question?.plano_acao?.comentario || "");
     setOpenModal(true);
   };
 
@@ -77,34 +112,30 @@ export default function Patrimonio() {
   };
 
   async function alterarPA() {
-    if (!selectedQuestion || !selectedQuestion.id) {
+    if (!selectedQuestion || !selectedQuestion.uid) {
       return toast.error("Questão selecionada inválida");
     }
 
-    const docRef = firebase.firestore().collection("aprs-producao").doc(String(selectedQuestion.id));
-    console.log(selectedQuestion.id)
+    const docRef = firebase
+      .firestore()
+      .collection("aprs-producao")
+      .doc(selectedQuestion.uid);
     const doc = await docRef.get();
     if (!doc.exists) return toast.error("Documento não encontrado");
 
     const dados = doc.data();
-    const plano = dados.checklist[selectedQuestion.area][1][selectedQuestion.index];
+    const areaIndex = dados.checklist.findIndex(x => x[0] === selectedQuestion.area);
+    const plano = dados.checklist[areaIndex][1][selectedQuestion.index];
 
-    if (selectedOption === "Patrimonio") {
-      if (!numeroChamado) return toast("Preencha o número de chamado");
-      if (!comentario) return toast("Preencha um comentário");
-      if (!tempo) return toast("Selecione um SLA (data)");
-    } else {
-      return toast("Selecione uma opção");
+    if (!numeroChamado || !comentario || !tempo) {
+      return toast("Preencha todos os campos");
     }
 
-    let planoAcaoToSave = {};
-    if (selectedOption === "Patrimonio") {
-      planoAcaoToSave = {
-        numero_chamado: numeroChamado,
-        comentario,
-        tempo,
-      };
-    }
+    let planoAcaoToSave = {
+      numero_chamado: numeroChamado,
+      comentario,
+      tempo
+    };
 
     if (plano.plano_acao?.anexo_url) {
       planoAcaoToSave.anexo_url = plano.plano_acao.anexo_url;
@@ -149,60 +180,117 @@ export default function Patrimonio() {
             </Grid>
           </div>
         </div>
+
         <div className="container reports">
           <div className="questions-list">
-            {chamados.map((question, index) => (
-              <Accordion key={index} sx={{ mb: 2 }}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls={`panel-question-${index}-content`}
-                  id={`panel-question-${index}-header`}
-                >
-                  <Typography variant="h6">
-                    ID: {question.id} - {question.sigla} - {question.nome} - {question.endereco}
-                  </Typography>
+            {Object.entries(groupByUF).map(([uf, municipios], i) => (
+              <Accordion key={uf + i} sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">UF: {uf}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box mb={2}>
-                    <Typography variant="body1" color="text.secondary">
-                      <strong>Pergunta:</strong> {question.question}
-                    </Typography>
-                  </Box>
-                  {question.imagesURL && question.imagesURL.length > 0 && (
-                    <Box mb={2}>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={question.imagesURL[0].url}
-                        alt={`Imagem da questão ${index + 1}`}
-                        sx={{ borderRadius: 2, width: 'fit-content' }}
-                      />
-                    </Box>
-                  )}
-                  <Box mb={2}>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Resposta:</strong> {question.resp}
-                    </Typography>
-                  </Box>
-                  <Box mb={2}>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Comentário:</strong> {question.respTextArea || "Nenhum comentário fornecido"}
-                    </Typography>
-                  </Box>
-                  <Button variant="contained" color="primary" onClick={() => handleOpenModal(question)}>
-                    Inserir Plano de Ação
-                  </Button>
+                  {Object.entries(municipios).map(([municipio, chamados]) => (
+                    <Accordion key={municipio} sx={{ mb: 2, ml: 2 }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          Município: {municipio}
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        {chamados.map((question, index) => (
+                          <Accordion key={index} sx={{ mb: 1, ml: 2 }}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Typography variant="body1">
+                                ID: {question.id} - {question.nome} -{" "}
+                                {question.endereco}
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Grid container spacing={2}>
+                                {/* Coluna de informações */}
+                                <Grid item xs={12} sm={8}>
+                                  <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
+                                    Informações da Inconformidade
+                                  </Typography>
+
+                                  <Divider sx={{ mb: 2 }} />
+
+                                  <Typography variant="body1" sx={{ mb: 1 }}>
+                                    <strong>Pergunta:</strong><br />
+                                    {question.question}
+                                  </Typography>
+
+                                  <Typography variant="body1" sx={{ mb: 1 }}>
+                                    <strong>Resposta:</strong> {question.resp || "Não informado"}
+                                  </Typography>
+
+                                  <Typography variant="body1" sx={{ mb: 2 }}>
+                                    <strong>Comentário:</strong> {question.respTextArea || "Nenhum comentário"}
+                                  </Typography>
+
+                                  <Button
+                                    variant="contained"
+                                    onClick={() => handleOpenModal(question)}
+                                    sx={{
+                                      backgroundColor: "#5e168c",
+                                      ":hover": { backgroundColor: "#4a0e74" },
+                                      width: "100%",
+                                      mt: 2,
+                                    }}
+                                  >
+                                    {!question.plano_acao.comentario ? "INSERIR PLANO DE AÇÃO" : "PLANO DE AÇÃO"}
+                                  </Button>
+                                </Grid>
+
+                                {/* Coluna de imagem */}
+                                {question.imagesURL?.length > 0 && (
+                                  <Grid item xs={12} sm={4}>
+                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                      Imagem
+                                    </Typography>
+
+                                    <Card
+                                      elevation={3}
+                                      sx={{ borderRadius: 2, overflow: "hidden", maxWidth: "100%" }}
+                                    >
+                                      <CardMedia
+                                        component="img"
+                                        image={question.imagesURL[0].url}
+                                        alt="Imagem relacionada à pergunta"
+                                        sx={{ height: 200, objectFit: "cover" }}
+                                      />
+                                    </Card>
+                                  </Grid>
+                                )}
+                              </Grid>
+                            </AccordionDetails>
+                          </Accordion>
+                        ))}
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
                 </AccordionDetails>
               </Accordion>
             ))}
           </div>
         </div>
       </div>
+
       <Modal open={openModal} onClose={handleCloseModal}>
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4 }}>
-          <Typography variant="h6" component="h2">
-            Inserir Plano de Ação
-          </Typography>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4
+          }}
+        >
+          <Typography variant="h6">Inserir Plano de Ação</Typography>
           <TextField
             fullWidth
             label="Numero Chamado"
@@ -228,7 +316,12 @@ export default function Patrimonio() {
             onChange={(e) => setComentario(e.target.value)}
             sx={{ mt: 2 }}
           />
-          <Button variant="contained" color="primary" onClick={alterarPA} sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={alterarPA}
+            sx={{ mt: 2 }}
+          >
             Salvar
           </Button>
         </Box>
@@ -236,3 +329,4 @@ export default function Patrimonio() {
     </div>
   );
 }
+
