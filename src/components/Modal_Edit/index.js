@@ -36,7 +36,7 @@ const style = {
   p: 4,
 };
 
-const areasDisponiveis = ['oem', 'patrimonio', 'CMC'];
+const areasDisponiveis = ['oem', 'patrimonio', 'CMC', 'comercial'];
 
 export default function ModalEdit(props) {
   const {
