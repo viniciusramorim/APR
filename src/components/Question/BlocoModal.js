@@ -1,64 +1,48 @@
-import React, { useState } from "react";
-import { Modal, Box, Typography, Button, TextField } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Modal, Box, TextField, Button } from "@mui/material";
 
 const BlocoModal = ({ open, onClose, onSave, bloco }) => {
-  const [blocoTitle, setBlocoTitle] = useState(bloco?.title || "");
+  const [title, setTitle] = useState(bloco ? bloco.title : "");
+
+  useEffect(() => {
+    if (bloco) {
+      setTitle(bloco.title);
+    }
+  }, [bloco]);
 
   const handleSave = () => {
-    const newBloco = {
-      title: blocoTitle,
-      id: bloco?.id || new Date().getTime(),
-    };
-    onSave(newBloco);
+    onSave({ title });
     onClose();
-  };
-
-  const handleTitleChange = (e) => {
-    const value = e.target.value;
-    const sanitizedValue = value.replace(/[^a-zA-Z0-9 ]/g, "");
-    setBlocoTitle(sanitizedValue);
   };
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 1,
-          width: 400,
-        }}
-      >
-        <Typography variant="h6" component="h2">
-          {bloco ? "Editar Bloco" : "Novo Bloco"}
-        </Typography>
+      <Box sx={{ ...modalStyle }}>
+        <h2>{bloco ? "Editar Bloco" : "Adicionar Bloco"}</h2>
         <TextField
+          label="Título do Bloco"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           fullWidth
           margin="normal"
-          label="Título do Bloco"
-          value={blocoTitle}
-          onChange={handleTitleChange}
         />
-        <i style={{ fontSize: "12px", color: "#d32f2f" }}>
-          *Caracteres especiais não são aceitos*
-        </i>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSave}
-          sx={{ mt: 2 }}
-          fullWidth
-        >
+        <Button onClick={handleSave} variant="contained" color="primary">
           Salvar
         </Button>
       </Box>
     </Modal>
   );
+};
+
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
 };
 
 export default BlocoModal;

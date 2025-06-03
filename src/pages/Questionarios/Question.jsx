@@ -144,41 +144,41 @@ const ChecklistManager = () => {
     }
   };
 
-  const handleSaveBloco = async (bloco) => {
-    try {
-      const blocoTitle = bloco.title
-        ? bloco.title.toUpperCase().slice(0, max_title_length)
-        : "BLOCO PADRÃO";
+  // const handleSaveBloco = async (bloco) => {
+  //   try {
+  //     const blocoTitle = bloco.title
+  //       ? bloco.title.toUpperCase().slice(0, max_title_length)
+  //       : "BLOCO PADRÃO";
 
-      const checklistRef = firebase
-        .firestore()
-        .collection("question")
-        .doc(selectedChecklist);
+  //     const checklistRef = firebase
+  //       .firestore()
+  //       .collection("question")
+  //       .doc(selectedChecklist);
 
-      const blocoData = checklists[selectedChecklist]?.[blocoTitle] || [];
+  //     const blocoData = checklists[selectedChecklist]?.[blocoTitle] || [];
 
-      await checklistRef.set(
-        {
-          [blocoTitle]: blocoData,
-        },
-        { merge: true }
-      );
+  //     await checklistRef.set(
+  //       {
+  //         [blocoTitle]: blocoData,
+  //       },
+  //       { merge: true }
+  //     );
 
-      setChecklists((prevChecklists) => ({
-        ...prevChecklists,
-        [selectedChecklist]: {
-          ...prevChecklists[selectedChecklist],
-          [blocoTitle]: blocoData,
-        },
-      }));
+  //     setChecklists((prevChecklists) => ({
+  //       ...prevChecklists,
+  //       [selectedChecklist]: {
+  //         ...prevChecklists[selectedChecklist],
+  //         [blocoTitle]: blocoData,
+  //       },
+  //     }));
 
-      setOpenBlocoModal(false);
-      clearFields();
-      logSistem(`Bloco "${blocoTitle}" foi criado no checklist "${selectedChecklist}"`);
-    } catch (error) {
-      console.error("Erro ao salvar o bloco:", error);
-    }
-  };
+  //     setOpenBlocoModal(false);
+  //     clearFields();
+  //     logSistem(`Bloco "${blocoTitle}" foi criado no checklist "${selectedChecklist}"`);
+  //   } catch (error) {
+  //     console.error("Erro ao salvar o bloco:", error);
+  //   }
+  // };
 
   const handleSaveQuestion = async (question) => {
     try {
@@ -377,6 +377,54 @@ const ChecklistManager = () => {
     }
   };
 
+  const handleEditBloco = (blocoId) => {
+    const blocoData = checklists[selectedChecklist][blocoId];
+    setEditingBloco({ id: blocoId, ...blocoData });
+    setOpenBlocoModal(true);
+  };
+
+  const handleSaveBloco = async (bloco) => {
+    try {
+      const blocoTitle = bloco.title
+        ? bloco.title.toUpperCase().slice(0, max_title_length)
+        : "BLOCO PADRÃO";
+  
+      const checklistRef = firebase
+        .firestore()
+        .collection("question")
+        .doc(selectedChecklist);
+  
+      const blocoData = checklists[selectedChecklist]?.[editingBloco?.id] || [];
+  
+      if (editingBloco) {
+        await checklistRef.update({
+          [editingBloco.id]: firebase.firestore.FieldValue.delete(),
+        });
+      }
+  
+      await checklistRef.set(
+        {
+          [blocoTitle]: blocoData,
+        },
+        { merge: true }
+      );
+  
+      setChecklists((prevChecklists) => ({
+        ...prevChecklists,
+        [selectedChecklist]: {
+          ...prevChecklists[selectedChecklist],
+          [blocoTitle]: blocoData,
+        },
+      }));
+  
+      setOpenBlocoModal(false);
+      clearFields();
+      logSistem(`Bloco "${blocoTitle}" foi ${editingBloco ? "editado" : "criado"} no checklist "${selectedChecklist}"`);
+    } catch (error) {
+      console.error("Erro ao salvar o bloco:", error);
+    }
+  };
+
   return (
     <div className="apr-digital">
       <Header />
@@ -494,6 +542,12 @@ const ChecklistManager = () => {
                               >
                                 Ver Perguntas
                               </Button>
+                              <IconButton
+                                aria-label="edit"
+                                onClick={() => handleEditBloco(blocoId)}
+                              >
+                                <EditIcon />
+                              </IconButton>
                               <IconButton
                                 aria-label="delete"
                                 color="error"
