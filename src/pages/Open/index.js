@@ -74,7 +74,6 @@ export default function Open() {
               valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
               doc.tipoLoja?.includes(apr.tipo_loja)
 
-
             if (isRespVazio && hasAnswer) {
               if (!isRevisorOuAdmin && !isEmAberto) {
                 // Caso 1: status diferente de "Em Aberto" e não é revisor/admin
@@ -85,7 +84,7 @@ export default function Open() {
               } else if (!isEmAberto && isRevisorOuAdmin) {
                 // Caso 3: status diferente de "Em Aberto", e é revisor ou admin
                 delete apr.checklist[indexA][1][indexQ];
-              } else if (!isQuestionActiveLoja) {
+              } else if (isQuestionActiveLoja) {
                 // Caso 4: remove questoes fora do valor min e max para revisor ou admin
                 delete apr.checklist[indexA][1][indexQ];
               }
