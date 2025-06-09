@@ -272,7 +272,7 @@ export default function New_Site() {
     });
     exportExcel(relatorioApr);
   }
-
+  
   //faz busca do banco de chamados
   async function updateState(snapshot) {
     let relatorioApr = [];
