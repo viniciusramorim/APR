@@ -18,6 +18,8 @@ import ModalLoading from "../../components/Modal_Loading";
 import telefonicaLogo from "../../assets/telefonica-logo.png";
 import EmailLink from "../../components/Email/EmailLink";
 import ModalEdit from "../../components/Modal_Edit";
+import ModalEditSite from "./ModalEditSite.js";
+import ModalEditMotivo from "./ModalEditMotivo.js";
 
 // Importar as fontes do pdfmake
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -377,28 +379,6 @@ export default function Open() {
     }
   }
 
-  async function updateMotivoAPR(e, id) {
-    e.preventDefault();
-    let confirm = window.confirm("Deseja realmente alterar o motivo da APR?");
-    if (confirm === false) return;
-    await firebase
-      .firestore()
-      .collection(base)
-      .doc(id)
-      .update({
-        motivo_apr: e.target.value,
-      })
-      .then(() => {
-        toast.success("Motivo da apr atualizado com sucesso!");
-        logSistem(`Motivo APR Atualizado para ${e.target.value}`, id);
-        ReloadAPR();
-      })
-      .catch((error) => {
-        toast.error("Erro ao atualizar status da apr:", error);
-        console.log("Erro ao atualizar status da apr:", error);
-      });
-  }
-
   async function updateStatusAPR(e, id) {
     e.preventDefault();
     let confirm = window.confirm("Deseja realmente alterar o status para CONCLUIDO da APR?");
@@ -433,6 +413,15 @@ export default function Open() {
 
           {loadApr ? (
             <>
+              {(user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
+                <div className="container">
+                  <div className="siteInfo">
+                    <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
+                    <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
+                  </div>
+                </div>
+              )}
+
               <div className="container">
                 <div className="siteInfo">
                   <ul>
@@ -457,28 +446,7 @@ export default function Open() {
                     </li>
                     <li>
                       <span>MOTIVO: </span>
-                      {user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto") ? (
-                        <select
-                          value={apr.motivo_apr}
-                          onChange={(e) => updateMotivoAPR(e, id)}
-                        >
-                          <option value={"Mapa de Calor"}>Mapa de Calor</option>
-                          <option value={"Retrofit"}>Retrofit</option>
-                          <option value={"Rota Critica DWDM"}>Rota Critica DWDM</option>
-                          <option value={"Projeto Veneza"}>Projeto Veneza</option>
-                          <option value={"TurnKey"}>TurnKey</option>
-                          <option value={"Conectividade nos Sites"}>Conectividade nos Sites</option>
-                          <option value={"Torre Segura"}>Torre Segura</option>
-                          <option value={"Internalização Loja Dealer"}>Internalização Loja Dealer</option>
-                          <option value={"Estoque Avançado"}>Estoque Avançado</option>
-                          <option value={"Instalação Tag"}>Instalação Tag</option>
-                          <option value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</option>
-                          <option value={"Não Opinada"}>Não Opinada</option>
-                          <option value={"Opinada"}>Opinada</option>
-                        </select>
-                      ) : (
-                        apr.motivo_apr
-                      )}
+                      {apr.motivo_apr}
                     </li>
                     <li>
                       <span>TIPO DE CHECKLIST: </span>
