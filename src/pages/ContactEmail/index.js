@@ -26,6 +26,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
@@ -56,6 +57,12 @@ export default function ContactEmail() {
   const [selectedMunicipios, setSelectedMunicipios] = useState({});
   const [emailToAdd, setEmailToAdd] = useState("");
   const [areaToAdd, setAreaToAdd] = useState("");
+  const [editMunicipioOpen, setEditMunicipioOpen] = useState(false);
+  const [currentMunicipio, setCurrentMunicipio] = useState("");
+  const [newMunicipioName, setNewMunicipioName] = useState("");
+  const [docToEdit, setDocToEdit] = useState(null);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [duplicateMunicipioName, setDuplicateMunicipioName] = useState("");
   const pageSize = 10;
 
   useEffect(() => {
@@ -90,6 +97,67 @@ export default function ContactEmail() {
     setEditEstado(estado);
     setEditMunicipio(municipio);
     setOpen(true);
+  };
+
+  const handleEditMunicipio = (doc) => {
+    setDocToEdit(doc);
+    setCurrentMunicipio(doc.municipio);
+    setNewMunicipioName(doc.municipio);
+    setEditMunicipioOpen(true);
+  };
+
+  const handleDuplicateMunicipio = (doc) => {
+    setDocToEdit(doc);
+    setDuplicateMunicipioName(`${doc.municipio} - Cópia`);
+    setDuplicateOpen(true);
+  };
+
+  const handleSaveMunicipioEdit = async () => {
+    if (!docToEdit || !newMunicipioName) return;
+
+    try {
+      // Primeiro, crie um novo documento com o novo nome do município
+      const newDocId = `${docToEdit.estado}-${newMunicipioName}`;
+      await firebase.firestore().collection("contact_email").doc(newDocId).set({
+        estado: docToEdit.estado,
+        municipio: newMunicipioName,
+        email_oem: docToEdit.email_oem || [],
+        email_patrimonial: docToEdit.email_patrimonial || [],
+        email_predial: docToEdit.email_predial || [],
+      });
+
+      // Depois, exclua o documento antigo
+      await firebase.firestore().collection("contact_email").doc(docToEdit.id).delete();
+
+      setEditMunicipioOpen(false);
+      loadData();
+      toast.success("Município atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar município:", error);
+      toast.error("Erro ao atualizar município.");
+    }
+  };
+
+  const handleSaveDuplicateMunicipio = async () => {
+    if (!docToEdit || !duplicateMunicipioName) return;
+
+    try {
+      const newDocId = `${docToEdit.estado}-${duplicateMunicipioName}`;
+      await firebase.firestore().collection("contact_email").doc(newDocId).set({
+        estado: docToEdit.estado,
+        municipio: duplicateMunicipioName,
+        email_oem: [...(docToEdit.email_oem || [])],
+        email_patrimonial: [...(docToEdit.email_patrimonial || [])],
+        email_predial: [...(docToEdit.email_predial || [])],
+      });
+
+      setDuplicateOpen(false);
+      loadData();
+      toast.success("Município duplicado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao duplicar município:", error);
+      toast.error("Erro ao duplicar município.");
+    }
   };
 
   const handleDeleteEmail = async (docId, email, tipo) => {
@@ -225,38 +293,6 @@ export default function ContactEmail() {
     toast.success(`E-mail adicionado a todos os municípios na área ${areaToAdd} com sucesso!`);
   };
 
-  const filteredDocs = docs.filter(
-    (item) =>
-      item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
-      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase())
-  );
-
-  const groupedByEstado = filteredDocs.reduce((acc, item) => {
-    if (!acc[item.estado]) acc[item.estado] = [];
-    acc[item.estado].push(item);
-    return acc;
-  }, {});
-
-  const estadoKeys = Object.keys(groupedByEstado).sort();
-
-  const paginatedEstados = estadoKeys.slice(
-    (estadoPage - 1) * pageSize,
-    estadoPage * pageSize
-  );
-
-  const getMunicipiosPaginados = (estado) => {
-    const allMunicipios = groupedByEstado[estado] || [];
-    const currentPage = municipioPages[estado] || 1;
-    return allMunicipios.slice(0, currentPage * pageSize);
-  };
-
-  const loadMoreMunicipios = (estado) => {
-    setMunicipioPages((prev) => ({
-      ...prev,
-      [estado]: (prev[estado] || 1) + 1,
-    }));
-  };
-
   const handleUploadXLSX = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -270,7 +306,26 @@ export default function ContactEmail() {
       const json = utils.sheet_to_json(sheet);
 
       for (const row of json) {
-        const { email, area, estado, municipio } = row;
+        const { email, area, estado, municipio, novo_municipio } = row;
+        
+        // Se houver um novo nome para o município
+        if (novo_municipio && municipio) {
+          // Encontre o documento original
+          const originalDocId = `${estado}-${municipio}`;
+          const originalDocRef = firebase.firestore().collection("contact_email").doc(originalDocId);
+          const originalDocSnap = await originalDocRef.get();
+          
+          if (originalDocSnap.exists) {
+            const originalData = originalDocSnap.data();
+            // Crie um novo documento com o novo nome
+            const newDocId = `${estado}-${novo_municipio}`;
+            await firebase.firestore().collection("contact_email").doc(newDocId).set(originalData);
+            // Exclua o documento antigo
+            await originalDocRef.delete();
+          }
+          continue;
+        }
+
         if (!email || !area || !estado || !municipio) continue;
 
         const areaKey = `email_${area.toLowerCase()}`;
@@ -309,6 +364,38 @@ export default function ContactEmail() {
       setLoadingUpload(false);
       e.target.value = null;
     }
+  };
+
+  const filteredDocs = docs.filter(
+    (item) =>
+      item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
+      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase())
+  );
+
+  const groupedByEstado = filteredDocs.reduce((acc, item) => {
+    if (!acc[item.estado]) acc[item.estado] = [];
+    acc[item.estado].push(item);
+    return acc;
+  }, {});
+
+  const estadoKeys = Object.keys(groupedByEstado).sort();
+
+  const paginatedEstados = estadoKeys.slice(
+    (estadoPage - 1) * pageSize,
+    estadoPage * pageSize
+  );
+
+  const getMunicipiosPaginados = (estado) => {
+    const allMunicipios = groupedByEstado[estado] || [];
+    const currentPage = municipioPages[estado] || 1;
+    return allMunicipios.slice(0, currentPage * pageSize);
+  };
+
+  const loadMoreMunicipios = (estado) => {
+    setMunicipioPages((prev) => ({
+      ...prev,
+      [estado]: (prev[estado] || 1) + 1,
+    }));
   };
 
   return (
@@ -365,35 +452,6 @@ export default function ContactEmail() {
           </Button>
         </Box>
 
-        {/* <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
-          <TextField
-            label="E-mail para adicionar"
-            value={emailToAdd}
-            onChange={(e) => setEmailToAdd(e.target.value)}
-            size="small"
-          />
-          <Select
-            value={areaToAdd}
-            onChange={(e) => setAreaToAdd(e.target.value)}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem disabled value="">
-              Selecione a área
-            </MenuItem>
-            <MenuItem value="OEM">OEM</MenuItem>
-            <MenuItem value="Patrimonial">Patrimonial</MenuItem>
-            <MenuItem value="Predial">Predial</MenuItem>
-          </Select>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddEmailToAll}
-          >
-            Adicionar e-mail a todos
-          </Button>
-        </Box> */}
-
         {paginatedEstados.map((estado) => (
           <Accordion key={estado}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -412,6 +470,26 @@ export default function ContactEmail() {
                       onChange={() => handleSelectMunicipio(estado, item.municipio)}
                     />
                     <Typography>{item.municipio}</Typography>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditMunicipio(item);
+                      }}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateMunicipio(item);
+                      }}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
                   </AccordionSummary>
                   <AccordionDetails>
                     {["OEM", "Patrimonial", "Predial"].map((tipo) => {
@@ -512,6 +590,66 @@ export default function ContactEmail() {
             <Button onClick={() => setOpen(false)}>Cancelar</Button>
             <Button variant="contained" onClick={handleSave}>
               Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={editMunicipioOpen}
+          onClose={() => setEditMunicipioOpen(false)}
+        >
+          <DialogTitle>Editar Nome do Município</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Nome Atual"
+              value={currentMunicipio}
+              disabled
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Novo Nome"
+              value={newMunicipioName}
+              onChange={(e) => setNewMunicipioName(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditMunicipioOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleSaveMunicipioEdit}>
+              Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={duplicateOpen}
+          onClose={() => setDuplicateOpen(false)}
+        >
+          <DialogTitle>Duplicar Município</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Município Original"
+              value={docToEdit?.municipio || ''}
+              disabled
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Novo Nome para Cópia"
+              value={duplicateMunicipioName}
+              onChange={(e) => setDuplicateMunicipioName(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDuplicateOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleSaveDuplicateMunicipio}>
+              Duplicar
             </Button>
           </DialogActions>
         </Dialog>
