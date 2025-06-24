@@ -113,9 +113,11 @@ export default function ModalEdit(props) {
   const handleClose = () => setOpen(false);
 
   const concluirEdit = () => {
+    // Agora faz as alterações
     checklistCompleto[areaIndex][1][questionIndex].resp = questionResp;
     checklistCompleto[areaIndex][1][questionIndex].respTextArea = questionComentario;
     checklistCompleto[areaIndex][1][questionIndex].areaResposavel = questionArea;
+
     firebase
       .firestore()
       .collection("aprs-producao")
@@ -124,16 +126,14 @@ export default function ModalEdit(props) {
         checklist: checklistCompleto,
       })
       .then(() => {
-        console.log("update question");
+        toast.success("Update na questão realizado com sucesso!");
         logSistem(
-          `A QUESTÃO ${checklistCompleto[areaIndex][1][questionIndex].questionId
-          } DO CHECKLIST ${checklistCompleto[
-            areaIndex
-          ][0].toUpperCase()} FOI ALTERADO `,
+          `A QUESTÃO ${checklistCompleto[areaIndex][1][questionIndex].questionId} DO CHECKLIST ${checklistCompleto[areaIndex][0].toUpperCase()} FOI ALTERADO `,
           id
         );
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log("Erro no update:", err));
+
     loadApr();
     handleClose();
   };

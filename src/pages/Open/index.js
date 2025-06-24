@@ -62,7 +62,7 @@ export default function Open() {
       .get()
       .then((snapshot) => {
         let apr = snapshot.data();
-        setAprCompleta(apr); // Corrigindo para usar apr ao invés de snapshot.data()
+        setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             const isEmAberto = apr.status === "Em Aberto";
@@ -78,16 +78,16 @@ export default function Open() {
 
             if (isRespVazio && hasAnswer) {
               if (!isRevisorOuAdmin && !isEmAberto) {
-                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
+                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isRevisorOuAdmin && isEmAberto && !isDono) {
-                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
+                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isEmAberto && isRevisorOuAdmin) {
-                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
+                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isQuestionActiveLoja && hasValorEstoque) {
-                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
+                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 console.log(`Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`);
                 console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
                 console.log(`isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`);
@@ -574,15 +574,13 @@ export default function Open() {
               )}
 
               {apr.valor_estoque && apr.tipo_loja && (
-                <>
-                  <div className="container">
-                    <div className="siteInfo">
-                      <span>Tipo de Loja:</span> {apr.tipo_loja}
-                      <span>Valor Transporte:</span>{" "}
-                      {formatarValor(parseInt(apr.valor_estoque))}
-                    </div>
+                <div className="container">
+                  <div className="siteInfo">
+                    <span>Tipo de Loja:</span> {apr.tipo_loja}
+                    <span>Valor Transporte:</span>{" "}
+                    {formatarValor(parseInt(apr.valor_estoque))}
                   </div>
-                </>
+                </div>
               )}
 
               {apr.justificativa ? (
