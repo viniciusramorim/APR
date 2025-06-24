@@ -62,7 +62,7 @@ export default function Open() {
       .get()
       .then((snapshot) => {
         let apr = snapshot.data();
-        setAprCompleta(snapshot.data());
+        setAprCompleta(apr); // Corrigindo para usar apr ao invés de snapshot.data()
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             const isEmAberto = apr.status === "Em Aberto";
@@ -70,24 +70,27 @@ export default function Open() {
             const isDono = user.uid === apr.user_id.uid;
             const hasAnswer = doc.answers !== "";
             const isRespVazio = doc.resp === "";
-            const hasValorEstoque = doc.valorEstoque
-            const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin
+            const hasValorEstoque = doc.valorEstoque;
+            const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
             const isQuestionActiveLoja = isRevisorLoja &&
               valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
-              doc.tipoLoja?.includes(apr.tipo_loja)
+              doc.tipoLoja?.includes(apr.tipo_loja);
 
             if (isRespVazio && hasAnswer) {
               if (!isRevisorOuAdmin && !isEmAberto) {
-                // Caso 1: status diferente de "Em Aberto" e não é revisor/admin
+                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isRevisorOuAdmin && isEmAberto && !isDono) {
-                // Caso 2: status "Em Aberto", não é revisor/admin, e não é o dono
+                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isEmAberto && isRevisorOuAdmin) {
-                // Caso 3: status diferente de "Em Aberto", e é revisor ou admin
+                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
                 delete apr.checklist[indexA][1][indexQ];
-              } else if (isQuestionActiveLoja) {
-                // Caso 4: remove questoes fora do valor min e max para revisor ou admin
+              } else if (!isQuestionActiveLoja && hasValorEstoque) {
+                console.log(`Área: ${indexA+1}, Questão: ${indexQ+1}`);
+                console.log(`Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`);
+                console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
+                console.log(`isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`);
                 delete apr.checklist[indexA][1][indexQ];
               }
             }

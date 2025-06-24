@@ -51,10 +51,10 @@ export default function ModalEdit(props) {
 
   const [open, setOpen] = useState(false);
   const [questionResp, setQuestionResp] = useState(
-    checklistCompleto[areaIndex][1][questionIndex].resp 
+    checklistCompleto[areaIndex][1][questionIndex].resp
   );
   const [questionAnswers, setQuestionAnswers] = useState(
-    checklistCompleto[areaIndex][1][questionIndex].answers 
+    checklistCompleto[areaIndex][1][questionIndex].answers
   );
   const [questionComentario, setQuestionComentario] = useState(
     checklistCompleto[areaIndex][1][questionIndex].respTextArea
@@ -69,14 +69,14 @@ export default function ModalEdit(props) {
     if (file) {
       const today = new Date();
       const threeDaysAgo = new Date(today.setDate(today.getDate() - 3));
-  
+
       if (!file.lastModifiedDate || file.lastModifiedDate < threeDaysAgo) {
         toast.error('A imagem tem mais de 3 dias ou não possui data válida.');
         return;
       }
-  
+
       setUploading(true);
-  
+
       const storageRef = firebase.storage().ref(`images/${id}/${[areaIndex]}/${questionId}/${file.name}`);
       storageRef.put(file).then(() => {
         storageRef.getDownloadURL().then((url) => {
@@ -88,7 +88,7 @@ export default function ModalEdit(props) {
             ref: storageRef.fullPath,
             url: url
           });
-  
+
           firebase
             .firestore()
             .collection("aprs-producao")
@@ -126,8 +126,7 @@ export default function ModalEdit(props) {
       .then(() => {
         console.log("update question");
         logSistem(
-          `A QUESTÃO ${
-            checklistCompleto[areaIndex][1][questionIndex].questionId
+          `A QUESTÃO ${checklistCompleto[areaIndex][1][questionIndex].questionId
           } DO CHECKLIST ${checklistCompleto[
             areaIndex
           ][0].toUpperCase()} FOI ALTERADO `,
@@ -192,40 +191,49 @@ export default function ModalEdit(props) {
                     control={<Radio />}
                     label="Não"
                   />
-                  <FormControlLabel value="N/A" control={<Radio />} label="N/A" />
+                  <FormControlLabel
+                    value="N/A"
+                    control={<Radio />}
+                    label="N/A"
+                  />
+                  <FormControlLabel
+                    value=""
+                    control={<Radio />}
+                    label="Remover Resposta"
+                  />
                 </RadioGroup>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={12}>
               {checklistCompleto[areaIndex][1][questionIndex]
                 .respInputNumber && (
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Quantidade"
-                  value={
-                    checklistCompleto[areaIndex][1][questionIndex]
-                      .respInputNumber
-                  }
-                  onChange={(e) => {
-                    const updatedChecklist = [...checklistCompleto];
-                    updatedChecklist[areaIndex][1][
-                      questionIndex
-                    ].respInputNumber = e.target.value;
-                    firebase
-                      .firestore()
-                      .collection("aprs-producao")
-                      .doc(id)
-                      .update({
-                        checklist: updatedChecklist,
-                      })
-                      .then(() => {
-                        console.log("update respInputNumber");
-                        loadApr();
-                      });
-                  }}
-                />
-              )}
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Quantidade"
+                    value={
+                      checklistCompleto[areaIndex][1][questionIndex]
+                        .respInputNumber
+                    }
+                    onChange={(e) => {
+                      const updatedChecklist = [...checklistCompleto];
+                      updatedChecklist[areaIndex][1][
+                        questionIndex
+                      ].respInputNumber = e.target.value;
+                      firebase
+                        .firestore()
+                        .collection("aprs-producao")
+                        .doc(id)
+                        .update({
+                          checklist: updatedChecklist,
+                        })
+                        .then(() => {
+                          console.log("update respInputNumber");
+                          loadApr();
+                        });
+                    }}
+                  />
+                )}
             </Grid>
             <Grid item xs={12} md={12}>
               {checklistCompleto[areaIndex][1][questionIndex].imagesURL?.map(
@@ -323,8 +331,8 @@ export default function ModalEdit(props) {
                                   .optionListResp
                               )
                                 ? checklistCompleto[areaIndex][1][
-                                    questionIndex
-                                  ].optionListResp.includes(option)
+                                  questionIndex
+                                ].optionListResp.includes(option)
                                 : false
                             }
                             onChange={(e) => {
