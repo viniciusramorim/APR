@@ -20,6 +20,7 @@ import InsertQuestions from '../components/Question/InserQuestion';
 import UploadJsonToFirestore from '../components/Email/uploadEmail';
 import ContactEmail from '../pages/ContactEmail/index' 
 import Patrimonio from '../pages/Patrimonio';
+import ChecklistGemini from '../pages/New_IA/ChecklistGemini';
 
 export default function Routes() {
   return (
@@ -45,6 +46,8 @@ export default function Routes() {
       <Route exact path="/assignments" component={Assignments} isPrivate />
       <Route exact path="/upload-email" component={UploadJsonToFirestore} isPrivate />
       <Route exact path="/contact-email" component={ContactEmail} isPrivate isAdm/>
+
+      <Route exact path="/checklist-ia" component={ChecklistGemini} isPrivate isAdm/>
     </Switch>
   );
 }
