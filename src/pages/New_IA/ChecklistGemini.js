@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Typography, Button, CircularProgress, Box, InputLabel, Card, CardContent, Stepper, Step, StepLabel, StepContent } from '@mui/material';
+import CameraComponent from './CameraComponentIA'; // Presume que CameraComponentIA está no mesmo diretório
 
 export default function ChecklistGemini() {
   const [imagens, setImagens] = useState({
@@ -11,9 +13,16 @@ export default function ChecklistGemini() {
   const [previewUrls, setPreviewUrls] = useState({});
   const [respostaChecklist, setRespostaChecklist] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
 
-  const handleImagemSelecionada = (e, campo) => {
-    const file = e.target.files[0];
+  const perguntas = [
+    { campo: 'portaoFrontal', label: '1. Imagem do portão frontal:' },
+    { campo: 'protecaoPortao', label: '2. Imagem da proteção sobre o portão (altura/proteção):' },
+    { campo: 'perimetro', label: '3. Imagem do perímetro (muros/alambrados):' },
+    { campo: 'topoPerimetro', label: '4. Imagem da parte superior do muro/alambrado:' }
+  ];
+
+  const handleImagemSelecionada = (file, campo) => {
     if (file) {
       setImagens((prev) => ({ ...prev, [campo]: file }));
       setPreviewUrls((prev) => ({ ...prev, [campo]: URL.createObjectURL(file) }));
@@ -33,7 +42,7 @@ export default function ChecklistGemini() {
       setRespostaChecklist('');
 
       const base64Imagens = await Promise.all(
-        Object.values(imagens).map(async (file) => {
+        imagensSelecionadas.map(async (file) => {
           if (!file) return null;
           const base64 = await converterParaBase64(file);
           return base64.replace(/^data:image\/[a-z]+;base64,/, '');
@@ -44,7 +53,7 @@ export default function ChecklistGemini() {
 
       const payload = {
         imagens: imagensValidas,
-        pergunta: `Com base nas imagens fornecidas, responda como um especialista em segurança telecom os seguintes itens de forma objetiva (Sim/Não/Necessita Avaliação) e 
+        perguntas: `Com base nas imagens fornecidas, responda como um especialista em segurança telecom os seguintes itens de forma objetiva (Sim/Não/Necessita Avaliação) e 
         com justificativa breve:
         1. O portão principal é feito de chapa galvanizada?
         2. Há proteção instalada sobre o portão (concertina, arame farpado etc.) com altura total mínima de 2,50m?
@@ -84,12 +93,23 @@ export default function ChecklistGemini() {
     });
   };
 
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleReset = () => {
+    setActiveStep(0);
+  };
+
   const renderInputImagem = (campo, label) => (
-    <div style={{ marginBottom: '1rem' }}>
-      <label>{label}</label><br />
-      <input type="file" accept="image/*" onChange={(e) => handleImagemSelecionada(e, campo)} />
+    <Box mb={2}>
+      <CameraComponent onCapture={(file) => handleImagemSelecionada(file, campo)} />
       {previewUrls[campo] && (
-        <div style={{ marginTop: '0.5rem' }}>
+        <Box mt={1} display="flex" justifyContent="center">
           <img
             src={previewUrls[campo]}
             alt={`Preview ${campo}`}
@@ -101,32 +121,78 @@ export default function ChecklistGemini() {
               borderRadius: '4px'
             }}
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Checklist Automático com Imagens Orientadas (Gemini)</h2>
+    <Box p={2}>
+      <Typography variant="h4" gutterBottom>
+        Checklist Automático com Imagens Orientadas (Gemini)
+      </Typography>
 
-      {renderInputImagem('portaoFrontal', '1. Imagem do portão frontal:')}
-      {renderInputImagem('protecaoPortao', '2. Imagem da proteção sobre o portão (altura/proteção):')}
-      {renderInputImagem('perimetro', '3. Imagem do perímetro (muros/alambrados):')}
-      {renderInputImagem('topoPerimetro', '4. Imagem da parte superior do muro/alambrado:')}
+      <Stepper activeStep={activeStep} orientation="vertical">
+        {perguntas.map((pergunta, index) => (
+          <Step key={pergunta.campo}>
+            <StepLabel>{pergunta.label.split(':')[0]}</StepLabel>
+            <StepContent>
+              {renderInputImagem(pergunta.campo, pergunta.label)}
+              <Box display="flex" justifyContent="space-between" mt={2}>
+                <Button
+                  disabled={activeStep === 0}
+                  onClick={handleBack}
+                  variant="contained"
+                >
+                  Voltar
+                </Button>
+                {previewUrls[pergunta.campo] && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNext}
+                  >
+                    {index === perguntas.length - 1 ? 'Finalizar' : 'Próximo'}
+                  </Button>
+                )}
+              </Box>
+            </StepContent>
+          </Step>
+        ))}
+      </Stepper>
 
-      <button
-        onClick={enviarImagensParaChecklist}
-        disabled={loading}
-        style={{ marginTop: '1rem' }}
-      >
-        {loading ? 'Analisando...' : 'Enviar para análise'}
-      </button>
+      {activeStep === perguntas.length && (
+        <Box mt={2}>
+          <Typography variant="h6" gutterBottom>
+            Todas as imagens foram capturadas. Enviar para análise.
+          </Typography>
+          <Button
+            onClick={enviarImagensParaChecklist}
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            style={{ marginTop: '1rem' }}
+            fullWidth
+          >
+            {loading ? <CircularProgress size={24} /> : 'Enviar para análise'}
+          </Button>
+        </Box>
+      )}
 
-      <div style={{ marginTop: '2rem' }}>
-        <h3>Resultado do Checklist:</h3>
-        <pre style={{ whiteSpace: 'pre-wrap' }}>{respostaChecklist}</pre>
-      </div>
-    </div>
+      {respostaChecklist && (
+        <Box mt={4}>
+          <Typography variant="h5" gutterBottom>
+            Resultado do Checklist:
+          </Typography>
+          <Card>
+            <CardContent>
+              <Typography variant="body1" component="pre" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                {respostaChecklist}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+    </Box>
   );
 }

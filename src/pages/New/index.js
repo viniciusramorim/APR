@@ -23,11 +23,9 @@ import {
   ListItemText,
   ListSubheader,
   MenuItem,
-  OutlinedInput,
   Select,
   TextField,
 } from "@mui/material";
-import { Label } from "@mui/icons-material";
 
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
@@ -84,7 +82,7 @@ export default function New() {
   const [tipoLoja, setTipoLoja] = useState("");
   const [valorEstoque, setValorEstoque] = useState("0");
 
-  const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 19];
+  const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -902,7 +900,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(siteInfo.tipoSite)} />
+          <FiClipboard size={25} onClick={() => console.log(listQuestions.map(value => value.id))} />
         </Title>
 
         <div className="container">
