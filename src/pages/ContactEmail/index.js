@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import firebase from "../../services/firebaseConnection";
 import {
   Box,
@@ -32,8 +32,10 @@ import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
 import { read, utils } from "xlsx";
 import { toast } from "react-toastify";
+import { AuthContext } from "../../contexts/auth";
 
 export default function ContactEmail() {
+  const { user, logSistem } = useContext(AuthContext);
   const [docs, setDocs] = useState([]);
   const [estadoPage, setEstadoPage] = useState(1);
   const [municipioPages, setMunicipioPages] = useState({});
@@ -65,29 +67,52 @@ export default function ContactEmail() {
   const [duplicateMunicipioName, setDuplicateMunicipioName] = useState("");
   const pageSize = 10;
 
+  const mapaRegioes = {
+    RJ_ES_MG: ['RJ', 'ES', 'MG'],
+    SP: ['SP'],
+    CO_N: ['DF', 'GO', 'MT', 'MS', 'TO', 'PA', 'AM', 'RO', 'RR', 'AC', 'AP'],
+    SUL: ['RS', 'SC', 'PR'],
+    NE: ['BA', 'SE', 'AL', 'PE', 'PB', 'RN', 'CE', 'PI', 'MA']
+  };
+
+  const filteredDocs = docs.filter(
+    (item) =>
+      item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
+      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase())
+  );
+
+  const groupedByEstado = filteredDocs.reduce((acc, item) => {
+    if (!acc[item.estado]) acc[item.estado] = [];
+    acc[item.estado].push(item);
+    return acc;
+  }, {});
+
+  const estadoKeys = Object.keys(groupedByEstado).sort();
+
+  const paginatedEstados = estadoKeys.slice(
+    (estadoPage - 1) * pageSize,
+    estadoPage * pageSize
+  );
+
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    const snapshot = await firebase
-      .firestore()
-      .collection("contact_email")
-      .get();
-    const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setDocs(list);
+  const handleSelectEstado = (estado) => {
+    setSelectedEstados((prev) => ({
+      ...prev,
+      [estado]: !prev[estado],
+    }));
+  };
 
-    const estadosSet = new Set();
-    const grouped = {};
-    list.forEach((item) => {
-      estadosSet.add(item.estado);
-      if (!grouped[item.estado]) grouped[item.estado] = [];
-      if (!grouped[item.estado].includes(item.municipio)) {
-        grouped[item.estado].push(item.municipio);
-      }
-    });
-    setAllEstados(Array.from(estadosSet).sort());
-    setMunicipiosPorEstado(grouped);
+  const handleSelectMunicipio = (estado, municipio) => {
+    setSelectedMunicipios((prev) => ({
+      ...prev,
+      [estado]: {
+        ...prev[estado],
+        [municipio]: !prev[estado]?.[municipio],
+      },
+    }));
   };
 
   const handleEdit = (docId, email, tipo, estado, municipio) => {
@@ -116,7 +141,6 @@ export default function ContactEmail() {
     if (!docToEdit || !newMunicipioName) return;
 
     try {
-      // Primeiro, crie um novo documento com o novo nome do município
       const newDocId = `${docToEdit.estado}-${newMunicipioName}`;
       await firebase.firestore().collection("contact_email").doc(newDocId).set({
         estado: docToEdit.estado,
@@ -125,9 +149,8 @@ export default function ContactEmail() {
         email_patrimonial: docToEdit.email_patrimonial || [],
         email_predial: docToEdit.email_predial || [],
       });
-
-      // Depois, exclua o documento antigo
       await firebase.firestore().collection("contact_email").doc(docToEdit.id).delete();
+      await logSistem("Nome do município alterado", newDocId);
 
       setEditMunicipioOpen(false);
       loadData();
@@ -150,6 +173,7 @@ export default function ContactEmail() {
         email_patrimonial: [...(docToEdit.email_patrimonial || [])],
         email_predial: [...(docToEdit.email_predial || [])],
       });
+      await logSistem("Município duplicado", newDocId);
 
       setDuplicateOpen(false);
       loadData();
@@ -160,6 +184,53 @@ export default function ContactEmail() {
     }
   };
 
+  const handleAddEmailToAll = async () => {
+    if (!emailToAdd || !areaToAdd) {
+      toast.error("Por favor, insira um e-mail e selecione uma área.");
+      return;
+    }
+
+    const batch = firebase.firestore().batch();
+    const areaKey = `email_${areaToAdd.toLowerCase()}`;
+
+    docs.forEach((doc) => {
+      const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+      const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), emailToAdd]));
+      batch.update(docRef, { [areaKey]: updatedEmails });
+      logSistem(`E-mail adicionado a todos (${emailToAdd}) na área ${areaToAdd}`, doc.id);
+    });
+
+    await batch.commit();
+    loadData();
+    toast.success(`E-mail adicionado a todos os municípios na área ${areaToAdd} com sucesso!`);
+  };
+
+  const loadData = async () => {
+    const isAdmin = user?.nivel === "administrador";
+    const estadosPermitidos = mapaRegioes[user.regional] || [];
+    const snapshot = await firebase.firestore().collection("contact_email").get();
+
+    const list = snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((doc) => isAdmin || estadosPermitidos.includes(doc.estado));
+
+    setDocs(list);
+
+    const estadosSet = new Set();
+    const grouped = {};
+
+    list.forEach((item) => {
+      estadosSet.add(item.estado);
+      if (!grouped[item.estado]) grouped[item.estado] = [];
+      if (!grouped[item.estado].includes(item.municipio)) {
+        grouped[item.estado].push(item.municipio);
+      }
+    });
+
+    setAllEstados(Array.from(estadosSet).sort());
+    setMunicipiosPorEstado(grouped);
+  };
+
   const handleDeleteEmail = async (docId, email, tipo) => {
     const key = `email_${tipo.toLowerCase()}`;
     const ref = firebase.firestore().collection("contact_email").doc(docId);
@@ -168,15 +239,14 @@ export default function ContactEmail() {
     const data = snap.data();
     data[key] = (data[key] || []).filter((e) => e !== email);
     await ref.set(data);
+    const [uf, municipio] = docId.split("-");
+    await logSistem(`E-mail removido (${email}) da área ${tipo} - UF: ${uf}, Município: ${municipio}`, docId);
     loadData();
   };
 
   const handleSave = async () => {
     if (!editDocId || !editTipo || !editEmail) return;
-    const docRef = firebase
-      .firestore()
-      .collection("contact_email")
-      .doc(editDocId);
+    const docRef = firebase.firestore().collection("contact_email").doc(editDocId);
     const docSnap = await docRef.get();
     if (!docSnap.exists) return;
     const data = docSnap.data();
@@ -190,6 +260,7 @@ export default function ContactEmail() {
       data[targetKey].push(editEmail);
     }
     await docRef.set(data);
+    await logSistem(`E-mail editado (${editEmail}) na área ${editTipo} - UF: ${editEstado}, Município: ${editMunicipio}`, editDocId);
     setOpen(false);
     loadData();
   };
@@ -199,10 +270,7 @@ export default function ContactEmail() {
     const docRef = firebase.firestore().collection("contact_email").doc(docId);
     const docSnap = await docRef.get();
     const targetKey = `email_${newTipo.toLowerCase()}`;
-    const emails = newEmails
-      .split(",")
-      .map((e) => e.trim())
-      .filter((e) => e);
+    const emails = newEmails.split(",").map((e) => e.trim()).filter((e) => e);
 
     if (docSnap.exists) {
       const data = docSnap.data();
@@ -221,76 +289,24 @@ export default function ContactEmail() {
       await docRef.set(newData);
     }
 
+    await logSistem(`Novo e-mail criado/atualizado (${emails.join(", ")}) na área ${newTipo} - UF: ${newEstado}, Município: ${newMunicipio}`, docId);
     setCreateOpen(false);
     loadData();
-  };
-
-  const handleSelectEstado = (estado) => {
-    setSelectedEstados((prev) => ({
-      ...prev,
-      [estado]: !prev[estado],
-    }));
-  };
-
-  const handleSelectMunicipio = (estado, municipio) => {
-    setSelectedMunicipios((prev) => ({
-      ...prev,
-      [estado]: {
-        ...prev[estado],
-        [municipio]: !prev[estado]?.[municipio],
-      },
-    }));
   };
 
   const handleDeleteSelected = async () => {
     const batch = firebase.firestore().batch();
 
-    Object.keys(selectedEstados).forEach((estado) => {
-      if (selectedEstados[estado]) {
-        docs
-          .filter((doc) => doc.estado === estado)
-          .forEach((doc) => {
-            const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
-            batch.delete(docRef);
-          });
+    docs.forEach((doc) => {
+      if (selectedEstados[doc.estado] || selectedMunicipios[doc.estado]?.[doc.municipio]) {
+        const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+        batch.delete(docRef);
+        logSistem(`Documento deletado - UF: ${doc.estado}, Município: ${doc.municipio}`, doc.id);
       }
     });
 
-    Object.keys(selectedMunicipios).forEach((estado) => {
-      Object.keys(selectedMunicipios[estado]).forEach((municipio) => {
-        if (selectedMunicipios[estado][municipio]) {
-          docs
-            .filter((doc) => doc.estado === estado && doc.municipio === municipio)
-            .forEach((doc) => {
-              const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
-              batch.delete(docRef);
-            });
-        }
-      });
-    });
-
     await batch.commit();
     loadData();
-  };
-
-  const handleAddEmailToAll = async () => {
-    if (!emailToAdd || !areaToAdd) {
-      toast.error("Por favor, insira um e-mail e selecione uma área.");
-      return;
-    }
-
-    const batch = firebase.firestore().batch();
-    const areaKey = `email_${areaToAdd.toLowerCase()}`;
-
-    docs.forEach((doc) => {
-      const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
-      const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), emailToAdd]));
-      batch.update(docRef, { [areaKey]: updatedEmails });
-    });
-
-    await batch.commit();
-    loadData();
-    toast.success(`E-mail adicionado a todos os municípios na área ${areaToAdd} com sucesso!`);
   };
 
   const handleUploadXLSX = async (e) => {
@@ -307,21 +323,18 @@ export default function ContactEmail() {
 
       for (const row of json) {
         const { email, area, estado, municipio, novo_municipio } = row;
-        
-        // Se houver um novo nome para o município
+
         if (novo_municipio && municipio) {
-          // Encontre o documento original
           const originalDocId = `${estado}-${municipio}`;
           const originalDocRef = firebase.firestore().collection("contact_email").doc(originalDocId);
           const originalDocSnap = await originalDocRef.get();
-          
+
           if (originalDocSnap.exists) {
             const originalData = originalDocSnap.data();
-            // Crie um novo documento com o novo nome
             const newDocId = `${estado}-${novo_municipio}`;
             await firebase.firestore().collection("contact_email").doc(newDocId).set(originalData);
-            // Exclua o documento antigo
             await originalDocRef.delete();
+            await logSistem(`Importação XLSX: município renomeado de ${municipio} para ${novo_municipio} - UF: ${estado}`, newDocId);
           }
           continue;
         }
@@ -330,18 +343,13 @@ export default function ContactEmail() {
 
         const areaKey = `email_${area.toLowerCase()}`;
         const docId = `${estado}-${municipio}`;
-        const docRef = firebase
-          .firestore()
-          .collection("contact_email")
-          .doc(docId);
+        const docRef = firebase.firestore().collection("contact_email").doc(docId);
         const docSnap = await docRef.get();
 
         if (docSnap.exists) {
           const docData = docSnap.data();
           const currentEmails = docData[areaKey] || [];
-          const updatedEmails = Array.from(
-            new Set([...currentEmails, email.trim()])
-          );
+          const updatedEmails = Array.from(new Set([...currentEmails, email.trim()]));
           await docRef.update({ [areaKey]: updatedEmails });
         } else {
           await docRef.set({
@@ -353,6 +361,8 @@ export default function ContactEmail() {
             [areaKey]: [email.trim()],
           });
         }
+
+        await logSistem(`Importação XLSX: e-mail ${email} adicionado à área ${area} - UF: ${estado}, Município: ${municipio}`, docId);
       }
 
       toast.success("Upload concluído com sucesso!");
@@ -365,25 +375,6 @@ export default function ContactEmail() {
       e.target.value = null;
     }
   };
-
-  const filteredDocs = docs.filter(
-    (item) =>
-      item.estado.toLowerCase().includes(filterEstado.toLowerCase()) &&
-      item.municipio.toLowerCase().includes(filterMunicipio.toLowerCase())
-  );
-
-  const groupedByEstado = filteredDocs.reduce((acc, item) => {
-    if (!acc[item.estado]) acc[item.estado] = [];
-    acc[item.estado].push(item);
-    return acc;
-  }, {});
-
-  const estadoKeys = Object.keys(groupedByEstado).sort();
-
-  const paginatedEstados = estadoKeys.slice(
-    (estadoPage - 1) * pageSize,
-    estadoPage * pageSize
-  );
 
   const getMunicipiosPaginados = (estado) => {
     const allMunicipios = groupedByEstado[estado] || [];
@@ -405,6 +396,7 @@ export default function ContactEmail() {
         <Title name="Contato">
           <FiMessageSquare size={25} />
         </Title>
+
         <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
           <TextField
             label="Filtrar por Estado"

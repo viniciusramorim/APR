@@ -19,7 +19,7 @@ import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
 import SignUpModal from "../RegisterMember";
-import { AddModerator } from "@mui/icons-material";
+import { AddModerator, Email } from "@mui/icons-material";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
@@ -128,14 +128,18 @@ export default function Header() {
                 <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
-
+            <Tooltip title="Gerenciar Email" placement="right" arrow>
+              <Link to="/contact-email">
+                <Email color="#000" size={20} />
+                <i id="label-menu">Gerenciar Emails</i>
+              </Link>
+            </Tooltip>
             <Tooltip title="Questionários" placement="right" arrow>
               <Link to="/questions">
                 <ContentPasteIcon color="#000" size={20} />
                 <i id="label-menu">Questionário</i>
               </Link>
             </Tooltip>
-
             <Tooltip title="Cadastrar Novo Usuário" placement="right" arrow>
               <Link
                 to={location.pathname}
@@ -147,7 +151,6 @@ export default function Header() {
                 <i id="label-menu">Cadastrar Usuário</i>
               </Link>
             </Tooltip>
-
             <Tooltip title="Gerenciamento de Logs" placement="right" arrow>
               <Link to="/manager-logs">
                 <AddModerator color="#000" size={20} />
@@ -167,12 +170,20 @@ export default function Header() {
         )}
 
         {user.nivel === "revisor" && (
-          <Tooltip title="Relatório" placement="right" arrow>
-            <Link to="/reports">
-              <ContentPasteSearchSharpIcon color="#000" size={20} />
-              <i id="label-menu">Relatório</i>
-            </Link>
-          </Tooltip>
+          <>
+            <Tooltip title="Relatório" placement="right" arrow>
+              <Link to="/reports">
+                <ContentPasteSearchSharpIcon color="#000" size={20} />
+                <i id="label-menu">Relatório</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Gerenciar Email" placement="right" arrow>
+              <Link to="/contact-email">
+                <Email color="#000" size={20} />
+                <i id="label-menu">Gerenciar Emails</i>
+              </Link>
+            </Tooltip>
+          </>
         )}
 
         <Tooltip title="Meu Perfil" placement="right" arrow>

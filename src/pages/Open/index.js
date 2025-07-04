@@ -577,7 +577,7 @@ export default function Open() {
                 <div className="container">
                   <div className="siteInfo">
                     <span>Tipo de Loja:</span> {apr.tipo_loja}
-                    <span>Valor Transporte:</span>{" "}
+                    <span>Valor Estoque:</span>{" "}
                     {formatarValor(parseInt(apr.valor_estoque))}
                   </div>
                 </div>
