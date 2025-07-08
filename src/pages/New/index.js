@@ -900,7 +900,7 @@ export default function New() {
 
       <div className="content">
         <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(listQuestions.map(value => value.id))} />
+          <FiClipboard size={25} onClick={() => console.log(questions)} />
         </Title>
 
         <div className="container">
