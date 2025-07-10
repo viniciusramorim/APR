@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Typography, Button, CircularProgress, Box, Card, CardContent, Stepper, Step, StepLabel, StepContent } from '@mui/material';
-import CameraComponent from './CameraComponentIA'; // Presume que CameraComponentIA está no mesmo diretório
+import { Typography, Button, CircularProgress, Box, Card, CardContent, Stepper, Step, StepLabel, StepContent, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+import CameraComponent from './CameraComponentIA';
+import ReactMarkdown from 'react-markdown';
 
 export default function ChecklistGemini() {
   const [imagens, setImagens] = useState({});
   const [previewUrls, setPreviewUrls] = useState({});
   const [respostaChecklist, setRespostaChecklist] = useState('');
-  const [resultadoFinal, setResultadoFinal] = useState(null);
+  const [respostasTexto, setRespostasTexto] = useState({});
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
 
-  const perguntas = [
+  const perguntasComFotos = [
     { campo: 'portaoFrontal', label: '1. Imagem do portão frontal:' },
     { campo: 'protecaoPortao', label: '2. Imagem da proteção sobre o portão (altura/proteção):' },
     { campo: 'perimetro', label: '3. Imagem do perímetro (muros/alambrados):' },
@@ -18,6 +19,8 @@ export default function ChecklistGemini() {
     { campo: 'fechaduraPortao', label: '5. Imagem da fechadura ou cadeado do portão:' },
     { campo: 'portaoPedestres', label: '6. Imagem do portão de pedestres:' },
   ];
+
+  const perguntasSemFotos = [];
 
   const handleImagemSelecionada = (file, campo, index) => {
     const novasImagens = { ...imagens };
@@ -33,20 +36,30 @@ export default function ChecklistGemini() {
     setPreviewUrls(novosPreviewUrls);
   };
 
+  const handleTextoChange = (e, campo) => {
+    const novasRespostasTexto = { ...respostasTexto };
+    novasRespostasTexto[campo] = e.target.value;
+    setRespostasTexto(novasRespostasTexto);
+  };
+
   const enviarImagensParaChecklist = async () => {
     const imagensSelecionadas = Object.values(imagens).flat().filter(Boolean);
 
-    // Verifica se existe pelo menos uma imagem por pergunta
-    const imagensCompletas = perguntas.every(pergunta => imagens[pergunta.campo] && imagens[pergunta.campo][0]);
+    const imagensCompletas = perguntasComFotos.every(pergunta => imagens[pergunta.campo] && imagens[pergunta.campo][0]);
     if (!imagensCompletas) {
-      alert('Envie pelo menos uma imagem para cada pergunta.');
+      alert('Envie pelo menos uma imagem para cada pergunta obrigatória.');
+      return;
+    }
+
+    const textosCompletos = perguntasSemFotos.every(pergunta => respostasTexto[pergunta.campo]);
+    if (!textosCompletos) {
+      alert('Responda todas as perguntas obrigatórias.');
       return;
     }
 
     try {
       setLoading(true);
       setRespostaChecklist('');
-      setResultadoFinal(null);
 
       const base64Imagens = await Promise.all(
         imagensSelecionadas.map(async (file) => {
@@ -60,7 +73,16 @@ export default function ChecklistGemini() {
 
       const payload = {
         imagens: imagensValidas,
+        perguntasTexto: perguntasSemFotos.map(pergunta => ({
+          question: pergunta.label,
+          answer: respostasTexto[pergunta.campo] || 'N/A'
+        })),
         pergunta: `Com base nas imagens fornecidas, responda como um especialista em segurança telecom os seguintes itens de forma objetiva: Sim/Não/Necessita Avaliação
+        Necessário que a resposta venha em formato de objeto json como o exemplo: {
+          "question": "",
+          "resposta": "",
+          "comentario": "",
+        }.
         1. Caso a fechadura/cadeado seja de responsabilidade da Segurança Empresarial Vivo, ao realizar teste junto a CMC, foi constatado o trancamento operante?
         2. Foi identificada avarias no portão do estacionamento e/ou de pedestres?
         3. Foi identificada avarias nos muros ou alambrados?
@@ -71,8 +93,6 @@ export default function ChecklistGemini() {
         8. O prédio avaliado é somente técnico ou adm e técnico? (Descreva os demais andares no caso de ambiente ADM)
         9. Os muros de alvenaria e/ou alambrados, que cercam o perímetro, têm a altura mínima de 3,50m em conjunto com a proteção instalada sobre a edificação (concertina, arame farpado e/ou outro tipo de proteção)?`
       };
-
-      console.log(payload);
 
       const response = await fetch(
         'https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/analisarImagensErb',
@@ -85,18 +105,12 @@ export default function ChecklistGemini() {
 
       const data = await response.json();
 
-      // Estruturando a resposta no formato desejado
-      const resultado = {
-        nomeBloco: payload.pergunta.split('\n').slice(1, 10).map((pergunta, index) => ({
-          question: pergunta.trim(),
-          resposta: data.respostas ? data.respostas[index].resposta : 'N/A',
-          comentario: data.respostas ? data.respostas[index].comentario : 'N/A',
-          recomendacao: data.respostas ? data.respostas[index].recomendacao : 'N/A'
-        }))
-      };
+      if (!data.resposta) {
+        throw new Error('A resposta da API está indefinida ou é null.');
+      }
 
-      setRespostaChecklist(JSON.stringify(data.resposta, null, 2));
-      setResultadoFinal(resultado);
+      const respostaFormatada = JSON.stringify(data.resposta, null, 2);
+      setRespostaChecklist(respostaFormatada);
 
     } catch (err) {
       console.error(err);
@@ -139,7 +153,19 @@ export default function ChecklistGemini() {
     <Box mb={2}>
       {imagens[campo] && imagens[campo].map((_, index) => (
         <Box key={index} mb={1} display="flex" alignItems="center">
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            id={`upload-button-${campo}-${index}`}
+            onChange={(e) => handleImagemSelecionada(e.target.files[0], campo, index)}
+          />
           <CameraComponent onCapture={(file) => handleImagemSelecionada(file, campo, index)} />
+          <label htmlFor={`upload-button-${campo}-${index}`}>
+            <Button variant="contained" component="span">
+              Escolher Arquivo
+            </Button>
+          </label>
           {previewUrls[campo] && previewUrls[campo][index] && (
             <Box ml={1} display="flex" justifyContent="center">
               <img
@@ -169,6 +195,17 @@ export default function ChecklistGemini() {
     </Box>
   );
 
+  const renderInputRadio = (campo, label) => (
+    <Box mb={2}>
+      <Typography variant="h6">{label}</Typography>
+      <RadioGroup row value={respostasTexto[campo] || ''} onChange={(e) => handleTextoChange(e, campo)}>
+        <FormControlLabel value="Sim" control={<Radio />} label="Sim" />
+        <FormControlLabel value="Não" control={<Radio />} label="Não" />
+        <FormControlLabel value="N/A" control={<Radio />} label="N/A" />
+      </RadioGroup>
+    </Box>
+  );
+
   return (
     <Box p={2}>
       <Typography variant="h4" gutterBottom>
@@ -176,38 +213,40 @@ export default function ChecklistGemini() {
       </Typography>
 
       <Stepper activeStep={activeStep} orientation="vertical">
-        {perguntas.map((pergunta, index) => (
+        {perguntasComFotos.concat(perguntasSemFotos).map((pergunta, index) => (
           <Step key={pergunta.campo}>
             <StepLabel>{pergunta.label.split(':')[0]}</StepLabel>
             <StepContent>
-              {renderInputImagem(pergunta.campo, pergunta.label)}
+              {pergunta.campo in respostasTexto ?
+                renderInputRadio(pergunta.campo, pergunta.label) :
+                renderInputImagem(pergunta.campo, pergunta.label)}
               <Box display="flex" justifyContent="space-between" mt={2}>
-                <Button
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                  variant="contained"
-                >
-                  Voltar
-                </Button>
-                {(previewUrls[pergunta.campo] && previewUrls[pergunta.campo][0]) && (
+                {activeStep > 0 && (
                   <Button
+                    onClick={handleBack}
                     variant="contained"
-                    color="primary"
-                    onClick={handleNext}
                   >
-                    {index === perguntas.length - 1 ? 'Finalizar' : 'Próximo'}
+                    Voltar
                   </Button>
                 )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleNext}
+                  disabled={pergunta.campo in respostasTexto && !respostasTexto[pergunta.campo]}
+                >
+                  {index === (perguntasComFotos.length + perguntasSemFotos.length - 1) ? 'Finalizar' : 'Próximo'}
+                </Button>
               </Box>
             </StepContent>
           </Step>
         ))}
       </Stepper>
 
-      {activeStep === perguntas.length && (
+      {activeStep === (perguntasComFotos.length + perguntasSemFotos.length) && (
         <Box mt={2}>
           <Typography variant="h6" gutterBottom>
-            Todas as imagens foram capturadas. Enviar para análise.
+            Todas as perguntas foram respondidas. Enviar para análise.
           </Typography>
           <Button
             onClick={enviarImagensParaChecklist}
@@ -230,25 +269,10 @@ export default function ChecklistGemini() {
           <Card>
             <CardContent>
               <Typography variant="body1" component="pre" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                {respostaChecklist}
+                <ReactMarkdown>{respostaChecklist}</ReactMarkdown>
               </Typography>
             </CardContent>
           </Card>
-
-          {resultadoFinal && (
-            <Box mt={4}>
-              <Typography variant="h5" gutterBottom>
-                Resultado Estruturado:
-              </Typography>
-              <Card>
-                <CardContent>
-                  <Typography variant="body1" component="pre" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                    {JSON.stringify(resultadoFinal, null, 2)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Box>
-          )}
         </Box>
       )}
     </Box>
