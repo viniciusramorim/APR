@@ -471,7 +471,9 @@ const QuestionModal = ({
               onChange={handleChange}
             >
               {[
-                "LOJA GALERIA",
+                "LOJA ESTOQUE ZERO",
+                "LOJA GALERIA PISO TÉRREO",
+                "GALERIA PISO SUPERIOR",
                 "LOJA RUA",
                 "LOJA SHOP PISO TERREO",
                 "LOJA SHOP PISO SUPERIOR",
