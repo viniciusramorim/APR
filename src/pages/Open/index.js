@@ -70,7 +70,7 @@ export default function Open() {
             const isDono = user.uid === apr.user_id.uid;
             const hasAnswer = doc.answers !== "";
             const isRespVazio = doc.resp === "";
-            const hasValorEstoque = doc.valorEstoque;
+            const hasValorEstoque = doc.valorEstoque && doc.valorEstoque.min && doc.valorEstoque.max;
             const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
             const isQuestionActiveLoja = isRevisorLoja &&
               valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
@@ -87,6 +87,7 @@ export default function Open() {
                 console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 delete apr.checklist[indexA][1][indexQ];
               } else if (!isQuestionActiveLoja && hasValorEstoque) {
+                console.log(hasValorEstoque);
                 console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
                 console.log(`Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`);
                 console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
