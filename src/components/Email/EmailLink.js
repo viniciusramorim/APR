@@ -177,7 +177,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     try {
       const response = await fetch(
-        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail",
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
