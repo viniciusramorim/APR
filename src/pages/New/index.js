@@ -672,12 +672,8 @@ export default function New() {
     document.getElementById("container-questions").style.display = "none";
     document.getElementById("container-save").style.display = "none";
     document.getElementById("container-motivo").style.display = "none";
-    (siteInfo.tipoSite === "AUDIT PGR FIXA" ||
-      siteInfo.tipoSite === "AUDIT PGR MOVEL") &&
-      (document.getElementById("container-pgr").style.display = "none")(
-        siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER"
-      ) &&
-      (document.getElementById("container-loja").style.display = "none");
+    if (siteInfo.tipoSite === "AUDIT PGR FIXA" || siteInfo.tipoSite === "AUDIT PGR MOVEL") document.getElementById("container-pgr").style.display = "none";
+    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") document.getElementById("container-loja").style.display = "none";
     document.getElementById("container").style.display = "none";
     document.getElementById("modalLoading").style.display = "none";
 
