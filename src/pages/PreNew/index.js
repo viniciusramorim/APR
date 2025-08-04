@@ -40,6 +40,7 @@ export default function PreNew() {
   const [selectedAplicador, setSelectedAplicador] = useState("0");
 
   const [sigla, setSigla] = useState("");
+  const [nome, setNome] = useState("");
   const [uf, setUf] = useState("Todos");
 
   const [page, setPage] = useState(0);
@@ -94,12 +95,29 @@ export default function PreNew() {
     loadUsers();
   }, []);
 
+  // Handle changes in the sigla input
+  function handleSiglaChange(event) {
+    setSigla(event.target.value);
+    if (event.target.value !== "") {
+      setNome("");
+    }
+  }
+
+  // Handle changes in the nome input
+  function handleNomeChange(event) {
+    setNome(event.target.value);
+    if (event.target.value !== "") {
+      setSigla("");
+    }
+  }
+
   async function handleSearch() {
-    if (sigla.trim() === "") {
+    if (sigla.trim() === "" && nome.trim() === "") {
       return toast.error("Digite uma sigla ou nome para buscar...");
     }
 
-    const searchValue = normalizeString(sigla.trim());
+    const searchSigla = normalizeString(sigla.trim());
+    const searchNome = normalizeString(nome.trim());
     let filteredData = [];
 
     setLoading(true); // INICIA LOADING
@@ -111,20 +129,14 @@ export default function PreNew() {
         searchQuery = searchQuery.where("Estado", "==", uf.toUpperCase());
       }
 
-      const snapshot = await searchQuery.get();
+      // Buscando por sigla usando where
+      if (searchSigla) {
+        const siglaSnapshot = await searchQuery
+          .where("Sigla", "==", searchSigla)
+          .get();
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const nome = data.Nome || "";
-        const sigla = data.Sigla || "";
-
-        const normalizedNome = normalizeString(nome);
-        const normalizedSigla = normalizeString(sigla);
-
-        if (
-          normalizedNome.includes(searchValue) ||
-          normalizedSigla.includes(searchValue)
-        ) {
+        siglaSnapshot.forEach((doc) => {
+          const data = doc.data();
           if (!filteredData.some((item) => item.nome === data.Nome)) {
             filteredData.push({
               id: doc.id,
@@ -149,8 +161,46 @@ export default function PreNew() {
                 : "-",
             });
           }
-        }
-      });
+        });
+      }
+
+      // Buscando por nome sem where completo
+      if (searchNome) {
+        const snapshot = await searchQuery.get();
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const nome = data.Nome || "";
+
+          const normalizedNome = normalizeString(nome);
+
+          if (normalizedNome.includes(searchNome)) {
+            if (!filteredData.some((item) => item.nome === data.Nome)) {
+              filteredData.push({
+                id: doc.id,
+                nome: data.Nome,
+                cidade: data.Cidade,
+                cep: data.CEP,
+                complemento: data.Complemento,
+                estado: data.Estado,
+                endereco: data.Endereco,
+                numero: data.Numero,
+                latitude: data.Latitude,
+                longitude: data.Longitude,
+                tipoSite: data.tipoSite,
+                critical: data.critical,
+                geohash: data.geohash,
+                sigla: data.Sigla,
+                tipo_contrato: data.tipoContrato,
+                detentora: data.Detentora,
+                userLastUpdate: data.userLastUpdate || "-",
+                lastUpdate: data.lastUpdate
+                  ? format(data.lastUpdate.toDate(), "dd/MM/yyyy HH:mm")
+                  : "-",
+              });
+            }
+          }
+        });
+      }
 
       setSite(filteredData);
       setPage(0);
@@ -194,10 +244,22 @@ export default function PreNew() {
               <TextField
                 size="small"
                 fullWidth
-                label="Sigla ou Nome do Site"
+                label="Sigla do Site"
                 variant="outlined"
                 value={sigla}
-                onChange={(e) => setSigla(e.target.value)}
+                onChange={handleSiglaChange}
+                disabled={nome !== ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                size="small"
+                fullWidth
+                label="Nome do Site"
+                variant="outlined"
+                value={nome}
+                onChange={handleNomeChange}
+                disabled={sigla !== ""}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -223,7 +285,7 @@ export default function PreNew() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={4}>
               <Button
                 variant="contained"
                 color="primary"
@@ -235,7 +297,7 @@ export default function PreNew() {
                 {loading ? <CircularProgress size={24} color="inherit" /> : "Buscar"}
               </Button>
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={4}>
               <ModalNovoSite user={user} />
             </Grid>
           </Grid>
