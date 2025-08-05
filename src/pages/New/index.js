@@ -1008,7 +1008,7 @@ export default function New() {
             </MenuItem>
 
             <ListSubheader>Mais Utilizados</ListSubheader>
-            {listQuestions.map((value, index) => {
+            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
               if (maisUtilizados.includes(index)) {
                 return (
                   <MenuItem key={index} value={value.id}>
@@ -1020,7 +1020,7 @@ export default function New() {
             })}
 
             <ListSubheader>Outros</ListSubheader>
-            {listQuestions.map((value, index) => {
+            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
               if (!maisUtilizados.includes(index)) {
                 return (
                   <MenuItem key={index} value={value.id}>
