@@ -130,7 +130,7 @@ export default function New() {
   async function getQuestions(snapshot) {
     navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
       if (item.state !== "granted") {
-        alert("habilite a geolocation para realizar a APR");
+        alert("Habilite a geolocation para realizar a APR");
         return;
       } else {
         document.getElementById("container-questions").style.display = "flex";
@@ -146,11 +146,13 @@ export default function New() {
             const data = item_question.data();
             console.log(data);
 
-            const orderedEntries = Object.entries(data).sort((a, b) =>
+            // Remover a propriedade 'ativo' do objeto data
+            const { ativo, ...restoData } = data;
+
+            const orderedEntries = Object.entries(restoData).sort((a, b) =>
               a[0].localeCompare(b[0])
             );
             console.log(orderedEntries);
-
             setQuestions(orderedEntries);
           });
       }
