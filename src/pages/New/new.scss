@@ -184,6 +184,7 @@
   label {
     display: flex;
     flex-direction: column;
+    width: 22%;
   }
 
   @include respond-to(medium) {

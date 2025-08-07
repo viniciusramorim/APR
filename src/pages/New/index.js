@@ -870,8 +870,9 @@ export default function New() {
   function enableQuestions(doc) {
     const isPGR = siteInfo?.tipoSite?.includes("PGR");
     const isVENEZA = siteInfo?.tipoSite?.includes("PROJETO VENEZA");
+    const isLOJAUNIFICAD = siteInfo?.tipoSite?.includes("LOJA MATRIZ UNIFICAD");
     const isEstadoValido = isPGR && doc.estados.includes(siteInfo.Estado);
-    const isTipoLojaValido = isVENEZA && doc.tipoLoja.includes(tipoLoja)
+    const isTipoLojaValido = (isVENEZA || isLOJAUNIFICAD) && doc.tipoLoja.includes(tipoLoja)
 
     const valorDentroDoIntervalo = (valor, intervalo) => {
       if (!intervalo) return false;
@@ -885,9 +886,10 @@ export default function New() {
       valorDentroDoIntervalo(valorSinistro, doc.valorSinistro) ||
       valorDentroDoIntervalo(valorEstoque, doc.valorEstoque);
 
-    const exibition = (!isPGR && !isVENEZA) ||
+    const exibition = (!isPGR && !isVENEZA && !isLOJAUNIFICAD) ||
       (isPGR && isEstadoValido && atendeAlgumValor) ||
-      (isVENEZA && isTipoLojaValido && atendeAlgumValor);
+      (isVENEZA && isTipoLojaValido && atendeAlgumValor) ||
+      (isLOJAUNIFICAD && isTipoLojaValido && atendeAlgumValor);
 
     return exibition
   }
@@ -1088,7 +1090,7 @@ export default function New() {
           </div>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA"].includes(siteInfo.tipoSite)) && (
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA MATRIZ UNIFICAD"].includes(siteInfo.tipoSite)) && (
           <div className="container" id="container-loja">
             <label name="valor-estoque">
               Tipo de Loja
@@ -1101,7 +1103,9 @@ export default function New() {
                 <option disabled value={""}>
                   Selecione um tipo de loja...
                 </option>
-                <option value={"LOJA GALERIA"}>LOJA GALERIA</option>
+                <option value={"LOJA ESTOQUE ZERO"}>LOJA ESTOQUE ZERO</option>
+                <option value={"LOJA GALERIA PISO TÉRREO"}>LOJA GALERIA PISO TÉRREO</option>
+                <option value={"GALERIA PISO SUPERIOR"}>GALERIA PISO SUPERIOR</option>
                 <option value={"LOJA RUA"}>LOJA RUA</option>
                 <option value={"LOJA SHOP PISO TERREO"}>LOJA SHOP PISO TERREO</option>
                 <option value={"LOJA SHOP PISO SUPERIOR"}>LOJA SHOP PISO SUPERIOR</option>
