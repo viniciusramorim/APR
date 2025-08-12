@@ -70,11 +70,16 @@ export default function Open() {
             const isDono = user.uid === apr.user_id.uid;
             const hasAnswer = doc.answers !== "";
             const isRespVazio = doc.resp === "";
-            const hasValorEstoque = doc.valorEstoque && doc.valorEstoque.min && doc.valorEstoque.max;
+            const hasValorEstoque = doc.valorEstoque?.min != null || doc.valorEstoque?.max != null;
             const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
             const isQuestionActiveLoja = isRevisorLoja &&
               valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
               doc.tipoLoja?.includes(apr.tipo_loja);
+            console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
+            console.log(isQuestionActiveLoja)
+            console.log(hasValorEstoque)
+            console.log(!isQuestionActiveLoja, hasValorEstoque)
+
 
             if (isRespVazio && hasAnswer) {
               if (!isRevisorOuAdmin && !isEmAberto) {
