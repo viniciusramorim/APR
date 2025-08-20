@@ -1016,7 +1016,7 @@ export default function New() {
               if (maisUtilizados.includes(index)) {
                 return (
                   <MenuItem key={index} value={value.id}>
-                    {value.id === "PROJETO VENEZA" ? `${value.id} ⚠` : value.id}
+                    {value.id}
                   </MenuItem>
                 );
               }
