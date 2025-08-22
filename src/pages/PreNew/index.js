@@ -97,7 +97,7 @@ export default function PreNew() {
 
   // Handle changes in the sigla input
   function handleSiglaChange(event) {
-    setSigla(event.target.value);
+    setSigla(event.target.value.toUpperCase());
     if (event.target.value !== "") {
       setNome("");
     }
@@ -132,7 +132,7 @@ export default function PreNew() {
       // Buscando por sigla usando where
       if (searchSigla) {
         const siglaSnapshot = await searchQuery
-          .where("Sigla", "==", searchSigla)
+          .where("Sigla", ">=", searchSigla)
           .get();
 
         siglaSnapshot.forEach((doc) => {
