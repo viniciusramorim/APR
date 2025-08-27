@@ -870,7 +870,7 @@ export default function New() {
   function enableQuestions(doc) {
     const isPGR = siteInfo?.tipoSite?.includes("PGR");
     const isVENEZA = siteInfo?.tipoSite?.includes("PROJETO VENEZA");
-    const isLOJAUNIFICAD = siteInfo?.tipoSite?.includes("LOJA MATRIZ UNIFICAD");
+    const isLOJAUNIFICAD = siteInfo?.tipoSite?.includes("LOJA PROJ VENEZA");
     const isEstadoValido = isPGR && doc.estados.includes(siteInfo.Estado);
     const isTipoLojaValido = (isVENEZA || isLOJAUNIFICAD) && doc.tipoLoja.includes(tipoLoja)
 
@@ -1090,7 +1090,7 @@ export default function New() {
           </div>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA MATRIZ UNIFICAD"].includes(siteInfo.tipoSite)) && (
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
           <div className="container" id="container-loja">
             <label name="valor-estoque">
               Tipo de Loja
