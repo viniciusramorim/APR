@@ -19,7 +19,7 @@ import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
 import SignUpModal from "../RegisterMember";
-import { AddModerator, Email } from "@mui/icons-material";
+import { AddModerator, Analytics, Email } from "@mui/icons-material";
 
 export default function Header() {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
@@ -91,7 +91,7 @@ export default function Header() {
           </>
         )}
 
-        {(user.area === "patrimonial" || user.area === "oem" || user.area === "pci") && (
+        {(user.area === "patrimonial" || user.area === "pci") && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">
@@ -103,6 +103,29 @@ export default function Header() {
               <Link to="/aprs">
                 <FileDownloadDoneSharpIcon color="#000" size={20} />
                 <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
+          </>
+        )}
+
+        {(user.area === "oem") && (
+          <>
+            <Tooltip title="Aplicar APR" placement="right" arrow>
+              <Link to="/new">
+                <PlaylistAddCheckSharpIcon color="#000" size={20} />
+                <i id="label-menu">Aplicar APR</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="APRs" placement="right" arrow>
+              <Link to="/aprs">
+                <FileDownloadDoneSharpIcon color="#000" size={20} />
+                <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Analytics" placement="right" arrow>
+              <Link to="/oem">
+                <Analytics color="#000" size={20} />
+                <i id="label-menu">Analytics</i>
               </Link>
             </Tooltip>
           </>

@@ -21,6 +21,7 @@ import UploadJsonToFirestore from '../components/Email/uploadEmail';
 import ContactEmail from '../pages/ContactEmail/index' 
 import Patrimonio from '../pages/Patrimonio';
 import ChecklistGemini from '../pages/New_IA/ChecklistGemini';
+import Oem from '../pages/Oem';
 
 export default function Routes() {
   return (
@@ -32,6 +33,7 @@ export default function Routes() {
       <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
       <Route exact path="/reports" component={Reports} isPrivate />
       <Route exact path="/patrimonio" component={Patrimonio} isPrivate />
+      <Route exact path="/oem" component={Oem} isPrivate />
       <Route exact path="/sites" component={Sites} isPrivate isAdm />
       <Route exact path="/manager-users" component={Manager} isPrivate isAdm />
       <Route exact path="/manager-logs" component={LogManager} isPrivate isAdm />
