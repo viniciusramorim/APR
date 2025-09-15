@@ -122,12 +122,6 @@ export default function Header() {
                 <i id="label-menu">APRs</i>
               </Link>
             </Tooltip>
-            <Tooltip title="Analytics" placement="right" arrow>
-              <Link to="/oem">
-                <Analytics color="#000" size={20} />
-                <i id="label-menu">Analytics</i>
-              </Link>
-            </Tooltip>
           </>
         )}
 
@@ -149,6 +143,12 @@ export default function Header() {
               <Link to="/reports">
                 <ContentPasteSearchSharpIcon color="#000" size={20} />
                 <i id="label-menu">Relatório</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Analytics" placement="right" arrow>
+              <Link to="/oem">
+                <Analytics color="#000" size={20} />
+                <i id="label-menu">Analytics</i>
               </Link>
             </Tooltip>
             <Tooltip title="Gerenciar Email" placement="right" arrow>

@@ -174,6 +174,7 @@ export default function Reports() {
           if (includeQuestions) {
             if (doc.checklist && doc.status !== "Com Exceção") {
               doc.checklist.forEach((blocoQuestion) => {
+                console.log(doc)
                 blocoQuestion[1].forEach((question) => {
                   if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
                     relatorioApr.push({
@@ -183,9 +184,13 @@ export default function Reports() {
                       STATUS: doc.status,
                       TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
                       VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
+                      VALOR_SINISTRO: doc.valor_sinistro ? parseInt(doc.valor_sinistro) / 100 : '-',
+                      VALOR_TRANSPORTE: doc.valor_transporte ? parseInt(doc.valor_transporte) / 100 : '-',
+                      VALOR_ARMAZENAMENTO: doc.valor_armazenamento ? parseInt(doc.valor_armazenamento) / 100 : '-',
                       MOTIVO: doc.motivo_apr,
                       CLASSIFICACAO: calculatePontos(doc.peso),
                       PESO: doc.peso,
+                      BLOCO: blocoQuestion[0],
                       QUESTIONS: question.question,
                       QUESTIONS_RESP: question.resp,
                       QUESTIONS_CHECKS: question.optionListResp ? question.optionListResp.toString() : "",

@@ -16,6 +16,10 @@ import {
   Container,
   TextField,
   Modal,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import {
@@ -23,7 +27,9 @@ import {
   Edit as EditIcon,
   ArrowUpward,
   ArrowDownward,
+  Download as DownloadIcon,
 } from "@mui/icons-material";
+import * as XLSX from "xlsx";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
@@ -48,8 +54,18 @@ const ChecklistManager = () => {
   const [editingChecklist, setEditingChecklist] = useState(null);
   const [editingBloco, setEditingBloco] = useState(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
 
   const max_title_length = 20;
+
+  const showAlert = (message, severity = "success") => {
+    setAlert({ open: true, message, severity });
+  };
 
   const fetchChecklists = async () => {
     getUser(user.uid).then(async (value) => {
@@ -66,6 +82,7 @@ const ChecklistManager = () => {
         setChecklists(data);
       } catch (err) {
         console.error("Erro ao buscar checklists:", err);
+        showAlert("Erro ao buscar checklists", "error");
       }
     });
   };
@@ -81,6 +98,218 @@ const ChecklistManager = () => {
     setEditingQuestion(null);
     setSelectedBloco(null);
     setSelectedBlocoTitle("");
+  };
+
+  // Função para exportar o relatório do checklist em XLSX
+  const exportChecklistReportXLSX = (checklistId) => {
+    try {
+      const checklist = checklists[checklistId];
+      if (!checklist) {
+        showAlert("Checklist não encontrado", "error");
+        return;
+      }
+
+      // Preparar dados para a planilha
+      const worksheetData = [];
+
+      // Cabeçalho
+      worksheetData.push([
+        "Checklist",
+        "Bloco",
+        "Pergunta",
+        "Peso",
+        "Área",
+        "Tipo",
+        "Opções",
+        "Area Responsavel",
+        "Estados",
+        "Option List",
+        "Valor Estoque Min",
+        "Valor Estoque Max",
+        "Valor Sinistro Min",
+        "Valor Sinistro Max",
+        "Valor Armazenamento Min",
+        "Valor Armazenamento Max",
+        "Valor Transporte Min",
+        "Valor Transporte Max",
+        "Última Atualização",
+      ]);
+
+      // Percorre todos os blocos do checklist
+      Object.entries(checklist).forEach(([key, value]) => {
+        if (key !== "title" && key !== "ativo") {
+          const blocoTitle = value.title || key;
+
+          if (Array.isArray(value)) {
+            value.forEach((question) => {
+              worksheetData.push([
+                checklist.title || checklistId,
+                blocoTitle,
+                question.question || "",
+                question.peso || "",
+                question.area || "",
+                question.type || "",
+                question.options ? question.options.join(", ") : "",
+                question.areaResposavel ? question.areaResposavel.toString() : "",
+                question.estados ? question.estados.toString() : "",
+                question.optionList ? question.optionList.toString() : "",
+                question.valorEstoque ? question.valorEstoque.min : "",
+                question.valorEstoque ? question.valorEstoque.max : "",
+                question.valorSinistro ? question.valorSinistro.min : "",
+                question.valorSinistro ? question.valorSinistro.max : "",
+                question.valorArmazenado ? question.valorArmazenado.min : "",
+                question.valorArmazenado ? question.valorArmazenado.max : "",
+                question.valorTransporte ? question.valorTransporte.min : "",
+                question.valorTransporte ? question.valorTransporte.max : "",
+                question.lastUpdate
+                  ? new Date(question.lastUpdate.seconds * 1000).toLocaleString(
+                      "pt-BR"
+                    )
+                  : "",
+              ]);
+            });
+          }
+        }
+      });
+
+      // Criar workbook e worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+      // Adicionar worksheet ao workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Checklist");
+
+      // Gerar arquivo XLSX
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      // Fazer download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `checklist_${checklistId}_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showAlert(`Relatório do checklist ${checklistId} exportado com sucesso!`);
+      logSistem(
+        `Relatório do checklist "${checklistId}" foi exportado em XLSX`
+      );
+    } catch (error) {
+      console.error("Erro ao exportar relatório XLSX:", error);
+      showAlert("Erro ao exportar relatório XLSX", "error");
+    }
+  };
+
+  // Função para exportar relatório completo de todos os checklists em XLSX
+  const exportAllChecklistsReportXLSX = () => {
+    try {
+      // Preparar dados para a planilha
+      const worksheetData = [];
+
+      // Cabeçalho
+      worksheetData.push([
+        "Checklist",
+        "Status",
+        "Bloco",
+        "Pergunta",
+        "Área",
+        "Tipo",
+        "Opções",
+        "Valor Estoque",
+        "Valor Sinistro",
+        "Valor Armazenamento",
+        "Valor Transporte",
+        "Última Atualização",
+      ]);
+
+      Object.entries(checklists).forEach(([checklistId, checklist]) => {
+        Object.entries(checklist).forEach(([key, value]) => {
+          if (key !== "title" && key !== "ativo") {
+            const blocoTitle = value.title || key;
+
+            if (Array.isArray(value)) {
+              value.forEach((question) => {
+                worksheetData.push([
+                  checklist.title || checklistId,
+                  blocoTitle,
+                  question.question || "",
+                  question.area || "",
+                  question.type || "",
+                  question.options ? question.options.join(", ") : "",
+                  question.valorEstoque ? question.valorEstoque.min : "",
+                  question.valorEstoque ? question.valorEstoque.max : "",
+                  question.valorSinistro ? question.valorSinistro.min : "",
+                  question.valorSinistro ? question.valorSinistro.max : "",
+                  question.valorArmazenado ? question.valorArmazenado.min : "",
+                  question.valorArmazenado ? question.valorArmazenado.max : "",
+                  question.valorTransporte ? question.valorTransporte.min : "",
+                  question.valorTransporte ? question.valorTransporte.max : "",
+                  question.lastUpdate
+                    ? new Date(question.lastUpdate.seconds * 1000).toLocaleString(
+                        "pt-BR"
+                      )
+                    : "",
+                ]);
+              });
+            }
+          }
+        });
+      });
+
+      // Criar workbook e worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+      // Adicionar worksheet ao workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Checklists");
+
+      // Gerar arquivo XLSX
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      // Fazer download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `relatorio_completo_checklists_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showAlert("Relatório completo exportado com sucesso em XLSX!");
+      logSistem(
+        "Relatório completo de todos os checklists foi exportado em XLSX"
+      );
+    } catch (error) {
+      console.error("Erro ao exportar relatório completo XLSX:", error);
+      showAlert("Erro ao exportar relatório completo XLSX", "error");
+    }
+  };
+
+  const handleExportMenuOpen = (event) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
   };
 
   const handleAddChecklist = () => {
@@ -468,14 +697,44 @@ const ChecklistManager = () => {
         <div className="container">
           <Container maxWidth="xl">
             <Box sx={{ mt: 4, mb: 4 }}>
-              <Button
-                color="success"
-                variant="outlined"
-                onClick={handleAddChecklist}
-                sx={{ mb: 2 }}
-              >
-                Adicionar Novo Checklist
-              </Button>
+              <div className="button-header">
+                <Button
+                  color="success"
+                  variant="outlined"
+                  onClick={handleAddChecklist}
+                  sx={{ mb: 2, mr: 2 }}
+                >
+                  Adicionar Novo Checklist
+                </Button>
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  onClick={handleExportMenuOpen}
+                  sx={{ mb: 2 }}
+                  startIcon={<DownloadIcon />}
+                >
+                  Exportar
+                </Button>
+                <Menu
+                  anchorEl={exportMenuAnchor}
+                  open={Boolean(exportMenuAnchor)}
+                  onClose={handleExportMenuClose}
+                >
+                  <MenuItem onClick={() => {
+                    exportAllChecklistsReportXLSX();
+                    handleExportMenuClose();
+                  }}>
+                    Exportar Todos os Checklists (XLSX)
+                  </MenuItem>
+                  <MenuItem onClick={() => {
+                    // Função para exportar todos em TXT seria implementada similarmente
+                    handleExportMenuClose();
+                  }}>
+                    Exportar Todos os Checklists (TXT)
+                  </MenuItem>
+                </Menu>
+              </div>
+              
               {!selectedChecklist ? (
                 <Grid container spacing={2}>
                   {Object.entries(checklists).map(
@@ -494,6 +753,9 @@ const ChecklistManager = () => {
                               }{" "}
                               blocos
                             </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Status: {checklist.ativo ? 'Ativo' : 'Inativo'}
+                            </Typography>
                           </CardContent>
                           <CardActions>
                             <Button
@@ -502,6 +764,14 @@ const ChecklistManager = () => {
                             >
                               Ver Detalhes
                             </Button>
+                            <IconButton
+                              aria-label="export"
+                              color="primary"
+                              onClick={() => exportChecklistReportXLSX(checklistId)}
+                              title="Exportar Relatório XLSX"
+                            >
+                              <DownloadIcon />
+                            </IconButton>
                             <IconButton
                               aria-label="edit"
                               onClick={() => handleEditChecklist(checklistId)}
@@ -547,9 +817,18 @@ const ChecklistManager = () => {
                       color="success"
                       variant="outlined"
                       onClick={handleAddBloco}
-                      sx={{ mb: 2 }}
+                      sx={{ mb: 2, mr: 2 }}
                     >
                       Adicionar Novo Bloco
+                    </Button>
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      onClick={() => exportChecklistReportXLSX(selectedChecklist)}
+                      sx={{ mb: 2, mr: 2 }}
+                      startIcon={<DownloadIcon />}
+                    >
+                      Exportar Checklist (XLSX)
                     </Button>
                     <Button
                       color="secondary"
@@ -616,9 +895,18 @@ const ChecklistManager = () => {
                       color="success"
                       variant="outlined"
                       onClick={handleAddQuestion}
-                      sx={{ mb: 2 }}
+                      sx={{ mb: 2, mr: 2 }}
                     >
                       Adicionar Nova Pergunta
+                    </Button>
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      onClick={() => exportChecklistReportXLSX(selectedChecklist)}
+                      sx={{ mb: 2, mr: 2 }}
+                      startIcon={<DownloadIcon />}
+                    >
+                      Exportar Checklist (XLSX)
                     </Button>
                     <Button
                       color="secondary"
@@ -744,6 +1032,21 @@ const ChecklistManager = () => {
         selectedBloco={selectedBloco}
         selectedBlocoTitle={selectedBlocoTitle}
       />
+
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={() => setAlert({ ...alert, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setAlert({ ...alert, open: false })}
+          severity={alert.severity}
+          sx={{ width: '100%' }}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
