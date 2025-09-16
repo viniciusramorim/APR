@@ -278,7 +278,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
       // Atualizar status da APR no Firestore
       await firebase.firestore().collection('aprs-producao').doc(id).update({
-        status: "Em Aberto",
+        status: "Enviado",
         data_envio_email: firebase.firestore.FieldValue.serverTimestamp(),
         terms: agreeTerms
       });
@@ -287,7 +287,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
       setApr({
         ...apr,
-        status: "Em Aberto"
+        status: "Enviado"
       });
 
       toast.success("E-mail enviado com sucesso e APR atualizada!");
