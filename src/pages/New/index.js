@@ -43,15 +43,72 @@ export default function New() {
   const { id } = useParams();
   const { id_assign } = useParams();
 
+  // Verificar se geolocalização é suportada
+  const isGeolocationSupported = () => {
+    return 'geolocation' in navigator;
+  };
+
+  // Verificar se é iOS para ajustes específicos
+  const isIOS = () => {
+    return [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ].includes(navigator.platform) || 
+    (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+  };
+
+  const getGeolocation = () => {
+    if (!isGeolocationSupported()) {
+      console.warn('Geolocalização não suportada pelo navegador');
+      return;
+    }
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: isIOS() ? 20000 : 15000, // Timeout maior para iOS
+      maximumAge: 60000
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation(position.coords);
+        console.log('Localização obtida:', position.coords);
+      },
+      (error) => {
+        console.warn('Erro na geolocalização:', error);
+        
+        // Tentar fallback com configurações diferentes se for iOS
+        if (isIOS() && error.code === error.TIMEOUT) {
+          console.log('Tentando fallback para iOS...');
+          
+          // Configuração alternativa para iOS
+          const fallbackOptions = {
+            enableHighAccuracy: false,
+            timeout: 30000,
+            maximumAge: 0
+          };
+          
+          navigator.geolocation.getCurrentPosition(
+            (position) => setLocation(position.coords),
+            (fallbackError) => console.error('Fallback também falhou:', fallbackError),
+            fallbackOptions
+          );
+        }
+      },
+      options
+    );
+  };
+
   useEffect(() => {
     addBodyClass("page-new");
-
     loadSite();
     getCheckLists();
-
-    navigator.geolocation.getCurrentPosition(function (position) {
-      setLocation(position.coords);
-    });
+  
+    getGeolocation();
   }, [id]);
 
   const base = "aprs-producao"; //aprs-producao
