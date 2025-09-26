@@ -20,6 +20,7 @@ import EmailLink from "../../components/Email/EmailLink";
 import ModalEdit from "../../components/Modal_Edit";
 import ModalEditSite from "./ModalEditSite.js";
 import ModalEditMotivo from "./ModalEditMotivo.js";
+import ModalInfoSiteAPR from "./ModalInfoSiteAPR.js";
 
 // Importar as fontes do pdfmake
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -158,6 +159,21 @@ export default function Open() {
       content: [],
     };
 
+    // Buscar informações adicionais do site
+    let siteInfoData = null;
+    try {
+      const siteSnapshot = await firebase.firestore().collection('sites')
+        .where('Sigla', '==', apr.site_id.Sigla)
+        .where('Estado', '==', apr.site_id.Estado)
+        .get();
+
+      if (!siteSnapshot.empty) {
+        siteInfoData = siteSnapshot.docs[0].data();
+      }
+    } catch (error) {
+      console.log("Erro ao buscar informações do site:", error);
+    }
+
     pdf.content.push({
       image: await getBase64ImageFromURL(telefonicaLogo),
       width: 100,
@@ -195,19 +211,58 @@ export default function Open() {
       layout: "noBorders",
     });
 
+    // Informações do site incluindo perímetro, área e imagem
+    const siteTableBody = [
+      ["Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
+      ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
+      ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
+      ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
+    ];
+
+    // Adicionar perímetro e área se disponíveis, alinhados
+    if (siteInfoData) {
+      if (siteInfoData.perimetro && siteInfoData.area) {
+        siteTableBody.push([
+          "Perímetro: " + siteInfoData.perimetro + " metros", 
+          "Área: " + siteInfoData.area + " m²"
+        ]);
+      } else if (siteInfoData.perimetro) {
+        siteTableBody.push(["Perímetro: " + siteInfoData.perimetro + " metros", ""]);
+      } else if (siteInfoData.area) {
+        siteTableBody.push(["", "Área: " + siteInfoData.area + " m²"]);
+      }
+    }
+
     pdf.content.push({
       margin: [0, 20, 0, 20],
       table: {
         widths: [300, 300],
-        body: [
-          ["Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
-          ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
-          ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
-          ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
-        ],
+        body: siteTableBody,
       },
       layout: "noBorders",
     });
+
+    // Adicionar imagem do site se disponível
+    if (siteInfoData && siteInfoData.imagem) {
+      try {
+        const siteImageBase64 = await getBase64ImageFromURL(siteInfoData.imagem);
+        pdf.content.push({
+          text: "Imagem do Site:",
+          bold: true,
+          fontSize: 12,
+          margin: [0, 10, 0, 5],
+          color: '#00529B',
+        });
+        pdf.content.push({
+          image: siteImageBase64,
+          width: 170,
+          alignment: 'center',
+          margin: [0, 5, 0, 20],
+        });
+      } catch (error) {
+        console.log("Erro ao carregar imagem do site:", error);
+      }
+    }
 
     pdf.content.push({
       canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
@@ -426,6 +481,7 @@ export default function Open() {
                 <div className="container">
                   <div className="siteInfo">
                     <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
+                    <ModalInfoSiteAPR sigla={apr.site_id.Sigla} estado={apr.site_id.Estado} />
                     <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
                   </div>
                 </div>
