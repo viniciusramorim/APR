@@ -309,78 +309,83 @@ export default function Oem() {
   }
 
   // Função para exportar o relatório em XLSX
-  const exportToXLSX = (chamados) => {
-    // Preparar os dados para exportação
-    const dataToExport = chamados.map(question => ({
-      'UID': question.uid,
-      'ID': question.id,
-      'Sigla': question.sigla,
-      'UF': question.uf,
-      'Tipo de Site': question.tipoSite,
-      'Data da APR': question.data_apr ? (typeof question.data_apr === 'object' && question.data_apr.seconds
-        ? new Date(question.data_apr.seconds * 1000).toLocaleDateString('pt-BR')
-        : new Date(question.data_apr).toLocaleDateString('pt-BR'))
-        : '',
-      'Município': question.municipio,
-      'Endereço': question.endereco,
-      'Nome do Site': question.nome,
-      'Status': question.status,
-      'Área': question.area,
-      'ID da Questão': question.questionId,
-      'Área Responsável': Array.isArray(question.areaResposavel)
-        ? question.areaResposavel.join(', ')
-        : question.areaResposavel || '',
-      'Pergunta': question.question,
-      'Resposta': question.resp,
-      'Comentário': question.respTextArea,
-      'Gabarito': question.respGabarito,
-      'Número do Chamado (PA)': question.plano_acao?.numero_chamado || '',
-      'SLA (PA)': question.plano_acao?.tempo || '',
-      'Comentário (PA)': question.plano_acao?.comentario || '',
-      'Usuário do PA': question.resp_pa_user_name || '',
-      'Data do PA': question.resp_pa_data
-        ? (typeof question.resp_pa_data === 'object' && question.resp_pa_data.seconds
-          ? new Date(question.resp_pa_data.seconds * 1000).toLocaleDateString('pt-BR')
-          : new Date(question.resp_pa_data).toLocaleDateString('pt-BR'))
-        : ''
-    }));
+const exportToXLSX = (chamados) => {
+  const MAX_CELL_LEN = 32767;
 
-    // Criar uma nova workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-
-    // Ajustar largura das colunas
-    const colWidths = [
-      { wch: 20 }, // UID
-      { wch: 10 }, // ID
-      { wch: 10 }, // Sigla
-      { wch: 5 },  // UF
-      { wch: 20 }, // Município
-      { wch: 30 }, // Endereço
-      { wch: 25 }, // Nome do Site
-      { wch: 15 }, // Status
-      { wch: 25 }, // Área
-      { wch: 15 }, // ID da Questão
-      { wch: 20 }, // Área Responsável
-      { wch: 50 }, // Pergunta
-      { wch: 15 }, // Resposta
-      { wch: 30 }, // Comentário
-      { wch: 15 }, // Gabarito
-      { wch: 20 }, // Número do Chamado (PA)
-      { wch: 15 }, // SLA (PA)
-      { wch: 30 }, // Comentário (PA)
-      { wch: 20 }, // Usuário do PA
-      { wch: 15 }  // Data do PA
-    ];
-
-    ws['!cols'] = colWidths;
-
-    // Adicionar a worksheet à workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Relatório Planos de Ação');
-
-    // Gerar o arquivo XLSX
-    XLSX.writeFile(wb, `relatorio_planos_acao_${new Date().toISOString().split('T')[0]}.xlsx`);
+  const safeText = (val) => {
+    if (val === null || val === undefined) return "";
+    let s = String(val);
+    // remove caracteres de controle problemáticos
+    s = s.replace(/\u0000/g, "");
+    // trunca se exceder o limite do Excel
+    if (s.length > MAX_CELL_LEN) s = s.slice(0, MAX_CELL_LEN - 3) + "...";
+    return s;
   };
+
+  const toBRDate = (v) => {
+    if (!v) return "";
+    const d = typeof v === "object" && v.seconds ? new Date(v.seconds * 1000) : new Date(v);
+    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
+  };
+
+  // prepara os dados já sanitizados
+  const dataToExport = chamados.map((q) => ({
+    "UID": safeText(q.uid),
+    "ID": safeText(q.id),
+    "Sigla": safeText(q.sigla),
+    "UF": safeText(q.uf),
+    "Tipo de Site": safeText(q.tipoSite),
+    "Data da APR": safeText(toBRDate(q.data_apr)),
+    "Município": safeText(q.municipio),
+    "Endereço": safeText(q.endereco),
+    "Nome do Site": safeText(q.nome),
+    "Status": safeText(q.status),
+    "Área": safeText(q.area),
+    "ID da Questão": safeText(q.questionId),
+    "Área Responsável": safeText(Array.isArray(q.areaResposavel) ? q.areaResposavel.join(", ") : q.areaResposavel || ""),
+    "Pergunta": safeText(q.question),
+    "Resposta": safeText(q.resp),
+    "Comentário": safeText(q.respTextArea),
+    "Gabarito": safeText(q.respGabarito),
+    "Número do Chamado (PA)": safeText(q.plano_acao?.numero_chamado || ""),
+    "SLA (PA)": safeText(q.plano_acao?.tempo || ""),
+    "Comentário (PA)": safeText(q.plano_acao?.comentario || ""),
+    "Usuário do PA": safeText(q.resp_pa_user_name || ""),
+    "Data do PA": safeText(toBRDate(q.resp_pa_data)),
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+  ws['!cols'] = [
+    { wch: 20 }, // UID
+    { wch: 10 }, // ID
+    { wch: 10 }, // Sigla
+    { wch: 5 },  // UF
+    { wch: 15 }, // Tipo de Site
+    { wch: 12 }, // Data da APR
+    { wch: 20 }, // Município
+    { wch: 30 }, // Endereço
+    { wch: 25 }, // Nome do Site
+    { wch: 15 }, // Status
+    { wch: 20 }, // Área
+    { wch: 15 }, // ID da Questão
+    { wch: 22 }, // Área Responsável
+    { wch: 50 }, // Pergunta
+    { wch: 15 }, // Resposta
+    { wch: 40 }, // Comentário
+    { wch: 15 }, // Gabarito
+    { wch: 22 }, // Número do Chamado (PA)
+    { wch: 15 }, // SLA (PA)
+    { wch: 40 }, // Comentário (PA)
+    { wch: 20 }, // Usuário do PA
+    { wch: 12 }, // Data do PA
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Relatório Planos de Ação");
+  XLSX.writeFile(wb, `relatorio_planos_acao_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
 
   return (
     <div>
