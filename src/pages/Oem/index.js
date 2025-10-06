@@ -23,9 +23,6 @@ import {
   Card,
   Pagination,
   CircularProgress,
-  Autocomplete,
-  Chip,
-  Checkbox,
   FormControlLabel,
   MenuItem,
   Select,
@@ -38,7 +35,8 @@ import { toast } from "react-toastify";
 const REGIONAIS = {
   CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR"],
   NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
-  RJ_ES_MG: ["RJ", "ES", "MG"],
+  RJ_ES: ["RJ", "ES"],
+  MG: ["MG"],
   SP: ["SP"],
   SUL: ["RS", "PR", "SC"]
 };
@@ -54,7 +52,6 @@ export default function Oem() {
   const [comentario, setComentario] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
   const [isEditDisabled, setIsEditDisabled] = useState(false);
-  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
 
   const [totalPA, setTotalPA] = useState(0);
   const [tratadosPA, setTratadosPA] = useState(0);
@@ -62,21 +59,16 @@ export default function Oem() {
 
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(50); // 10 itens por página
   const [paginatedChamados, setPaginatedChamados] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Estados para o pré-filtro de municípios
-  const [municipiosOptions, setMunicipiosOptions] = useState([]);
-  const [selectedMunicipios, setSelectedMunicipios] = useState([]);
-  const [loadingMunicipios, setLoadingMunicipios] = useState(false);
-  const [selectAll, setSelectAll] = useState(false);
-
   // Estado para região selecionada
-  const [selectedRegion, setSelectedRegion] = useState("SP"); // Valor padrão
-  const [selectedUFs, setSelectedUFs] = useState(["SP"]); // UFs baseadas na região selecionada
+  const [selectedRegion, setSelectedRegion] = useState("SP");
+  const [selectedUFs, setSelectedUFs] = useState(["SP"]);
 
   const [exporting, setExporting] = useState(false);
+  const [ufsList, setUfsList] = useState([]); // Lista de UFs únicas
 
   useEffect(() => {
     addBodyClass("page-reports");
@@ -85,23 +77,14 @@ export default function Oem() {
   // Atualizar UFs quando a região mudar
   useEffect(() => {
     if (selectedRegion === "TODAS") {
-      // Juntar todas as UFs de todas as regiões
       const allUFs = Object.values(REGIONAIS).flat();
       setSelectedUFs(allUFs);
     } else if (REGIONAIS[selectedRegion]) {
       setSelectedUFs(REGIONAIS[selectedRegion]);
     } else {
-      // Se for uma UF específica
       setSelectedUFs([selectedRegion]);
     }
   }, [selectedRegion]);
-
-  useEffect(() => {
-    // Carregar lista de municípios disponíveis para as UFs selecionadas
-    if (selectedUFs.length > 0) {
-      loadMunicipiosOptions();
-    }
-  }, [selectedUFs]);
 
   useEffect(() => {
     // Atualizar dados paginados quando chamados ou página mudar
@@ -112,69 +95,22 @@ export default function Oem() {
     setTotalPages(Math.ceil(chamados.length / itemsPerPage));
   }, [chamados, currentPage, itemsPerPage]);
 
+  // Extrair lista de UFs únicas para exibição
   useEffect(() => {
-    // Atualizar o estado "Selecionar Todos" quando a seleção de municípios mudar
-    setSelectAll(selectedMunicipios.length === municipiosOptions.length && municipiosOptions.length > 0);
-  }, [selectedMunicipios, municipiosOptions]);
-
-  async function loadMunicipiosOptions() {
-    setLoadingMunicipios(true);
-    try {
-      let query = firebase.firestore().collection("aprs-producao");
-
-      // Aplicar filtros básicos - agora por UFs da região selecionada
-      query = query
-        .where("site_id.Estado", "in", selectedUFs)
-        .where("site_id.tipoSite", "in", ["ERB", "CT"]);
-
-      const snapshot = await query.get();
-      const municipiosSet = new Set();
-
-      snapshot.forEach((doc) => {
-        const siteData = doc.data().site_id;
-        if (selectedUFs.includes(siteData.Estado) && (siteData.tipoSite === "ERB" || siteData.tipoSite === "CT")) {
-          municipiosSet.add(siteData.Cidade);
-        }
-      });
-
-      const municipiosList = Array.from(municipiosSet).sort();
-      setMunicipiosOptions(municipiosList);
-      setSelectedMunicipios([]); // Resetar seleção de municípios quando a região muda
-    } catch (err) {
-      console.error("Erro ao carregar municípios: ", err);
-      toast.error("Erro ao carregar a lista de municípios");
-    }
-    setLoadingMunicipios(false);
-  }
-
-  const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelectedMunicipios(municipiosOptions);
-    } else {
-      setSelectedMunicipios([]);
-    }
-  };
+    const ufs = [...new Set(chamados.map(item => item.uf))].sort();
+    setUfsList(ufs);
+  }, [chamados]);
 
   async function loadChamados() {
-    if (selectedMunicipios.length === 0) {
-      toast.info("Selecione pelo menos um município para filtrar");
-      return;
-    }
-
     setLoading(true);
     try {
       let query = firebase.firestore().collection("aprs-producao");
 
-      // Aplicar filtros básicos - agora por UFs da região selecionada
+      // Aplicar filtros básicos - por UFs da região selecionada
       query = query
         .where("site_id.Estado", "in", selectedUFs)
-        .where("site_id.tipoSite", "in", ["ERB", "CT"]);
-
-      // Aplicar filtro de municípios selecionados
-      // Se todos os municípios estiverem selecionados, não aplicamos filtro por município
-      if (selectedMunicipios.length !== municipiosOptions.length) {
-        query = query.where("site_id.Cidade", "in", selectedMunicipios);
-      }
+        .where("site_id.tipoSite", "in", ["ERB", "CT"])
+        .where("motivo_apr", "==", "Mapa de Calor");
 
       // Aplicar filtro de status baseado no usuário
       query =
@@ -188,9 +124,8 @@ export default function Oem() {
       snapshot.forEach((doc) => {
         const siteData = doc.data().site_id;
         const aprData = doc.data();
-        // Verificar se o município está na lista selecionada (ou se todos estão selecionados)
-        if ((selectedMunicipios.length === municipiosOptions.length || selectedMunicipios.includes(siteData.Cidade)) &&
-          selectedUFs.includes(siteData.Estado) &&
+        
+        if (selectedUFs.includes(siteData.Estado) &&
           (siteData.tipoSite === "ERB" || siteData.tipoSite === "CT")) {
           doc.data().checklist.forEach((area) => {
             area[1].forEach((question, idx) => {
@@ -222,6 +157,12 @@ export default function Oem() {
         }
       });
 
+      // Ordenar por UF e município
+      list.sort((a, b) => {
+        if (a.uf !== b.uf) return a.uf.localeCompare(b.uf);
+        return a.municipio.localeCompare(b.municipio);
+      });
+
       setChamados(list);
       setTotalPA(list.length);
       setTratadosPA(list.filter(item => item.plano_acao?.comentario).length);
@@ -233,13 +174,6 @@ export default function Oem() {
     }
     setLoading(false);
   }
-
-  const groupByUF = paginatedChamados.reduce((acc, chamado) => {
-    if (!acc[chamado.uf]) acc[chamado.uf] = {};
-    if (!acc[chamado.uf][chamado.municipio]) acc[chamado.uf][chamado.municipio] = [];
-    acc[chamado.uf][chamado.municipio].push(chamado);
-    return acc;
-  }, {});
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -309,95 +243,80 @@ export default function Oem() {
   }
 
   // Função para exportar o relatório em XLSX
-const exportToXLSX = (chamados) => {
-  const MAX_CELL_LEN = 32767;
+  const exportToXLSX = (chamados) => {
+    const MAX_CELL_LEN = 32767;
 
-  const safeText = (val) => {
-    if (val === null || val === undefined) return "";
-    let s = String(val);
-    // remove caracteres de controle problemáticos
-    s = s.replace(/\u0000/g, "");
-    // trunca se exceder o limite do Excel
-    if (s.length > MAX_CELL_LEN) s = s.slice(0, MAX_CELL_LEN - 3) + "...";
-    return s;
+    const safeText = (val) => {
+      if (val === null || val === undefined) return "";
+      let s = String(val);
+      s = s.replace(/\u0000/g, "");
+      if (s.length > MAX_CELL_LEN) s = s.slice(0, MAX_CELL_LEN - 3) + "...";
+      return s;
+    };
+
+    const toBRDate = (v) => {
+      if (!v) return "";
+      const d = typeof v === "object" && v.seconds ? new Date(v.seconds * 1000) : new Date(v);
+      return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
+    };
+
+    const dataToExport = chamados.map((q) => ({
+      "UID": safeText(q.uid),
+      "ID": safeText(q.id),
+      "Sigla": safeText(q.sigla),
+      "UF": safeText(q.uf),
+      "Tipo de Site": safeText(q.tipoSite),
+      "Data da APR": safeText(toBRDate(q.data_apr)),
+      "Município": safeText(q.municipio),
+      "Endereço": safeText(q.endereco),
+      "Nome do Site": safeText(q.nome),
+      "Status": safeText(q.status),
+      "Área": safeText(q.area),
+      "ID da Questão": safeText(q.questionId),
+      "Área Responsável": safeText(Array.isArray(q.areaResposavel) ? q.areaResposavel.join(", ") : q.areaResposavel || ""),
+      "Pergunta": safeText(q.question),
+      "Resposta": safeText(q.resp),
+      "Comentário": safeText(q.respTextArea),
+      "Gabarito": safeText(q.respGabarito),
+      "Número do Chamado (PA)": safeText(q.plano_acao?.numero_chamado || ""),
+      "SLA (PA)": safeText(q.plano_acao?.tempo || ""),
+      "Comentário (PA)": safeText(q.plano_acao?.comentario || ""),
+      "Usuário do PA": safeText(q.resp_pa_user_name || ""),
+      "Data do PA": safeText(toBRDate(q.resp_pa_data)),
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+    ws['!cols'] = [
+      { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 5 }, { wch: 15 },
+      { wch: 12 }, { wch: 20 }, { wch: 30 }, { wch: 25 }, { wch: 15 },
+      { wch: 20 }, { wch: 15 }, { wch: 22 }, { wch: 50 }, { wch: 15 },
+      { wch: 40 }, { wch: 15 }, { wch: 22 }, { wch: 15 }, { wch: 40 },
+      { wch: 20 }, { wch: 12 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Relatório Planos de Ação");
+    XLSX.writeFile(wb, `relatorio_planos_acao_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const toBRDate = (v) => {
-    if (!v) return "";
-    const d = typeof v === "object" && v.seconds ? new Date(v.seconds * 1000) : new Date(v);
-    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
-  };
-
-  // prepara os dados já sanitizados
-  const dataToExport = chamados.map((q) => ({
-    "UID": safeText(q.uid),
-    "ID": safeText(q.id),
-    "Sigla": safeText(q.sigla),
-    "UF": safeText(q.uf),
-    "Tipo de Site": safeText(q.tipoSite),
-    "Data da APR": safeText(toBRDate(q.data_apr)),
-    "Município": safeText(q.municipio),
-    "Endereço": safeText(q.endereco),
-    "Nome do Site": safeText(q.nome),
-    "Status": safeText(q.status),
-    "Área": safeText(q.area),
-    "ID da Questão": safeText(q.questionId),
-    "Área Responsável": safeText(Array.isArray(q.areaResposavel) ? q.areaResposavel.join(", ") : q.areaResposavel || ""),
-    "Pergunta": safeText(q.question),
-    "Resposta": safeText(q.resp),
-    "Comentário": safeText(q.respTextArea),
-    "Gabarito": safeText(q.respGabarito),
-    "Número do Chamado (PA)": safeText(q.plano_acao?.numero_chamado || ""),
-    "SLA (PA)": safeText(q.plano_acao?.tempo || ""),
-    "Comentário (PA)": safeText(q.plano_acao?.comentario || ""),
-    "Usuário do PA": safeText(q.resp_pa_user_name || ""),
-    "Data do PA": safeText(toBRDate(q.resp_pa_data)),
-  }));
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(dataToExport);
-
-  ws['!cols'] = [
-    { wch: 20 }, // UID
-    { wch: 10 }, // ID
-    { wch: 10 }, // Sigla
-    { wch: 5 },  // UF
-    { wch: 15 }, // Tipo de Site
-    { wch: 12 }, // Data da APR
-    { wch: 20 }, // Município
-    { wch: 30 }, // Endereço
-    { wch: 25 }, // Nome do Site
-    { wch: 15 }, // Status
-    { wch: 20 }, // Área
-    { wch: 15 }, // ID da Questão
-    { wch: 22 }, // Área Responsável
-    { wch: 50 }, // Pergunta
-    { wch: 15 }, // Resposta
-    { wch: 40 }, // Comentário
-    { wch: 15 }, // Gabarito
-    { wch: 22 }, // Número do Chamado (PA)
-    { wch: 15 }, // SLA (PA)
-    { wch: 40 }, // Comentário (PA)
-    { wch: 20 }, // Usuário do PA
-    { wch: 12 }, // Data do PA
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, "Relatório Planos de Ação");
-  XLSX.writeFile(wb, `relatorio_planos_acao_${new Date().toISOString().split('T')[0]}.xlsx`);
-};
-
+  // Agrupar itens da página atual por UF
+  const groupByUF = paginatedChamados.reduce((acc, chamado) => {
+    if (!acc[chamado.uf]) acc[chamado.uf] = [];
+    acc[chamado.uf].push(chamado);
+    return acc;
+  }, {});
 
   return (
     <div>
       <Header />
       <div className="content">
         <Title name="Infra e Móvel">
-          <FiFileText size={25} onClick={() => console.log(chamados)} />
+          <FiFileText size={25} />
         </Title>
         <div className="filter-reports-container">
           <div className="filter-reports">
             <Grid container spacing={2} alignItems="center">
-              {/* Novo seletor de regional */}
               <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
                   <InputLabel id="region-select-label">Regional</InputLabel>
@@ -408,7 +327,8 @@ const exportToXLSX = (chamados) => {
                     onChange={(e) => setSelectedRegion(e.target.value)}
                   >
                     <MenuItem value="SP">SP</MenuItem>
-                    <MenuItem value="RJ_ES_MG">RJ/ES/MG</MenuItem>
+                    <MenuItem value="RJ_ES">RJ/ES</MenuItem>
+                    <MenuItem value="MG">MG</MenuItem>
                     <MenuItem value="SUL">Sul (RS/PR/SC)</MenuItem>
                     <MenuItem value="NE">Nordeste</MenuItem>
                     <MenuItem value="CO_N">Centro-Oeste/Norte</MenuItem>
@@ -417,81 +337,23 @@ const exportToXLSX = (chamados) => {
                 </FormControl>
               </Grid>
               
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={selectAll}
-                      onChange={handleSelectAll}
-                      disabled={loadingMunicipios || municipiosOptions.length === 0}
-                    />
-                  }
-                  label="Selecionar todos os municípios"
-                />
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1" color="textSecondary">
+                  UFs selecionadas: {selectedUFs.join(", ")} | 
+                  UFs encontradas: {ufsList.join(", ")}
+                </Typography>
               </Grid>
-              <Grid item xs={12} md={8}>
-                {loadingMunicipios ? (
-                  <Box display="flex" alignItems="center">
-                    <CircularProgress size={20} sx={{ mr: 1 }} />
-                    <Typography variant="body2">Carregando municípios...</Typography>
-                  </Box>
-                ) : (
-                  <Autocomplete
-                    multiple
-                    options={municipiosOptions}
-                    value={selectedMunicipios}
-                    onChange={(event, newValue) => {
-                      setSelectedMunicipios(newValue);
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Selecione os municípios"
-                        placeholder="Digite o nome do município"
-                      />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          variant="outlined"
-                          label={option}
-                          {...getTagProps({ index })}
-                          key={index}
-                        />
-                      ))
-                    }
-                    disabled={loadingMunicipios}
-                    // Adicionando estilo para limitar a altura e adicionar scroll
-                    ListboxProps={{
-                      style: {
-                        maxHeight: '200px', // Altura máxima da lista
-                        overflow: 'auto',   // Adiciona scroll quando necessário
-                      },
-                    }}
-                    // Estilo para o container dos chips selecionados
-                    sx={{
-                      '& .MuiAutocomplete-tag': {
-                        maxWidth: '100%',
-                      },
-                      '& .MuiAutocomplete-inputRoot': {
-                        flexWrap: 'wrap',
-                        overflow: 'auto',
-                        height: '120px', // Altura máxima do campo de input com chips
-                      }
-                    }}
-                  />
-                )}
-              </Grid>
-              <Grid item xs={12} md={4}>
+              
+              <Grid item xs={12} md={2}>
                 <FormControl fullWidth>
                   <Button
                     variant="outlined"
                     color="primary"
                     onClick={loadChamados}
-                    disabled={loading || selectedMunicipios.length === 0 || loadingMunicipios}
+                    disabled={loading}
                     style={{ borderColor: "#380054e8", color: "#380054e8", height: '56px', marginBottom: '10px' }}
                   >
-                    {loading ? <CircularProgress size={24} /> : "Filtrar"}
+                    {loading ? <CircularProgress size={24} /> : "Carregar"}
                   </Button>
 
                   <Button
@@ -507,7 +369,7 @@ const exportToXLSX = (chamados) => {
                     disabled={chamados.length === 0 || exporting}
                     style={{ height: '56px' }}
                   >
-                    {exporting ? <CircularProgress size={24} /> : "Exportar XLSX"}
+                    {exporting ? <CircularProgress size={24} /> : "Exportar"}
                   </Button>
                 </FormControl>
               </Grid>
@@ -516,7 +378,7 @@ const exportToXLSX = (chamados) => {
             <Grid container spacing={2} sx={{ my: 2 }}>
               <Grid item xs={12} sm={4}>
                 <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
-                  <Typography variant="h6">Total de Planos de Ação</Typography>
+                  <Typography variant="h6">Total de PAs</Typography>
                   <Typography variant="h4" color="primary">{totalPA}</Typography>
                 </Card>
               </Grid>
@@ -542,129 +404,137 @@ const exportToXLSX = (chamados) => {
           </div>
         ) : (
           <>
-            {chamados.length > 0 ? (
+            {paginatedChamados.length > 0 ? (
               <>
                 <div className="container reports">
                   <div className="questions-list">
-                    {Object.entries(groupByUF).map(([uf, municipios], i) => (
-                      <Accordion key={uf + i} sx={{ mb: 2 }}>
+                    {Object.entries(groupByUF).map(([uf, chamadosUF]) => (
+                      <Accordion key={uf} sx={{ mb: 2 }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                          <Typography variant="h6">UF: {uf}</Typography>
+                          <Typography variant="h6">
+                            UF: {uf} ({chamadosUF.length} item{chamadosUF.length > 1 ? 's' : ''})
+                          </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                          {Object.entries(municipios).map(([municipio, chamados]) => (
-                            <Accordion key={municipio} sx={{ mb: 2, ml: 2 }}>
+                          {chamadosUF.map((question, index) => (
+                            <Accordion
+                              key={`${question.uid}-${question.index}`}
+                              sx={{
+                                mb: 1,
+                                border: question.plano_acao?.comentario
+                                  ? '2px solid #4caf50'
+                                  : '2px solid #f44336',
+                                borderRadius: 2,
+                              }}
+                            >
                               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography variant="subtitle1">
-                                  Município: {municipio}
+                                <Typography variant="body1" noWrap>
+                                  <strong>{question.id}</strong> - {question.nome} - {question.municipio}
+                                  {question.plano_acao?.comentario ? " ✅" : " ❌"}
                                 </Typography>
                               </AccordionSummary>
                               <AccordionDetails>
-                                {chamados.map((question, index) => (
-                                  <Accordion
-                                    key={index}
-                                    expanded={`${question.uid}-${question.index}` === expandedQuestionId}
-                                    onChange={() =>
-                                      setExpandedQuestionId(
-                                        expandedQuestionId === `${question.uid}-${question.index}`
-                                          ? null
-                                          : `${question.uid}-${question.index}`
-                                      )
-                                    }
-                                    sx={{
-                                      mb: 1,
-                                      ml: 2,
-                                      border: question.plano_acao?.comentario
-                                        ? '2px solid #4caf50'
-                                        : '2px solid #f44336',
-                                      backgroundColor:
-                                        `${question.uid}-${question.index}` === expandedQuestionId
-                                          ? question.plano_acao?.comentario
-                                            ? '#e8f5e9'
-                                            : '#ffebee'
-                                          : 'white',
-                                      boxShadow:
-                                        `${question.uid}-${question.index}` === expandedQuestionId
-                                          ? '0 0 10px rgba(0, 0, 0, 0.2)'
-                                          : 'none',
-                                      transition: 'all 0.3s ease-in-out',
-                                      borderRadius: 2,
-                                    }}
-                                  >
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                      <Typography variant="body1">
-                                        ID: {question.id} - {question.nome} -{" "}
-                                        {question.endereco}
-                                      </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                      <Grid container spacing={2}>
-                                        <Grid item xs={12} sm={8}>
-                                          <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
-                                            Informações da Inconformidade
-                                          </Typography>
+                                <Grid container spacing={2}>
+                                  <Grid item xs={12} sm={8}>
+                                    <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
+                                      Informações da Inconformidade
+                                    </Typography>
 
-                                          <Divider sx={{ mb: 2 }} />
+                                    <Divider sx={{ mb: 2 }} />
 
-                                          <Typography variant="body1" sx={{ mb: 1 }}>
-                                            <strong>Pergunta:</strong><br />
-                                            {question.question}
-                                          </Typography>
+                                    <Typography variant="body1" sx={{ mb: 1 }}>
+                                      <strong>Pergunta:</strong><br />
+                                      {question.question}
+                                    </Typography>
 
-                                          <Typography variant="body1" sx={{ mb: 1 }}>
-                                            <strong>Resposta:</strong> {question.resp || "Não informado"}
-                                          </Typography>
+                                    <Typography variant="body1" sx={{ mb: 1 }}>
+                                      <strong>Resposta:</strong> {question.resp || "Não informado"}
+                                    </Typography>
 
-                                          <Typography variant="body1" sx={{ mb: 2 }}>
-                                            <strong>Comentário:</strong> {question.respTextArea || "Nenhum comentário"}
-                                          </Typography>
+                                    <Typography variant="body1" sx={{ mb: 1 }}>
+                                      <strong>Comentário:</strong> {question.respTextArea || "Nenhum comentário"}
+                                    </Typography>
 
-                                          <Grid container spacing={1}>
-                                            <Grid item xs={12} sm={12}>
-                                              <Button
-                                                variant="outlined"
-                                                onClick={() => window.open(`/open/${question.uid}`, '_blank')}
-                                                sx={{
-                                                  borderColor: "#380054e8",
-                                                  color: "#380054e8",
-                                                  ":hover": {
-                                                    backgroundColor: "#f0e6f5",
-                                                    borderColor: "#5e168c"
-                                                  },
-                                                  width: "100%",
-                                                  mb: 1,
-                                                }}
-                                                startIcon={<FiExternalLink />}
-                                              >
-                                                ABRIR APR
-                                              </Button>
-                                            </Grid>
-                                          </Grid>
-                                        </Grid>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                      <strong>Município:</strong> {question.municipio}
+                                    </Typography>
 
-                                        {question.imagesURL?.length > 0 && (
-                                          <Grid item xs={12} sm={4}>
-                                            <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                              Imagem
-                                            </Typography>
+                                    {question.plano_acao?.comentario && (
+                                      <>
+                                        <Divider sx={{ my: 2 }} />
+                                        <Typography variant="h6" fontWeight="bold" gutterBottom color="success.main">
+                                          Plano de Ação
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ mb: 1 }}>
+                                          <strong>Chamado:</strong> {question.plano_acao?.numero_chamado}
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ mb: 1 }}>
+                                          <strong>SLA:</strong> {question.plano_acao?.tempo}
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                          <strong>Ação:</strong> {question.plano_acao?.comentario}
+                                        </Typography>
+                                      </>
+                                    )}
 
-                                            <Card
-                                              elevation={3}
-                                              sx={{ borderRadius: 2, overflow: "hidden", maxWidth: "100%" }}
-                                            >
-                                              <CardMedia
-                                                component="img"
-                                                image={question.imagesURL[0].url}
-                                                alt="Imagem relacionada à pergunta"
-                                                sx={{ height: 200, objectFit: "cover" }}
-                                              />
-                                            </Card>
-                                          </Grid>
-                                        )}
+                                    <Grid container spacing={1}>
+                                      <Grid item xs={12} sm={12}>
+                                        <Button
+                                          variant="outlined"
+                                          onClick={() => window.open(`/open/${question.uid}`, '_blank')}
+                                          sx={{
+                                            borderColor: "#380054e8",
+                                            color: "#380054e8",
+                                            ":hover": {
+                                              backgroundColor: "#f0e6f5",
+                                              borderColor: "#5e168c"
+                                            },
+                                            width: "100%",
+                                            mb: 1,
+                                          }}
+                                          startIcon={<FiExternalLink />}
+                                        >
+                                          ABRIR APR
+                                        </Button>
                                       </Grid>
-                                    </AccordionDetails>
-                                  </Accordion>
-                                ))}
+                                      {/* <Grid item xs={12} sm={6}>
+                                        <Button
+                                          variant="contained"
+                                          onClick={() => handleOpenModal(question)}
+                                          sx={{
+                                            backgroundColor: "#380054e8",
+                                            ":hover": {
+                                              backgroundColor: "#5e168c"
+                                            },
+                                            width: "100%",
+                                            mb: 1,
+                                          }}
+                                        >
+                                          {question.plano_acao?.comentario ? "EDITAR PA" : "INSERIR PA"}
+                                        </Button>
+                                      </Grid> */}
+                                    </Grid>
+                                  </Grid>
+
+                                  {question.imagesURL?.length > 0 && (
+                                    <Grid item xs={12} sm={4}>
+                                      <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                        Imagem
+                                      </Typography>
+                                      <Card
+                                        elevation={3}
+                                        sx={{ borderRadius: 2, overflow: "hidden", maxWidth: "100%" }}
+                                      >
+                                        <CardMedia
+                                          component="img"
+                                          image={question.imagesURL[0].url}
+                                          alt="Imagem relacionada à pergunta"
+                                          sx={{ height: 200, objectFit: "cover" }}
+                                        />
+                                      </Card>
+                                    </Grid>
+                                  )}
+                                </Grid>
                               </AccordionDetails>
                             </Accordion>
                           ))}
@@ -690,16 +560,19 @@ const exportToXLSX = (chamados) => {
                 {/* Informações de paginação */}
                 <div style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
                   <Typography variant="body2">
-                    Exibindo {paginatedChamados.length} de {chamados.length} itens (Página {currentPage} de {totalPages})
+                    Exibindo {paginatedChamados.length} de {totalPA} itens | 
+                    Página {currentPage} de {totalPages} | 
+                    {ufsList.length} UF{ufsList.length > 1 ? 's' : ''} no total
                   </Typography>
                 </div>
               </>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
                 <Typography variant="h6">
-                  {selectedMunicipios.length === 0
-                    ? "Selecione um ou mais municípios para visualizar os planos de ação"
-                    : "Nenhum plano de ação encontrado para os municípios selecionados"}
+                  {chamados.length === 0 
+                    ? "Nenhum plano de ação encontrado para as UFs selecionadas"
+                    : "Nenhum item encontrado nesta página"
+                  }
                 </Typography>
               </div>
             )}
@@ -749,6 +622,8 @@ const exportToXLSX = (chamados) => {
             onChange={(e) => setComentario(e.target.value)}
             sx={{ mt: 2 }}
             disabled={isEditDisabled}
+            multiline
+            rows={3}
           />
           <Button
             variant="contained"
