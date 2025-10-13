@@ -357,6 +357,26 @@ export default function Dashboard() {
       });
   };
 
+  const updateStatusRollBack = (id, index) => {
+    let confirm = window.confirm("Deseja realmente alterar o status da APR para Em Aberto?");
+    if (!confirm) return;
+
+    listRef
+      .doc(id)
+      .update({ status: "Em Aberto" })
+      .then(() => {
+        let updatedChamados = [...chamados];
+        updatedChamados[index].status = "Em Aberto";
+        setChamados(updatedChamados);
+        logSistem(`APR foi alterado o status para Em Aberto`, id);
+        toast.success("Status da APR alterado com sucesso!");
+      })
+      .catch((err) => {
+        toast.error("Erro ao atualizar o status da APR!");
+        console.error(err);
+      });
+  };
+
   // Função para limpar os filtros
   const clearFilters = () => {
     setFilterUF("");
@@ -843,6 +863,7 @@ export default function Dashboard() {
           chamados={chamados}
           user={user}
           updateStatus={updateStatus}
+          updateStatusRollBack={updateStatusRollBack}
         />
       </div>
     </div>

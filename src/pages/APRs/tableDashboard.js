@@ -17,7 +17,7 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import ModalLog from "../../components/Modal_Logs";
 import { Link } from "react-router-dom";
-import { Close, Search } from "@mui/icons-material";
+import { ArrowBack, Close, Search } from "@mui/icons-material";
 import { TableHead, TableSortLabel } from "@mui/material";
 
 // Função para salvar a página no localStorage
@@ -101,7 +101,7 @@ TablePaginationActions.propTypes = {
 };
 
 export default function CustomPaginationActionsTable(props) {
-  const { chamados, user, updateStatus, totalQuestion } = props;
+  const { chamados, user, updateStatus, totalQuestion, updateStatusRollBack } = props;
 
   // Carregar a página inicial do localStorage
   const [page, setPage] = React.useState(loadPageFromLocalStorage());
@@ -313,6 +313,16 @@ export default function CustomPaginationActionsTable(props) {
                       aria-label="add an alarm"
                     >
                       <Close />
+                    </IconButton>
+                  )}
+
+                {(user.nivel === "administrador") && (
+                    <IconButton
+                      onClick={() => updateStatusRollBack(row.id, index)}
+                      color="secondary"
+                      aria-label="add an alarm"
+                    >
+                      <ArrowBack />
                     </IconButton>
                   )}
                 {(user.nivel === "administrador" ||
