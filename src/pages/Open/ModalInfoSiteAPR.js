@@ -18,6 +18,7 @@ import {
   Stack,
   InputAdornment,
   Backdrop,
+  MenuItem,
 } from '@mui/material';
 import { 
   FiInfo, 
@@ -28,7 +29,8 @@ import {
   FiImage,
   FiSquare,
   FiMapPin,
-  FiMaximize2
+  FiMaximize2,
+  FiChevronsRight
 } from 'react-icons/fi';
 import firebase from "../../services/firebaseConnection";
 import { toast } from 'react-toastify';
@@ -46,11 +48,11 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
   const [editPerimetro, setEditPerimetro] = useState('');
   const [editArea, setEditArea] = useState('');
   const [editImagem, setEditImagem] = useState('');
+  const [editPorte, setEditPorte] = useState('');
   
   const fileInputRef = useRef(null);
   const [siteDocId, setSiteDocId] = useState(null);
 
-  // Adicionar event listener para paste quando em modo de edição
   useEffect(() => {
     const handlePasteGlobal = (e) => {
       if (editMode && open) {
@@ -89,6 +91,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
         setEditPerimetro(siteData.perimetro || '');
         setEditArea(siteData.area || '');
         setEditImagem(siteData.imagem || '');
+        setEditPorte(siteData.porte || '');
       } else {
         setSiteInfo(null);
         toast.info("Nenhuma informação encontrada para este site.");
@@ -175,6 +178,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
         perimetro: parseFloat(editPerimetro) || 0,
         area: parseFloat(editArea) || 0,
         imagem: editImagem,
+        porte: editPorte,
       });
 
       setSiteInfo({
@@ -182,6 +186,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
         perimetro: editPerimetro,
         area: editArea,
         imagem: editImagem,
+        porte: editPorte,
       });
 
       setEditMode(false);
@@ -204,6 +209,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
     setEditPerimetro('');
     setEditArea('');
     setEditImagem('');
+    setEditPorte('');
     setDragOver(false);
   };
 
@@ -212,6 +218,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
       setEditPerimetro(siteInfo?.perimetro || '');
       setEditArea(siteInfo?.area || '');
       setEditImagem(siteInfo?.imagem || '');
+      setEditPorte(siteInfo?.porte || '');
     }
     setEditMode(!editMode);
   };
@@ -264,7 +271,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
       <Dialog 
         open={open} 
         onClose={handleClose} 
-        maxWidth="sm" 
+        maxWidth='md' 
         fullWidth
         PaperProps={{
           sx: {
@@ -321,7 +328,7 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
             </Box>
           ) : siteInfo ? (
             <Stack spacing={3}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
                 <Box sx={{ marginTop: '15px' }}>
                   {editMode ? (
                     <TextField
@@ -388,6 +395,40 @@ export default function ModalInfoSiteAPR({ sigla, estado }) {
                       value={siteInfo.area} 
                       icon={<FiSquare size={18} />}
                       unit=" m²"
+                    />
+                  )}
+                </Box>
+                <Box sx={{ marginTop: '15px' }}>
+                  {editMode ? (
+                    <TextField
+                      fullWidth
+                      select
+                      label="Porte"
+                      value={editPorte}
+                      onChange={(e) => setEditPorte(e.target.value)}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><FiChevronsRight color="#9c27b0" /></InputAdornment>,
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#9c27b0',
+                          }
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#9c27b0',
+                        }
+                      }}
+                    >
+                      <MenuItem value="Pequeno">Pequeno</MenuItem>
+                      <MenuItem value="Grande">Grande</MenuItem>
+                    </TextField>
+                  ) : (
+                    <InfoField
+                      label="Porte"
+                      value={siteInfo.porte}
+                      icon={<FiChevronsRight size={18} />}
                     />
                   )}
                 </Box>
