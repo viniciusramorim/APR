@@ -777,6 +777,7 @@ export default function Dashboard() {
                   <MenuItem value="SMARTTAG2">SMARTTAG</MenuItem>
                   <MenuItem value="RPCI">RPCI</MenuItem>
                   <MenuItem value="PCI">PCI</MenuItem>
+                  <MenuItem value="LOJA PROJ VENEZA">LOJA PROJ VENEZA</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
