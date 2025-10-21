@@ -57,13 +57,15 @@ export default function New() {
       'iPad',
       'iPhone',
       'iPod'
-    ].includes(navigator.platform) || 
-    (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    ].includes(navigator.platform) ||
+      (navigator.userAgent.includes("Mac") && "ontouchend" in document);
   };
 
   const getGeolocation = () => {
     if (!isGeolocationSupported()) {
       console.warn('Geolocalização não suportada pelo navegador');
+      setGeolocationError('Geolocalização não suportada pelo navegador');
+      setShowGeolocationModal(true);
       return;
     }
 
@@ -76,39 +78,79 @@ export default function New() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation(position.coords);
+        setGeolocationEnabled(true);
+        setGeolocationError(null);
         console.log('Localização obtida:', position.coords);
       },
       (error) => {
         console.warn('Erro na geolocalização:', error);
-        
+        setGeolocationError(getGeolocationErrorText(error));
+
         // Tentar fallback com configurações diferentes se for iOS
         if (isIOS() && error.code === error.TIMEOUT) {
           console.log('Tentando fallback para iOS...');
-          
+
           // Configuração alternativa para iOS
           const fallbackOptions = {
             enableHighAccuracy: false,
             timeout: 30000,
             maximumAge: 0
           };
-          
+
           navigator.geolocation.getCurrentPosition(
-            (position) => setLocation(position.coords),
-            (fallbackError) => console.error('Fallback também falhou:', fallbackError),
+            (position) => {
+              setLocation(position.coords);
+              setGeolocationEnabled(true);
+              setGeolocationError(null);
+            },
+            (fallbackError) => {
+              console.error('Fallback também falhou:', fallbackError);
+              setGeolocationError(getGeolocationErrorText(fallbackError));
+              setShowGeolocationModal(true);
+            },
             fallbackOptions
           );
+        } else {
+          setShowGeolocationModal(true);
         }
       },
       options
     );
   };
 
+  // Função para obter texto do erro de geolocalização
+  const getGeolocationErrorText = (error) => {
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        return "Permissão de geolocalização negada pelo usuário";
+      case error.POSITION_UNAVAILABLE:
+        return "Localização indisponível";
+      case error.TIMEOUT:
+        return "Tempo limite para obter localização excedido";
+      default:
+        return "Erro desconhecido na geolocalização";
+    }
+  };
+
   useEffect(() => {
     addBodyClass("page-new");
     loadSite();
     getCheckLists();
-  
-    getGeolocation();
+
+    // Verificar permissão de geolocalização
+    if (isGeolocationSupported()) {
+      navigator.permissions.query({ name: "geolocation" }).then((result) => {
+        if (result.state === "granted") {
+          getGeolocation();
+        } else if (result.state === "prompt") {
+          getGeolocation();
+        } else {
+          setShowGeolocationModal(true);
+        }
+      });
+    } else {
+      setShowGeolocationModal(true);
+    }
   }, [id]);
 
   const base = "aprs-producao"; //aprs-producao
@@ -138,6 +180,11 @@ export default function New() {
   //Loja
   const [tipoLoja, setTipoLoja] = useState("");
   const [valorEstoque, setValorEstoque] = useState("0");
+  // Estados para controle de geolocalização e justificativa
+  const [geolocationEnabled, setGeolocationEnabled] = useState(false);
+  const [geolocationJustification, setGeolocationJustification] = useState("");
+  const [showGeolocationModal, setShowGeolocationModal] = useState(false);
+  const [geolocationError, setGeolocationError] = useState(null);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
 
@@ -185,36 +232,35 @@ export default function New() {
   }
 
   async function getQuestions(snapshot) {
-    navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
-      if (item.state !== "granted") {
-        alert("Habilite a geolocation para realizar a APR");
-        return;
-      } else {
-        document.getElementById("container-questions").style.display = "flex";
+    // Verificar se a geolocalização está habilitada ou se há justificativa
+    if (!geolocationEnabled && !geolocationJustification) {
+      setShowGeolocationModal(true);
+      return;
+    }
 
-        siteInfo.tipoSite = snapshot;
+    document.getElementById("container-questions").style.display = "flex";
+    siteInfo.tipoSite = snapshot;
 
-        await firebase
-          .firestore()
-          .collection("question")
-          .doc(snapshot)
-          .get()
-          .then(async (item_question) => {
-            const data = item_question.data();
-            console.log(data);
+    await firebase
+      .firestore()
+      .collection("question")
+      .doc(snapshot)
+      .get()
+      .then(async (item_question) => {
+        const data = item_question.data();
+        console.log(data);
 
-            // Remover a propriedade 'ativo' do objeto data
-            const { ativo, ...restoData } = data;
+        // Remover a propriedade 'ativo' do objeto data
+        const { ativo, ...restoData } = data;
 
-            const orderedEntries = Object.entries(restoData).sort((a, b) =>
-              a[0].localeCompare(b[0])
-            );
-            console.log(orderedEntries);
-            setQuestions(orderedEntries);
-          });
-      }
-    });
+        const orderedEntries = Object.entries(restoData).sort((a, b) =>
+          a[0].localeCompare(b[0])
+        );
+        console.log(orderedEntries);
+        setQuestions(orderedEntries);
+      });
   }
+
   //questions number amount
   function inputNumber(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex(
@@ -223,6 +269,7 @@ export default function New() {
     questions[indexA][1][objIndex].respInputNumber = e.target.value;
     setQuestions(questions);
   }
+
   //questions textarea
   function textareaValue(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex(
@@ -231,6 +278,7 @@ export default function New() {
     questions[indexA][1][objIndex].respTextArea = e.target.value;
     setQuestions(questions);
   }
+
   //questions sim ou não
   function radioSetValue(question, indexA, e) {
     let objIndex = questions[indexA][1].findIndex(
@@ -308,6 +356,7 @@ export default function New() {
     setQuestions(questions);
     for (var i = 0; i < element.length; i++) element[i].checked = false;
   }
+
   //função do botão remover imagem da lista
   function removeImg(indexA, objIndex, file) {
     let imageArray = [];
@@ -382,22 +431,31 @@ export default function New() {
       }
     }
 
-    navigator.permissions.query({ name: "geolocation" }).then(async (item) => {
-      if (item.state === "granted") {
-        getPerimetro(location.latitude, location.longitude)
-          .then(async (perimeter) => {
-            togglePostModal(); //abre modal de loading
-            insertData(perimeter);
-          })
-          .catch((err) => {
-            alert("Erro na geolocation, contate um administrador");
-            console.log("Erro na geolocation, contate um administrador" + err);
-          });
-      } else {
-        alert("habilite a geolocation para realizar a APR");
-        console.log("habilite a geolocation para realizar a APR");
-      }
-    });
+    // Verificar geolocalização antes de submeter
+    if (!geolocationEnabled && !geolocationJustification) {
+      setShowGeolocationModal(true);
+      return;
+    }
+
+    togglePostModal(); //abre modal de loading
+
+    if (geolocationEnabled && location.latitude && location.longitude) {
+      console.log('Com geolocalização:', geolocationEnabled, location);
+      // Prosseguir com geolocalização normal
+      getPerimetro(location.latitude, location.longitude)
+        .then(async (perimeter) => {
+          insertData(perimeter);
+        })
+        .catch((err) => {
+          console.log("Erro na geolocalização:", err);
+          // Em caso de erro, prosseguir com justificativa
+          insertData("Erro na geolocalização - " + geolocationJustification);
+        });
+    } else {
+      console.log('Sem geolocalização, usando justificativa');
+      // Prosseguir sem geolocalização, mas com justificativa
+      insertData("Geolocalização não habilitada - " + geolocationJustification);
+    }
   }
 
   async function incrementID() {
@@ -468,14 +526,23 @@ export default function New() {
               status: justificativa ? "Com Exceção" : "Em Aberto",
               peso: result_peso,
               justificativa: justificativa ? justificativa : "",
-              locationCreated: {
+              locationCreated: geolocationEnabled ? {
                 latitude: location.latitude,
                 longitude: location.longitude,
                 perimetro: perimeter,
+              } : {
+                latitude: null,
+                longitude: null,
+                perimetro: "Geolocalização não habilitada",
               },
               tempoConclusao: {
                 inicio: inicio === undefined ? new Date() : inicio,
                 conclusao: new Date(),
+              },
+              geolocation_info: {
+                enabled: geolocationEnabled,
+                justification: geolocationJustification,
+                error: geolocationError
               },
             })
 
@@ -496,14 +563,23 @@ export default function New() {
                 status: justificativa ? "Com Exceção" : "Em Aberto",
                 peso: result_peso,
                 justificativa: justificativa ? justificativa : "",
-                locationCreated: {
+                locationCreated: geolocationEnabled ? {
                   latitude: location.latitude,
                   longitude: location.longitude,
                   perimetro: perimeter,
+                } : {
+                  latitude: null,
+                  longitude: null,
+                  perimetro: "Geolocalização não habilitada",
                 },
                 tempoConclusao: {
                   inicio: inicio === undefined ? new Date() : inicio,
                   conclusao: new Date(),
+                },
+                geolocation_info: {
+                  enabled: geolocationEnabled,
+                  justification: geolocationJustification,
+                  error: geolocationError
                 },
               })
               .then(async (index) => {
@@ -656,6 +732,7 @@ export default function New() {
       })
       .catch((err) => console.log("Erro ao inserir ID: " + err));
   }
+
   // função de monitoramento de upload de imagens
   function trackUpload(upload) {
     return new Promise((resolve, reject) => {
@@ -710,19 +787,34 @@ export default function New() {
   }
 
   async function getPerimetro(lat, lng) {
-    const center = [parseFloat(lat), parseFloat(lng)];
-    const radiusInM = 1 * 1000;
+    // Se não temos coordenadas (geolocalização não habilitada), retornar mensagem apropriada
+    if (!lat || !lng) {
+      return "Geolocalização não disponível";
+    }
 
-    let latitude = parseFloat(siteInfo.Latitude.replace(",", "."));
-    let longitude = parseFloat(siteInfo.Longitude.replace(",", "."));
-    console.log(latitude);
-    console.log(longitude);
-    const distanceInKm = geofire.distanceBetween([latitude, longitude], center);
-    const distanceInM = distanceInKm * 1000;
-    if (distanceInM <= radiusInM) {
-      return "Esta dentro do Perimetro";
-    } else {
-      return "fora perimetro";
+    try {
+      const center = [parseFloat(lat), parseFloat(lng)];
+      const radiusInM = 1 * 1000;
+
+      let latitude = parseFloat(siteInfo.Latitude.replace(",", "."));
+      let longitude = parseFloat(siteInfo.Longitude.replace(",", "."));
+
+      console.log('Coordenadas do site:', latitude, longitude);
+      console.log('Coordenadas atuais:', center);
+
+      const distanceInKm = geofire.distanceBetween([latitude, longitude], center);
+      const distanceInM = distanceInKm * 1000;
+
+      console.log('Distância calculada:', distanceInM, 'metros');
+
+      if (distanceInM <= radiusInM) {
+        return "Esta dentro do Perimetro";
+      } else {
+        return "fora perimetro";
+      }
+    } catch (error) {
+      console.error('Erro ao calcular perímetro:', error);
+      return "Erro no cálculo do perímetro";
     }
   }
 
@@ -950,6 +1042,28 @@ export default function New() {
 
     return exibition
   }
+
+  // Função para tentar novamente obter a geolocalização
+  const retryGeolocation = () => {
+    setGeolocationJustification("");
+    setGeolocationError(null);
+    setGeolocationEnabled(false); // Resetar para false até conseguir a localização
+    setShowGeolocationModal(false);
+    getGeolocation();
+  };
+
+  // Função para lidar com a justificativa da geolocalização
+  const handleGeolocationJustification = () => {
+    if (!geolocationJustification.trim()) {
+      toast.error("Por favor, informe uma justificativa para continuar sem geolocalização");
+      return;
+    }
+
+    // Marcar que a geolocalização não está habilitada, mas temos justificativa
+    setGeolocationEnabled(false); // Importante: manter como false quando usando justificativa
+    setShowGeolocationModal(false);
+    toast.success("Justificativa registrada. Prosseguindo com a APR...");
+  };
 
   return (
     <div>
@@ -1477,6 +1591,65 @@ export default function New() {
           id="container-conclusion"
           style={{ display: "none" }}
         ></div>
+
+        {/* Modal de Geolocalização */}
+        {showGeolocationModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3>Geolocalização Requerida</h3>
+                <FiX
+                  size={20}
+                  onClick={() => setShowGeolocationModal(false)}
+                  style={{ cursor: 'pointer' }}
+                />
+              </div>
+
+              <div className="modal-body">
+                {geolocationError ? (
+                  <div className="error-message">
+                    <FiAlertCircle size={20} color="#f44336" />
+                    <span>Erro na geolocalização: {geolocationError}</span>
+                  </div>
+                ) : (
+                  <div className="warning-message">
+                    <FiAlertCircle size={20} color="#ff9800" />
+                    <span>A geolocalização é necessária para realizar a APR</span>
+                  </div>
+                )}
+
+                <div className="justification-section">
+                  <label htmlFor="geolocation-justification">
+                    Justificativa para continuar sem geolocalização:
+                  </label>
+                  <textarea
+                    id="geolocation-justification"
+                    value={geolocationJustification}
+                    onChange={(e) => setGeolocationJustification(e.target.value)}
+                    placeholder="Descreva o motivo pelo qual não é possível habilitar a geolocalização..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn-retry"
+                  onClick={retryGeolocation}
+                >
+                  Tentar Novamente
+                </button>
+                <button
+                  className="btn-continue"
+                  onClick={handleGeolocationJustification}
+                  disabled={!geolocationJustification.trim()}
+                >
+                  Continuar com Justificativa
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Modal_Justificativa
           openModal={openModalJust}
