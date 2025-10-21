@@ -223,7 +223,7 @@ export default function Open() {
     if (siteInfoData) {
       if (siteInfoData.perimetro && siteInfoData.area) {
         siteTableBody.push([
-          "Perímetro: " + siteInfoData.perimetro + " metros", 
+          "Perímetro: " + siteInfoData.perimetro + " metros",
           "Área: " + siteInfoData.area + " m²"
         ]);
       } else if (siteInfoData.perimetro) {
@@ -598,15 +598,21 @@ export default function Open() {
               <div className="container">
                 <div className="siteInfo">
                   <span>Latitude:</span>{" "}
-                  {apr.locationCreated.latitude.toFixed(5)}
+                  {apr.locationCreated.latitude && typeof apr.locationCreated.latitude === 'number'
+                    ? apr.locationCreated.latitude.toFixed(5)
+                    : apr.locationCreated.latitude || "N/A"}
                   <span>Longitude:</span>{" "}
-                  {apr.locationCreated.longitude.toFixed(5)}
+                  {apr.locationCreated.longitude && typeof apr.locationCreated.longitude === 'number'
+                    ? apr.locationCreated.longitude.toFixed(5)
+                    : apr.locationCreated.longitude || "N/A"}
                   <span
                     style={{
                       backgroundColor:
                         apr.locationCreated.perimetro === "fora perimetro"
                           ? "rgb(228, 54, 23)"
-                          : "rgb(14, 206, 14)",
+                          : apr.locationCreated.perimetro === "Esta dentro do Perimetro"
+                            ? "rgb(14, 206, 14)"
+                            : "rgb(255, 165, 0)",
                       color: "#FFF",
                       padding: "0.2em",
                     }}
