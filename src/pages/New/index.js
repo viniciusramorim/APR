@@ -823,7 +823,7 @@ export default function New() {
     document.getElementById("container-questions").style.display = "none";
     document.getElementById("container-save").style.display = "none";
     document.getElementById("container-motivo").style.display = "none";
-    if (siteInfo.tipoSite === "AUDIT PGR FIXA" || siteInfo.tipoSite === "AUDIT PGR MOVEL") document.getElementById("container-pgr").style.display = "none";
+    if (siteInfo.tipoSite?.includes('PGR')) document.getElementById("container-pgr").style.display = "none";
     if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") document.getElementById("container-loja").style.display = "none";
     document.getElementById("container").style.display = "none";
     document.getElementById("modalLoading").style.display = "none";
@@ -1017,11 +1017,22 @@ export default function New() {
   }
 
   function enableQuestions(doc) {
-    const isPGR = siteInfo?.tipoSite?.includes("PGR");
+    const isPGR = siteInfo?.tipoSite?.includes('PGR');
     const isVENEZA = siteInfo?.tipoSite?.includes("PROJETO VENEZA");
     const isLOJAUNIFICAD = siteInfo?.tipoSite?.includes("LOJA PROJ VENEZA");
-    const isEstadoValido = isPGR && doc.estados.includes(siteInfo.Estado);
-    const isTipoLojaValido = (isVENEZA || isLOJAUNIFICAD) && doc.tipoLoja.includes(tipoLoja)
+
+    // Se não tiver estados no doc OU não tiver Estado no siteInfo, considera válido (true)
+    const isEstadoValido = isPGR && (
+      !doc.estados ||
+      !siteInfo?.Estado ||
+      doc.estados.includes(siteInfo.Estado)
+    );
+
+    // Se não tiver tipoLoja no doc, considera válido (true)
+    const isTipoLojaValido = (isVENEZA || isLOJAUNIFICAD) && (
+      !doc.tipoLoja ||
+      doc.tipoLoja.includes(tipoLoja)
+    );
 
     const valorDentroDoIntervalo = (valor, intervalo) => {
       if (!intervalo) return false;
@@ -1040,7 +1051,7 @@ export default function New() {
       (isVENEZA && isTipoLojaValido && atendeAlgumValor) ||
       (isLOJAUNIFICAD && isTipoLojaValido && atendeAlgumValor);
 
-    return exibition
+    return exibition;
   }
 
   // Função para tentar novamente obter a geolocalização

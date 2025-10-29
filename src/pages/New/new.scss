@@ -180,11 +180,12 @@
 .page-new #container-loja {
   gap: 5px;
   align-items: flex-start !important;
+  flex-direction: column;
 
   label {
     display: flex;
     flex-direction: column;
-    width: 22%;
+    width: 100%;
   }
 
   @include respond-to(medium) {
