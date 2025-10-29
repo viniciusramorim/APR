@@ -67,6 +67,9 @@ export default function Oem() {
   const [selectedRegion, setSelectedRegion] = useState("SP");
   const [selectedUFs, setSelectedUFs] = useState(["SP"]);
 
+  // Estado para filtro de ID da APR
+  const [aprIdFilter, setAprIdFilter] = useState("");
+
   const [exporting, setExporting] = useState(false);
   const [ufsList, setUfsList] = useState([]); // Lista de UFs únicas
 
@@ -87,13 +90,22 @@ export default function Oem() {
   }, [selectedRegion]);
 
   useEffect(() => {
-    // Atualizar dados paginados quando chamados ou página mudar
+    // Aplicar filtro de ID da APR quando o filtro ou chamados mudarem
+    let filteredChamados = chamados;
+    
+    if (aprIdFilter.trim() !== "") {
+      filteredChamados = chamados.filter(chamado => 
+        chamado.id && chamado.id.toString().toLowerCase().includes(aprIdFilter.toLowerCase())
+      );
+    }
+
+    // Atualizar dados paginados quando chamados filtrados ou página mudar
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = chamados.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredChamados.slice(indexOfFirstItem, indexOfLastItem);
     setPaginatedChamados(currentItems);
-    setTotalPages(Math.ceil(chamados.length / itemsPerPage));
-  }, [chamados, currentPage, itemsPerPage]);
+    setTotalPages(Math.ceil(filteredChamados.length / itemsPerPage));
+  }, [chamados, currentPage, itemsPerPage, aprIdFilter]);
 
   // Extrair lista de UFs únicas para exibição
   useEffect(() => {
@@ -136,7 +148,9 @@ export default function Oem() {
                 question.openPA === true &&
                 question.areaResposavel?.includes("oem");
               if (docInclude) {
+
                 list.push({
+                  ...question,
                   uid: doc.id,
                   id: doc.data().apr_id,
                   tipoSite: siteData.tipoSite,
@@ -149,7 +163,6 @@ export default function Oem() {
                   status: doc.data().status,
                   area: area[0],
                   index: idx,
-                  ...question
                 });
               }
             });
@@ -168,6 +181,7 @@ export default function Oem() {
       setTratadosPA(list.filter(item => item.plano_acao?.comentario).length);
       setPendentesPA(list.filter(item => !item.plano_acao?.comentario).length);
       setCurrentPage(1); // Reset para primeira página
+      setAprIdFilter(""); // Resetar filtro ao carregar novos dados
     } catch (err) {
       console.error("Deu algum erro: ", err);
       toast.error("Erro ao carregar os chamados");
@@ -260,7 +274,15 @@ export default function Oem() {
       return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
     };
 
-    const dataToExport = chamados.map((q) => ({
+    // Aplicar filtro de ID da APR também na exportação
+    let chamadosToExport = chamados;
+    if (aprIdFilter.trim() !== "") {
+      chamadosToExport = chamados.filter(chamado => 
+        chamado.id && chamado.id.toString().toLowerCase().includes(aprIdFilter.toLowerCase())
+      );
+    }
+
+    const dataToExport = chamadosToExport.map((q) => ({
       "UID": safeText(q.uid),
       "ID": safeText(q.id),
       "Sigla": safeText(q.sigla),
@@ -270,7 +292,7 @@ export default function Oem() {
       "Município": safeText(q.municipio),
       "Endereço": safeText(q.endereco),
       "Nome do Site": safeText(q.nome),
-      "Status": safeText(q.status),
+      "Status": q.status,
       "Área": safeText(q.area),
       "ID da Questão": safeText(q.questionId),
       "Área Responsável": safeText(Array.isArray(q.areaResposavel) ? q.areaResposavel.join(", ") : q.areaResposavel || ""),
@@ -307,6 +329,27 @@ export default function Oem() {
     return acc;
   }, {});
 
+  // Calcular estatísticas considerando o filtro
+  const filteredTotalPA = aprIdFilter.trim() !== "" 
+    ? chamados.filter(chamado => chamado.id && chamado.id.toString().toLowerCase().includes(aprIdFilter.toLowerCase())).length
+    : totalPA;
+
+  const filteredTratadosPA = aprIdFilter.trim() !== ""
+    ? chamados.filter(chamado => 
+        chamado.id && 
+        chamado.id.toString().toLowerCase().includes(aprIdFilter.toLowerCase()) &&
+        chamado.plano_acao?.comentario
+      ).length
+    : tratadosPA;
+
+  const filteredPendentesPA = aprIdFilter.trim() !== ""
+    ? chamados.filter(chamado => 
+        chamado.id && 
+        chamado.id.toString().toLowerCase().includes(aprIdFilter.toLowerCase()) &&
+        !chamado.plano_acao?.comentario
+      ).length
+    : pendentesPA;
+
   return (
     <div>
       <Header />
@@ -317,7 +360,7 @@ export default function Oem() {
         <div className="filter-reports-container">
           <div className="filter-reports">
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel id="region-select-label">Regional</InputLabel>
                   <Select
@@ -337,10 +380,23 @@ export default function Oem() {
                 </FormControl>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              {/* Filtro de ID da APR */}
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Filtrar por ID da APR"
+                  value={aprIdFilter}
+                  onChange={(e) => setAprIdFilter(e.target.value)}
+                  placeholder="Digite o ID da APR"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
                 <Typography variant="body1" color="textSecondary">
                   UFs selecionadas: {selectedUFs.join(", ")} | 
                   UFs encontradas: {ufsList.join(", ")}
+                  {aprIdFilter && ` | Filtrado por: ${aprIdFilter}`}
                 </Typography>
               </Grid>
               
@@ -379,19 +435,34 @@ export default function Oem() {
               <Grid item xs={12} sm={4}>
                 <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
                   <Typography variant="h6">Total de PAs</Typography>
-                  <Typography variant="h4" color="primary">{totalPA}</Typography>
+                  <Typography variant="h4" color="primary">{filteredTotalPA}</Typography>
+                  {aprIdFilter && totalPA !== filteredTotalPA && (
+                    <Typography variant="caption" color="textSecondary">
+                      (de {totalPA} no total)
+                    </Typography>
+                  )}
                 </Card>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Card sx={{ p: 2, backgroundColor: "#e8f5e9" }}>
                   <Typography variant="h6">Tratados</Typography>
-                  <Typography variant="h4" color="success.main">{tratadosPA}</Typography>
+                  <Typography variant="h4" color="success.main">{filteredTratadosPA}</Typography>
+                  {aprIdFilter && tratadosPA !== filteredTratadosPA && (
+                    <Typography variant="caption" color="textSecondary">
+                      (de {tratadosPA} no total)
+                    </Typography>
+                  )}
                 </Card>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Card sx={{ p: 2, backgroundColor: "#ffebee" }}>
                   <Typography variant="h6">Pendentes</Typography>
-                  <Typography variant="h4" color="error.main">{pendentesPA}</Typography>
+                  <Typography variant="h4" color="error.main">{filteredPendentesPA}</Typography>
+                  {aprIdFilter && pendentesPA !== filteredPendentesPA && (
+                    <Typography variant="caption" color="textSecondary">
+                      (de {pendentesPA} no total)
+                    </Typography>
+                  )}
                 </Card>
               </Grid>
             </Grid>
@@ -426,6 +497,7 @@ export default function Oem() {
                                   : '2px solid #f44336',
                                 borderRadius: 2,
                               }}
+                              onClick={() => console.log(question)}
                             >
                               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography variant="body1" noWrap>
@@ -497,22 +569,6 @@ export default function Oem() {
                                           ABRIR APR
                                         </Button>
                                       </Grid>
-                                      {/* <Grid item xs={12} sm={6}>
-                                        <Button
-                                          variant="contained"
-                                          onClick={() => handleOpenModal(question)}
-                                          sx={{
-                                            backgroundColor: "#380054e8",
-                                            ":hover": {
-                                              backgroundColor: "#5e168c"
-                                            },
-                                            width: "100%",
-                                            mb: 1,
-                                          }}
-                                        >
-                                          {question.plano_acao?.comentario ? "EDITAR PA" : "INSERIR PA"}
-                                        </Button>
-                                      </Grid> */}
                                     </Grid>
                                   </Grid>
 
@@ -560,9 +616,10 @@ export default function Oem() {
                 {/* Informações de paginação */}
                 <div style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
                   <Typography variant="body2">
-                    Exibindo {paginatedChamados.length} de {totalPA} itens | 
+                    Exibindo {paginatedChamados.length} de {filteredTotalPA} itens {aprIdFilter && '(filtrados)'} | 
                     Página {currentPage} de {totalPages} | 
                     {ufsList.length} UF{ufsList.length > 1 ? 's' : ''} no total
+                    {aprIdFilter && ` | Filtrado por: "${aprIdFilter}"`}
                   </Typography>
                 </div>
               </>
@@ -571,6 +628,8 @@ export default function Oem() {
                 <Typography variant="h6">
                   {chamados.length === 0 
                     ? "Nenhum plano de ação encontrado para as UFs selecionadas"
+                    : aprIdFilter
+                    ? `Nenhum item encontrado para o ID da APR: "${aprIdFilter}"`
                     : "Nenhum item encontrado nesta página"
                   }
                 </Typography>
