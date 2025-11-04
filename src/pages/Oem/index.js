@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-import { FiExternalLink, FiFileText } from "react-icons/fi";
+import { FiExternalLink, FiFileText, FiList } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection.js";
 import Header from "../../components/Header/index.js";
 import Title from "../../components/Title/index.js";
 import { AuthContext } from "../../contexts/auth.js";
+import DrawerLogsAPR from "../../components/DrawerLogsAPR/index.js";
 import * as XLSX from 'xlsx';
 import "./report.scss";
 import {
@@ -52,6 +53,10 @@ export default function Oem() {
   const [comentario, setComentario] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
   const [isEditDisabled, setIsEditDisabled] = useState(false);
+
+  // Estado para o drawer de logs
+  const [openLogsDrawer, setOpenLogsDrawer] = useState(false);
+  const [selectedAprForLogs, setSelectedAprForLogs] = useState(null);
 
   const [totalPA, setTotalPA] = useState(0);
   const [tratadosPA, setTratadosPA] = useState(0);
@@ -211,6 +216,16 @@ export default function Oem() {
     setTempo("");
     setComentario("");
     setNumeroChamado("");
+  };
+
+  const handleOpenLogsDrawer = (question) => {
+    setSelectedAprForLogs({ uid: question.uid, id: question.id });
+    setOpenLogsDrawer(true);
+  };
+
+  const handleCloseLogsDrawer = () => {
+    setOpenLogsDrawer(false);
+    setSelectedAprForLogs(null);
   };
 
   async function alterarPA() {
@@ -550,7 +565,7 @@ export default function Oem() {
                                     )}
 
                                     <Grid container spacing={1}>
-                                      <Grid item xs={12} sm={12}>
+                                      <Grid item xs={12} sm={6}>
                                         <Button
                                           variant="outlined"
                                           onClick={() => window.open(`/open/${question.uid}`, '_blank')}
@@ -567,6 +582,25 @@ export default function Oem() {
                                           startIcon={<FiExternalLink />}
                                         >
                                           ABRIR APR
+                                        </Button>
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <Button
+                                          variant="outlined"
+                                          onClick={() => handleOpenLogsDrawer(question)}
+                                          sx={{
+                                            borderColor: "#1976d2",
+                                            color: "#1976d2",
+                                            ":hover": {
+                                              backgroundColor: "#e3f2fd",
+                                              borderColor: "#1565c0"
+                                            },
+                                            width: "100%",
+                                            mb: 1,
+                                          }}
+                                          startIcon={<FiList />}
+                                        >
+                                          VER LOGS
                                         </Button>
                                       </Grid>
                                     </Grid>
@@ -639,6 +673,7 @@ export default function Oem() {
         )}
       </div>
 
+      {/* Modal de Plano de Ação */}
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box
           sx={{
@@ -695,6 +730,14 @@ export default function Oem() {
           </Button>
         </Box>
       </Modal>
+
+      {/* Drawer de Logs */}
+      <DrawerLogsAPR
+        open={openLogsDrawer}
+        onClose={handleCloseLogsDrawer}
+        aprUid={selectedAprForLogs?.uid}
+        aprId={selectedAprForLogs?.id}
+      />
     </div>
   );
 }
