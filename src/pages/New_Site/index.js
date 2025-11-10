@@ -164,7 +164,7 @@ export default function New_Site() {
             NonStop: item[17],
             CtCritica: item[18],
             ErbCritica: item[19],
-            MapaCalor: item[21],
+            MapaCalor: item[20],
             lastUpdate: new Date(),
             userLastUpdate: user.nome,
           },
@@ -346,7 +346,6 @@ export default function New_Site() {
         {[
           "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
           "WN0EtV44xnV0V87n5wBBXT87QXI2",
-          "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
           "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
         ].includes(user.uid) && (
             <Grid container className="container">
