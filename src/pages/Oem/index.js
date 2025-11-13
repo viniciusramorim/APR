@@ -5,7 +5,6 @@ import firebase from "../../services/firebaseConnection.js";
 import Header from "../../components/Header/index.js";
 import Title from "../../components/Title/index.js";
 import { AuthContext } from "../../contexts/auth.js";
-import DrawerLogsAPR from "../../components/DrawerLogsAPR/index.js";
 import * as XLSX from 'xlsx';
 import "./report.scss";
 import {
@@ -31,6 +30,8 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { toast } from "react-toastify";
+import ModalLog from "../../components/Modal_Logs/index.js";
+import zIndex from "@mui/material/styles/zIndex.js";
 
 // Definição das regiões
 const REGIONAIS = {
@@ -97,9 +98,9 @@ export default function Oem() {
   useEffect(() => {
     // Aplicar filtro de ID da APR quando o filtro ou chamados mudarem
     let filteredChamados = chamados;
-    
+
     if (aprIdFilter.trim() !== "") {
-      filteredChamados = chamados.filter(chamado => 
+      filteredChamados = chamados.filter(chamado =>
         chamado.id && chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase())
       );
     }
@@ -141,7 +142,7 @@ export default function Oem() {
       snapshot.forEach((doc) => {
         const siteData = doc.data().site_id;
         const aprData = doc.data();
-        
+
         if (selectedUFs.includes(siteData.Estado) &&
           (siteData.tipoSite === "ERB" || siteData.tipoSite === "CT")) {
           doc.data().checklist.forEach((area) => {
@@ -290,7 +291,7 @@ export default function Oem() {
 
     const toBRDate = (v) => {
       if (!v) return "";
-      
+
       let d;
       try {
         // Timestamp do Firestore (formato { seconds, nanoseconds })
@@ -317,7 +318,7 @@ export default function Oem() {
         else {
           d = new Date(v);
         }
-        
+
         return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
       } catch (error) {
         console.warn("Erro ao converter data:", v, error);
@@ -328,7 +329,7 @@ export default function Oem() {
     // Aplicar filtro de ID da APR também na exportação
     let chamadosToExport = chamados;
     if (aprIdFilter.trim() !== "") {
-      chamadosToExport = chamados.filter(chamado => 
+      chamadosToExport = chamados.filter(chamado =>
         chamado.id && chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase())
       );
     }
@@ -353,16 +354,16 @@ export default function Oem() {
 
     const dataToExport = chamadosToExport.map((q) => {
       // Calcular data do envio do email usando lógica de fallback expandida
-      const dataEnvioEmail = 
+      const dataEnvioEmail =
         q.data_envio_email ? toBRDate(q.data_envio_email) :
-        q.plano_acao?.data_envio_email ? toBRDate(q.plano_acao.data_envio_email) :
-        q.resp_pa_data ? toBRDate(q.resp_pa_data) :
-        q.data_criacao ? toBRDate(q.data_criacao) :
-        q.created ? toBRDate(q.created) :
-        q.createdAt ? toBRDate(q.createdAt) :
-        q.data_apr ? toBRDate(q.data_apr) :
-        "";
-      
+          q.plano_acao?.data_envio_email ? toBRDate(q.plano_acao.data_envio_email) :
+            q.resp_pa_data ? toBRDate(q.resp_pa_data) :
+              q.data_criacao ? toBRDate(q.data_criacao) :
+                q.created ? toBRDate(q.created) :
+                  q.createdAt ? toBRDate(q.createdAt) :
+                    q.data_apr ? toBRDate(q.data_apr) :
+                      "";
+
       // Log detalhado para investigar registros sem data
       if (q.status === "Enviado" && !dataEnvioEmail) {
         console.log(`🔍 Registro ID ${q.id} (Status: ${q.status}) sem data:`);
@@ -373,7 +374,7 @@ export default function Oem() {
         console.log(`   created:`, q.created);
         console.log(`   Todas as propriedades com 'data':`, Object.keys(q).filter(key => key.includes('data')));
       }
-      
+
       return {
         "UID": safeText(q.uid),
         "ID": safeText(q.id),
@@ -450,34 +451,34 @@ export default function Oem() {
   }, {});
 
   // Calcular estatísticas considerando o filtro
-  const filteredTotalPA = aprIdFilter.trim() !== "" 
+  const filteredTotalPA = aprIdFilter.trim() !== ""
     ? chamados.filter(chamado => chamado.id && chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase())).length
     : totalPA;
 
   const filteredTratadosPA = aprIdFilter.trim() !== ""
-    ? chamados.filter(chamado => 
-        chamado.id && 
-        chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase()) &&
-        chamado.plano_acao?.comentario
-      ).length
+    ? chamados.filter(chamado =>
+      chamado.id &&
+      chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase()) &&
+      chamado.plano_acao?.comentario
+    ).length
     : tratadosPA;
 
   const filteredPendentesPA = aprIdFilter.trim() !== ""
-    ? chamados.filter(chamado => 
-        chamado.id && 
-        chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase()) &&
-        !chamado.plano_acao?.comentario
-      ).length
+    ? chamados.filter(chamado =>
+      chamado.id &&
+      chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase()) &&
+      !chamado.plano_acao?.comentario
+    ).length
     : pendentesPA;
 
   // Calcular estatísticas de perguntas por APR (Verde/Vermelho)
   const filteredData = aprIdFilter.trim() !== ""
-    ? chamados.filter(chamado => 
-        chamado.id && 
-        chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase())
-      )
+    ? chamados.filter(chamado =>
+      chamado.id &&
+      chamado.id.toString().toLowerCase().startsWith(aprIdFilter.toLowerCase())
+    )
     : chamados;
-  
+
   // Agrupar por APR única para contar perguntas
   const aprQuestionStats = filteredData.reduce((acc, question) => {
     const aprKey = question.id; // Usar apenas o ID da APR como chave
@@ -488,17 +489,17 @@ export default function Oem() {
         pendentes: 0    // Vermelho (sem plano de ação)
       };
     }
-    
+
     acc[aprKey].total++;
     if (question.plano_acao?.comentario) {
       acc[aprKey].respondidas++; // Verde
     } else {
       acc[aprKey].pendentes++;   // Vermelho
     }
-    
+
     return acc;
   }, {});
-  
+
   // Calcular totais gerais
   const totalPerguntas = Object.values(aprQuestionStats).reduce((sum, apr) => sum + apr.total, 0);
   const perguntasRespondidas = Object.values(aprQuestionStats).reduce((sum, apr) => sum + apr.respondidas, 0);
@@ -536,7 +537,7 @@ export default function Oem() {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               {/* Filtro de ID da APR */}
               <Grid item xs={12} md={3}>
                 <TextField
@@ -548,15 +549,15 @@ export default function Oem() {
                   variant="outlined"
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={4}>
                 <Typography variant="body1" color="textSecondary">
-                  UFs selecionadas: {selectedUFs.join(", ")} | 
+                  UFs selecionadas: {selectedUFs.join(", ")} |
                   UFs encontradas: {ufsList.join(", ")}
                   {aprIdFilter && ` | Filtrado por: ${aprIdFilter}`}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={12} md={2}>
                 <FormControl fullWidth>
                   <Button
@@ -710,7 +711,7 @@ export default function Oem() {
                                     )}
 
                                     <Grid container spacing={1}>
-                                      <Grid item xs={12} sm={6}>
+                                      <Grid item xs={12} sm={10}>
                                         <Button
                                           variant="outlined"
                                           onClick={() => window.open(`/open/${question.uid}`, '_blank')}
@@ -729,24 +730,9 @@ export default function Oem() {
                                           ABRIR APR
                                         </Button>
                                       </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <Button
-                                          variant="outlined"
-                                          onClick={() => handleOpenLogsDrawer(question)}
-                                          sx={{
-                                            borderColor: "#1976d2",
-                                            color: "#1976d2",
-                                            ":hover": {
-                                              backgroundColor: "#e3f2fd",
-                                              borderColor: "#1565c0"
-                                            },
-                                            width: "100%",
-                                            mb: 1,
-                                          }}
-                                          startIcon={<FiList />}
-                                        >
-                                          VER LOGS
-                                        </Button>
+                                      <Grid item xs={12} sm={2}>
+                                        {(user.nivel === "administrador" ||
+                                            user.nivel === "revisor") && <ModalLog sx={{zIndex:1}} chamadoId={question.uid} />}
                                       </Grid>
                                     </Grid>
                                   </Grid>
@@ -795,8 +781,8 @@ export default function Oem() {
                 {/* Informações de paginação */}
                 <div style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
                   <Typography variant="body2">
-                    Exibindo {paginatedChamados.length} de {filteredTotalPA} itens {aprIdFilter && '(filtrados)'} | 
-                    Página {currentPage} de {totalPages} | 
+                    Exibindo {paginatedChamados.length} de {filteredTotalPA} itens {aprIdFilter && '(filtrados)'} |
+                    Página {currentPage} de {totalPages} |
                     {ufsList.length} UF{ufsList.length > 1 ? 's' : ''} no total
                     {aprIdFilter && ` | Filtrado por: "${aprIdFilter}"`}
                   </Typography>
@@ -805,11 +791,11 @@ export default function Oem() {
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
                 <Typography variant="h6">
-                  {chamados.length === 0 
+                  {chamados.length === 0
                     ? "Nenhum plano de ação encontrado para as UFs selecionadas"
                     : aprIdFilter
-                    ? `Nenhum item encontrado para o ID da APR: "${aprIdFilter}"`
-                    : "Nenhum item encontrado nesta página"
+                      ? `Nenhum item encontrado para o ID da APR: "${aprIdFilter}"`
+                      : "Nenhum item encontrado nesta página"
                   }
                 </Typography>
               </div>
@@ -876,13 +862,6 @@ export default function Oem() {
         </Box>
       </Modal>
 
-      {/* Drawer de Logs */}
-      <DrawerLogsAPR
-        open={openLogsDrawer}
-        onClose={handleCloseLogsDrawer}
-        aprUid={selectedAprForLogs?.uid}
-        aprId={selectedAprForLogs?.id}
-      />
     </div>
   );
 }
