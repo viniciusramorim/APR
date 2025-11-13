@@ -56,7 +56,7 @@ export default function ModalLog(props) {
 
   return (
     <>
-      <IconButton onClick={openModal} aria-label="add an alarm">
+      <IconButton id="log-button-grid" onClick={openModal} aria-label="add an alarm">
         <Info />
       </IconButton>
       <div className="modal-logs">

@@ -11,6 +11,10 @@
     font-weight: $font-weight-bold;
     justify-content: center;
   }
+  & #log-button-grid {
+    padding:11.5px 50px!important;
+}
+
 }
 
 .filter-reports-container {
