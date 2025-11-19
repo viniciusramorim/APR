@@ -328,6 +328,35 @@ export default function Modal_PA({
             />
           </>
         )}
+        {selectedOption === "Logistica" && (
+          <>
+            <TextField
+              label="Número Chamado"
+              value={numeroChamado}
+              onChange={(e) => setNumeroChamado(e.target.value.toUpperCase())}
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+            <TextField
+              label="Comentário"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Comentários sobre as tratativas"
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
 
         <Box>
           {isReadOnly ? (
@@ -366,6 +395,7 @@ export default function Modal_PA({
             <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
             <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
             <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+            <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
           </RadioGroup>
         </FormControl>
         <Box mt={2}>{renderOptionInputs()}</Box>

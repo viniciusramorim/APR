@@ -64,7 +64,10 @@ export default function Open() {
       .then((snapshot) => {
         let apr = snapshot.data();
         setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
-        apr.checklist.forEach((area, indexA) => {
+        
+        // Verificar se apr e checklist existem antes de processar
+        if (apr && apr.checklist && Array.isArray(apr.checklist)) {
+          apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             const isEmAberto = apr.status === "Em Aberto";
             const isRevisorOuAdmin = user.nivel === "revisor" || user.nivel === "administrador";
@@ -103,6 +106,7 @@ export default function Open() {
             }
           });
         });
+        }
 
         setApr(apr);
         setLoadApr(true);
