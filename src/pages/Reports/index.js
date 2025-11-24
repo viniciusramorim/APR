@@ -72,9 +72,32 @@ export default function Reports() {
       const snapshot = await query.get();
       const list = [];
 
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
+      // Enriquecer dados com informações atualizadas da collection sites
+      for (const doc of snapshot.docs) {
+        const aprData = { id: doc.id, ...doc.data() };
+        
+        try {
+          // Buscar dados atualizados da collection sites
+          const siteQuery = await firebase.firestore().collection('sites')
+            .where("Sigla", "==", aprData.site_id.Sigla)
+            .where("Estado", "==", aprData.site_id.Estado)
+            .get();
+          
+          if (!siteQuery.empty) {
+            const siteData = siteQuery.docs[0].data();
+            // Atualizar os dados do site com informações mais recentes
+            aprData.site_id = {
+              ...aprData.site_id,
+              Operador_logistico: siteData.Operador_logistico || siteData['Operador Logistico'] || aprData.site_id.Operador_logistico,
+              Cobertura_Seguro: siteData.Cobertura_Seguro || siteData['Cobertura Seguro'] || aprData.site_id.Cobertura_Seguro
+            };
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do site:', error);
+        }
+        
+        list.push(aprData);
+      }
 
       setChamados(list);
     } catch (err) {
@@ -218,6 +241,8 @@ export default function Reports() {
                       BAIRRO_SITE: doc.site_id.Bairro,
                       CEP_SITE: doc.site_id.CEP,
                       CRITICIDADE_SITE: doc.site_id.critical,
+                      OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
+                      COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
                       ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
                       ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
                       ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
@@ -260,6 +285,8 @@ export default function Reports() {
                 BAIRRO_SITE: doc.site_id.Bairro,
                 CEP_SITE: doc.site_id.CEP,
                 CRITICIDADE_SITE: doc.site_id.critical,
+                OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
+                COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
                 ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
                 ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
                 ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
@@ -305,6 +332,8 @@ export default function Reports() {
               BAIRRO_SITE: doc.site_id.Bairro,
               CEP_SITE: doc.site_id.CEP,
               CRITICIDADE_SITE: doc.site_id.critical,
+              OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
+                COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
               ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
               ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
               ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',

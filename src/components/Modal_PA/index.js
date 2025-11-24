@@ -41,6 +41,7 @@ export default function Modal_PA({
   const [selectedOption, setSelectedOption] = useState("");
   const [nomeDetentora, setNomeDetentora] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
+  const [slaLogistica, setSlaLogistica] = useState("");
   const [uploading, setUploading] = useState(false);
   const [notaParecer, setNotaParecer] = useState("");
 
@@ -65,6 +66,7 @@ export default function Modal_PA({
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
+      setSlaLogistica(conteudo?.plano_acao?.sla_logistica || "");
       setNotaParecer(conteudo?.nota_parecer || "");
     }
 
@@ -98,6 +100,9 @@ export default function Modal_PA({
     } else if (selectedOption === "Patrimonio") {
       if (!numeroChamado) return toast("Preencha o número de chamado");
       if (!comentario) return toast("Preencha um comentário");
+    } else if (selectedOption === "Logistica") {
+      if (!slaLogistica) return toast("Preencha o SLA (data)");
+      if (!comentario) return toast("Preencha um comentário");
     } else {
       return toast("Selecione uma opção");
     }
@@ -120,6 +125,11 @@ export default function Modal_PA({
     } else if (selectedOption === "Patrimonio") {
       planoAcaoToSave = {
         numero_chamado: numeroChamado,
+        comentario,
+      };
+    } else if (selectedOption === "Logistica") {
+      planoAcaoToSave = {
+        sla_logistica: new Date(slaLogistica),
         comentario,
       };
     }
@@ -334,6 +344,19 @@ export default function Modal_PA({
         )}
         {selectedOption === "Logistica" && (
           <>
+            <TextField
+              label="SLA (Data)"
+              type="date"
+              value={slaLogistica}
+              onChange={(e) => setSlaLogistica(e.target.value)}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
             <TextField
               label="Comentário"
               value={comentario}

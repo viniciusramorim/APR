@@ -326,7 +326,7 @@ export default function CustomPaginationActionsTable(props) {
                     </IconButton>
                   )}
                 {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && <ModalLog chamadoId={row.id} />} asd
+                  user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
               </TableCell>
             </TableRow>
           ))}

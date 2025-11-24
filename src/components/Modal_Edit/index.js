@@ -36,7 +36,7 @@ const style = {
   p: 4,
 };
 
-const areasDisponiveis = ['oem', 'patrimonio', 'CMC', 'comercial'];
+const areasDisponiveis = ['oem', 'patrimonio', 'CMC', 'comercial', 'logistica']; 
 
 export default function ModalEdit(props) {
   const {
@@ -405,7 +405,7 @@ export default function ModalEdit(props) {
                   )}
                 >
                   {areasDisponiveis.map((area) => (
-                    <MenuItem key={area} value={area}>
+                    <MenuItem sx={{textTransform:"capitalize"}} key={area} value={area}>
                       {area}
                     </MenuItem>
                   ))}
