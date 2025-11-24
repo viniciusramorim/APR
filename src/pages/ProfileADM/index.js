@@ -408,6 +408,7 @@ export default function ProfileADM() {
                             <MenuItem value={"supervisor"}>Supervisor</MenuItem>
                             <MenuItem value={"aplicador"}>Aplicador</MenuItem>
                             <MenuItem value={"revisor"}>Revisor</MenuItem>
+                            <MenuItem value={"revisor_logistica"}>Revisor Logistica</MenuItem>
                             <MenuItem value={"auditor"}>Auditor</MenuItem>
                           </Select>
                         </FormControl>

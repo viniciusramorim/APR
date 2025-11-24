@@ -244,6 +244,8 @@ export default function Sites() {
     Sigla_GVT: "Sigla GVT",
     critical: "Critical",
     tipoSite: "Tipo de Site",
+    Operador_logistico: "Operador Logístico",
+    Cobertura_Seguro: "Cobertura Seguro",
   };
 
   const fieldsToShow = Object.keys(fieldLabels);

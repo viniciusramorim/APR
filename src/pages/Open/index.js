@@ -61,51 +61,82 @@ export default function Open() {
       .collection(base)
       .doc(id)
       .get()
-      .then((snapshot) => {
+      .then(async (snapshot) => {
         let apr = snapshot.data();
         setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
-        
+
+        // Buscar informações completas do site
+        if (apr && apr.site_id && apr.site_id.Sigla && apr.site_id.Estado) {
+          try {
+            const siteSnapshot = await firebase
+              .firestore()
+              .collection("sites")
+              .where("Sigla", "==", apr.site_id.Sigla)
+              .where("Estado", "==", apr.site_id.Estado)
+              .get();
+
+            if (!siteSnapshot.empty) {
+              const siteCompleto = siteSnapshot.docs[0].data();
+              // Mesclar informações completas do site com o site_id existente
+              apr.site_id = { ...apr.site_id, ...siteCompleto };
+              console.log(
+                "✅ Informações completas do site carregadas:",
+                apr.site_id
+              );
+            }
+          } catch (error) {
+            console.log(
+              "⚠️ Erro ao buscar informações completas do site:",
+              error
+            );
+          }
+        }
+
         // Verificar se apr e checklist existem antes de processar
         if (apr && apr.checklist && Array.isArray(apr.checklist)) {
           apr.checklist.forEach((area, indexA) => {
-          area[1].forEach((doc, indexQ) => {
-            const isEmAberto = apr.status === "Em Aberto";
-            const isRevisorOuAdmin = user.nivel === "revisor" || user.nivel === "administrador";
-            const isDono = user.uid === apr.user_id.uid;
-            const hasAnswer = doc.answers !== "";
-            const isRespVazio = doc.resp === "";
-            const hasValorEstoque = doc.valorEstoque?.min != null || doc.valorEstoque?.max != null;
-            const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
-            const isQuestionActiveLoja = isRevisorLoja &&
-              valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
-              doc.tipoLoja?.includes(apr.tipo_loja);
-            console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-            console.log(isQuestionActiveLoja)
-            console.log(hasValorEstoque)
-            console.log(!isQuestionActiveLoja, hasValorEstoque)
+            area[1].forEach((doc, indexQ) => {
+              const isEmAberto = apr.status === "Em Aberto";
+              const isRevisorOuAdmin =
+                user.nivel === "revisor" ||
+                user.nivel === "administrador" ||
+                user.nivel === "revisor_logistica";
+              const isDono = user.uid === apr.user_id.uid;
+              const hasAnswer = doc.answers !== "";
+              const isRespVazio = doc.resp === "";
+              const hasValorEstoque =
+                doc.valorEstoque?.min != null || doc.valorEstoque?.max != null;
+              const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
+              const isQuestionActiveLoja =
+                isRevisorLoja &&
+                valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
+                doc.tipoLoja?.includes(apr.tipo_loja);
 
-
-            if (isRespVazio && hasAnswer) {
-              if (!isRevisorOuAdmin && !isEmAberto) {
-                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-                delete apr.checklist[indexA][1][indexQ];
-              } else if (!isRevisorOuAdmin && isEmAberto && !isDono) {
-                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-                delete apr.checklist[indexA][1][indexQ];
-              } else if (!isEmAberto && isRevisorOuAdmin) {
-                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-                delete apr.checklist[indexA][1][indexQ];
-              } else if (!isQuestionActiveLoja && hasValorEstoque) {
-                console.log(hasValorEstoque);
-                console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-                console.log(`Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`);
-                console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
-                console.log(`isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`);
-                delete apr.checklist[indexA][1][indexQ];
+              if (isRespVazio && hasAnswer) {
+                if (!isRevisorOuAdmin && !isEmAberto) {
+                  console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
+                  delete apr.checklist[indexA][1][indexQ];
+                } else if (!isRevisorOuAdmin && isEmAberto && !isDono) {
+                  console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
+                  delete apr.checklist[indexA][1][indexQ];
+                } else if (!isEmAberto && isRevisorOuAdmin) {
+                  console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
+                  delete apr.checklist[indexA][1][indexQ];
+                } else if (!isQuestionActiveLoja && hasValorEstoque) {
+                  console.log(hasValorEstoque);
+                  console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
+                  console.log(
+                    `Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`
+                  );
+                  console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
+                  console.log(
+                    `isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`
+                  );
+                  delete apr.checklist[indexA][1][indexQ];
+                }
               }
-            }
+            });
           });
-        });
         }
 
         setApr(apr);
@@ -166,9 +197,11 @@ export default function Open() {
     // Buscar informações adicionais do site
     let siteInfoData = null;
     try {
-      const siteSnapshot = await firebase.firestore().collection('sites')
-        .where('Sigla', '==', apr.site_id.Sigla)
-        .where('Estado', '==', apr.site_id.Estado)
+      const siteSnapshot = await firebase
+        .firestore()
+        .collection("sites")
+        .where("Sigla", "==", apr.site_id.Sigla)
+        .where("Estado", "==", apr.site_id.Estado)
         .get();
 
       if (!siteSnapshot.empty) {
@@ -185,7 +218,9 @@ export default function Open() {
     });
 
     pdf.content.push({
-      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
     });
 
     pdf.content.push({
@@ -201,7 +236,12 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [["Nome: " + apr.user_id.nome, "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm")]],
+        body: [
+          [
+            "Nome: " + apr.user_id.nome,
+            "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm"),
+          ],
+        ],
       },
       layout: "noBorders",
     });
@@ -210,16 +250,27 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [["Motivo: " + apr.motivo_apr, "Classificação " + calculatePontos(apr.peso)]],
+        body: [
+          [
+            "Motivo: " + apr.motivo_apr,
+            "Classificação " + calculatePontos(apr.peso),
+          ],
+        ],
       },
       layout: "noBorders",
     });
 
     // Informações do site incluindo perímetro, área e imagem
     const siteTableBody = [
-      ["Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
+      [
+        "Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado,
+        "Criticidade: " + apr.site_id.critical,
+      ],
       ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
-      ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
+      [
+        "Endereço: " + apr.site_id.Endereco,
+        "Latitude: " + apr.site_id.Latitude,
+      ],
       ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
     ];
 
@@ -228,10 +279,13 @@ export default function Open() {
       if (siteInfoData.perimetro && siteInfoData.area) {
         siteTableBody.push([
           "Perímetro: " + siteInfoData.perimetro + " metros",
-          "Área: " + siteInfoData.area + " m²"
+          "Área: " + siteInfoData.area + " m²",
         ]);
       } else if (siteInfoData.perimetro) {
-        siteTableBody.push(["Perímetro: " + siteInfoData.perimetro + " metros", ""]);
+        siteTableBody.push([
+          "Perímetro: " + siteInfoData.perimetro + " metros",
+          "",
+        ]);
       } else if (siteInfoData.area) {
         siteTableBody.push(["", "Área: " + siteInfoData.area + " m²"]);
       }
@@ -249,18 +303,20 @@ export default function Open() {
     // Adicionar imagem do site se disponível
     if (siteInfoData && siteInfoData.imagem) {
       try {
-        const siteImageBase64 = await getBase64ImageFromURL(siteInfoData.imagem);
+        const siteImageBase64 = await getBase64ImageFromURL(
+          siteInfoData.imagem
+        );
         pdf.content.push({
           text: "Imagem do Site:",
           bold: true,
           fontSize: 12,
           margin: [0, 10, 0, 5],
-          color: '#00529B',
+          color: "#00529B",
         });
         pdf.content.push({
           image: siteImageBase64,
           width: 170,
-          alignment: 'center',
+          alignment: "center",
           margin: [0, 5, 0, 20],
         });
       } catch (error) {
@@ -269,7 +325,9 @@ export default function Open() {
     }
 
     pdf.content.push({
-      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
     });
 
     for (const area of apr.checklist) {
@@ -278,8 +336,8 @@ export default function Open() {
         bold: true,
         fontSize: 20,
         margin: [0, 30, 0, 10],
-        color: '#00529B',
-        decoration: 'underline',
+        color: "#00529B",
+        decoration: "underline",
       });
 
       const docs = area[1];
@@ -287,10 +345,23 @@ export default function Open() {
       for (const doc of docs) {
         if (!doc) continue;
 
-        const incluirDoc = exportarea === "All"
-          ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== ""
-          : (exportarea === "oem" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("oem"))
-          || (exportarea === "patrimonio" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("patrimonio"));
+        const incluirDoc =
+          exportarea === "All"
+            ? doc.resp !== "" ||
+              doc.optionListResp?.length > 0 ||
+              doc.respTextArea !== ""
+            : (exportarea === "oem" &&
+                doc.resp !== "" &&
+                doc.resp !== "N/A" &&
+                doc.resp !== doc.respGabarito &&
+                doc.openPA === true &&
+                doc.areaResposavel?.includes("oem")) ||
+              (exportarea === "patrimonio" &&
+                doc.resp !== "" &&
+                doc.resp !== "N/A" &&
+                doc.resp !== doc.respGabarito &&
+                doc.openPA === true &&
+                doc.areaResposavel?.includes("patrimonio"));
 
         if (!incluirDoc) continue;
 
@@ -308,25 +379,36 @@ export default function Open() {
         });
 
         if (doc.resp !== "") {
-          const respColor = doc.resp === "Sim" ? "#4CAF50" : doc.resp === "N/A" ? "#FFA500" : "#F44336";
+          const respColor =
+            doc.resp === "Sim"
+              ? "#4CAF50"
+              : doc.resp === "N/A"
+              ? "#FFA500"
+              : "#F44336";
 
           pdf.content.push({
             table: {
               widths: ["*"],
-              body: [[
-                {
-                  text: doc.resp,
-                  fillColor: respColor,
-                  color: "white",
-                  alignment: "center",
-                  bold: true,
-                  margin: [0, 5, 0, 5],
-                }
-              ]]
+              body: [
+                [
+                  {
+                    text: doc.resp,
+                    fillColor: respColor,
+                    color: "white",
+                    alignment: "center",
+                    bold: true,
+                    margin: [0, 5, 0, 5],
+                  },
+                ],
+              ],
             },
             layout: {
-              hLineWidth: function () { return 0; },
-              vLineWidth: function () { return 0; },
+              hLineWidth: function () {
+                return 0;
+              },
+              vLineWidth: function () {
+                return 0;
+              },
             },
             margin: [0, 5, 0, 5],
           });
@@ -334,7 +416,7 @@ export default function Open() {
 
         if (doc.optionListResp?.length > 0) {
           pdf.content.push({
-            ul: doc.optionListResp.map(option => `${option}`),
+            ul: doc.optionListResp.map((option) => `${option}`),
             margin: [10, 5, 0, 5],
           });
         }
@@ -369,16 +451,27 @@ export default function Open() {
         }
 
         pdf.content.push({
-          canvas: [{
-            type: 'line', x1: 0, y1: 0, x2: 520, y2: 0,
-            lineWidth: 0.5, lineColor: "#ccc"
-          }],
+          canvas: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 520,
+              y2: 0,
+              lineWidth: 0.5,
+              lineColor: "#ccc",
+            },
+          ],
           margin: [0, 20, 0, 20],
         });
       }
     }
 
-    pdfMake.createPdf(pdf).download(`APR Digital ${apr.site_id.Sigla}_${apr.apr_id}_${apr.site_id.Estado}.pdf`);
+    pdfMake
+      .createPdf(pdf)
+      .download(
+        `APR Digital ${apr.site_id.Sigla}_${apr.apr_id}_${apr.site_id.Estado}.pdf`
+      );
   }
 
   // -------------------------------------
@@ -449,14 +542,16 @@ export default function Open() {
 
   async function updateStatusAPR(e, id) {
     e.preventDefault();
-    let confirm = window.confirm("Deseja realmente alterar o status para CONCLUIDO da APR?");
+    let confirm = window.confirm(
+      "Deseja realmente alterar o status para CONCLUIDO da APR?"
+    );
     if (confirm === false) return;
     await firebase
       .firestore()
       .collection(base)
       .doc(id)
       .update({
-        status: 'Concluido',
+        status: "Concluido",
       })
       .then(() => {
         toast.success("APR finalizada com sucesso!");
@@ -481,12 +576,26 @@ export default function Open() {
 
           {loadApr ? (
             <>
-              {(user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
+              {(user.nivel === "administrador" ||
+                (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
                 <div className="container">
                   <div className="siteInfo">
-                    <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
-                    <ModalInfoSiteAPR sigla={apr.site_id.Sigla} estado={apr.site_id.Estado} />
-                    <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
+                    <ModalEditSite
+                      idDoc={id}
+                      ReloadAPR={ReloadAPR}
+                      tipoSite={apr.site_id.tipoSite}
+                      logSistem={logSistem}
+                    />
+                    <ModalInfoSiteAPR
+                      sigla={apr.site_id.Sigla}
+                      estado={apr.site_id.Estado}
+                    />
+                    <ModalEditMotivo
+                      apr={apr}
+                      id={id}
+                      logSistem={logSistem}
+                      ReloadAPR={ReloadAPR}
+                    />
                   </div>
                 </div>
               )}
@@ -582,7 +691,7 @@ export default function Open() {
                       {Math.ceil(
                         (apr.tempoConclusao.conclusao.toDate() -
                           apr.tempoConclusao.inicio.toDate()) /
-                        (1000 * 60)
+                          (1000 * 60)
                       )}{" "}
                       Min.
                     </li>
@@ -602,11 +711,13 @@ export default function Open() {
               <div className="container">
                 <div className="siteInfo">
                   <span>Latitude:</span>{" "}
-                  {apr.locationCreated.latitude && typeof apr.locationCreated.latitude === 'number'
+                  {apr.locationCreated.latitude &&
+                  typeof apr.locationCreated.latitude === "number"
                     ? apr.locationCreated.latitude.toFixed(5)
                     : apr.locationCreated.latitude || "N/A"}
                   <span>Longitude:</span>{" "}
-                  {apr.locationCreated.longitude && typeof apr.locationCreated.longitude === 'number'
+                  {apr.locationCreated.longitude &&
+                  typeof apr.locationCreated.longitude === "number"
                     ? apr.locationCreated.longitude.toFixed(5)
                     : apr.locationCreated.longitude || "N/A"}
                   <span
@@ -614,9 +725,10 @@ export default function Open() {
                       backgroundColor:
                         apr.locationCreated.perimetro === "fora perimetro"
                           ? "rgb(228, 54, 23)"
-                          : apr.locationCreated.perimetro === "Esta dentro do Perimetro"
-                            ? "rgb(14, 206, 14)"
-                            : "rgb(255, 165, 0)",
+                          : apr.locationCreated.perimetro ===
+                            "Esta dentro do Perimetro"
+                          ? "rgb(14, 206, 14)"
+                          : "rgb(255, 165, 0)",
                       color: "#FFF",
                       padding: "0.2em",
                     }}
@@ -625,8 +737,24 @@ export default function Open() {
                   </span>
                 </div>
               </div>
+              {user.nivel === "revisor_logistica" ||
+              user.nivel === "administrador" ? (
+                <div className="container">
+                  <div className="siteInfo">
+                    <span>
+                      Operador Logistico:{apr.site_id.Operador_logistico}
+                    </span>{" "}
+                    <span>
+                      Cobertura (Seguro): R${apr.site_id.Cobertura_Seguro}
+                    </span>{" "}
+                    {console.log(apr.site_id)}
+                  </div>
+                </div>
+              ) : null}
 
-              {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
+              {(apr.valor_armazenamento ||
+                apr.valor_transporte ||
+                apr.valor_sinistro) && (
                 <div className="container">
                   <div className="siteInfo" style={{ flexDirection: "column" }}>
                     <span>Valor Armazenamento:</span>{" "}
@@ -710,7 +838,12 @@ export default function Open() {
                                   let area = doc.areaResposavel.includes(
                                     user.area
                                   );
-                                  if (doc.openPA === true && doc.resp !== "N/A" && doc.respGabarito !== doc.resp && area === true) {
+                                  if (
+                                    doc.openPA === true &&
+                                    doc.resp !== "N/A" &&
+                                    doc.respGabarito !== doc.resp &&
+                                    area === true
+                                  ) {
                                     return (
                                       <div
                                         key={indexQ}
@@ -729,16 +862,18 @@ export default function Open() {
                                             Quantidade: {doc.respInputNumber}
                                           </span>
                                         )}
-                                        {(doc.listCheck && doc.optionListResp !== '') && doc.optionListResp.map(
-                                          (value, index) => {
-                                            return (
-                                              <span className="list_resp_question">
-                                                <FiCheckSquare />
-                                                {value}
-                                              </span>
-                                            );
-                                          }
-                                        )}
+                                        {doc.listCheck &&
+                                          doc.optionListResp !== "" &&
+                                          doc.optionListResp.map(
+                                            (value, index) => {
+                                              return (
+                                                <span className="list_resp_question">
+                                                  <FiCheckSquare />
+                                                  {value}
+                                                </span>
+                                              );
+                                            }
+                                          )}
                                         {doc.respTextArea && (
                                           <>
                                             Comentario:
@@ -767,7 +902,10 @@ export default function Open() {
                                             )}
                                           </>
                                         )}
-                                        {doc.openPA === true && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && user.uid !== apr.id_user ? (
+                                        {doc.openPA === true &&
+                                        doc.resp !== "N/A" &&
+                                        doc.resp !== doc.respGabarito &&
+                                        user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -796,31 +934,38 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                                <>
-                                                  <label>Plano de Ação:</label>
-                                                  Tempo:{" "}
-                                                  <i>{doc.plano_acao.tempo}</i>
-                                                  Comentario:{" "}
-                                                  <i>
-                                                    {doc.plano_acao.comentario}
-                                                  </i>
-                                                </>
-                                              )}
+                                              <>
+                                                <label>Plano de Ação:</label>
+                                                Tempo:{" "}
+                                                <i>{doc.plano_acao.tempo}</i>
+                                                Comentario:{" "}
+                                                <i>
+                                                  {doc.plano_acao.comentario}
+                                                </i>
+                                              </>
+                                            )}
                                           </>
                                         )}
                                       </div>
                                     );
                                   }
-                                } else if (user.nivel === "revisor" || user.nivel === "administrador" || user.uid === apr.user_id.uid) {
+                                } else if (
+                                  user.nivel === "revisor" ||
+                                  user.nivel === "administrador" ||
+                                  user.nivel === "revisor_logistica" ||
+                                  user.uid === apr.user_id.uid
+                                ) {
                                   return (
                                     <div
                                       key={indexQ}
                                       className="container-perg-open"
                                       id={indexA + "-export-" + indexQ}
                                       style={{
-                                        background: ((doc.resp && doc.answers) || (!doc.resp && !doc.answers))
-                                          ? "#e7e6e6"
-                                          : "transparent",
+                                        background:
+                                          (doc.resp && doc.answers) ||
+                                          (!doc.resp && !doc.answers)
+                                            ? "#e7e6e6"
+                                            : "transparent",
                                       }}
                                     >
                                       {apr.status === "Em Aberto" && (
@@ -848,7 +993,8 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {(doc.listCheck && doc.optionListResp !== '') &&
+                                      {doc.listCheck &&
+                                        doc.optionListResp !== "" &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (
@@ -895,13 +1041,21 @@ export default function Open() {
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a
-                                                data-check={doc.resp_pa_status === 'Concluido' ? 'Sim' : 'Concluido'}
+                                                data-check={
+                                                  doc.resp_pa_status ===
+                                                  "Concluido"
+                                                    ? "Sim"
+                                                    : "Concluido"
+                                                }
                                                 onClick={() =>
                                                   togglePostModal(doc, indexA)
                                                 }
                                               >
                                                 <FiCheck size={20} />
-                                                {doc.resp_pa_status === 'Concluido' ? 'Plano de Ação Validado' : 'Plano de Ação'}
+                                                {doc.resp_pa_status ===
+                                                "Concluido"
+                                                  ? "Plano de Ação Validado"
+                                                  : "Plano de Ação"}
                                               </a>
                                             ) : (
                                               <a
@@ -936,7 +1090,8 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {(doc.listCheck && doc.optionListResp !== '') &&
+                                      {doc.listCheck &&
+                                        doc.optionListResp !== "" &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (
@@ -991,7 +1146,8 @@ export default function Open() {
                                           </label>
                                         )}
                                       {(user.nivel === "administrador" ||
-                                        user.nivel === "revisor") &&
+                                        user.nivel === "revisor" ||
+                                        user.nivel === "revisor_logistica") &&
                                         doc.resp !== doc.respGabarito &&
                                         doc.openPA === false && (
                                           <span
@@ -1013,23 +1169,41 @@ export default function Open() {
                       );
                     })}
 
-                    <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
-                    <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
-                    <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
-                      <Fragment>
-                        <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
-                      </Fragment>
-                    )}
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
-                      <Fragment>
-                        <button onClick={(e) => updateStatusAPR(e, id)}>Finalizar APR</button>
-                      </Fragment>
-                    )}
+                    <button onClick={(e) => generatePDF(e, "All")}>
+                      Gerar PDF
+                    </button>
+                    <button onClick={(e) => generatePDF(e, "oem")}>
+                      Gerar PDF O&M
+                    </button>
+                    <button onClick={(e) => generatePDF(e, "patrimonio")}>
+                      Gerar PDF Patrimonio
+                    </button>
+                    {(user.nivel === "administrador" ||
+                      user.nivel === "revisor") &&
+                      (apr.status === "Em Aberto" ||
+                        apr.status === "Revisado" ||
+                        apr.status === "Enviado") && (
+                        <Fragment>
+                          <EmailLink
+                            apr={apr}
+                            setApr={setApr}
+                            id={id}
+                            logSistem={logSistem}
+                          />
+                        </Fragment>
+                      )}
+                    {(user.nivel === "administrador" ||
+                      user.nivel === "revisor") &&
+                      apr.status === "Respondido pela Area" && (
+                        <Fragment>
+                          <button onClick={(e) => updateStatusAPR(e, id)}>
+                            Finalizar APR
+                          </button>
+                        </Fragment>
+                      )}
                   </form>
                 </div>
               )}
-
             </>
           ) : (
             <div className="container">Carregando dados APR...</div>

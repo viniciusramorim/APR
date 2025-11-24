@@ -55,8 +55,12 @@ export default function Modal_PA({
     function loadConstants() {
       setTempo(conteudo?.plano_acao?.tempo || "");
       setComentario(conteudo?.plano_acao?.comentario || "");
+      
+      // Se for revisor_logistica, definir "Logistica" como padrão
+      const defaultOption = user.nivel === "revisor_logistica" ? "Logistica" : "";
+      
       setSelectedOption(
-        conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || ""
+        conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
       );
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
@@ -331,17 +335,6 @@ export default function Modal_PA({
         {selectedOption === "Logistica" && (
           <>
             <TextField
-              label="Número Chamado"
-              value={numeroChamado}
-              onChange={(e) => setNumeroChamado(e.target.value.toUpperCase())}
-              fullWidth
-              slotProps={isReadOnly && {
-                input: {
-                  readOnly: true,
-                },
-              }}
-            />
-            <TextField
               label="Comentário"
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
@@ -391,11 +384,27 @@ export default function Modal_PA({
             value={selectedOption}
             onChange={(e) => setSelectedOption(e.target.value)}
           >
-            <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
-            <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
-            <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
-            <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
-            <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
+            {user.nivel === "revisor_logistica" ? (
+              // Revisor de logística só vê a opção Logística
+              <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
+            ) : user.nivel === "revisor" ? (
+              // Revisor comum NÃO vê a opção Logística
+              <>
+                <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
+                <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
+                <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
+                <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+              </>
+            ) : (
+              // Administrador e outros usuários veem todas as opções
+              <>
+                <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
+                <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
+                <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
+                <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+                <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
+              </>
+            )}
           </RadioGroup>
         </FormControl>
         <Box mt={2}>{renderOptionInputs()}</Box>
