@@ -1046,10 +1046,9 @@ export default function New() {
       valorDentroDoIntervalo(valorSinistro, doc.valorSinistro) ||
       valorDentroDoIntervalo(valorEstoque, doc.valorEstoque);
 
-    const exibition = (!isPGR && !isVENEZA && !isLOJAUNIFICAD) ||
+    const exibition = (!isPGR && !isVENEZA) ||
       (isPGR && isEstadoValido && atendeAlgumValor) ||
-      (isVENEZA && isTipoLojaValido && atendeAlgumValor) ||
-      (isLOJAUNIFICAD && isTipoLojaValido && atendeAlgumValor);
+      (isVENEZA && isTipoLojaValido && atendeAlgumValor);
 
     return exibition;
   }
