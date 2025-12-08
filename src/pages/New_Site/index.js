@@ -347,6 +347,7 @@ export default function New_Site() {
           "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
           "WN0EtV44xnV0V87n5wBBXT87QXI2",
           "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+          "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
         ].includes(user.uid) && (
             <Grid container className="container">
               <TableContainer component={Paper}>
