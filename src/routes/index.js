@@ -47,7 +47,7 @@ export default function Routes() {
       <Route exact path="/open/:id" component={Open} isPrivate />
       <Route exact path="/assignments" component={Assignments} isPrivate />
       <Route exact path="/upload-email" component={UploadJsonToFirestore} isPrivate />
-      <Route exact path="/contact-email" component={ContactEmail} isPrivate isAdm/>
+      <Route exact path="/contact-email" component={ContactEmail} isPrivate/>
 
       <Route exact path="/checklist-ia" component={ChecklistGemini} isPrivate isAdm/>
     </Switch>
