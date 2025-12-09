@@ -411,51 +411,64 @@ export default function New() {
     return false;
   }
 
+  // Função com tratamento robusto de erros
+  async function submitWithErrorHandling() {
+    try {
+      let notBlankChecklist = 0;
+      console.log(justificativa);
+
+      questions.forEach(async (area) => {
+        area[1].forEach(async (question) => {
+          if (question.resp !== "N/A" && question.resp !== "") {
+            notBlankChecklist = notBlankChecklist + 1;
+          }
+        });
+      });
+
+      if (notBlankChecklist <= 0) {
+        if (justificativa == null || justificativa == "" || justificativa.motivo === "" || justificativa.desc === "") {
+          setOpenModalJust(true);
+          toast.warning("⚠️ Insira uma justificativa para continuar");
+          return;
+        }
+      }
+
+      // Verificar geolocalização antes de submeter
+      if (!geolocationEnabled && !geolocationJustification) {
+        setShowGeolocationModal(true);
+        toast.warning("⚠️ Geolocalização necessária ou forneça uma justificativa");
+        return;
+      }
+
+      togglePostModal(); //abre modal de loading
+      toast.info("🔄 Processando APR...");
+
+      if (geolocationEnabled && location.latitude && location.longitude) {
+        console.log('Com geolocalização:', geolocationEnabled, location);
+        try {
+          const perimeter = await getPerimetro(location.latitude, location.longitude);
+          insertDataWithErrorHandling(perimeter);
+        } catch (err) {
+          console.log("❌ Erro na geolocalização:", err);
+          toast.warning("⚠️ Erro na geolocalização, usando justificativa");
+          insertDataWithErrorHandling("Erro na geolocalização - " + geolocationJustification);
+        }
+      } else {
+        console.log('Sem geolocalização, usando justificativa');
+        insertDataWithErrorHandling("Geolocalização não habilitada - " + geolocationJustification);
+      }
+    } catch (error) {
+      console.error("❌ Erro crítico em submitWithErrorHandling:", error);
+      toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
+      togglePostModal(); // Fechar modal de loading
+    }
+  }
+
   function submit() {
     let notBlankChecklist = 0;
     console.log(justificativa);
-
-    questions.forEach(async (area) => {
-      area[1].forEach(async (question) => {
-        if (question.resp !== "N/A" && question.resp !== "") {
-          notBlankChecklist = notBlankChecklist + 1;
-        }
-      });
-    });
-
-    if (notBlankChecklist <= 0) {
-      if (justificativa == null || justificativa == "" || justificativa.motivo === "" || justificativa.desc === "") {
-        setOpenModalJust(true);
-        console.log("Insira uma justificativa");
-        return;
-      }
-    }
-
-    // Verificar geolocalização antes de submeter
-    if (!geolocationEnabled && !geolocationJustification) {
-      setShowGeolocationModal(true);
-      return;
-    }
-
-    togglePostModal(); //abre modal de loading
-
-    if (geolocationEnabled && location.latitude && location.longitude) {
-      console.log('Com geolocalização:', geolocationEnabled, location);
-      // Prosseguir com geolocalização normal
-      getPerimetro(location.latitude, location.longitude)
-        .then(async (perimeter) => {
-          insertData(perimeter);
-        })
-        .catch((err) => {
-          console.log("Erro na geolocalização:", err);
-          // Em caso de erro, prosseguir com justificativa
-          insertData("Erro na geolocalização - " + geolocationJustification);
-        });
-    } else {
-      console.log('Sem geolocalização, usando justificativa');
-      // Prosseguir sem geolocalização, mas com justificativa
-      insertData("Geolocalização não habilitada - " + geolocationJustification);
-    }
+    // Função mantida por compatibilidade, mas agora usa submitWithErrorHandling
+    console.log("Função submit() chamada diretamente - use submitWithErrorHandling()");
   }
 
   async function incrementID() {
@@ -496,15 +509,32 @@ export default function New() {
     return querySnapshot;
   }
 
+  // Wrapper com tratamento de erros para insertData
+  function insertDataWithErrorHandling(perimeter) {
+    try {
+      insertData(perimeter);
+    } catch (error) {
+      console.error("❌ Erro crítico em insertData:", error);
+      toast.error(`❌ Erro ao salvar APR: ${error.message || 'Falha no servidor'}`);
+      togglePostModal(); // Fechar modal de loading
+    }
+  }
+
   async function insertData(perimeter) {
-    let checklist = [];
+    try {
+      let checklist = [];
 
-    let qtdImages = 0;
-    let imagesCompleted = 0;
+      let qtdImages = 0;
+      let imagesCompleted = 0;
 
-    saveIndexedDB();
+      try {
+        saveIndexedDB();
+      } catch (error) {
+        console.error("❌ Erro ao salvar no IndexedDB:", error);
+        toast.warning("⚠️ Erro ao salvar backup local, continuando...");
+      }
 
-    const result_peso = calculatePontos();
+      const result_peso = calculatePontos();
 
     incrementID()
       .then(async (result) => {
@@ -716,7 +746,9 @@ export default function New() {
                       conclusionApr(index.id);
                     })
                     .catch((err) => {
-                      console.log("Erro ao inserir APR (sem imagens)");
+                      console.log("❌ Erro ao inserir APR (sem imagens):", err);
+                      toast.error("❌ Erro ao salvar APR no banco de dados");
+                      togglePostModal();
                     });
                 }
 
@@ -724,13 +756,28 @@ export default function New() {
                   updateAssignments();
                 }
               })
-              .catch((err) => console.log(err));
+              .catch((err) => {
+                console.log("❌ Erro geral no processo:", err);
+                toast.error("❌ Erro no processo de conclusão da APR");
+                togglePostModal();
+              });
           })
-          .catch((err) =>
-            console.log("Erro ao inserir informações no SITE: " + err)
-          );
+          .catch((err) => {
+            console.log("❌ Erro ao inserir informações no SITE:", err);
+            toast.error("❌ Erro ao atualizar informações do site");
+            togglePostModal();
+          });
       })
-      .catch((err) => console.log("Erro ao inserir ID: " + err));
+      .catch((err) => {
+        console.log("❌ Erro ao inserir ID:", err);
+        toast.error("❌ Erro ao gerar ID da APR");
+        togglePostModal();
+      });
+    } catch (error) {
+      console.error("❌ Erro crítico em insertData:", error);
+      toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
+      togglePostModal();
+    }
   }
 
   // função de monitoramento de upload de imagens
@@ -1583,12 +1630,18 @@ export default function New() {
             })}
             <button
               className="submit-apr"
-              onClick={() => {
-                const hasUnanswered = hasRequired();
-                if (hasUnanswered) {
-                  return;
+              onClick={async () => {
+                try {
+                  const hasUnanswered = hasRequired();
+                  if (hasUnanswered) {
+                    return;
+                  }
+                  await submitWithErrorHandling();
+                } catch (error) {
+                  console.error("❌ Erro crítico ao concluir APR:", error);
+                  toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada ao concluir APR'}`);
+                  togglePostModal(); // Fechar modal de loading se estiver aberto
                 }
-                submit();
               }}
             >
               Concluir APR
