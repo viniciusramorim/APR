@@ -496,137 +496,116 @@ export default function Open() {
               )}
 
               <div className="container">
-                <div className="siteInfo">
-                  <ul>
-                    <li>
-                      <span>SIGLA: </span>
-                      {apr.site_id.Sigla + "-" + apr.site_id.Estado}
-                    </li>
-                    <li style={{ textTransform: "none" }}>
-                      <span>ID APR: </span>
-                      {apr.apr_id ? apr.apr_id : id}
-                    </li>
-                    <li>
-                      <span>Classificação: </span>
-                      {apr.status !== "Com Exceção" &&
-                        calculatePontos(apr.peso)}
-                    </li>
-                  </ul>
-                  <ul>
-                    <li>
-                      <span>STATUS: </span>
-                      {apr.status}
-                    </li>
-                    <li>
-                      <span>MOTIVO: </span>
-                      {apr.motivo_apr}
-                    </li>
-                    <li>
-                      <span>TIPO DE CHECKLIST: </span>
-                      {apr.site_id.tipoSite}
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                <div className="info-group">
+                  <div className="info-card">
+                    <div className="card-title">📋 Informações da APR</div>
+                    <div className="card-content">
+                      <div className="info-item">
+                        <span className="label">SIGLA:</span>
+                        <span className="value">{apr.site_id.Sigla + "-" + apr.site_id.Estado}</span>
+                      </div>
+                      <div className="info-item" style={{ textTransform: "none" }}>
+                        <span className="label">ID APR:</span>
+                        <span className="value">{apr.apr_id ? apr.apr_id : id}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Status:</span>
+                        <span className={`status-badge status-${apr.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                          {apr.status}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Classificação:</span>
+                        <span className="value">{apr.status !== "Com Exceção" && calculatePontos(apr.peso)}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="container">
-                <div className="siteInfo">
-                  <ul>
-                    <li>
-                      <span>Unidade: </span>
-                      {apr.site_id.Nome}
-                    </li>
-                    <li>
-                      <span>Endereço: </span>
-                      {apr.site_id.Endereco}
-                    </li>
-                    <li>
-                      <span>Estado: </span>
-                      {apr.site_id.Estado}
-                    </li>
-                    <li>
-                      <span>Criticidade: </span>
-                      {apr.site_id.critical}
-                    </li>
-                  </ul>
-                  <ul>
-                    <li>
-                      <span>Cidade: </span>
-                      {apr.site_id.Cidade}
-                    </li>
-                    <li>
-                      <span>Latitude: </span>
-                      {apr.site_id.Latitude}
-                    </li>
-                    <li>
-                      <span>Longitude: </span>
-                      {apr.site_id.Longitude}
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                  <div className="info-card">
+                    <div className="card-title">🏢 Informações do Site</div>
+                    <div className="card-content">
+                      <div className="info-item">
+                        <span className="label">Unidade:</span>
+                        <span className="value">{apr.site_id.Nome}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Cidade:</span>
+                        <span className="value">{apr.site_id.Cidade}/{apr.site_id.Estado}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Criticidade:</span>
+                        <span className={`criticality-badge criticality-${apr.site_id.critical.toLowerCase()}`}>
+                          {apr.site_id.critical}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Tipo:</span>
+                        <span className="value">{apr.site_id.tipoSite}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="container">
-                <div className="siteInfo">
-                  <ul>
-                    <li>
-                      <span>Inicio: </span>
-                      {format(apr.tempoConclusao.inicio.toDate(), "HH:mm")}
-                    </li>
-                  </ul>
-                  <ul>
-                    <li>
-                      <span>Conclusão: </span>
-                      {format(apr.tempoConclusao.conclusao.toDate(), "HH:mm")}
-                    </li>
-                  </ul>
-                  <ul>
-                    <li>
-                      <span>Tempo: </span>
-                      {Math.ceil(
-                        (apr.tempoConclusao.conclusao.toDate() -
-                          apr.tempoConclusao.inicio.toDate()) /
-                        (1000 * 60)
-                      )}{" "}
-                      Min.
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                  <div className="info-card">
+                    <div className="card-title">⏱️ Tempo & Execução</div>
+                    <div className="card-content">
+                      <div className="info-item">
+                        <span className="label">Responsável:</span>
+                        <span className="user-name">{apr.user_id.nome}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Criado:</span>
+                        <span className="value">{format(apr.created.toDate(), "dd/MM/yyyy HH:mm")}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Período:</span>
+                        <span className="value">
+                          {format(apr.tempoConclusao.inicio.toDate(), "HH:mm")} - {format(apr.tempoConclusao.conclusao.toDate(), "HH:mm")}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Duração:</span>
+                        <span className="duration-badge">
+                          {Math.ceil(
+                            (apr.tempoConclusao.conclusao.toDate() -
+                              apr.tempoConclusao.inicio.toDate()) /
+                            (1000 * 60)
+                          )} min
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="container">
-                <div className="siteInfo">
-                  <span>{apr.user_id.nome}</span>
-                  <span>
-                    {format(apr.created.toDate(), "dd/MM/yyyy HH:mm")}
-                  </span>
-                </div>
-              </div>
-
-              <div className="container">
-                <div className="siteInfo">
-                  <span>Latitude:</span>{" "}
-                  {apr.locationCreated.latitude && typeof apr.locationCreated.latitude === 'number'
-                    ? apr.locationCreated.latitude.toFixed(5)
-                    : apr.locationCreated.latitude || "N/A"}
-                  <span>Longitude:</span>{" "}
-                  {apr.locationCreated.longitude && typeof apr.locationCreated.longitude === 'number'
-                    ? apr.locationCreated.longitude.toFixed(5)
-                    : apr.locationCreated.longitude || "N/A"}
-                  <span
-                    style={{
-                      backgroundColor:
-                        apr.locationCreated.perimetro === "fora perimetro"
-                          ? "rgb(228, 54, 23)"
-                          : apr.locationCreated.perimetro === "Esta dentro do Perimetro"
-                            ? "rgb(14, 206, 14)"
-                            : "rgb(255, 165, 0)",
-                      color: "#FFF",
-                      padding: "0.2em",
-                    }}
-                  >
-                    {apr.locationCreated.perimetro}
-                  </span>
+                  <div className="info-card">
+                    <div className="card-title">📍 Localização</div>
+                    <div className="card-content">
+                      <div className="info-item">
+                        <span className="label">Endereço:</span>
+                        <span className="value">{apr.site_id.Endereco}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Motivo:</span>
+                        <span className="value">{apr.motivo_apr}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Coordenadas:</span>
+                        <span className="value">
+                          {apr.locationCreated.latitude && typeof apr.locationCreated.latitude === 'number'
+                            ? `${apr.locationCreated.latitude.toFixed(5)}, ${apr.locationCreated.longitude.toFixed(5)}`
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Perímetro:</span>
+                        <span className={`perimeter-badge ${
+                          apr.locationCreated.perimetro === "fora perimetro" ? "perimeter-outside" :
+                          apr.locationCreated.perimetro === "Esta dentro do Perimetro" ? "perimeter-inside" :
+                          "perimeter-unknown"
+                        }`}>
+                          {apr.locationCreated.perimetro}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1017,19 +996,33 @@ export default function Open() {
                       );
                     })}
 
-                    <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
-                    <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
-                    <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
-                      <Fragment>
-                        <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
-                      </Fragment>
-                    )}
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
-                      <Fragment>
-                        <button onClick={(e) => updateStatusAPR(e, id)}>Finalizar APR</button>
-                      </Fragment>
-                    )}
+                    <div className="action-buttons-group">
+                      <div className="pdf-buttons">
+                        <button className="btn-pdf" onClick={(e) => generatePDF(e, "All")}>
+                          📄 Gerar PDF Completo
+                        </button>
+                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "oem")}>
+                          🔧 Gerar PDF O&M
+                        </button>
+                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "patrimonio")}>
+                          🏢 Gerar PDF Patrimônio
+                        </button>
+                      </div>
+                      
+                      {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
+                        <div className="admin-buttons">
+                          <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                        </div>
+                      )}
+                      
+                      {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
+                        <div className="finalize-buttons">
+                          <button className="btn-finalize" onClick={(e) => updateStatusAPR(e, id)}>
+                            ✅ Finalizar APR
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </form>
                 </div>
               )}
