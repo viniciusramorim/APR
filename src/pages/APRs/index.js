@@ -469,7 +469,7 @@ export default function Dashboard() {
     <div className="apr-digital">
       <Header />
       <div className="content">
-        <Title name="APRs">
+        <Title name="APRs" subtitle="Visualize suas APRs">
           <FiMessageSquare size={25} onClick={() => console.log("")} />
         </Title>
         {(user.nivel === "administrador" || user.nivel === "revisor") && (

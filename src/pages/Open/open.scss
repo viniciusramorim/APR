@@ -11,8 +11,10 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  width: calc(100vw - 6rem);
+  width: calc(100vw - 2rem);
   max-width: none;
+  margin-left: 1rem;
+  margin-right: 1rem;
   @include flex-start;
 }
 
@@ -40,20 +42,168 @@
   flex-direction: column;
   width: 100%;
 
-  .action-buttons-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: rgba(248, 249, 250, 0.7);
+  // Seções organizadas para relatórios e ações
+  .reports-section, .revision-section, .finalization-section {
+    margin: 2rem 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     
-    .pdf-buttons, .admin-buttons, .finalize-buttons {
+    .section-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      
+      h3 {
+        color: #344767;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      
+      p {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin: 0;
+        font-style: italic;
+      }
+    }
+  }
+  
+  .reports-section {
+    .main-report {
       display: flex;
-      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      
+      .btn-pdf-main {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        width: 80%;
+        margin: 0 auto;
+        display: block;
+        
+        &:hover {
+          background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+      }
+    }
+    
+    .secondary-reports {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
       flex-wrap: wrap;
+      
+      .btn-pdf-secondary {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        width: 80%;
+        margin: 0 auto;
+        display: block;
+        
+        &:hover {
+          background: rgba(108, 117, 125, 0.15);
+          border-color: #6c757d;
+          color: #495057;
+          transform: translateY(-1px);
+        }
+      }
+    }
+    
+    .section-divider {
+      text-align: center;
+      position: relative;
+      margin: 2rem 0 0 0;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, #e9ecef 20%, #e9ecef 80%, transparent 100%);
+      }
+      
+      span {
+        background: white;
+        padding: 0 1rem;
+        color: #6c757d;
+        font-size: 0.85rem;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+      }
+    }
+  }
+  
+  .revision-section {
+    .revision-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .confirmation-text {
+        margin-top: 1rem;
+        color: #6c757d;
+        font-size: 0.85rem;
+        font-style: italic;
+        text-align: center;
+      }
+    }
+  }
+  
+  .finalization-section {
+    .finalization-action {
+      display: flex;
+      justify-content: center;
+      
+      .btn-finalize-main {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        width: 80%;
+        margin: 0 auto;
+        display: block;
+        
+        &:hover {
+          background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+      }
     }
   }
 
@@ -123,6 +273,212 @@
       background: linear-gradient(135deg, #5f39e6 0%, #4c2ed6 100%);
     }
   }
+}
+
+// Estilos para o card de histórico de APRs
+.history-card {
+  width: 100%;
+  
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .history-item {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    background: rgba(248, 249, 250, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    transition: all 0.25s ease;
+    position: relative;
+
+    &:hover {
+      background: rgba(240, 242, 245, 0.9);
+      transform: translateY(-2px);
+      border-color: rgba(0, 123, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+    }
+  }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .history-id-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .history-label {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .history-id {
+        font-weight: 700;
+        color: #007bff;
+        font-size: 1rem;
+        font-family: 'Courier New', monospace;
+      }
+    }
+  }
+
+  .history-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .history-motivo-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .motivo-label {
+        font-size: 0.7rem;
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .history-motivo {
+        color: #495057;
+        font-size: 0.9rem;
+        font-weight: 500;
+        line-height: 1.4;
+        padding: 0.5rem 0.75rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 6px;
+        border-left: 3px solid #007bff;
+      }
+    }
+
+    .history-date {
+      color: #868e96;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  }
+
+  .btn-visualizar {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    align-self: flex-end;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+
+    &:hover {
+      background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .no-history,
+  .loading-history {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-style: italic;
+
+    span {
+      font-size: 0.9rem;
+    }
+  }
+
+  .loading-history span {
+    color: #007bff;
+  }
+}
+
+// Responsividade para o histórico
+@media(max-width: 767px) {
+  .history-card {
+    .history-item {
+      padding: 1rem;
+    }
+
+    .history-header {
+      .history-id-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+
+        .history-label {
+          font-size: 0.65rem;
+        }
+
+        .history-id {
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .history-body {
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+
+      .history-motivo-wrapper .history-motivo {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+      }
+
+      .history-date {
+        font-size: 0.7rem;
+      }
+    }
+
+    .btn-visualizar {
+      align-self: stretch;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.header-actions {
+  padding: 10px !important;
+}
+
+.group-buttons {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  max-width: 100% !important;
+  align-items: center !important;
+  align-content: center !important;
 }
 
 .page-open .container-perg-open {
@@ -697,19 +1053,22 @@
   }
 
   .page-open form {
-    .action-buttons-group {
-      gap: 0.75rem;
-      padding: 1.25rem;
+    .reports-section, .revision-section, .finalization-section {
+      padding: 1.5rem;
+      margin: 1.5rem auto;
       
-      .pdf-buttons, .admin-buttons, .finalize-buttons {
-        gap: 0.5rem;
+      .section-header h3 {
+        font-size: 1.1rem;
       }
     }
-
-    button, .btn-pdf, .btn-pdf-secondary, .btn-finalize {
-      padding: 0.6rem 1.25rem;
-      font-size: 0.85rem;
-      min-height: 40px;
+    
+    .secondary-reports {
+      gap: 0.75rem;
+      
+      .btn-pdf-secondary {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+      }
     }
   }
 }
@@ -825,23 +1184,52 @@
   }
 
   .page-open form {
-    .action-buttons-group {
-      gap: 0.75rem;
-      padding: 1rem;
-      margin-top: 1.5rem;
+    .reports-section, .revision-section, .finalization-section {
+      padding: 1.25rem;
+      margin: 1rem auto;
       
-      .pdf-buttons, .admin-buttons, .finalize-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
+      .section-header {
+        margin-bottom: 1rem;
+        
+        h3 {
+          font-size: 1rem;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        
+        p {
+          font-size: 0.8rem;
+        }
       }
     }
-
-    button, .btn-pdf, .btn-pdf-secondary, .btn-finalize {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      font-size: 0.85rem;
-      min-height: 44px;
+    
+    .main-report .btn-pdf-main {
+      min-width: auto;
+      max-width: none;
+      width: 90%;
+      padding: 0.875rem 1.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .secondary-reports {
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      .btn-pdf-secondary {
+        min-width: auto;
+        max-width: none;
+        width: 90%;
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+    
+    .finalization-action .btn-finalize-main {
+      min-width: auto;
+      max-width: none;
+      width: 90%;
+      padding: 0.875rem 1.5rem;
+      font-size: 0.9rem;
     }
   }
 }

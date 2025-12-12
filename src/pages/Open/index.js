@@ -39,6 +39,8 @@ export default function Open() {
   const [showPostModalLoading, setShowPostModalLoading] = useState(false);
   const [detail, setDetail] = useState();
   const [area, setArea] = useState();
+  const [historicoAPRs, setHistoricoAPRs] = useState([]);
+  const [loadHistorico, setLoadHistorico] = useState(false);
 
   const formatarValor = (valor) => {
     let result = new Intl.NumberFormat("pt-BR", {
@@ -55,6 +57,39 @@ export default function Open() {
     return convertido > intervalo.min && convertido <= intervalo.max;
   };
 
+  async function loadHistoricoAPRs(siteData) {
+    try {
+      const snapshot = await firebase
+        .firestore()
+        .collection(base)
+        .where('site_id.Sigla', '==', siteData.Sigla)
+        .where('site_id.Estado', '==', siteData.Estado)
+        .orderBy('created', 'desc')
+        .limit(10)
+        .get();
+
+      const aprs = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (doc.id !== id) { // Não incluir a APR atual
+          aprs.push({
+            id: doc.id,
+            apr_id: data.apr_id || doc.id,
+            motivo: data.motivo_apr || 'Sem motivo informado',
+            status: data.status || 'N/A',
+            created: data.created
+          });
+        }
+      });
+      
+      setHistoricoAPRs(aprs);
+      setLoadHistorico(true);
+    } catch (error) {
+      console.log("Erro ao carregar histórico de APRs:", error);
+      setLoadHistorico(true);
+    }
+  }
+
   async function ReloadAPR() {
     await firebase
       .firestore()
@@ -64,6 +99,10 @@ export default function Open() {
       .then((snapshot) => {
         let apr = snapshot.data();
         setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
+        
+        // Carregar histórico de APRs para o site
+        loadHistoricoAPRs(apr.site_id);
+        
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             const isEmAberto = apr.status === "Em Aberto";
@@ -473,23 +512,27 @@ export default function Open() {
       });
   }
 
+  function visualizarAPR(aprId) {
+    window.open(`/open/${aprId}`, '_blank');
+  }
+
   return (
     <div>
       <Header />
 
       <div className="content">
         <div id="exportContent">
-          <Title name="APR Digital">
+          <Title name="Aplicar APR" subtitle="Gerador de Relatórios">
             <FiClipboard size={25} onClick={() => console.log(apr)} />
           </Title>
 
           {loadApr ? (
             <>
               {(user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
-                <div className="container">
-                  <div className="siteInfo">
+                <div className="container header-actions">
+                  <div className="siteInfo group-buttons">
                     <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
-                    <ModalInfoSiteAPR sigla={apr.site_id.Sigla} estado={apr.site_id.Estado} />
+                    <ModalInfoSiteAPR sigla={apr.site_id.Sigla} estado={apr.sitFe_id.Estado} />
                     <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
                   </div>
                 </div>
@@ -606,8 +649,62 @@ export default function Open() {
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
+
+              <div className="container">
+                <div className="info-card history-card">
+                  <div className="card-title">📚 Histórico de APRs</div>
+                    <div className="card-content">
+                      {loadHistorico ? (
+                        historicoAPRs.length > 0 ? (
+                          <div className="history-list">
+                            {historicoAPRs.map((aprHist, index) => (
+                              <div key={aprHist.id} className="history-item">
+                                <div className="history-header">
+                                  <div className="history-id-wrapper">
+                                    <span className="history-label">APR</span>
+                                    <span className="history-id">{aprHist.apr_id}</span>
+                                  </div>
+                                  <span className={`status-badge status-${aprHist.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                                    {aprHist.status}
+                                  </span>
+                                </div>
+                                <div className="history-body">
+                                  <div className="history-motivo-wrapper">
+                                    <span className="motivo-label">Motivo:</span>
+                                    <span className="history-motivo">{aprHist.motivo}</span>
+                                  </div>
+                                  {aprHist.created && (
+                                    <span className="history-date">
+                                      📅 {format(aprHist.created.toDate(), "dd/MM/yyyy")} às {format(aprHist.created.toDate(), "HH:mm")}
+                                    </span>
+                                  )}
+                                </div>
+                                <button 
+                                  className="btn-visualizar"
+                                  onClick={() => visualizarAPR(aprHist.id)}
+                                  title="Visualizar APR"
+                                >
+                                  👁️ Visualizar
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="no-history">
+                            <span>📋 Nenhuma APR anterior encontrada para este site</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="loading-history">
+                          <span>🔄 Carregando histórico...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
               {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
                 <div className="container">
@@ -996,33 +1093,56 @@ export default function Open() {
                       );
                     })}
 
-                    <div className="action-buttons-group">
-                      <div className="pdf-buttons">
-                        <button className="btn-pdf" onClick={(e) => generatePDF(e, "All")}>
+                    <div className="reports-section">
+                      <div className="section-header">
+                        <h3>📊 Relatórios Disponíveis</h3>
+                        <p>Escolha qual relatório deseja gerar</p>
+                      </div>
+                      
+                      <div className="main-report">
+                        <button className="btn-pdf-main" onClick={(e) => generatePDF(e, "All")}>
                           📄 Gerar PDF Completo
-                        </button>
-                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "oem")}>
-                          🔧 Gerar PDF O&M
-                        </button>
-                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "patrimonio")}>
-                          🏢 Gerar PDF Patrimônio
                         </button>
                       </div>
                       
-                      {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
-                        <div className="admin-buttons">
-                          <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                      <div className="secondary-reports">
+                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "oem")}>
+                          🔧 PDF O&M
+                        </button>
+                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "patrimonio")}>
+                          🏢 PDF Patrimônio
+                        </button>
+                      </div>
+                    </div>
+
+                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
+                      <div className="revision-section">
+                        <div className="section-header">
+                          <h3>📧 Revisão e Envio</h3>
+                          <p>Finalize o processo de geração</p>
                         </div>
-                      )}
-                      
-                      {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
-                        <div className="finalize-buttons">
-                          <button className="btn-finalize" onClick={(e) => updateStatusAPR(e, id)}>
+                        
+                        <div className="revision-action">
+                          <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
+                          <p className="confirmation-text">Você receberá um e-mail de confirmação após o envio</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
+                      <div className="finalization-section">
+                        <div className="section-header">
+                          <h3>✅ Finalização</h3>
+                          <p>Conclua o processo da APR</p>
+                        </div>
+                        
+                        <div className="finalization-action">
+                          <button className="btn-finalize-main" onClick={(e) => updateStatusAPR(e, id)}>
                             ✅ Finalizar APR
                           </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </form>
                 </div>
               )}
