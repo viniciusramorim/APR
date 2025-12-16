@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import * as XLSX from "xlsx";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { AuthContext } from "../../contexts/auth";
 import "./report.scss";
 import {
@@ -374,11 +373,9 @@ export default function Reports() {
 
   return (
     <div>
-      <Header />
+      <Header name="Relatórios" subtitle="Gerar relatórios de APRs">
+      </Header>
       <div className="content">
-        <Title name="Relatórios">
-          <FiFileText size={25} onClick={() => console.log(chamados)} />
-        </Title>
         <div className="filter-reports-container">
           <div className="filter-reports">
             <Grid container spacing={2}>

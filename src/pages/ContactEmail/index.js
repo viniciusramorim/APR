@@ -28,7 +28,6 @@ import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
 import { read, utils } from "xlsx";
 import { toast } from "react-toastify";
@@ -391,11 +390,10 @@ export default function ContactEmail() {
 
   return (
     <div className="apr-contact-email">
-      <Header />
+      <Header name="Contato">
+        <FiMessageSquare size={25} />
+      </Header>
       <div className="content">
-        <Title name="Contato">
-          <FiMessageSquare size={25} />
-        </Title>
 
         <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
           <TextField

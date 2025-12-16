@@ -18,7 +18,6 @@ import "./new_site.scss";
 
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { format } from "date-fns";
 import ModalInfoSite from "../../components/Modal_InfoSite";
 import { AuthContext } from "../../contexts/auth";
@@ -315,12 +314,11 @@ export default function New_Site() {
 
   return (
     <div>
-      <Header />
+      <Header name="Aprovação de Novos Sites">
+        <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
+      </Header>
 
       <div className="content">
-        <Title name="Aprovação de Novos Sites">
-          <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
-        </Title>
 
         {user.uid ===
           ("wQzKfmkPgsV8PULa9t5JLg9Ta6j2" ||

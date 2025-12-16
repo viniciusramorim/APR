@@ -3,7 +3,6 @@ import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter
 import { FiFileText } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection.js";
 import Header from "../../components/Header/index.js";
-import Title from "../../components/Title/index.js";
 import { AuthContext } from "../../contexts/auth.js";
 import "./report.scss";
 import {
@@ -167,11 +166,10 @@ export default function Patrimonio() {
 
   return (
     <div>
-      <Header />
+      <Header name="Patrimonio">
+        <FiFileText size={25} onClick={() => console.log(chamados)} />
+      </Header>
       <div className="content">
-        <Title name="Patrimonio">
-          <FiFileText size={25} onClick={() => console.log(chamados)} />
-        </Title>
         <div className="filter-reports-container">
           <div className="filter-reports">
             <Grid container spacing={2}>

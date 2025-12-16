@@ -19,7 +19,6 @@ import {
 import * as XLSX from "xlsx";
 import "./log.scss";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
 
 export default function LogManagement() {
@@ -176,11 +175,10 @@ export default function LogManagement() {
 
   return (
     <div className="apr-digital">
-      <Header />
+      <Header name="Gerenciamento de Logs">
+        <FiMessageSquare size={25} onClick={() => loadAllLogs()} />
+      </Header>
       <div className="content">
-        <Title name="Gerenciamento de Logs">
-          <FiMessageSquare size={25} onClick={() => loadAllLogs()} />
-        </Title>
         <div style={{ marginBottom: "20px" }} className="info-user">
           <Autocomplete
             freeSolo

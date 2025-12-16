@@ -12,7 +12,6 @@ import "./open.scss";
 
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import Modal_PA from "../../components/Modal_PA/index.js";
 import ModalLoading from "../../components/Modal_Loading";
 import telefonicaLogo from "../../assets/telefonica-logo.png";
@@ -518,13 +517,11 @@ export default function Open() {
 
   return (
     <div>
-      <Header />
+      <Header name="Aplicar APR" subtitle="Gerador de Relatórios">
+      </Header>
 
       <div className="content">
         <div id="exportContent">
-          <Title name="Aplicar APR" subtitle="Gerador de Relatórios">
-            <FiClipboard size={25} onClick={() => console.log(apr)} />
-          </Title>
 
           {loadApr ? (
             <>

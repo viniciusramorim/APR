@@ -3,7 +3,6 @@ import { FiMessageSquare } from "react-icons/fi";
 import { format } from "date-fns";
 import { AuthContext } from "../../contexts/auth";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import firebase from "../../services/firebaseConnection";
 import "./index.scss";
 import { toast } from "react-toastify";
@@ -467,11 +466,9 @@ export default function Dashboard() {
 
   return (
     <div className="apr-digital">
-      <Header />
+      <Header name="APRs" subtitle="Visualize suas APRs">
+      </Header>
       <div className="content">
-        <Title name="APRs" subtitle="Visualize suas APRs">
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
-        </Title>
         {(user.nivel === "administrador" || user.nivel === "revisor") && (
           <Grid
             container
@@ -830,7 +827,7 @@ export default function Dashboard() {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <ButtonGroup size="small" aria-label="small button group">
+          <ButtonGroup className="btn-group" size="small" aria-label="small button group">
             <Button
               size="small"
               color="secondary"

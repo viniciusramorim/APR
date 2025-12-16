@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import SiteDetailModal from "../../components/SiteDetailModal";
 import ModalNovoSite from "../../components/Modal_NovoSite/index.js";
 import { AuthContext } from '../../contexts/auth';
@@ -233,11 +232,10 @@ export default function PreNew() {
 
   return (
     <div>
-      <Header />
+      <Header name="Aplicar APR">
+        <FiClipboard size={25} />
+      </Header>
       <div className="content">
-        <Title name="Aplicar APR">
-          <FiClipboard size={25} />
-        </Title>
         <div className="container">
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>

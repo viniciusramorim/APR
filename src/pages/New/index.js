@@ -11,7 +11,6 @@ import "./new.scss";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import ModalLoading from "../../components/Modal_Loading";
 import Modal_Justificativa from "../../components/Modal_Justificativa";
 import CameraComponent from "./CameraComponent";
@@ -1124,13 +1123,9 @@ export default function New() {
 
   return (
     <div>
-      <Header />
-
+      <Header name="Aplicar APR" subtitle="Nova APR">
+      </Header>
       <div className="content">
-        <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(questions)} />
-        </Title>
-
         <div className="container">
           <div className="siteInfo">
             <ul>
