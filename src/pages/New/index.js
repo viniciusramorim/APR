@@ -17,13 +17,22 @@ import CameraComponent from "./CameraComponent";
 import InputComponent from "./InputComponent";
 import {
   Box,
+  Button,
+  ButtonGroup,
+  Card,
+  CardContent,
   Checkbox,
+  Container,
   FormControl,
+  Grid,
   ListItemText,
   ListSubheader,
   MenuItem,
+  Paper,
   Select,
+  Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
 const ITEM_HEIGHT = 30;
@@ -535,50 +544,13 @@ export default function New() {
 
       const result_peso = calculatePontos();
 
-    incrementID()
-      .then(async (result) => {
-        setSite(id, motivoAPR)
-          .then(async () => {
-            console.log("ID Atual:", result);
+      incrementID()
+        .then(async (result) => {
+          setSite(id, motivoAPR)
+            .then(async () => {
+              console.log("ID Atual:", result);
 
-            console.log({
-              user_id: user,
-              apr_id: result,
-              site_id: siteInfo,
-              created: new Date(),
-              motivo_apr: motivoAPR,
-              valor_armazenamento: valorArmazenamento,
-              valor_transporte: valorTransporte,
-              valor_sinistro: valorSinistro,
-              valor_estoque: valorEstoque,
-              tipo_loja: tipoLoja,
-              status: justificativa ? "Com Exceção" : "Em Aberto",
-              peso: result_peso,
-              justificativa: justificativa ? justificativa : "",
-              locationCreated: geolocationEnabled ? {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                perimetro: perimeter,
-              } : {
-                latitude: null,
-                longitude: null,
-                perimetro: "Geolocalização não habilitada",
-              },
-              tempoConclusao: {
-                inicio: inicio === undefined ? new Date() : inicio,
-                conclusao: new Date(),
-              },
-              geolocation_info: {
-                enabled: geolocationEnabled,
-                justification: geolocationJustification,
-                error: geolocationError
-              },
-            })
-
-            await firebase
-              .firestore()
-              .collection(base)
-              .add({
+              console.log({
                 user_id: user,
                 apr_id: result,
                 site_id: siteInfo,
@@ -611,167 +583,204 @@ export default function New() {
                   error: geolocationError
                 },
               })
-              .then(async (index) => {
-                let containsImage = verifyContainsImage();
 
-                questions.forEach(async (area, indexA) => {
-                  checklist.push({
-                    0: area[0],
-                    1: [],
-                  });
-                  area[1].forEach(async (question, indexQ) => {
-                    question.question && checklist[indexA][1].push({
-                      imagesURL: [],
-                      resp: question.resp,
-                      respTextArea: question.respTextArea,
-                      questionId: question.questionId,
-                      question: question.question,
-                      plano_acao: question.plano_acao,
-                      openPA: question.openPA,
-                      areaResposavel: question.areaResposavel,
-                      respGabarito: question.respGabarito,
-                      answers: question.answers,
-                      selectOptions: question.selectOptions ? question.selectOptions : false,
-                      status: question.status ? question.status : false,
-                      isRequired: question.isRequired ? question.isRequired : false,
-                      optionList: question.optionList ? question.optionList : [],
-                      optionListResp: question.optionListResp ? question.optionListResp : [],
-                      listCheck: question.listCheck ? question.listCheck : "",
-                      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
-                      inputNumber: question.inputNumber ? question.inputNumber : "",
-                      valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
-                      valorEstoque: question.valorEstoque ? question.valorEstoque : [],
-                      valorTransporte: question.valorTransporte ? question.valorTransporte : [],
-                      ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
-                      tipoLoja: question.tipoLoja ? question.tipoLoja : []
+              await firebase
+                .firestore()
+                .collection(base)
+                .add({
+                  user_id: user,
+                  apr_id: result,
+                  site_id: siteInfo,
+                  created: new Date(),
+                  motivo_apr: motivoAPR,
+                  valor_armazenamento: valorArmazenamento,
+                  valor_transporte: valorTransporte,
+                  valor_sinistro: valorSinistro,
+                  valor_estoque: valorEstoque,
+                  tipo_loja: tipoLoja,
+                  status: justificativa ? "Com Exceção" : "Em Aberto",
+                  peso: result_peso,
+                  justificativa: justificativa ? justificativa : "",
+                  locationCreated: geolocationEnabled ? {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    perimetro: perimeter,
+                  } : {
+                    latitude: null,
+                    longitude: null,
+                    perimetro: "Geolocalização não habilitada",
+                  },
+                  tempoConclusao: {
+                    inicio: inicio === undefined ? new Date() : inicio,
+                    conclusao: new Date(),
+                  },
+                  geolocation_info: {
+                    enabled: geolocationEnabled,
+                    justification: geolocationJustification,
+                    error: geolocationError
+                  },
+                })
+                .then(async (index) => {
+                  let containsImage = verifyContainsImage();
+
+                  questions.forEach(async (area, indexA) => {
+                    checklist.push({
+                      0: area[0],
+                      1: [],
                     });
+                    area[1].forEach(async (question, indexQ) => {
+                      question.question && checklist[indexA][1].push({
+                        imagesURL: [],
+                        resp: question.resp,
+                        respTextArea: question.respTextArea,
+                        questionId: question.questionId,
+                        question: question.question,
+                        plano_acao: question.plano_acao,
+                        openPA: question.openPA,
+                        areaResposavel: question.areaResposavel,
+                        respGabarito: question.respGabarito,
+                        answers: question.answers,
+                        selectOptions: question.selectOptions ? question.selectOptions : false,
+                        status: question.status ? question.status : false,
+                        isRequired: question.isRequired ? question.isRequired : false,
+                        optionList: question.optionList ? question.optionList : [],
+                        optionListResp: question.optionListResp ? question.optionListResp : [],
+                        listCheck: question.listCheck ? question.listCheck : "",
+                        respInputNumber: question.respInputNumber ? question.respInputNumber : "",
+                        inputNumber: question.inputNumber ? question.inputNumber : "",
+                        valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
+                        valorEstoque: question.valorEstoque ? question.valorEstoque : [],
+                        valorTransporte: question.valorTransporte ? question.valorTransporte : [],
+                        ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
+                        tipoLoja: question.tipoLoja ? question.tipoLoja : []
+                      });
 
-                    let imageList = []; // criar uma lista de imagem e reseta a cada questao
-                    //inserção de dados no banco OBS: se contem imagem ou não
-                    if (containsImage === true) {
-                      question.images &&
-                        question.images.forEach(async (file) => {
-                          let imgName = file.name;
-                          let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
+                      let imageList = []; // criar uma lista de imagem e reseta a cada questao
+                      //inserção de dados no banco OBS: se contem imagem ou não
+                      if (containsImage === true) {
+                        question.images &&
+                          question.images.forEach(async (file) => {
+                            let imgName = file.name;
+                            let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
 
-                          let storageRef = await firebase
-                            .storage()
-                            .ref(imgPath);
-                          let upload = storageRef.put(file);
+                            let storageRef = await firebase
+                              .storage()
+                              .ref(imgPath);
+                            let upload = storageRef.put(file);
 
-                          qtdImages = qtdImages + 1;
+                            qtdImages = qtdImages + 1;
 
-                          let uploadCompleted = new Promise(
-                            (resolve, reject) => {
-                              // promise para concluir apos termino de upload geral de fotos
-                              trackUpload(upload)
-                                .then(() => {
-                                  storageRef
-                                    .getDownloadURL()
-                                    .then((downloadUrl) => {
-                                      imageList.push({
-                                        url: downloadUrl,
-                                        ref: storageRef.fullPath,
-                                      });
-                                      try {
-                                        console.log(indexA + "-" + indexQ);
-                                        checklist[indexA][1][
-                                          indexQ
-                                        ].imagesURL = imageList; //define a lista em uma pergunta
-                                      } catch (error) {
-                                        console.log(indexA + "-" + indexQ);
+                            let uploadCompleted = new Promise(
+                              (resolve, reject) => {
+                                // promise para concluir apos termino de upload geral de fotos
+                                trackUpload(upload)
+                                  .then(() => {
+                                    storageRef
+                                      .getDownloadURL()
+                                      .then((downloadUrl) => {
+                                        imageList.push({
+                                          url: downloadUrl,
+                                          ref: storageRef.fullPath,
+                                        });
+                                        try {
+                                          console.log(indexA + "-" + indexQ);
+                                          checklist[indexA][1][
+                                            indexQ
+                                          ].imagesURL = imageList; //define a lista em uma pergunta
+                                        } catch (error) {
+                                          console.log(indexA + "-" + indexQ);
+                                          console.log(
+                                            "Erro ao obter url da imagem" +
+                                            error
+                                          );
+                                        }
+                                        imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
+                                        // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
                                         console.log(
-                                          "Erro ao obter url da imagem" +
-                                          error
+                                          imagesCompleted + " / " + qtdImages
+                                        ); // mostra o status de imagens concluida vs pendentes
+                                        setLoadingImages(
+                                          imagesCompleted + " / " + qtdImages
                                         );
-                                      }
-                                      imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
-                                      // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                                      console.log(
-                                        imagesCompleted + " / " + qtdImages
-                                      ); // mostra o status de imagens concluida vs pendentes
-                                      setLoadingImages(
-                                        imagesCompleted + " / " + qtdImages
-                                      );
-                                      if (imagesCompleted === qtdImages) {
-                                        // retorna como concluido apenas quantos os valores estiverem ok
-                                        resolve();
-                                      }
-                                    })
-                                    .catch((err) => {
-                                      console.log("Erro ao obter URL" + err);
-                                    });
+                                        if (imagesCompleted === qtdImages) {
+                                          // retorna como concluido apenas quantos os valores estiverem ok
+                                          resolve();
+                                        }
+                                      })
+                                      .catch((err) => {
+                                        console.log("Erro ao obter URL" + err);
+                                      });
+                                  })
+                                  .catch((err) => {
+                                    console.log("Erro no upload: " + err);
+                                  });
+                              }
+                            );
+
+                            uploadCompleted.then(async () => {
+                              await firebase
+                                .firestore()
+                                .collection(base)
+                                .doc(index.id)
+                                .update({
+                                  checklist: checklist,
+                                })
+                                .then(() => {
+                                  console.log("Completed");
+                                  logSistem("A APR foi criada", index.id);
+                                  conclusionApr(index.id);
                                 })
                                 .catch((err) => {
-                                  console.log("Erro no upload: " + err);
+                                  console.log(err);
                                 });
-                            }
-                          );
-
-                          uploadCompleted.then(async () => {
-                            await firebase
-                              .firestore()
-                              .collection(base)
-                              .doc(index.id)
-                              .update({
-                                checklist: checklist,
-                              })
-                              .then(() => {
-                                console.log("Completed");
-                                logSistem("A APR foi criada", index.id);
-                                conclusionApr(index.id);
-                              })
-                              .catch((err) => {
-                                console.log(err);
-                              });
+                            });
                           });
-                        });
-                    }
-                  });
-                });
-
-                if (containsImage === false) {
-                  console.log(checklist);
-                  await firebase
-                    .firestore()
-                    .collection(base)
-                    .doc(index.id)
-                    .update({
-                      checklist: checklist,
-                    })
-                    .then(async () => {
-                      console.log("Completed not contains Image");
-                      logSistem("A APR foi criado", index.id);
-                      conclusionApr(index.id);
-                    })
-                    .catch((err) => {
-                      console.log("❌ Erro ao inserir APR (sem imagens):", err);
-                      toast.error("❌ Erro ao salvar APR no banco de dados");
-                      togglePostModal();
+                      }
                     });
-                }
+                  });
 
-                if (id_assign !== undefined) {
-                  updateAssignments();
-                }
-              })
-              .catch((err) => {
-                console.log("❌ Erro geral no processo:", err);
-                toast.error("❌ Erro no processo de conclusão da APR");
-                togglePostModal();
-              });
-          })
-          .catch((err) => {
-            console.log("❌ Erro ao inserir informações no SITE:", err);
-            toast.error("❌ Erro ao atualizar informações do site");
-            togglePostModal();
-          });
-      })
-      .catch((err) => {
-        console.log("❌ Erro ao inserir ID:", err);
-        toast.error("❌ Erro ao gerar ID da APR");
-        togglePostModal();
-      });
+                  if (containsImage === false) {
+                    console.log(checklist);
+                    await firebase
+                      .firestore()
+                      .collection(base)
+                      .doc(index.id)
+                      .update({
+                        checklist: checklist,
+                      })
+                      .then(async () => {
+                        console.log("Completed not contains Image");
+                        logSistem("A APR foi criado", index.id);
+                        conclusionApr(index.id);
+                      })
+                      .catch((err) => {
+                        console.log("❌ Erro ao inserir APR (sem imagens):", err);
+                        toast.error("❌ Erro ao salvar APR no banco de dados");
+                        togglePostModal();
+                      });
+                  }
+
+                  if (id_assign !== undefined) {
+                    updateAssignments();
+                  }
+                })
+                .catch((err) => {
+                  console.log("❌ Erro geral no processo:", err);
+                  toast.error("❌ Erro no processo de conclusão da APR");
+                  togglePostModal();
+                });
+            })
+            .catch((err) => {
+              console.log("❌ Erro ao inserir informações no SITE:", err);
+              toast.error("❌ Erro ao atualizar informações do site");
+              togglePostModal();
+            });
+        })
+        .catch((err) => {
+          console.log("❌ Erro ao inserir ID:", err);
+          toast.error("❌ Erro ao gerar ID da APR");
+          togglePostModal();
+        });
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
@@ -1122,143 +1131,443 @@ export default function New() {
   };
 
   return (
-    <div>
-      <Header name="Aplicar APR" subtitle="Nova APR">
-      </Header>
-      <div className="content">
-        <div className="container">
-          <div className="siteInfo">
-            <ul>
-              <li>
-                <span>Unidade: </span>
-                {siteInfo.Nome}
-              </li>
-              <li>
-                <span>Endereço: </span>
-                {siteInfo.Endereco}
-              </li>
-              <li>
-                <span>Estado: </span>
-                {siteInfo.Estado}
-              </li>
-              <li>
-                <span>Criticidade: </span>
-                {siteInfo.critical}
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span>Cidade: </span>
-                {siteInfo.Cidade}
-              </li>
-              <li>
-                <span>Latitude: </span>
-                {siteInfo.Latitude}
-              </li>
-              <li>
-                <span>Longitude: </span>
-                {siteInfo.Longitude}
-              </li>
-            </ul>
-          </div>
-        </div>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
-        <div className="container">
-          <div className="siteInfo">
-            <ul>
-              <li>
-                <span>Ultima APR: </span>
-                {lastAPR.data}
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span>Ultima APR Motivo: </span>
-                {lastAPR.motivo}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="container" id="container-save">
-          <div className="save">
-            <a onClick={() => loadIndexedDB()}>Carregar Salvo</a>
-            <a
-              onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
-            >
-              Salvar APR
-            </a>
-          </div>
-        </div>
-
-        <div className="container" id="container-motivo">
-          <Select
-            id="selectMotivo"
-            value={motivoAPR}
-            onChange={(e) => selectMotivoAPR(e)}
-            size="small"
-            displayEmpty
-            placeholder="Selecione um motivo..."
-            sx={{ width: "600px", borderRadius: "8px" }}
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        {/* Informações de Localização */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 3,
+            p: 3,
+            border: '2px solid #8e24aa',
+            borderRadius: 2,
+            bgcolor: '#f7f7f7'
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
           >
-            <MenuItem disabled value="">
-              Selecione uma indicação...
-            </MenuItem>
+            📍 Informações de Localização
+          </Typography>
 
-            <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
-            <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
-            <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
-            <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
-            <MenuItem value={"TurnKey"}>TurnKey</MenuItem>
-            <MenuItem value={"Conectividade nos Sites"}>Conectividade nos Sites</MenuItem>
-            <MenuItem value={"Torre Segura"}>Torre Segura</MenuItem>
-            <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
-            <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
-            <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
-            <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
-            <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
-            <MenuItem value={"Opinada"}>Opinada</MenuItem>
-          </Select>
-        </div>
-
-        <div className="container" id="container" style={{ display: "none" }}>
-          <Select
-            id="selectSite"
-            defaultValue={siteInfo.tipoSite}
-            onChange={(e) => getQuestions(e.target.value)}
-            displayEmpty
-            size="small"
-            style={{ width: "600px", borderRadius: "8px" }}
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 3,
+              color: '#64748b',
+              fontWeight: 500
+            }}
           >
-            <MenuItem disabled value="">
-              Selecione um checklist...
-            </MenuItem>
+            Dados de endereço e coordenadas do local
+          </Typography>
 
-            <ListSubheader>Mais Utilizados</ListSubheader>
-            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
-              if (maisUtilizados.includes(index)) {
-                return (
-                  <MenuItem key={index} value={value.id}>
-                    {value.id}
-                  </MenuItem>
-                );
-              }
-              return null;
-            })}
+          <Grid container spacing={4}>
+            <Grid item xs={12} sm={6}>
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    UNIDADE
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.Nome}
+                  </Typography>
+                </Box>
 
-            <ListSubheader>Outros</ListSubheader>
-            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
-              if (!maisUtilizados.includes(index)) {
-                return (
-                  <MenuItem key={index} value={value.id}>
-                    {value.id}
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    ENDEREÇO
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.Endereco}
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={6} sx={{ background: '#f7f7f7', padding: '20px', borderRadius: '4px' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#64748b',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      UF
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        mt: 0.5,
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      {siteInfo.Estado}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6} sx={{ background: '#f7f7f7', padding: '20px' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#64748b',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      CIDADE
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 500,
+                        color: '#0f172a',
+                        mt: 0.5,
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      {siteInfo.Cidade}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    ESTADO
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.Estado}
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    CRITICIDADE
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.critical || 'BAIXO'}
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#059669',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5
+                      }}
+                    >
+                      ✅ LATITUDE
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        color: '#0f172a',
+                        mt: 0.5,
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      {siteInfo.Latitude}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#059669',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5
+                      }}
+                    >
+                      ✅ LONGITUDE
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        color: '#0f172a',
+                        mt: 0.5,
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      {siteInfo.Longitude}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Data e Status */}
+        <Box sx={{background:'#f7f7f7', padding:'24px', borderRadius:'8px', border:'solid, 2px, #8e24aa'}}>
+          <Box
+            sx={{
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#374151',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 500
+                }}
+              >
+                📅 {lastAPR.data || new Date().toLocaleDateString('pt-BR')}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#64748b',
+                  fontWeight: 500
+                }}
+              >
+                ÚLTIMA APR ATIVA
+              </Typography>
+              <Box
+                sx={{
+                  backgroundColor: '#e2e8f0',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {lastAPR.motivo || 'OPINADA'}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Botões de Controle */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => loadIndexedDB()}
+                sx={{
+                  py: 1.5,
+                  textTransform: 'none',
+                  borderColor: '#cbd5e1',
+                  color: '#475569',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  '&:hover': {
+                    borderColor: '#94a3b8',
+                    bgcolor: '#f8fafc'
+                  }
+                }}
+              >
+                Carregar Salvo
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
+                sx={{
+                  py: 1.5,
+                  textTransform: 'none',
+                  bgcolor: '#3b82f6',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  '&:hover': {
+                    bgcolor: '#2563eb',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }
+                }}
+              >
+                Salvar APR
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* Selects lado a lado */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Select
+                  id="selectMotivo"
+                  value={motivoAPR}
+                  onChange={(e) => selectMotivoAPR(e)}
+                  displayEmpty
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem disabled value="">
+                    Selecione uma indicação...
                   </MenuItem>
-                );
-              }
-              return null;
-            })}
-          </Select>
-        </div>
+                  <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
+                  <MenuItem value="Retrofit">Retrofit</MenuItem>
+                  <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
+                  <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
+                  <MenuItem value="TurnKey">TurnKey</MenuItem>
+                  <MenuItem value="Conectividade nos Sites">Conectividade nos Sites</MenuItem>
+                  <MenuItem value="Torre Segura">Torre Segura</MenuItem>
+                  <MenuItem value="Internalização Loja Dealer">Internalização Loja Dealer</MenuItem>
+                  <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
+                  <MenuItem value="Instalação Tag">Instalação Tag</MenuItem>
+                  <MenuItem value="Sites Criticos (Mapa de Proteção)">Sites Criticos (Mapa de Proteção)</MenuItem>
+                  <MenuItem value="Não Opinada">Não Opinada</MenuItem>
+                  <MenuItem value="Opinada">Opinada</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6} id="container" style={{ display: "none" }}>
+              <FormControl fullWidth>
+                <Select
+                  id="selectSite"
+                  defaultValue={siteInfo.tipoSite}
+                  onChange={(e) => getQuestions(e.target.value)}
+                  displayEmpty
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem disabled value="">
+                    Selecione um checklist...
+                  </MenuItem>
+                  <ListSubheader>Mais Utilizados</ListSubheader>
+                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                    if (maisUtilizados.includes(index)) {
+                      return (
+                        <MenuItem key={index} value={value.id}>
+                          {value.id}
+                        </MenuItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  <ListSubheader>Outros</ListSubheader>
+                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                    if (!maisUtilizados.includes(index)) {
+                      return (
+                        <MenuItem key={index} value={value.id}>
+                          {value.id}
+                        </MenuItem>
+                      );
+                    }
+                    return null;
+                  })}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Box>
 
         {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
           <div className="container" id="container-pgr">
@@ -1311,6 +1620,151 @@ export default function New() {
               ></input>
             </label>
           </div>
+        )}
+        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Informações PGR
+            </Typography>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorArmazenamento"
+                  label="Valor Armazenamento"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorArmazenamento / 100)}
+                  onChange={(e) =>
+                    setValorArmazenamento(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor de Armazenamento"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorTransporte"
+                  label="Valor Transporte"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorTransporte / 100)}
+                  onChange={(e) =>
+                    setValorTransporte(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor de Transporte"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorSinistro"
+                  label="Valor Sinistro"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorSinistro / 100)}
+                  onChange={(e) =>
+                    setValorSinistro(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor do Sinistro"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Informações da Loja
+            </Typography>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <Select
+                    id="selectTipoLoja"
+                    value={tipoLoja}
+                    onChange={(e) => setTipoLoja(e.target.value)}
+                    displayEmpty
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem disabled value="">
+                      Selecione um tipo de loja...
+                    </MenuItem>
+                    <MenuItem value="LOJA ESTOQUE ZERO">LOJA ESTOQUE ZERO</MenuItem>
+                    <MenuItem value="LOJA GALERIA PISO TÉRREO">LOJA GALERIA PISO TÉRREO</MenuItem>
+                    <MenuItem value="GALERIA PISO SUPERIOR">GALERIA PISO SUPERIOR</MenuItem>
+                    <MenuItem value="LOJA RUA">LOJA RUA</MenuItem>
+                    <MenuItem value="LOJA SHOP PISO TERREO">LOJA SHOP PISO TERREO</MenuItem>
+                    <MenuItem value="LOJA SHOP PISO SUPERIOR">LOJA SHOP PISO SUPERIOR</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  id="selectValorEstoque"
+                  label="Valor Estoque"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorEstoque / 100)}
+                  onChange={(e) => {
+                    setValorEstoque(e.target.value.replace(/\D/g, ""))
+                  }}
+                  placeholder="Valor de Estoque"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
         )}
 
         {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
@@ -1716,7 +2170,7 @@ export default function New() {
         />
 
         {showPostModal && <ModalLoading carregamento={loadingImages} />}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 }

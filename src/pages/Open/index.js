@@ -100,7 +100,9 @@ export default function Open() {
         setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
         
         // Carregar histórico de APRs para o site
-        loadHistoricoAPRs(apr.site_id);
+        if (apr.site_id) {
+          loadHistoricoAPRs(apr.site_id);
+        }
         
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
@@ -251,8 +253,8 @@ export default function Open() {
 
     // Informações do site incluindo perímetro, área e imagem
     const siteTableBody = [
-      ["Sigla-UF: " + apr.site_id.Sigla + "-" + apr.site_id.Estado, "Criticidade: " + apr.site_id.critical],
-      ["Unidade: " + apr.site_id.Nome, "Cidade: " + apr.site_id.Cidade],
+      ["Sigla-UF: " + (apr.site_id?.Sigla || 'N/A') + "-" + (apr.site_id?.Estado || 'N/A'), "Criticidade: " + (apr.site_id?.critical || 'N/A')],
+      ["Unidade: " + (apr.site_id?.Nome || 'N/A'), "Cidade: " + (apr.site_id?.Cidade || 'N/A')],
       ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
       ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
     ];
@@ -420,7 +422,10 @@ export default function Open() {
       }
     }
 
-    pdfMake.createPdf(pdf).download(`APR Digital ${apr.site_id.Sigla}_${apr.apr_id}_${apr.site_id.Estado}.pdf`);
+    const sigla = apr.site_id?.Sigla || 'SITE';
+    const estado = apr.site_id?.Estado || 'UF';
+    const aprId = apr.apr_id || 'APR';
+    pdfMake.createPdf(pdf).download(`APR Digital ${sigla}_${aprId}_${estado}.pdf`);
   }
 
   // -------------------------------------
@@ -529,7 +534,7 @@ export default function Open() {
                 <div className="container header-actions">
                   <div className="siteInfo group-buttons">
                     <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
-                    <ModalInfoSiteAPR sigla={apr.site_id.Sigla} estado={apr.sitFe_id.Estado} />
+                    <ModalInfoSiteAPR sigla={apr.site_id?.Sigla} estado={apr.site_id?.Estado} />
                     <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
                   </div>
                 </div>
@@ -542,7 +547,7 @@ export default function Open() {
                     <div className="card-content">
                       <div className="info-item">
                         <span className="label">SIGLA:</span>
-                        <span className="value">{apr.site_id.Sigla + "-" + apr.site_id.Estado}</span>
+                        <span className="value">{apr.site_id?.Sigla ? apr.site_id.Sigla + "-" + apr.site_id.Estado : 'N/A'}</span>
                       </div>
                       <div className="info-item" style={{ textTransform: "none" }}>
                         <span className="label">ID APR:</span>
@@ -570,7 +575,7 @@ export default function Open() {
                       </div>
                       <div className="info-item">
                         <span className="label">Cidade:</span>
-                        <span className="value">{apr.site_id.Cidade}/{apr.site_id.Estado}</span>
+                        <span className="value">{apr.site_id?.Cidade && apr.site_id?.Estado ? `${apr.site_id.Cidade}/${apr.site_id.Estado}` : 'N/A'}</span>
                       </div>
                       <div className="info-item">
                         <span className="label">Criticidade:</span>
@@ -1116,9 +1121,7 @@ export default function Open() {
                       <div className="revision-section">
                         <div className="section-header">
                           <h3>📧 Revisão e Envio</h3>
-                          <p>Finalize o processo de geração</p>
-                        </div>
-                        
+                        </div>                      
                         <div className="revision-action">
                           <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
                           <p className="confirmation-text">Você receberá um e-mail de confirmação após o envio</p>
