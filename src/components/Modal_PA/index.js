@@ -57,8 +57,8 @@ export default function Modal_PA({
       setTempo(conteudo?.plano_acao?.tempo || "");
       setComentario(conteudo?.plano_acao?.comentario || "");
       
-      // Se for revisor_logistica, definir "Logistica" como padrão
-      const defaultOption = user.nivel === "revisor_logistica" ? "Logistica" : "";
+      // Se for revisor_logistica ou ponto_focal_logistica, definir "Logistica" como padrão
+      const defaultOption = (user.nivel === "revisor_logistica" || user.nivel === "ponto_focal_logistica") ? "Logistica" : "";
       
       setSelectedOption(
         conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
@@ -66,15 +66,16 @@ export default function Modal_PA({
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
-      setSlaLogistica(conteudo?.plano_acao?.sla_logistica || "");
+      setSlaLogistica(conteudo?.plano_acao?.sla_logistica ? 
+        new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0] : "");
       setNotaParecer(conteudo?.nota_parecer || "");
     }
 
     loadConstants();
   }, []);
 
-  // Variável para bloquear edição se já existir plano de ação preenchido com anexo
-  const isReadOnly = conteudo?.resp_pa_selectedOption;
+  // Variável para bloquear edição baseada no usuário e status
+  const isReadOnly = conteudo?.resp_pa_selectedOption && user.nivel !== "ponto_focal_logistica";
 
   async function alterarPA() {
     if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
@@ -147,7 +148,14 @@ export default function Modal_PA({
     plano.resp_pa_user_id = user.uid;
 
     await docRef.update(dados);
-    await updateAPR(id);
+    
+    // Se for ponto focal de logística finalizando plano de ação, atualizar status da APR
+    if (user.nivel === "ponto_focal_logistica") {
+      await updateAPRStatusLogistics(id);
+    } else {
+      await updateAPR(id);
+    }
+    
     toast.success("Plano de ação atualizado");
     loadApr();
     close();
@@ -177,6 +185,15 @@ export default function Modal_PA({
   async function updateAPR(id) {
     await firebase.firestore().collection(base).doc(id).update({
       status: "Respondido pela Area",
+      data_alteracao: new Date(),
+    });
+  }
+
+  // Nova função para atualizar status quando ponto focal finaliza
+  async function updateAPRStatusLogistics(id) {
+    await firebase.firestore().collection(base).doc(id).update({
+      status: "Plano de Ação Logística Definido",
+      data_ponto_focal_resposta: firebase.firestore.FieldValue.serverTimestamp(),
       data_alteracao: new Date(),
     });
   }
@@ -407,8 +424,8 @@ export default function Modal_PA({
             value={selectedOption}
             onChange={(e) => setSelectedOption(e.target.value)}
           >
-            {user.nivel === "revisor_logistica" ? (
-              // Revisor de logística só vê a opção Logística
+            {user.nivel === "revisor_logistica" || user.nivel === "ponto_focal_logistica" ? (
+              // Revisor de logística e ponto focal só veem a opção Logística
               <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
             ) : user.nivel === "revisor" ? (
               // Revisor comum NÃO vê a opção Logística

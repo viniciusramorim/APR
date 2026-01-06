@@ -304,6 +304,164 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     }
   };
 
+  // Verificar se APR precisa ir para ponto focal de logística
+  const needsLogisticsFocalPoint = () => {
+    const logisticsAreas = ["logistica"];
+    let hasLogisticsIssues = false;
+
+    apr.checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        if (question.resp && question.resp !== "N/A" &&
+          question.resp !== question.respGabarito &&
+          question.openPA === true) {
+          
+          // Verifica se há questões relacionadas à logística
+          if (question.areaResposavel && question.areaResposavel.some(area => 
+            logisticsAreas.includes(area.toLowerCase()))) {
+            hasLogisticsIssues = true;
+          }
+        }
+      });
+    });
+
+    return hasLogisticsIssues;
+  };
+
+  // Enviar email para ponto focal de logística
+  const sendEmailToLogisticsFocalPoint = async () => {
+    try {
+      // Buscar email do ponto focal de logística
+      const logisticsDoc = await firebase.firestore().collection('contact_email')
+        .doc('ponto_focal_logistica').get();
+      
+      let logisticsEmail = '';
+      if (logisticsDoc.exists) {
+        logisticsEmail = logisticsDoc.data().email || '';
+      }
+
+      // Se não encontrou email específico, usar um padrão
+      if (!logisticsEmail) {
+        logisticsEmail = 'ponto.focal.logistica@telefonica.com';
+      }
+
+      // Gerar lista de inconformidades relacionadas à logística
+      const logisticsIssues = [];
+      apr.checklist.forEach((area) => {
+        area[1].forEach((question, index) => {
+          if (question.resp && question.resp !== "N/A" &&
+            question.resp !== question.respGabarito &&
+            question.openPA === true &&
+            question.areaResposavel && question.areaResposavel.some(area => 
+              area.toLowerCase().includes('logistica'))) {
+            
+            logisticsIssues.push({
+              pergunta: question.pergunta,
+              resposta: question.resp,
+              area: area[0],
+              index: index + 1
+            });
+          }
+        });
+      });
+
+      const emailContent = {
+        remetente: "aprdigital.seg.br@telefonica.com",
+        assunto: `APR Digital - Ação Requerida Logística - ${apr.site_id.Sigla} - ${apr.site_id.Cidade}/${apr.site_id.Estado}`,
+        destinatario: logisticsEmail,
+        texto: `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>APR Digital - Ponto Focal Logística</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+            .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { background-color: #660099; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; margin: -30px -30px 30px -30px; }
+            .site-info { background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+            .issues-list { background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 15px; margin: 20px 0; }
+            .issue-item { margin: 10px 0; padding: 10px; background-color: white; border-left: 4px solid #ff7675; }
+            .action-button { display: inline-block; background-color: #660099; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .sla-warning { background-color: #ffe5e5; border: 1px solid #ff9999; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>APR Digital - Ponto Focal Logística</h1>
+              <p>Análise Preventiva de Riscos requer sua atenção</p>
+            </div>
+
+            <div class="site-info">
+              <h3>Informações do Site</h3>
+              <p><strong>Site:</strong> ${apr.site_id.Sigla}</p>
+              <p><strong>Localização:</strong> ${apr.site_id.Cidade}/${apr.site_id.Estado}</p>
+              <p><strong>Tipo:</strong> ${apr.site_id.tipoSite || 'N/I'}</p>
+              <p><strong>CD/Base Cross:</strong> ${apr.site_id.CD || apr.site_id.Cidade}</p>
+            </div>
+
+            <div class="sla-warning">
+              <h3>⏰ SLA - Prazo para Resposta</h3>
+              <p><strong>Prazo:</strong> 14 dias corridos a partir do recebimento</p>
+              <p><strong>Data Limite:</strong> ${new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}</p>
+            </div>
+
+            <div class="issues-list">
+              <h3>🔍 Inconformidades Identificadas (Logística)</h3>
+              ${logisticsIssues.map(issue => `
+                <div class="issue-item">
+                  <p><strong>Área:</strong> ${issue.area}</p>
+                  <p><strong>Pergunta:</strong> ${issue.pergunta}</p>
+                  <p><strong>Resposta:</strong> ${issue.resposta}</p>
+                </div>
+              `).join('')}
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${window.location.origin}/Open/${id}" class="action-button">
+                🔗 Acessar APR para Definir Plano de Ação
+              </a>
+            </div>
+
+            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h4>📋 Próximos Passos</h4>
+              <ol>
+                <li>Acesse a APR através do link acima</li>
+                <li>Analise as inconformidades relacionadas à logística</li>
+                <li>Defina o plano de ação para cada item</li>
+                <li>Informe prazos e responsáveis</li>
+                <li>Finalize o processo dentro do prazo de 14 dias</li>
+              </ol>
+            </div>
+
+            <div style="color: #666; font-size: 12px; text-align: center; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+              <p>Este e-mail foi gerado automaticamente pelo Sistema APR Digital</p>
+              <p>ID da APR: ${id}</p>
+            </div>
+          </div>
+        </body>
+        </html>`
+      };
+
+      // Enviar email
+      const response = await fetch("https://us-central1-aprdigital-b6fcf.cloudfunctions.net/sendEmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailContent)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP! status: ${response.status}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao enviar email para ponto focal:', error);
+      throw error;
+    }
+  };
+
   const revisado = async () => {
     if (!agreeTerms) {
       toast.warning("Você precisa concordar com os termos antes de revisar.");
@@ -313,20 +471,44 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     setIsLoading(true);
 
     try {
-      // Atualizar status da APR no Firestore
-      await firebase.firestore().collection('aprs-producao').doc(id).update({
-        status: "Revisado",
-        terms: agreeTerms
-      });
+      const needsLogistics = needsLogisticsFocalPoint();
+      let newStatus = "Revisado";
+      let updateData = {
+        status: newStatus,
+        terms: agreeTerms,
+        data_revisao: firebase.firestore.FieldValue.serverTimestamp()
+      };
 
-      logSistem('APR Revisada', id);
+      // Se precisa ir para ponto focal de logística
+      if (needsLogistics) {
+        newStatus = "Aguardando Ponto Focal";
+        updateData = {
+          ...updateData,
+          status: newStatus,
+          data_envio_ponto_focal: firebase.firestore.FieldValue.serverTimestamp(),
+          sla_ponto_focal: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)) // 14 dias
+        };
+
+        // Enviar email para ponto focal
+        await sendEmailToLogisticsFocalPoint();
+        logSistem('APR revisada e enviada para ponto focal de logística', id);
+      } else {
+        logSistem('APR Revisada', id);
+      }
+
+      // Atualizar status da APR no Firestore
+      await firebase.firestore().collection('aprs-producao').doc(id).update(updateData);
 
       setApr({
         ...apr,
-        status: "Revisado"
+        status: newStatus
       });
 
-      toast.success("APR Revisada com sucesso!");
+      const message = needsLogistics 
+        ? "APR revisada e enviada para ponto focal de logística!" 
+        : "APR revisada com sucesso!";
+      
+      toast.success(message);
       setOpenDialog(false);
       setAgreeTerms(false);
     } catch (error) {

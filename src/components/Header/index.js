@@ -211,7 +211,7 @@ export default function Header({ name, subtitle, children }) {
   return (
     <>
       {/* Hamburger Menu Button */}
-      <div className="header-fixed">
+      <div className="header-fixed" sx={{position: 'fixed'}}>
         <Box className="title-pages">
           <Title name={name} subtitle={subtitle}>
             {children}

@@ -43,7 +43,7 @@
   width: 100%;
 
   // Seções organizadas para relatórios e ações
-  .reports-section, .revision-section, .finalization-section {
+  .reports-section, .revision-section, .finalization-section, .logistics-section {
     margin: 2rem 0;
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
@@ -1231,5 +1231,73 @@
       padding: 0.875rem 1.5rem;
       font-size: 0.9rem;
     }
+  }
+}
+
+// Estilos para seção de logística e SLA
+.logistics-section {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 50%, #fff3cd 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  padding: 1.5rem;
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    
+    h3 {
+      color: #b8860b;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+    }
+    
+    p {
+      color: #6c5a00;
+      margin: 0 0 1rem 0;
+    }
+  }
+}
+
+.sla-alert {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+  
+  &.sla-active {
+    border: 2px solid #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    
+    strong {
+      color: #155724;
+    }
+  }
+  
+  &.sla-expired {
+    border: 2px solid #dc3545;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    animation: pulse-danger 2s infinite;
+    
+    strong {
+      color: #721c24;
+    }
+    
+    span {
+      color: #dc3545;
+      font-weight: bold;
+    }
+  }
+}
+
+@keyframes pulse-danger {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
   }
 }

@@ -1128,8 +1128,24 @@ export default function Open() {
                         </div>
                       </div>
                     )}
+
+                    {(user.nivel === "ponto_focal_logistica" && (apr.status === "Aguardando Ponto Focal" || apr.status === "SLA Ponto Focal Vencido")) && (
+                      <div className="logistics-section">
+                        <div className="section-header">
+                          <h3>🚚 Ponto Focal Logística</h3>
+                          <p>Defina os planos de ação para as inconformidades de logística</p>
+                          {apr.sla_ponto_focal && (
+                            <div className={`sla-alert ${new Date() > new Date(apr.sla_ponto_focal.toDate()) ? 'sla-expired' : 'sla-active'}`}>
+                              <strong>SLA: </strong>
+                              {new Date(apr.sla_ponto_focal.toDate()).toLocaleDateString('pt-BR')}
+                              {new Date() > new Date(apr.sla_ponto_focal.toDate()) && <span> - ⚠️ VENCIDO</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area")) && (
+                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Respondido pela Area" || apr.status === "Plano de Ação Logística Definido")) && (
                       <div className="finalization-section">
                         <div className="section-header">
                           <h3>✅ Finalização</h3>

@@ -198,6 +198,11 @@ export default function Dashboard() {
           "AUDIT PGR MOVEL",
         ])
         : query;
+    // Filtro para ponto focal de logística - APRs aguardando ou com SLA vencido
+    query =
+      user.nivel === "ponto_focal_logistica"
+        ? query.where("status", "in", ["Aguardando Ponto Focal", "SLA Ponto Focal Vencido"])
+        : query;
 
 
     const contarQuestions = (checklist) => {

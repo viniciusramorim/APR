@@ -263,7 +263,11 @@ export default function New() {
 
         const orderedEntries = Object.entries(restoData).sort((a, b) =>
           a[0].localeCompare(b[0])
-        );
+        ).map(([key, value]) => {
+          // Garantir que o valor seja sempre um array
+          return [key, Array.isArray(value) ? value : []];
+        });
+        
         console.log(orderedEntries);
         setQuestions(orderedEntries);
       });
@@ -367,18 +371,36 @@ export default function New() {
 
   //função do botão remover imagem da lista
   function removeImg(indexA, objIndex, file) {
+    // Validar se a estrutura existe
+    if (!questions[indexA] || !Array.isArray(questions[indexA][1]) || !questions[indexA][1][objIndex]) {
+      console.error("Estrutura de questions inválida:", { indexA, objIndex, questions });
+      return;
+    }
+
     let imageArray = [];
     let arrayQuestion = questions[indexA][1][objIndex];
+    
+    // Garantir que images existe e é um array
+    if (!arrayQuestion.images || !Array.isArray(arrayQuestion.images)) {
+      console.error("arrayQuestion.images não é um array:", arrayQuestion);
+      arrayQuestion.images = [];
+      return;
+    }
+
     let index = arrayQuestion.images.findIndex((obj) => obj.name === file.name);
 
-    delete arrayQuestion.images[index];
+    if (index !== -1) {
+      delete arrayQuestion.images[index];
 
-    arrayQuestion.images.forEach((file) => {
-      imageArray.push(file);
-    });
+      arrayQuestion.images.forEach((file) => {
+        if (file) { // Verificar se o file não é undefined após o delete
+          imageArray.push(file);
+        }
+      });
 
-    questions[indexA][1][objIndex].images = imageArray;
-    setQuestions(questions);
+      questions[indexA][1][objIndex].images = imageArray;
+      setQuestions([...questions]); // Usar spread para forçar re-render
+    }
   }
 
   async function updateAssignments() {
@@ -386,9 +408,9 @@ export default function New() {
       .firestore()
       .collection("atribuicoes")
       .doc(id_assign)
-      .update({
+      .update(cleanFirebaseData({
         status: "APR Criada",
-      })
+      }))
       .then(() => {
         console.log("Apr Criada");
       })
@@ -492,9 +514,9 @@ export default function New() {
         .firestore()
         .collection("incrementID")
         .doc("currentID")
-        .update({
+        .update(cleanFirebaseData({
           ID: currentID + 1,
-        });
+        }));
 
       return currentID;
     } catch (error) {
@@ -509,10 +531,10 @@ export default function New() {
       .firestore()
       .collection("sites")
       .doc(id)
-      .update({
+      .update(cleanFirebaseData({
         last_apr: new Date(),
-        last_motivo: motivo,
-      })
+        last_motivo: motivo || "",
+      }))
     console.log('atualizou site concluido')
     return querySnapshot;
   }
@@ -527,6 +549,40 @@ export default function New() {
       togglePostModal(); // Fechar modal de loading
     }
   }
+
+  // Função para remover valores undefined antes de salvar no Firebase
+  const cleanFirebaseData = (obj) => {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => cleanFirebaseData(item)).filter(item => item !== null && item !== undefined);
+    }
+    
+    if (obj instanceof Date) {
+      return obj;
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned = {};
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        if (value !== undefined && value !== null) {
+          const cleanedValue = cleanFirebaseData(value);
+          if (cleanedValue !== null && cleanedValue !== undefined) {
+            cleaned[key] = cleanedValue;
+          }
+        } else {
+          // Para campos que são undefined/null, não incluir no objeto final
+          console.warn(`Removendo campo undefined/null: ${key}`, value);
+        }
+      });
+      return cleaned;
+    }
+    
+    return obj;
+  };
 
   async function insertData(perimeter) {
     try {
@@ -584,42 +640,49 @@ export default function New() {
                 },
               })
 
+              const aprData = {
+                user_id: user,
+                apr_id: result,
+                site_id: siteInfo,
+                created: new Date(),
+                motivo_apr: motivoAPR || "",
+                valor_armazenamento: valorArmazenamento || "",
+                valor_transporte: valorTransporte || "",
+                valor_sinistro: valorSinistro || "",
+                valor_estoque: valorEstoque || "",
+                tipo_loja: tipoLoja || "",
+                status: justificativa ? "Com Exceção" : "Em Aberto",
+                peso: result_peso || 0,
+                justificativa: justificativa || "",
+                locationCreated: geolocationEnabled ? {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  perimetro: perimeter,
+                } : {
+                  latitude: null,
+                  longitude: null,
+                  perimetro: "Geolocalização não habilitada",
+                },
+                tempoConclusao: {
+                  inicio: inicio || new Date(),
+                  conclusao: new Date(),
+                },
+                geolocation_info: {
+                  enabled: geolocationEnabled || false,
+                  justification: geolocationJustification || "",
+                  error: geolocationError || ""
+                },
+              };
+
+              // Limpar dados antes de enviar para o Firebase
+              console.log("Dados antes da limpeza:", aprData);
+              const cleanedAprData = cleanFirebaseData(aprData);
+              console.log("Dados depois da limpeza:", cleanedAprData);
+
               await firebase
                 .firestore()
                 .collection(base)
-                .add({
-                  user_id: user,
-                  apr_id: result,
-                  site_id: siteInfo,
-                  created: new Date(),
-                  motivo_apr: motivoAPR,
-                  valor_armazenamento: valorArmazenamento,
-                  valor_transporte: valorTransporte,
-                  valor_sinistro: valorSinistro,
-                  valor_estoque: valorEstoque,
-                  tipo_loja: tipoLoja,
-                  status: justificativa ? "Com Exceção" : "Em Aberto",
-                  peso: result_peso,
-                  justificativa: justificativa ? justificativa : "",
-                  locationCreated: geolocationEnabled ? {
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                    perimetro: perimeter,
-                  } : {
-                    latitude: null,
-                    longitude: null,
-                    perimetro: "Geolocalização não habilitada",
-                  },
-                  tempoConclusao: {
-                    inicio: inicio === undefined ? new Date() : inicio,
-                    conclusao: new Date(),
-                  },
-                  geolocation_info: {
-                    enabled: geolocationEnabled,
-                    justification: geolocationJustification,
-                    error: geolocationError
-                  },
-                })
+                .add(cleanedAprData)
                 .then(async (index) => {
                   let containsImage = verifyContainsImage();
 
@@ -629,31 +692,31 @@ export default function New() {
                       1: [],
                     });
                     area[1].forEach(async (question, indexQ) => {
-                      question.question && checklist[indexA][1].push({
+                      question.question && checklist[indexA][1].push(cleanFirebaseData({
                         imagesURL: [],
-                        resp: question.resp,
-                        respTextArea: question.respTextArea,
-                        questionId: question.questionId,
-                        question: question.question,
-                        plano_acao: question.plano_acao,
-                        openPA: question.openPA,
-                        areaResposavel: question.areaResposavel,
-                        respGabarito: question.respGabarito,
-                        answers: question.answers,
-                        selectOptions: question.selectOptions ? question.selectOptions : false,
-                        status: question.status ? question.status : false,
-                        isRequired: question.isRequired ? question.isRequired : false,
-                        optionList: question.optionList ? question.optionList : [],
-                        optionListResp: question.optionListResp ? question.optionListResp : [],
-                        listCheck: question.listCheck ? question.listCheck : "",
-                        respInputNumber: question.respInputNumber ? question.respInputNumber : "",
-                        inputNumber: question.inputNumber ? question.inputNumber : "",
-                        valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
-                        valorEstoque: question.valorEstoque ? question.valorEstoque : [],
-                        valorTransporte: question.valorTransporte ? question.valorTransporte : [],
-                        ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
-                        tipoLoja: question.tipoLoja ? question.tipoLoja : []
-                      });
+                        resp: question.resp || "",
+                        respTextArea: question.respTextArea || "",
+                        questionId: question.questionId || "",
+                        question: question.question || "",
+                        plano_acao: question.plano_acao || {},
+                        openPA: question.openPA || false,
+                        areaResposavel: question.areaResposavel || [],
+                        respGabarito: question.respGabarito || "",
+                        answers: question.answers || [],
+                        selectOptions: question.selectOptions || false,
+                        status: question.status || false,
+                        isRequired: question.isRequired || false,
+                        optionList: question.optionList || [],
+                        optionListResp: question.optionListResp || [],
+                        listCheck: question.listCheck || "",
+                        respInputNumber: question.respInputNumber || "",
+                        inputNumber: question.inputNumber || "",
+                        valorArmazenado: question.valorArmazenado || [],
+                        valorEstoque: question.valorEstoque || [],
+                        valorTransporte: question.valorTransporte || [],
+                        ValorSinistro: question.ValorSinistro || [],
+                        tipoLoja: question.tipoLoja || []
+                      }));
 
                       let imageList = []; // criar uma lista de imagem e reseta a cada questao
                       //inserção de dados no banco OBS: se contem imagem ou não
@@ -722,9 +785,9 @@ export default function New() {
                                 .firestore()
                                 .collection(base)
                                 .doc(index.id)
-                                .update({
+                                .update(cleanFirebaseData({
                                   checklist: checklist,
-                                })
+                                }))
                                 .then(() => {
                                   console.log("Completed");
                                   logSistem("A APR foi criada", index.id);
@@ -745,9 +808,9 @@ export default function New() {
                       .firestore()
                       .collection(base)
                       .doc(index.id)
-                      .update({
+                      .update(cleanFirebaseData({
                         checklist: checklist,
-                      })
+                      }))
                       .then(async () => {
                         console.log("Completed not contains Image");
                         logSistem("A APR foi criado", index.id);
@@ -874,16 +937,48 @@ export default function New() {
   }
 
   function conclusionApr(id) {
-    document.getElementById("container-conclusion").style.display = "flex";
-    document.getElementById("container-questions").style.display = "none";
-    document.getElementById("container-save").style.display = "none";
-    document.getElementById("container-motivo").style.display = "none";
-    if (siteInfo.tipoSite?.includes('PGR')) document.getElementById("container-pgr").style.display = "none";
-    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") document.getElementById("container-loja").style.display = "none";
-    document.getElementById("container").style.display = "none";
-    document.getElementById("modalLoading").style.display = "none";
+    // Função helper para esconder elemento com verificação
+    const hideElement = (elementId) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.style.display = "none";
+      } else {
+        console.warn(`Elemento não encontrado: ${elementId}`);
+      }
+    };
+
+    // Função helper para mostrar elemento com verificação
+    const showElement = (elementId, displayType = "flex") => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.style.display = displayType;
+      } else {
+        console.warn(`Elemento não encontrado: ${elementId}`);
+      }
+    };
+
+    showElement("container-conclusion");
+    hideElement("container-questions");
+    hideElement("container-save");
+    hideElement("container-motivo");
+    
+    if (siteInfo.tipoSite?.includes('PGR')) {
+      hideElement("container-pgr");
+    }
+    
+    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") {
+      hideElement("container-loja");
+    }
+    
+    hideElement("container");
+    hideElement("modalLoading");
 
     var container = document.getElementById("container-conclusion");
+    if (!container) {
+      console.error("Container de conclusão não encontrado!");
+      return;
+    }
+
     var root = createRoot(container);
 
     let peso = calculatePontos();
@@ -1821,7 +1916,7 @@ export default function New() {
                     {area[0]}
                   </i>
                   <span id={`container-${indexA}`} style={{ display: "none" }}>
-                    {area[1].map((doc, indexDoc) => {
+                    {Array.isArray(area[1]) && area[1].map((doc, indexDoc) => {
                       if (enableQuestions(doc) === true) {
                         return (
                           <div
@@ -2072,6 +2167,7 @@ export default function New() {
                           </div>
                         );
                       }
+                      return null; // Retorna null quando enableQuestions é false
                     })}
                   </span>
                 </div>
