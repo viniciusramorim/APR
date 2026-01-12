@@ -119,6 +119,12 @@ export default function Header({ name, subtitle, children }) {
 
   if (user.nivel === "administrador") {
     menuItems.push(
+       {
+        text: "Aplicar APR",
+        icon: <PlaylistAddCheckSharpIcon />,
+        link: "/new",
+        subtitle: "Submeta uma nova APR",
+      },
       {
         text: "Novo Site",
         icon: <PlaylistAddSharpIcon />,

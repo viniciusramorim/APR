@@ -3,6 +3,7 @@ import firebase from '../services/firebaseConnection';
 /**
  * Verifica e atualiza APRs com SLA do ponto focal vencido
  */
+
 export const checkAndUpdateExpiredSLAs = async () => {
   try {
     const now = new Date();

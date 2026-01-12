@@ -29,6 +29,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
           if (emailTypes.includes('oem') && data.email_oem) emailFields.push(data.email_oem);
           if (emailTypes.includes('CMC') && data.email_patrimonial) emailFields.push(data.email_patrimonial);
           if (emailTypes.includes('Predial') && data.email_predial) emailFields.push(data.email_predial);
+          if (emailTypes.includes('Logistica') && data.email_logistica) emailFields.push(data.email_logistica);
 
           // Unindo os e-mails em uma string única, removendo espaços extras e duplicatas
           const allEmails = [...new Set(emailFields.join(';').replace(/\s+/g, '').split(';'))].join(';');
@@ -55,23 +56,61 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
   // Verificar perguntas antes de abrir o modal
   const handleOpenDialog = () => {
     const foundEmailTypes = new Set();
+    let totalInconformidades = 0;
 
-    apr.checklist.forEach((area) => {
-      area[1].forEach((question) => {
-        if (question.resp && question.resp !== "N/A" &&
-          question.resp !== question.respGabarito &&
-          question.openPA === true) {
+    console.log('=== INICIANDO VERIFICAÇÃO DE INCONFORMIDADES ===');
+    
+    apr.checklist.forEach((area, areaIndex) => {
+      area[1].forEach((question, qIndex) => {
+        // Verifica se existe resposta e se é diferente do gabarito
+        const hasInconformity = question.resp && 
+                               question.resp !== "N/A" && 
+                               question.resp !== question.respGabarito;
 
-          if (question.areaResposavel.includes("oem")) foundEmailTypes.add("oem");
-          if (question.areaResposavel.includes("CMC")) foundEmailTypes.add("CMC");
-          if (question.areaResposavel.includes("Predial")) foundEmailTypes.add("Predial");
+        if (hasInconformity) {
+          totalInconformidades++;
+          console.log(`Inconformidade encontrada [Área ${areaIndex}, Questão ${qIndex}]:`, {
+            pergunta: question.question || question.pergunta,
+            resposta: question.resp,
+            gabarito: question.respGabarito,
+            areaResposavel: question.areaResposavel
+          });
+
+          // Se existe inconformidade, verifica se tem área responsável
+          if (question.areaResposavel) {
+            // Verifica se areaResposavel é array ou string
+            const areas = Array.isArray(question.areaResposavel) 
+              ? question.areaResposavel 
+              : [question.areaResposavel];
+
+            areas.forEach(area => {
+              const areaLower = area.toLowerCase();
+              if (areaLower.includes("oem")) foundEmailTypes.add("oem");
+              if (areaLower.includes("cmc")) foundEmailTypes.add("CMC");
+              if (areaLower.includes("predial")) foundEmailTypes.add("Predial");
+              if (areaLower.includes("logistica")) foundEmailTypes.add("Logistica");
+            });
+          } else {
+            // Se não tem área responsável definida, assume que precisa enviar email genérico
+            console.warn('Inconformidade sem área responsável definida - adicionando CMC como padrão');
+            foundEmailTypes.add("CMC");
+          }
         }
       });
     });
 
     const emailTypesArray = [...foundEmailTypes];
     setEmailTypes(emailTypesArray);
-    setHasEmailToSend(emailTypesArray.length > 0);
+    
+    // Se tem pelo menos uma inconformidade, deve enviar email
+    const shouldSendEmail = totalInconformidades > 0;
+    setHasEmailToSend(shouldSendEmail);
+    
+    console.log('Total de inconformidades:', totalInconformidades);
+    console.log('Tipos de email encontrados:', emailTypesArray);
+    console.log('Deve enviar email?', shouldSendEmail);
+    console.log('=== FIM DA VERIFICAÇÃO ===');
+    
     setOpenDialog(true);
   };
 
@@ -231,7 +270,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       const emailContent = {
         remetente: "aprdigital.seg.br@telefonica.com",
         assunto: `APR_Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
-        destinatario: emails.split(','),
+        destinatario: emails, // Enviar como string, não array
         texto: `
         <div style='display: flex; text-align: center; justify-content: center; flex-direction: column; max-width: 600px; margin: 0 auto;'>
           <img src='https://i.postimg.cc/xCsFXPWb/image.png' />
@@ -248,7 +287,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
               <p>Favor acessar o link abaixo para verificar as inconformidades identificadas pelo time da Segurança Patrimonial. 
               Será necessário apontar as ações a serem tomadas conforme recomendado para a efetiva proteção do patrimônio.</p>
               
-              <p>Para visualizar as inconformidades,Acesse pelo link ou copie e cole o link abaixo em seu navegador:</p>
+              <p>Para visualizar as inconformidades, acesse pelo link ou copie e cole o link abaixo em seu navegador:</p>
               <strong>URL:</strong> aprdigital.web.app/open/${id}<br>
             </div>
           </div>
@@ -261,7 +300,8 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
         `,
       };
 
-      console.log(emailContent)
+      console.log('=== ENVIANDO EMAIL ===');
+      console.log('Conteúdo do email:', emailContent);
 
       const response = await fetch(
         "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
@@ -272,9 +312,16 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
         }
       );
 
+      console.log('Status da resposta:', response.status);
+      
       if (!response.ok) {
-        throw new Error(`Erro HTTP! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Erro do servidor:', errorText);
+        throw new Error(`Erro HTTP! status: ${response.status} - ${errorText}`);
       }
+
+      const responseData = await response.text();
+      console.log('Resposta do servidor:', responseData);
 
       // Atualizar status da APR no Firestore
       await firebase.firestore().collection('aprs-producao').doc(id).update({
@@ -294,8 +341,9 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       setOpenDialog(false);
       setAgreeTerms(false);
     } catch (error) {
-      if (error.message === 'Erro HTTP! status: 500') {
-        toast.error(`Limite de e-mail excedido, aguarde até próximo dia para realizar o envio!`);
+      console.error('Erro completo:', error);
+      if (error.message.includes('500')) {
+        toast.error(`Erro no servidor ao enviar email. Verifique os logs no console.`);
       } else {
         toast.error(`Erro ao enviar o e-mail: ${error.message}`);
       }
@@ -311,15 +359,15 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     apr.checklist.forEach((area) => {
       area[1].forEach((question) => {
-        if (question.resp && question.resp !== "N/A" &&
-          question.resp !== question.respGabarito &&
-          question.openPA === true) {
+        // Verifica se existe resposta e se é diferente do gabarito
+        const hasInconformity = question.resp && 
+                               question.resp !== "N/A" && 
+                               question.resp !== question.respGabarito;
           
-          // Verifica se há questões relacionadas à logística
-          if (question.areaResposavel && question.areaResposavel.some(area => 
-            logisticsAreas.includes(area.toLowerCase()))) {
-            hasLogisticsIssues = true;
-          }
+        // Verifica se há questões relacionadas à logística
+        if (hasInconformity && question.areaResposavel && 
+            question.areaResposavel.some(area => logisticsAreas.includes(area.toLowerCase()))) {
+          hasLogisticsIssues = true;
         }
       });
     });
@@ -348,11 +396,13 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       const logisticsIssues = [];
       apr.checklist.forEach((area) => {
         area[1].forEach((question, index) => {
-          if (question.resp && question.resp !== "N/A" &&
-            question.resp !== question.respGabarito &&
-            question.openPA === true &&
-            question.areaResposavel && question.areaResposavel.some(area => 
-              area.toLowerCase().includes('logistica'))) {
+          // Verifica se existe resposta e se é diferente do gabarito
+          const hasInconformity = question.resp && 
+                                 question.resp !== "N/A" && 
+                                 question.resp !== question.respGabarito;
+          
+          if (hasInconformity && question.areaResposavel && 
+              question.areaResposavel.some(area => area.toLowerCase().includes('logistica'))) {
             
             logisticsIssues.push({
               pergunta: question.pergunta,

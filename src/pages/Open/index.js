@@ -1117,7 +1117,7 @@ export default function Open() {
                       </div>
                     </div>
 
-                    {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
+                    {((user.nivel === "administrador" || user.nivel === "revisor" || user.nivel === "revisor_logistica") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
                       <div className="revision-section">
                         <div className="section-header">
                           <h3>📧 Revisão e Envio</h3>
