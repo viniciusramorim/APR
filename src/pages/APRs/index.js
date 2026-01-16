@@ -171,8 +171,9 @@ export default function Dashboard() {
     const regional = regionMap[user.regional];
 
     //filtro por perfil
+    // Aplicadores de logística não filtram por UID (precisam ver APRs de outros para corrigir)
     query =
-      user.nivel === "aplicador" && user.area !== "oem"
+      user.nivel === "aplicador" && user.area !== "oem" && user.area !== "logistica"
         ? query.where("user_id.uid", "==", user.uid)
         : query;
     query =
@@ -198,10 +199,10 @@ export default function Dashboard() {
           "AUDIT PGR MOVEL",
         ])
         : query;
-    // Filtro para ponto focal de logística - APRs aguardando ou com SLA vencido
+    // Filtro para ponto focal de logística - APRs aguardando correção ou com SLA vencido
     query =
-      user.nivel === "ponto_focal_logistica"
-        ? query.where("status", "in", ["Aguardando Ponto Focal", "SLA Ponto Focal Vencido"])
+      user.nivel === "revisor_logistica"
+        ? query.where("status", "in", ["Aguardando Correção", "SLA Ponto Focal Vencido"])
         : query;
 
 
@@ -832,7 +833,7 @@ export default function Dashboard() {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <ButtonGroup className="btn-group" size="small" aria-label="small button group">
+          <ButtonGroup size="small" aria-label="small button group">
             <Button
               size="small"
               color="secondary"

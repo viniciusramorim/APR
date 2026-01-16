@@ -43,7 +43,7 @@
   width: 100%;
 
   // Seções organizadas para relatórios e ações
-  .reports-section, .revision-section, .finalization-section, .logistics-section {
+  .reports-section, .revision-section, .finalization-section, .logistics-section, .operation-section {
     margin: 2rem 0;
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
@@ -131,6 +131,20 @@
           border-color: #6c757d;
           color: #495057;
           transform: translateY(-1px);
+        }
+
+        &.btn-pdf-inconformidades {
+          background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+          color: #dc3545;
+          border: 2px solid rgba(220, 53, 69, 0.3);
+          
+          &:hover {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.1) 100%);
+            border-color: #dc3545;
+            color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+          }
         }
       }
     }
@@ -1299,5 +1313,68 @@
   }
   100% {
     box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+// Seção de envio para operação
+.operation-section {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #e3f2fd 100%);
+  border: 1px solid #2196f3;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    
+    h3 {
+      color: #1976d2;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+    }
+    
+    p {
+      color: #0d47a1;
+      margin: 0 0 1rem 0;
+      font-size: 0.95rem;
+    }
+  }
+  
+  .operation-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    
+    .btn-send-operation {
+      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+      
+      &:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+    
+    .info-text {
+      color: #0d47a1;
+      font-size: 0.9rem;
+      margin: 0;
+      text-align: center;
+    }
   }
 }

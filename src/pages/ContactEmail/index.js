@@ -482,7 +482,7 @@ export default function ContactEmail() {
                     </IconButton>
                   </AccordionSummary>
                   <AccordionDetails>
-                    {["OEM", "Patrimonial", "Predial"].map((tipo) => {
+                    {["OEM", "Patrimonial", "Predial", "Logistica"].map((tipo) => {
                       const key = `email_${tipo.toLowerCase()}`;
                       return (
                         <Box key={tipo} mb={2}>

@@ -62,20 +62,6 @@ export default function Header({ name, subtitle, children }) {
   const menuItems = [];
 
   // Adicionar itens do menu baseado no usuário
-  if (user.area === "ronda") {
-    menuItems.push(
-      {
-        text: "Aplicar Ronda",
-        icon: <PlaylistAddCheckSharpIcon />,
-        link: "/newronda",
-      },
-      {
-        text: "Rondas Realizadas",
-        icon: <FiHome size={20} />,
-        link: "/dashboardrondas",
-      }
-    );
-  }
 
   if (user.area === "patrimonial" || user.area === "pci") {
     menuItems.push(
@@ -116,10 +102,34 @@ export default function Header({ name, subtitle, children }) {
       }
     );
   }
+  
+  if (user.area === "logistica") {
+    menuItems.push(
+      {
+        text: "Aplicar APR",
+        icon: <PlaylistAddCheckSharpIcon />,
+        link: "/new",
+        subtitle: "Submeta uma nova APR",
+      },
+      {
+        text: "APRs",
+        icon: <FileDownloadDoneSharpIcon />,
+        link: "/aprs",
+        subtitle: "Visualize suas APRs",
+      },
+    );
+  }
+
 
   if (user.nivel === "administrador") {
     menuItems.push(
-       {
+      {
+        text: "APRs",
+        icon: <FileDownloadDoneSharpIcon />,
+        link: "/aprs",
+        subtitle: "Visualize suas APRs",
+      }, 
+      {
         text: "Aplicar APR",
         icon: <PlaylistAddCheckSharpIcon />,
         link: "/new",
@@ -189,7 +199,14 @@ export default function Header({ name, subtitle, children }) {
   }
 
   if (user.nivel === "auditor") {
-    menuItems.push({
+    menuItems.push(
+    {
+        text: "APRs",
+        icon: <FileDownloadDoneSharpIcon />,
+        link: "/aprs",
+        subtitle: "Visualize suas APRs",
+      },
+      {
       text: "Relatório",
       icon: <ContentPasteSearchSharpIcon />,
       link: "/reports",
@@ -197,8 +214,14 @@ export default function Header({ name, subtitle, children }) {
     });
   }
 
-  if (user.nivel === "revisor") {
+  if (user.nivel === "revisor" || user.nivel === "revisor_logistica") {
     menuItems.push(
+      {
+        text: "APRs",
+        icon: <FileDownloadDoneSharpIcon />,
+        link: "/aprs",
+        subtitle: "Visualize suas APRs",
+      },
       {
         text: "Relatório",
         icon: <ContentPasteSearchSharpIcon />,

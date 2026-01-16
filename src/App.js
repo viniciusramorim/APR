@@ -5,14 +5,8 @@ import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import AuthProvider from './contexts/auth';
 import Routes from './routes';
-import { startSLAMonitoring } from './utils/slaChecker';
 
 function App() {
-  useEffect(() => {
-    // Iniciar monitoramento de SLA quando a aplicação carregar
-    startSLAMonitoring();
-  }, []);
-
   return (
     <AuthProvider>
       <BrowserRouter>

@@ -22,7 +22,7 @@
 - Status visual na interface (ativo/vencido)
 
 #### 4. **Novo Tipo de Usuário**
-- `"ponto_focal_logistica"` - Usuário dedicado para gestão de planos de ação logísticos
+- `"revisor_logistica"` - Usuário dedicado para gestão de planos de ação logísticos
 - Permissões específicas para visualizar apenas APRs relacionadas à logística
 - Acesso restrito ao modal de plano de ação com opção "Logística"
 
@@ -41,10 +41,6 @@
 - `pages/Open/index.js` - Interface para ponto focal
 - `pages/ProfileADM/index.js` - Novo tipo de usuário
 
-#### **Novos Arquivos**
-- `utils/slaChecker.js` - Sistema de monitoramento SLA
-- `config/pontoFocalConfig.js` - Configuração de email
-- `pages/Open/open.scss` - Estilos para logística
 
 #### **Configurações**
 - `App.js` - Inicialização do monitoramento SLA
@@ -54,9 +50,9 @@
 1. **APR Criada** → Aplicador cria APR normalmente
 2. **APR Revisada** → Revisor analisa APR
 3. **Verificação Automática** → Sistema verifica se há questões de logística
-4. **Envio Automático** → Email enviado para ponto focal + SLA definido (14 dias)
-5. **Ponto Focal** → Recebe email, acessa APR, define planos de ação
-6. **Monitoramento** → Sistema monitora SLA e envia alertas se vencido
+4. **Envio Automático** → Email enviado para revisor de logística
+5. **Revisor Logística** → Recebe email, acessa APR, define planos de ação e SLA
+6. **Gestão de SLA** → Revisor pode alterar ou adicionar novo SLA conforme necessário
 7. **Finalização** → APR segue fluxo normal após definição do plano
 
 ### 🏗️ Configurações Necessárias
@@ -64,10 +60,10 @@
 #### **Firebase Firestore**
 Criar documento na collection `contact_email`:
 ```javascript
-// ID: ponto_focal_logistica
+// ID: revisor_logistica
 {
-  email: "ponto.focal.logistica@telefonica.com",
-  nome: "Ponto Focal Logística",
+  email: "revisor.logistica@telefonica.com",
+  nome: "Revisor Logística",
   ativo: true,
   created_at: timestamp,
   updated_at: timestamp
@@ -76,7 +72,7 @@ Criar documento na collection `contact_email`:
 
 #### **Usuário no Sistema**
 Criar usuário com:
-- **Nível:** `ponto_focal_logistica`
+- **Nível:** `revisor_logistica`
 - **Email:** Mesmo configurado no documento acima
 - **Permissões:** Acesso à interface web
 
