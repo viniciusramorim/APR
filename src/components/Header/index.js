@@ -102,7 +102,7 @@ export default function Header({ name, subtitle, children }) {
       }
     );
   }
-  
+
   if (user.area === "logistica") {
     menuItems.push(
       {
@@ -116,10 +116,9 @@ export default function Header({ name, subtitle, children }) {
         icon: <FileDownloadDoneSharpIcon />,
         link: "/aprs",
         subtitle: "Visualize suas APRs",
-      },
+      }
     );
   }
-
 
   if (user.nivel === "administrador") {
     menuItems.push(
@@ -128,7 +127,7 @@ export default function Header({ name, subtitle, children }) {
         icon: <FileDownloadDoneSharpIcon />,
         link: "/aprs",
         subtitle: "Visualize suas APRs",
-      }, 
+      },
       {
         text: "Aplicar APR",
         icon: <PlaylistAddCheckSharpIcon />,
@@ -200,18 +199,19 @@ export default function Header({ name, subtitle, children }) {
 
   if (user.nivel === "auditor") {
     menuItems.push(
-    {
+      {
         text: "APRs",
         icon: <FileDownloadDoneSharpIcon />,
         link: "/aprs",
         subtitle: "Visualize suas APRs",
       },
       {
-      text: "Relatório",
-      icon: <ContentPasteSearchSharpIcon />,
-      link: "/reports",
-      subtitle: "Visualize relatórios",
-    });
+        text: "Relatório",
+        icon: <ContentPasteSearchSharpIcon />,
+        link: "/reports",
+        subtitle: "Visualize relatórios",
+      }
+    );
   }
 
   if (user.nivel === "revisor" || user.nivel === "revisor_logistica") {
@@ -240,11 +240,16 @@ export default function Header({ name, subtitle, children }) {
   return (
     <>
       {/* Hamburger Menu Button */}
-      <div className="header-fixed" sx={{position: 'fixed'}}>
+      <div className="header-fixed" sx={{ position: "fixed", display: "flex", justifyContent:"space-between" }}>
         <Box className="title-pages">
           <Title name={name} subtitle={subtitle}>
             {children}
           </Title>
+        </Box>
+        <Box>
+          <Typography variant="subtitle2" sx={{ color: "#666", mt: 0.5, mr: 2, textTransform: "uppercase" }}>
+           {user.nome} - {user.nivel?.replace(/_/g, ' ')}
+          </Typography>
         </Box>
 
         <Box

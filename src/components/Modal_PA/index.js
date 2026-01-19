@@ -83,14 +83,16 @@ export default function Modal_PA({
 
   // Variável para bloquear edição baseada no usuário e status
   // Revisor, revisor_logistica e administrador podem sempre editar o SLA e comentário da opção Logística
+  // Para revisor_logistica, isReadOnly só é true se a pergunta já tem um plano de ação definido (para mostrar o botão Validar)
   const isReadOnly = conteudo?.resp_pa_selectedOption && 
     user.nivel !== "revisor_logistica" && 
     !((user.nivel === "revisor" || user.nivel === "administrador") && conteudo?.resp_pa_selectedOption === "Logistica");
 
   // Modo visualização: mostrar histórico completo quando APR está em status final
-  // Qualquer usuário vê o modo visualização quando há plano de ação definido e status está nos finais
+  // Revisor_logistica e ponto_focal não entram em modo visualização pois precisam continuar definindo SLAs
   const statusVisualizacao = ["Revisado", "Enviado", "Concluido", "Respondido pela Area"];
-  const isModoVisualizacao = statusVisualizacao.includes(apr.status) && conteudo?.resp_pa_selectedOption;
+  const isModoVisualizacao = statusVisualizacao.includes(apr.status) && conteudo?.resp_pa_selectedOption && 
+    user.nivel !== "revisor_logistica" && user.nivel !== "ponto_focal";
 
   async function alterarPA() {
     if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
@@ -206,9 +208,51 @@ export default function Modal_PA({
 
     await docRef.update(dados);
 
-    toast.success("Plano de ação finalizado");
+    toast.success("Plano de ação validado");
     loadApr();
-    close();
+  }
+
+  async function salvarNovoSLA() {
+    if (!slaLogistica) return toast.error("Preencha o SLA (data)");
+    if (!comentario) return toast.error("Preencha um comentário");
+
+    const docRef = firebase.firestore().collection(base).doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return toast.error("Documento não encontrado");
+
+    const dados = doc.data();
+    const plano = dados.checklist[area][1][index];
+
+    // Inicializar histórico se não existir
+    const historicoAtual = plano.plano_acao?.historico_logistica || [];
+    
+    // Adicionar o SLA atual ao histórico (novo registro)
+    historicoAtual.push({
+      data: new Date(),
+      usuario: user.nome,
+      sla: new Date(slaLogistica),
+      comentario: comentario,
+    });
+
+    // Atualizar o plano_acao mantendo o SLA atual e adicionando ao histórico
+    plano.plano_acao = {
+      ...plano.plano_acao,
+      sla_logistica: new Date(slaLogistica),
+      comentario: comentario,
+      historico_logistica: historicoAtual,
+    };
+
+    plano.resp_pa_selectedOption = "Logistica";
+    plano.resp_pa_data = new Date();
+    plano.resp_pa_user_name = user.nome;
+    plano.resp_pa_user_id = user.uid;
+
+    await docRef.update(dados);
+
+    toast.success("SLA salvo com sucesso!");
+    setSlaLogistica("");
+    setComentario("");
+    loadApr();
   }
 
   async function updateAPR(id) {
@@ -725,10 +769,23 @@ export default function Modal_PA({
                     )}
                   </Box>
                 ))}
+                {user.nivel === "revisor_logistica" && (
+                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #ddd' }}>
+                    <Button 
+                      onClick={() => UpdatePA()} 
+                      variant="contained" 
+                      color="success"
+                      fullWidth
+                    >
+                      ✅ Validar SLA
+                    </Button>
+                  </Box>
+                )}
               </Box>
             )}
 
             {/* Formulário para definir SLA */}
+            {user.nivel !== "revisor_logistica" && (
             <Box sx={{ mb: 3, p: 3, bgcolor: '#e3f2fd', borderRadius: 2, border: '2px solid #1976d2' }}>
               <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#0d47a1' }}>
                 📅 {conteudo?.plano_acao?.sla_logistica ? "Redefinir SLA:" : "Definir SLA:"}
@@ -755,7 +812,19 @@ export default function Modal_PA({
                 placeholder="Comentários sobre as tratativas e justificativa para SLA"
                 helperText={conteudo?.plano_acao?.sla_logistica ? "Explique o motivo da alteração do SLA" : "Descreva as ações planejadas"}
               />
+              
+              <Button
+                onClick={() => salvarNovoSLA()}
+                variant="contained"
+                color="primary"
+                startIcon={<FiCheck />}
+                disabled={!slaLogistica || !comentario}
+                sx={{ mt: 2 }}
+              >
+                ➕ Adicionar
+              </Button>
             </Box>
+            )}
 
             {/* Área para anexar arquivo */}
             <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
@@ -1281,7 +1350,7 @@ export default function Modal_PA({
             startIcon={<FiCheck />}
             disabled={!slaLogistica || !comentario}
           >
-            💾 {conteudo?.plano_acao?.sla_logistica ? "Atualizar SLA" : "Definir SLA"}
+            💾 Salvar
           </Button>
         )}
         
@@ -1298,11 +1367,6 @@ export default function Modal_PA({
         {user.nivel !== "aplicador" && user.nivel !== "ponto_focal" && user.nivel !== "revisor_logistica" && !isReadOnly && (
           <Button onClick={() => alterarPA()} variant="contained" color="primary">
             Salvar
-          </Button>
-        )}
-        {user.nivel !== "aplicador" && (conteudo.resp_pa_status !== 'Concluido' && apr.status === "Respondido pela Area" && isReadOnly && (user.nivel === "revisor" || user.nivel === "revisor_logistica" || user.nivel === "administrador")) && (
-          <Button onClick={() => UpdatePA()} variant="contained" color="success">
-            Validar
           </Button>
         )}
       </DialogActions>

@@ -61,26 +61,27 @@ export default function Open() {
       const snapshot = await firebase
         .firestore()
         .collection(base)
-        .where('site_id.Sigla', '==', siteData.Sigla)
-        .where('site_id.Estado', '==', siteData.Estado)
-        .orderBy('created', 'desc')
+        .where("site_id.Sigla", "==", siteData.Sigla)
+        .where("site_id.Estado", "==", siteData.Estado)
+        .orderBy("created", "desc")
         .limit(10)
         .get();
 
       const aprs = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (doc.id !== id) { // Não incluir a APR atual
+        if (doc.id !== id) {
+          // Não incluir a APR atual
           aprs.push({
             id: doc.id,
             apr_id: data.apr_id || doc.id,
-            motivo: data.motivo_apr || 'Sem motivo informado',
-            status: data.status || 'N/A',
-            created: data.created
+            motivo: data.motivo_apr || "Sem motivo informado",
+            status: data.status || "N/A",
+            created: data.created,
           });
         }
       });
-      
+
       setHistoricoAPRs(aprs);
       setLoadHistorico(true);
     } catch (error) {
@@ -98,34 +99,40 @@ export default function Open() {
       .then((snapshot) => {
         let apr = snapshot.data();
         setAprCompleta(snapshot.data()); // Corrigindo para usar apr ao invés de snapshot.data()
-        
+
         // Carregar histórico de APRs para o site
         if (apr.site_id) {
           loadHistoricoAPRs(apr.site_id);
         }
-        
+
         apr.checklist.forEach((area, indexA) => {
           area[1].forEach((doc, indexQ) => {
             const isEmAberto = apr.status === "Em Aberto";
             const isAguardandoCorrecao = apr.status === "Aguardando Correção";
-            const isRevisorOuAdmin = user.nivel === "revisor" || user.nivel === "administrador";
+            const isRevisorOuAdmin =
+              user.nivel === "revisor" || user.nivel === "administrador";
             const isDono = user.uid === apr.user_id.uid;
             const hasAnswer = doc.answers !== "";
             const isRespVazio = doc.resp === "";
-            const hasValorEstoque = doc.valorEstoque?.min != null || doc.valorEstoque?.max != null;
+            const hasValorEstoque =
+              doc.valorEstoque?.min != null || doc.valorEstoque?.max != null;
             const isRevisorLoja = hasValorEstoque && isRevisorOuAdmin;
-            const isQuestionActiveLoja = isRevisorLoja &&
+            const isQuestionActiveLoja =
+              isRevisorLoja &&
               valorDentroDoIntervalo(apr.valor_estoque, doc.valorEstoque) &&
               doc.tipoLoja?.includes(apr.tipo_loja);
             console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-            console.log(isQuestionActiveLoja)
-            console.log(hasValorEstoque)
-            console.log(!isQuestionActiveLoja, hasValorEstoque)
-
+            console.log(isQuestionActiveLoja);
+            console.log(hasValorEstoque);
+            console.log(!isQuestionActiveLoja, hasValorEstoque);
 
             if (isRespVazio && hasAnswer) {
               // Se for aplicador dono da APR e status for "Aguardando Correção", não deletar nada (mostrar tudo)
-              if (user.nivel === "aplicador" && isDono && isAguardandoCorrecao) {
+              if (
+                user.nivel === "aplicador" &&
+                isDono &&
+                isAguardandoCorrecao
+              ) {
                 // Não deletar - aplicador precisa ver todas as perguntas para verificar correções
               } else if (!isRevisorOuAdmin && !isEmAberto) {
                 console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
@@ -139,9 +146,13 @@ export default function Open() {
               } else if (!isQuestionActiveLoja && hasValorEstoque) {
                 console.log(hasValorEstoque);
                 console.log(`Área: ${indexA + 1}, Questão: ${indexQ + 1}`);
-                console.log(`Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`);
+                console.log(
+                  `Valor Estoque: ${doc.valorEstoque.min} - ${doc.valorEstoque.max}`
+                );
                 console.log(`isQuestionActiveLoja: ${isQuestionActiveLoja}`);
-                console.log(`isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`);
+                console.log(
+                  `isRespVazio && hasAnswer: ${isRespVazio && hasAnswer}`
+                );
                 delete apr.checklist[indexA][1][indexQ];
               }
             }
@@ -206,9 +217,11 @@ export default function Open() {
     // Buscar informações adicionais do site
     let siteInfoData = null;
     try {
-      const siteSnapshot = await firebase.firestore().collection('sites')
-        .where('Sigla', '==', apr.site_id.Sigla)
-        .where('Estado', '==', apr.site_id.Estado)
+      const siteSnapshot = await firebase
+        .firestore()
+        .collection("sites")
+        .where("Sigla", "==", apr.site_id.Sigla)
+        .where("Estado", "==", apr.site_id.Estado)
         .get();
 
       if (!siteSnapshot.empty) {
@@ -225,7 +238,9 @@ export default function Open() {
     });
 
     pdf.content.push({
-      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
     });
 
     pdf.content.push({
@@ -241,7 +256,12 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [["Nome: " + apr.user_id.nome, "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm")]],
+        body: [
+          [
+            "Nome: " + apr.user_id.nome,
+            "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm"),
+          ],
+        ],
       },
       layout: "noBorders",
     });
@@ -250,16 +270,33 @@ export default function Open() {
       margin: [0, 20, 0, 0],
       table: {
         widths: [300, 300],
-        body: [["Motivo: " + apr.motivo_apr, "Classificação " + calculatePontos(apr.peso)]],
+        body: [
+          [
+            "Motivo: " + apr.motivo_apr,
+            "Classificação " + calculatePontos(apr.peso),
+          ],
+        ],
       },
       layout: "noBorders",
     });
 
     // Informações do site incluindo perímetro, área e imagem
     const siteTableBody = [
-      ["Sigla-UF: " + (apr.site_id?.Sigla || 'N/A') + "-" + (apr.site_id?.Estado || 'N/A'), "Criticidade: " + (apr.site_id?.critical || 'N/A')],
-      ["Unidade: " + (apr.site_id?.Nome || 'N/A'), "Cidade: " + (apr.site_id?.Cidade || 'N/A')],
-      ["Endereço: " + apr.site_id.Endereco, "Latitude: " + apr.site_id.Latitude],
+      [
+        "Sigla-UF: " +
+          (apr.site_id?.Sigla || "N/A") +
+          "-" +
+          (apr.site_id?.Estado || "N/A"),
+        "Criticidade: " + (apr.site_id?.critical || "N/A"),
+      ],
+      [
+        "Unidade: " + (apr.site_id?.Nome || "N/A"),
+        "Cidade: " + (apr.site_id?.Cidade || "N/A"),
+      ],
+      [
+        "Endereço: " + apr.site_id.Endereco,
+        "Latitude: " + apr.site_id.Latitude,
+      ],
       ["Bairro: " + apr.site_id.Bairro, "Longitude: " + apr.site_id.Longitude],
     ];
 
@@ -268,10 +305,13 @@ export default function Open() {
       if (siteInfoData.perimetro && siteInfoData.area) {
         siteTableBody.push([
           "Perímetro: " + siteInfoData.perimetro + " metros",
-          "Área: " + siteInfoData.area + " m²"
+          "Área: " + siteInfoData.area + " m²",
         ]);
       } else if (siteInfoData.perimetro) {
-        siteTableBody.push(["Perímetro: " + siteInfoData.perimetro + " metros", ""]);
+        siteTableBody.push([
+          "Perímetro: " + siteInfoData.perimetro + " metros",
+          "",
+        ]);
       } else if (siteInfoData.area) {
         siteTableBody.push(["", "Área: " + siteInfoData.area + " m²"]);
       }
@@ -289,18 +329,20 @@ export default function Open() {
     // Adicionar imagem do site se disponível
     if (siteInfoData && siteInfoData.imagem) {
       try {
-        const siteImageBase64 = await getBase64ImageFromURL(siteInfoData.imagem);
+        const siteImageBase64 = await getBase64ImageFromURL(
+          siteInfoData.imagem
+        );
         pdf.content.push({
           text: "Imagem do Site:",
           bold: true,
           fontSize: 12,
           margin: [0, 10, 0, 5],
-          color: '#00529B',
+          color: "#00529B",
         });
         pdf.content.push({
           image: siteImageBase64,
           width: 170,
-          alignment: 'center',
+          alignment: "center",
           margin: [0, 5, 0, 20],
         });
       } catch (error) {
@@ -309,7 +351,9 @@ export default function Open() {
     }
 
     pdf.content.push({
-      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
     });
 
     for (const area of apr.checklist) {
@@ -318,8 +362,8 @@ export default function Open() {
         bold: true,
         fontSize: 20,
         margin: [0, 30, 0, 10],
-        color: '#00529B',
-        decoration: 'underline',
+        color: "#00529B",
+        decoration: "underline",
       });
 
       const docs = area[1];
@@ -327,10 +371,23 @@ export default function Open() {
       for (const doc of docs) {
         if (!doc) continue;
 
-        const incluirDoc = exportarea === "All"
-          ? doc.resp !== "" || doc.optionListResp?.length > 0 || doc.respTextArea !== ""
-          : (exportarea === "oem" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("oem"))
-          || (exportarea === "patrimonio" && doc.resp !== "" && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && doc.openPA === true && doc.areaResposavel?.includes("patrimonio"));
+        const incluirDoc =
+          exportarea === "All"
+            ? doc.resp !== "" ||
+              doc.optionListResp?.length > 0 ||
+              doc.respTextArea !== ""
+            : (exportarea === "oem" &&
+                doc.resp !== "" &&
+                doc.resp !== "N/A" &&
+                doc.resp !== doc.respGabarito &&
+                doc.openPA === true &&
+                doc.areaResposavel?.includes("oem")) ||
+              (exportarea === "patrimonio" &&
+                doc.resp !== "" &&
+                doc.resp !== "N/A" &&
+                doc.resp !== doc.respGabarito &&
+                doc.openPA === true &&
+                doc.areaResposavel?.includes("patrimonio"));
 
         if (!incluirDoc) continue;
 
@@ -348,25 +405,36 @@ export default function Open() {
         });
 
         if (doc.resp !== "") {
-          const respColor = doc.resp === "Sim" ? "#4CAF50" : doc.resp === "N/A" ? "#FFA500" : "#F44336";
+          const respColor =
+            doc.resp === "Sim"
+              ? "#4CAF50"
+              : doc.resp === "N/A"
+              ? "#FFA500"
+              : "#F44336";
 
           pdf.content.push({
             table: {
               widths: ["*"],
-              body: [[
-                {
-                  text: doc.resp,
-                  fillColor: respColor,
-                  color: "white",
-                  alignment: "center",
-                  bold: true,
-                  margin: [0, 5, 0, 5],
-                }
-              ]]
+              body: [
+                [
+                  {
+                    text: doc.resp,
+                    fillColor: respColor,
+                    color: "white",
+                    alignment: "center",
+                    bold: true,
+                    margin: [0, 5, 0, 5],
+                  },
+                ],
+              ],
             },
             layout: {
-              hLineWidth: function () { return 0; },
-              vLineWidth: function () { return 0; },
+              hLineWidth: function () {
+                return 0;
+              },
+              vLineWidth: function () {
+                return 0;
+              },
             },
             margin: [0, 5, 0, 5],
           });
@@ -374,7 +442,7 @@ export default function Open() {
 
         if (doc.optionListResp?.length > 0) {
           pdf.content.push({
-            ul: doc.optionListResp.map(option => `${option}`),
+            ul: doc.optionListResp.map((option) => `${option}`),
             margin: [10, 5, 0, 5],
           });
         }
@@ -417,245 +485,28 @@ export default function Open() {
         }
 
         pdf.content.push({
-          canvas: [{
-            type: 'line', x1: 0, y1: 0, x2: 520, y2: 0,
-            lineWidth: 0.5, lineColor: "#ccc"
-          }],
+          canvas: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 520,
+              y2: 0,
+              lineWidth: 0.5,
+              lineColor: "#ccc",
+            },
+          ],
           margin: [0, 20, 0, 20],
         });
       }
     }
 
-    const sigla = apr.site_id?.Sigla || 'SITE';
-    const estado = apr.site_id?.Estado || 'UF';
-    const aprId = apr.apr_id || 'APR';
-    pdfMake.createPdf(pdf).download(`APR Digital ${sigla}_${aprId}_${estado}.pdf`);
-  }
-
-  // Gerar PDF apenas com inconformidades
-  async function generatePDFInconformidades(e) {
-    e.preventDefault();
-
-    let pdf = {
-      compress: true,
-      content: [],
-    };
-
-    // Buscar informações adicionais do site
-    let siteInfoData = null;
-    try {
-      const siteSnapshot = await firebase.firestore().collection('sites')
-        .where('Sigla', '==', apr.site_id.Sigla)
-        .where('Estado', '==', apr.site_id.Estado)
-        .get();
-
-      if (!siteSnapshot.empty) {
-        siteInfoData = siteSnapshot.docs[0].data();
-      }
-    } catch (error) {
-      console.log("Erro ao buscar informações do site:", error);
-    }
-
-    pdf.content.push({
-      image: await getBase64ImageFromURL(telefonicaLogo),
-      width: 100,
-      margin: [0, 0, 0, 10],
-    });
-
-    pdf.content.push({
-      canvas: [{ type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" }],
-    });
-
-    pdf.content.push({
-      margin: [0, 20, 0, 0],
-      table: {
-        widths: [300, 300],
-        body: [["ID: " + apr.apr_id]],
-      },
-      layout: "noBorders",
-    });
-
-    pdf.content.push({
-      margin: [0, 20, 0, 0],
-      table: {
-        widths: [300, 300],
-        body: [["Nome: " + apr.user_id.nome, "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm")]],
-      },
-      layout: "noBorders",
-    });
-
-    pdf.content.push({
-      margin: [0, 20, 0, 0],
-      table: {
-        widths: [300, 300],
-        body: [["Motivo: " + apr.motivo_apr, "Classificação " + calculatePontos(apr.peso)]],
-      },
-      layout: "noBorders",
-    });
-
-    pdf.content.push({
-      margin: [0, 20, 0, 0],
-      table: {
-        widths: [300, 300],
-        body: [["Site: " + apr.site_id.Sigla + " - " + apr.site_id.Cidade + "/" + apr.site_id.Estado]],
-      },
-      layout: "noBorders",
-    });
-
-    if (siteInfoData) {
-      pdf.content.push({
-        margin: [0, 10, 0, 0],
-        table: {
-          widths: ["*"],
-          body: [
-            [{ text: "Endereço: " + (siteInfoData.Endereco || "N/I"), colSpan: 1 }],
-            [{ text: "Bairro: " + (siteInfoData.Bairro || "N/I"), colSpan: 1 }],
-            [{ text: "Regional: " + (siteInfoData.Regional || "N/I"), colSpan: 1 }],
-            [{ text: "CD/Base: " + (siteInfoData.CD || siteInfoData.BaseCross || "N/I"), colSpan: 1 }]
-          ],
-        },
-        layout: "noBorders",
-      });
-    }
-
-    pdf.content.push({
-      text: "INCONFORMIDADES ENCONTRADAS",
-      bold: true,
-      fontSize: 14,
-      color: "#dc3545",
-      margin: [0, 30, 0, 20],
-      alignment: "center",
-    });
-
-    let hasInconformidades = false;
-
-    for (const area of aprCompleta.checklist) {
-      const areaName = area[0];
-      let areaHasInconformidades = false;
-      let areaContent = [];
-
-      for (const question of area[1]) {
-        if (question && question.resp !== "" && question.resp !== question.answers) {
-          hasInconformidades = true;
-          areaHasInconformidades = true;
-
-          areaContent.push({
-            text: question.question,
-            bold: true,
-            fontSize: 11,
-            margin: [0, 10, 0, 5],
-          });
-
-          areaContent.push({
-            margin: [0, 5, 0, 5],
-            table: {
-              widths: ["*", "*"],
-              body: [
-                [
-                  { text: "Resposta Esperada", bold: true, fillColor: "#f0f0f0" },
-                  { text: "Resposta Obtida", bold: true, fillColor: "#f0f0f0" }
-                ],
-                [
-                  { text: question.answers || "N/A", color: "#28a745" },
-                  { text: question.resp || "N/A", color: "#dc3545", bold: true }
-                ]
-              ]
-            }
-          });
-
-          if (question.note) {
-            areaContent.push({
-              text: "Observação: " + question.note,
-              fontSize: 9,
-              italics: true,
-              color: "#666",
-              margin: [0, 5, 0, 0],
-            });
-          }
-
-          if (question.plano_acao) {
-            areaContent.push({
-              text: "Plano de Ação:",
-              bold: true,
-              fontSize: 10,
-              margin: [0, 10, 0, 5],
-              color: "#660099",
-            });
-
-            if (question.plano_acao.comentario) {
-              areaContent.push({
-                text: question.plano_acao.comentario,
-                fontSize: 9,
-                margin: [10, 0, 0, 5],
-              });
-            }
-
-            if (question.plano_acao.tempo || question.plano_acao.sla_logistica) {
-              const sla = question.plano_acao.tempo || 
-                (question.plano_acao.sla_logistica ? 
-                  format(question.plano_acao.sla_logistica.toDate(), "dd/MM/yyyy") : null);
-              
-              areaContent.push({
-                text: "Prazo: " + sla,
-                fontSize: 9,
-                margin: [10, 0, 0, 5],
-                color: "#660099",
-              });
-            }
-          }
-
-          if (question.image && question.image.length > 0) {
-            for (const img of question.image) {
-              try {
-                const base64Image = await getBase64ImageFromURL(img);
-                areaContent.push({
-                  image: base64Image,
-                  width: 200,
-                  margin: [10, 10, 0, 0],
-                });
-              } catch (error) {
-                console.log("Erro ao adicionar imagem: ", error);
-              }
-            }
-          }
-
-          areaContent.push({
-            canvas: [{
-              type: 'line', x1: 0, y1: 0, x2: 520, y2: 0,
-              lineWidth: 0.5, lineColor: "#ccc"
-            }],
-            margin: [0, 20, 0, 20],
-          });
-        }
-      }
-
-      if (areaHasInconformidades) {
-        pdf.content.push({
-          text: areaName,
-          bold: true,
-          fontSize: 13,
-          color: "#660099",
-          margin: [0, 20, 0, 10],
-          decoration: "underline",
-        });
-        pdf.content.push(...areaContent);
-      }
-    }
-
-    if (!hasInconformidades) {
-      pdf.content.push({
-        text: "✅ Nenhuma inconformidade encontrada!",
-        fontSize: 12,
-        color: "#28a745",
-        alignment: "center",
-        margin: [0, 20, 0, 0],
-      });
-    }
-
-    const sigla = apr.site_id?.Sigla || 'SITE';
-    const estado = apr.site_id?.Estado || 'UF';
-    const aprId = apr.apr_id || 'APR';
-    pdfMake.createPdf(pdf).download(`APR Inconformidades ${sigla}_${aprId}_${estado}.pdf`);
+    const sigla = apr.site_id?.Sigla || "SITE";
+    const estado = apr.site_id?.Estado || "UF";
+    const aprId = apr.apr_id || "APR";
+    pdfMake
+      .createPdf(pdf)
+      .download(`APR Digital ${sigla}_${aprId}_${estado}.pdf`);
   }
 
   // -------------------------------------
@@ -726,14 +577,16 @@ export default function Open() {
 
   async function updateStatusAPR(e, id) {
     e.preventDefault();
-    let confirm = window.confirm("Deseja realmente alterar o status para CONCLUIDO da APR?");
+    let confirm = window.confirm(
+      "Deseja realmente alterar o status para CONCLUIDO da APR?"
+    );
     if (confirm === false) return;
     await firebase
       .firestore()
       .collection(base)
       .doc(id)
       .update({
-        status: 'Concluido',
+        status: "Concluido",
       })
       .then(() => {
         toast.success("APR finalizada com sucesso!");
@@ -746,42 +599,147 @@ export default function Open() {
       });
   }
 
-  // Função para ponto focal enviar APR para monitoramento de SLA
-  async function enviarParaMonitoramento(e, id) {
+  // Função para revisor_logistica finalizar APR após correções
+  async function finalizarAPRRevisorLogistica(e, id) {
     e.preventDefault();
-    
-    // Verificar se todos os planos de ação foram definidos
+
+    let confirm = window.confirm(
+      "Confirma a finalização da APR? O status será alterado para Concluído."
+    );
+    if (confirm === false) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Concluido",
+          data_finalizacao: firebase.firestore.FieldValue.serverTimestamp(),
+          data_alteracao: new Date(),
+        });
+
+      toast.success("APR finalizada com sucesso!");
+      logSistem(`APR finalizada pelo revisor_logistica`, id);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao finalizar APR: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
+  // Função para revisor_logistica enviar APR para operação após validar todos os planos
+  async function enviarParaOperacao(e, id) {
+    e.preventDefault();
+
+    let confirm = window.confirm(
+      "Confirma o envio para operação? O aplicador poderá conferir as correções."
+    );
+    if (confirm === false) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Em Aberto",
+          data_alteracao: new Date(),
+        });
+
+      toast.success("APR enviada para operação!");
+      logSistem(`APR enviada para operação pelo revisor_logistica`, id);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao enviar para operação: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
+  // Função para verificar se todos os planos de ação foram definidos
+  function verificarSeTemPendencias() {
     const checklist = apr.checklist;
     let temPendencias = false;
-    
+
     checklist.forEach((area) => {
       area[1].forEach((question) => {
-        const hasInconformity = question.resp && 
-                               question.resp !== "N/A" && 
-                               question.resp !== question.respGabarito;
-        
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
         // Se tem inconformidade mas não tem plano de ação definido
         if (hasInconformity && !question.resp_pa_selectedOption) {
           temPendencias = true;
         }
       });
     });
-    
+
+    return temPendencias;
+  }
+
+  // Função para verificar se todos os planos de ação foram validados pelo revisor_logistica
+  function verificarTodosValidados() {
+    const checklist = apr.checklist;
+    let todosValidados = true;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade, precisa estar validado (resp_pa_status = "Concluido")
+        if (hasInconformity && question.resp_pa_selectedOption && question.resp_pa_status !== "Concluido") {
+          todosValidados = false;
+        }
+      });
+    });
+
+    return todosValidados;
+  }
+
+  // Função para ponto focal enviar APR para monitoramento de SLA
+  async function enviarParaMonitoramento(e, id) {
+    e.preventDefault();
+
+    // Verificar se todos os planos de ação foram definidos
+    const checklist = apr.checklist;
+    let temPendencias = false;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade mas não tem plano de ação definido
+        if (hasInconformity && !question.resp_pa_selectedOption) {
+          temPendencias = true;
+        }
+      });
+    });
+
     if (temPendencias) {
       toast.error("Ainda existem inconformidades sem plano de ação definido!");
       return;
     }
-    
-    let confirm = window.confirm("Confirma o envio da APR para monitoramento de SLA? Os alertas serão enviados automaticamente.");
+
+    let confirm = window.confirm(
+      "Confirma o envio da APR para monitoramento de SLA? Os alertas serão enviados automaticamente."
+    );
     if (confirm === false) return;
-    
+
     await firebase
       .firestore()
       .collection(base)
       .doc(id)
       .update({
-        status: 'Monitoramento SLA',
-        data_envio_monitoramento: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "Monitoramento SLA",
+        data_envio_monitoramento:
+          firebase.firestore.FieldValue.serverTimestamp(),
         data_alteracao: new Date(),
       })
       .then(() => {
@@ -795,16 +753,68 @@ export default function Open() {
       });
   }
 
+  // Função para ponto focal enviar APR para revisão após definir SLAs
+  async function enviarParaRevisao(e, id) {
+    e.preventDefault();
+
+    // Verificar se todos os planos de ação foram definidos
+    const checklist = apr.checklist;
+    let temPendencias = false;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade mas não tem plano de ação definido
+        if (hasInconformity && !question.resp_pa_selectedOption) {
+          temPendencias = true;
+        }
+      });
+    });
+
+    if (temPendencias) {
+      toast.error("Ainda existem inconformidades sem plano de ação definido!");
+      return;
+    }
+
+    let confirm = window.confirm(
+      "Confirma o envio da APR para revisão? O revisor e revisor_logistica serão notificados."
+    );
+    if (confirm === false) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Aguardando Revisão",
+          data_envio_revisao: firebase.firestore.FieldValue.serverTimestamp(),
+          data_alteracao: new Date(),
+        });
+
+      toast.success("APR enviada para revisão com sucesso!");
+      logSistem(`APR enviada para revisão pelo ponto focal`, id);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao enviar para revisão: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
   // Função para aplicador finalizar APR após correções
   async function finalizarCorrecoes(e, id) {
     e.preventDefault();
-    
+
     // Verificar se todas as correções pendentes foram feitas
     const checklist = apr.checklist;
     let temPendencias = false;
     let totalCorrecoes = 0;
     let correcoesFeitas = 0;
-    
+
     checklist.forEach((area) => {
       area[1].forEach((question) => {
         if (question.openPA === true && question.resp_pa_selectedOption) {
@@ -817,27 +827,35 @@ export default function Open() {
         }
       });
     });
-    
+
     if (temPendencias) {
-      toast.error(`Ainda existem correções pendentes! (${correcoesFeitas}/${totalCorrecoes} concluídas)`);
+      toast.error(
+        `Ainda existem correções pendentes! (${correcoesFeitas}/${totalCorrecoes} concluídas)`
+      );
       return;
     }
-    
-    let confirm = window.confirm(`Todas as ${totalCorrecoes} correções foram feitas. Deseja enviar a APR para revisão?`);
+
+    let confirm = window.confirm(
+      `Todas as ${totalCorrecoes} correções foram feitas. Deseja enviar a APR para revisão?`
+    );
     if (confirm === false) return;
-    
+
     await firebase
       .firestore()
       .collection(base)
       .doc(id)
       .update({
-        status: 'Aguardando Revisão',
-        data_correcao_aplicador: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "Aguardando Revisão",
+        data_correcao_aplicador:
+          firebase.firestore.FieldValue.serverTimestamp(),
         data_alteracao: new Date(),
       })
       .then(() => {
         toast.success("Correções finalizadas! APR enviada para revisão.");
-        logSistem(`Aplicador finalizou ${totalCorrecoes} correções - APR marcada como Aguardando Revisão`, id);
+        logSistem(
+          `Aplicador finalizou ${totalCorrecoes} correções - APR marcada como Aguardando Revisão`,
+          id
+        );
         ReloadAPR();
       })
       .catch((error) => {
@@ -847,25 +865,37 @@ export default function Open() {
   }
 
   function visualizarAPR(aprId) {
-    window.open(`/open/${aprId}`, '_blank');
+    window.open(`/open/${aprId}`, "_blank");
   }
 
   return (
     <div>
-      <Header name="Aplicar APR" subtitle="Gerador de Relatórios">
-      </Header>
+      <Header name="Aplicar APR" subtitle="Gerador de Relatórios"></Header>
 
       <div className="content">
         <div id="exportContent">
-
           {loadApr ? (
             <>
-              {(user.nivel === "administrador" || (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
+              {(user.nivel === "administrador" ||
+                (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
                 <div className="container header-actions">
                   <div className="siteInfo group-buttons">
-                    <ModalEditSite idDoc={id} ReloadAPR={ReloadAPR} tipoSite={apr.site_id.tipoSite} logSistem={logSistem} />
-                    <ModalInfoSiteAPR sigla={apr.site_id?.Sigla} estado={apr.site_id?.Estado} />
-                    <ModalEditMotivo apr={apr} id={id} logSistem={logSistem} ReloadAPR={ReloadAPR} />
+                    <ModalEditSite
+                      idDoc={id}
+                      ReloadAPR={ReloadAPR}
+                      tipoSite={apr.site_id.tipoSite}
+                      logSistem={logSistem}
+                    />
+                    <ModalInfoSiteAPR
+                      sigla={apr.site_id?.Sigla}
+                      estado={apr.site_id?.Estado}
+                    />
+                    <ModalEditMotivo
+                      apr={apr}
+                      id={id}
+                      logSistem={logSistem}
+                      ReloadAPR={ReloadAPR}
+                    />
                   </div>
                 </div>
               )}
@@ -877,21 +907,37 @@ export default function Open() {
                     <div className="card-content">
                       <div className="info-item">
                         <span className="label">SIGLA:</span>
-                        <span className="value">{apr.site_id?.Sigla ? apr.site_id.Sigla + "-" + apr.site_id.Estado : 'N/A'}</span>
+                        <span className="value">
+                          {apr.site_id?.Sigla
+                            ? apr.site_id.Sigla + "-" + apr.site_id.Estado
+                            : "N/A"}
+                        </span>
                       </div>
-                      <div className="info-item" style={{ textTransform: "none" }}>
+                      <div
+                        className="info-item"
+                        style={{ textTransform: "none" }}
+                      >
                         <span className="label">ID APR:</span>
-                        <span className="value">{apr.apr_id ? apr.apr_id : id}</span>
+                        <span className="value">
+                          {apr.apr_id ? apr.apr_id : id}
+                        </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Status:</span>
-                        <span className={`status-badge status-${apr.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <span
+                          className={`status-badge status-${apr.status
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        >
                           {apr.status}
                         </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Classificação:</span>
-                        <span className="value">{apr.status !== "Com Exceção" && calculatePontos(apr.peso)}</span>
+                        <span className="value">
+                          {apr.status !== "Com Exceção" &&
+                            calculatePontos(apr.peso)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -905,11 +951,17 @@ export default function Open() {
                       </div>
                       <div className="info-item">
                         <span className="label">Cidade:</span>
-                        <span className="value">{apr.site_id?.Cidade && apr.site_id?.Estado ? `${apr.site_id.Cidade}/${apr.site_id.Estado}` : 'N/A'}</span>
+                        <span className="value">
+                          {apr.site_id?.Cidade && apr.site_id?.Estado
+                            ? `${apr.site_id.Cidade}/${apr.site_id.Estado}`
+                            : "N/A"}
+                        </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Criticidade:</span>
-                        <span className={`criticality-badge criticality-${apr.site_id.critical.toLowerCase()}`}>
+                        <span
+                          className={`criticality-badge criticality-${apr.site_id.critical.toLowerCase()}`}
+                        >
                           {apr.site_id.critical}
                         </span>
                       </div>
@@ -929,12 +981,19 @@ export default function Open() {
                       </div>
                       <div className="info-item">
                         <span className="label">Criado:</span>
-                        <span className="value">{format(apr.created.toDate(), "dd/MM/yyyy HH:mm")}</span>
+                        <span className="value">
+                          {format(apr.created.toDate(), "dd/MM/yyyy HH:mm")}
+                        </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Período:</span>
                         <span className="value">
-                          {format(apr.tempoConclusao.inicio.toDate(), "HH:mm")} - {format(apr.tempoConclusao.conclusao.toDate(), "HH:mm")}
+                          {format(apr.tempoConclusao.inicio.toDate(), "HH:mm")}{" "}
+                          -{" "}
+                          {format(
+                            apr.tempoConclusao.conclusao.toDate(),
+                            "HH:mm"
+                          )}
                         </span>
                       </div>
                       <div className="info-item">
@@ -943,8 +1002,9 @@ export default function Open() {
                           {Math.ceil(
                             (apr.tempoConclusao.conclusao.toDate() -
                               apr.tempoConclusao.inicio.toDate()) /
-                            (1000 * 60)
-                          )} min
+                              (1000 * 60)
+                          )}{" "}
+                          min
                         </span>
                       </div>
                     </div>
@@ -964,81 +1024,106 @@ export default function Open() {
                       <div className="info-item">
                         <span className="label">Coordenadas:</span>
                         <span className="value">
-                          {apr.locationCreated.latitude && typeof apr.locationCreated.latitude === 'number'
-                            ? `${apr.locationCreated.latitude.toFixed(5)}, ${apr.locationCreated.longitude.toFixed(5)}`
+                          {apr.locationCreated.latitude &&
+                          typeof apr.locationCreated.latitude === "number"
+                            ? `${apr.locationCreated.latitude.toFixed(
+                                5
+                              )}, ${apr.locationCreated.longitude.toFixed(5)}`
                             : "N/A"}
                         </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Perímetro:</span>
-                        <span className={`perimeter-badge ${
-                          apr.locationCreated.perimetro === "fora perimetro" ? "perimeter-outside" :
-                          apr.locationCreated.perimetro === "Esta dentro do Perimetro" ? "perimeter-inside" :
-                          "perimeter-unknown"
-                        }`}>
+                        <span
+                          className={`perimeter-badge ${
+                            apr.locationCreated.perimetro === "fora perimetro"
+                              ? "perimeter-outside"
+                              : apr.locationCreated.perimetro ===
+                                "Esta dentro do Perimetro"
+                              ? "perimeter-inside"
+                              : "perimeter-unknown"
+                          }`}
+                        >
                           {apr.locationCreated.perimetro}
                         </span>
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
 
               <div className="container">
                 <div className="info-card history-card">
                   <div className="card-title">📚 Histórico de APRs</div>
-                    <div className="card-content">
-                      {loadHistorico ? (
-                        historicoAPRs.length > 0 ? (
-                          <div className="history-list">
-                            {historicoAPRs.map((aprHist, index) => (
-                              <div key={aprHist.id} className="history-item">
-                                <div className="history-header">
-                                  <div className="history-id-wrapper">
-                                    <span className="history-label">APR</span>
-                                    <span className="history-id">{aprHist.apr_id}</span>
-                                  </div>
-                                  <span className={`status-badge status-${aprHist.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                                    {aprHist.status}
+                  <div className="card-content">
+                    {loadHistorico ? (
+                      historicoAPRs.length > 0 ? (
+                        <div className="history-list">
+                          {historicoAPRs.map((aprHist, index) => (
+                            <div key={aprHist.id} className="history-item">
+                              <div className="history-header">
+                                <div className="history-id-wrapper">
+                                  <span className="history-label">APR</span>
+                                  <span className="history-id">
+                                    {aprHist.apr_id}
                                   </span>
                                 </div>
-                                <div className="history-body">
-                                  <div className="history-motivo-wrapper">
-                                    <span className="motivo-label">Motivo:</span>
-                                    <span className="history-motivo">{aprHist.motivo}</span>
-                                  </div>
-                                  {aprHist.created && (
-                                    <span className="history-date">
-                                      📅 {format(aprHist.created.toDate(), "dd/MM/yyyy")} às {format(aprHist.created.toDate(), "HH:mm")}
-                                    </span>
-                                  )}
-                                </div>
-                                <button 
-                                  className="btn-visualizar"
-                                  onClick={() => visualizarAPR(aprHist.id)}
-                                  title="Visualizar APR"
+                                <span
+                                  className={`status-badge status-${aprHist.status
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "-")}`}
                                 >
-                                  👁️ Visualizar
-                                </button>
+                                  {aprHist.status}
+                                </span>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="no-history">
-                            <span>📋 Nenhuma APR anterior encontrada para este site</span>
-                          </div>
-                        )
-                      ) : (
-                        <div className="loading-history">
-                          <span>🔄 Carregando histórico...</span>
+                              <div className="history-body">
+                                <div className="history-motivo-wrapper">
+                                  <span className="motivo-label">Motivo:</span>
+                                  <span className="history-motivo">
+                                    {aprHist.motivo}
+                                  </span>
+                                </div>
+                                {aprHist.created && (
+                                  <span className="history-date">
+                                    📅{" "}
+                                    {format(
+                                      aprHist.created.toDate(),
+                                      "dd/MM/yyyy"
+                                    )}{" "}
+                                    às{" "}
+                                    {format(aprHist.created.toDate(), "HH:mm")}
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                className="btn-visualizar"
+                                onClick={() => visualizarAPR(aprHist.id)}
+                                title="Visualizar APR"
+                              >
+                                👁️ Visualizar
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      ) : (
+                        <div className="no-history">
+                          <span>
+                            📋 Nenhuma APR anterior encontrada para este site
+                          </span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="loading-history">
+                        <span>🔄 Carregando histórico...</span>
+                      </div>
+                    )}
                   </div>
                 </div>
+              </div>
 
-              {(apr.valor_armazenamento || apr.valor_transporte || apr.valor_sinistro) && (
+              {(apr.valor_armazenamento ||
+                apr.valor_transporte ||
+                apr.valor_sinistro) && (
                 <div className="container">
                   <div className="siteInfo" style={{ flexDirection: "column" }}>
                     <span>Valor Armazenamento:</span>{" "}
@@ -1122,7 +1207,12 @@ export default function Open() {
                                   let area = doc.areaResposavel.includes(
                                     user.area
                                   );
-                                  if (doc.openPA === true && doc.resp !== "N/A" && doc.respGabarito !== doc.resp && area === true) {
+                                  if (
+                                    doc.openPA === true &&
+                                    doc.resp !== "N/A" &&
+                                    doc.respGabarito !== doc.resp &&
+                                    area === true
+                                  ) {
                                     return (
                                       <div
                                         key={indexQ}
@@ -1141,16 +1231,18 @@ export default function Open() {
                                             Quantidade: {doc.respInputNumber}
                                           </span>
                                         )}
-                                        {(doc.listCheck && doc.optionListResp !== '') && doc.optionListResp.map(
-                                          (value, index) => {
-                                            return (
-                                              <span className="list_resp_question">
-                                                <FiCheckSquare />
-                                                {value}
-                                              </span>
-                                            );
-                                          }
-                                        )}
+                                        {doc.listCheck &&
+                                          doc.optionListResp !== "" &&
+                                          doc.optionListResp.map(
+                                            (value, index) => {
+                                              return (
+                                                <span className="list_resp_question">
+                                                  <FiCheckSquare />
+                                                  {value}
+                                                </span>
+                                              );
+                                            }
+                                          )}
                                         {doc.respTextArea && (
                                           <>
                                             Comentario:
@@ -1179,7 +1271,10 @@ export default function Open() {
                                             )}
                                           </>
                                         )}
-                                        {doc.openPA === true && doc.resp !== "N/A" && doc.resp !== doc.respGabarito && user.uid !== apr.id_user ? (
+                                        {doc.openPA === true &&
+                                        doc.resp !== "N/A" &&
+                                        doc.resp !== doc.respGabarito &&
+                                        user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -1190,7 +1285,10 @@ export default function Open() {
                                                   }
                                                 >
                                                   <FiCheck size={20} />
-                                                  {user.nivel === "aplicador" && doc.resp_pa_selectedOption ? "✏️ Corrigir" : "Plano de Ação"}
+                                                  {user.nivel === "aplicador" &&
+                                                  doc.resp_pa_selectedOption
+                                                    ? "✏️ Corrigir"
+                                                    : "Plano de Ação"}
                                                 </a>
                                               ) : (
                                                 <a
@@ -1199,7 +1297,10 @@ export default function Open() {
                                                     togglePostModal(doc, indexA)
                                                   }
                                                 >
-                                                  {user.nivel === "aplicador" && doc.resp_pa_selectedOption ? "✏️ Corrigir" : "Plano de Ação"}
+                                                  {user.nivel === "aplicador" &&
+                                                  doc.resp_pa_selectedOption
+                                                    ? "✏️ Corrigir"
+                                                    : "Plano de Ação"}
                                                 </a>
                                               )}
                                             </label>
@@ -1208,34 +1309,42 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                                <>
-                                                  <label>Plano de Ação:</label>
-                                                  Tempo:{" "}
-                                                  <i>{doc.plano_acao.tempo}</i>
-                                                  Comentario:{" "}
-                                                  <i>
-                                                    {doc.plano_acao.comentario}
-                                                  </i>
-                                                </>
-                                              )}
+                                              <>
+                                                <label>Plano de Ação:</label>
+                                                Tempo:{" "}
+                                                <i>{doc.plano_acao.tempo}</i>
+                                                Comentario:{" "}
+                                                <i>
+                                                  {doc.plano_acao.comentario}
+                                                </i>
+                                              </>
+                                            )}
                                           </>
                                         )}
                                       </div>
                                     );
                                   }
-                                } else if (user.nivel === "revisor" || user.nivel === "administrador" || user.uid === apr.user_id.uid) {
+                                } else if (
+                                  user.nivel === "revisor" ||
+                                  user.nivel === "administrador" ||
+                                  user.uid === apr.user_id.uid
+                                ) {
                                   return (
                                     <div
                                       key={indexQ}
                                       className="container-perg-open"
                                       id={indexA + "-export-" + indexQ}
                                       style={{
-                                        background: ((doc.resp && doc.answers) || (!doc.resp && !doc.answers))
-                                          ? "#e7e6e6"
-                                          : "transparent",
+                                        background:
+                                          (doc.resp && doc.answers) ||
+                                          (!doc.resp && !doc.answers)
+                                            ? "#e7e6e6"
+                                            : "transparent",
                                       }}
                                     >
-                                      {(apr.status === "Em Aberto" || (apr.status === "Aguardando Correção" && user.uid === apr.user_id.uid)) && (
+                                      {(apr.status === "Em Aberto" ||
+                                        (apr.status === "Aguardando Correção" &&
+                                          user.uid === apr.user_id.uid)) && (
                                         <ModalEdit
                                           areaIndex={indexA}
                                           questionIndex={indexQ}
@@ -1260,7 +1369,8 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {(doc.listCheck && doc.optionListResp !== '') &&
+                                      {doc.listCheck &&
+                                        doc.optionListResp !== "" &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (
@@ -1307,13 +1417,21 @@ export default function Open() {
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a
-                                                data-check={doc.resp_pa_status === 'Concluido' ? 'Sim' : 'Concluido'}
+                                                data-check={
+                                                  doc.resp_pa_status ===
+                                                  "Concluido"
+                                                    ? "Sim"
+                                                    : "Concluido"
+                                                }
                                                 onClick={() =>
                                                   togglePostModal(doc, indexA)
                                                 }
                                               >
                                                 <FiCheck size={20} />
-                                                {doc.resp_pa_status === 'Concluido' ? 'Plano de Ação Validado' : 'Plano de Ação'}
+                                                {doc.resp_pa_status ===
+                                                "Concluido"
+                                                  ? "Plano de Ação Validado"
+                                                  : "Plano de Ação"}
                                               </a>
                                             ) : (
                                               <a
@@ -1348,7 +1466,8 @@ export default function Open() {
                                           Quantidade: {doc.respInputNumber}
                                         </span>
                                       )}
-                                      {(doc.listCheck && doc.optionListResp !== '') &&
+                                      {doc.listCheck &&
+                                        doc.optionListResp !== "" &&
                                         doc.optionListResp.map(
                                           (value, index) => {
                                             return (
@@ -1432,52 +1551,77 @@ export default function Open() {
                       if (apr.checklist) {
                         apr.checklist.forEach((area) => {
                           area[1].forEach((question) => {
-                            if (question.openPA === true && 
-                                question.plano_acao && 
-                                question.plano_acao.comentario) {
+                            if (
+                              question.openPA === true &&
+                              question.plano_acao &&
+                              question.plano_acao.comentario
+                            ) {
                               temPlanoAcao = true;
                             }
                           });
                         });
                       }
-                      
+
                       // Mostrar botão para aplicador, revisor ou administrador quando há plano de ação
-                      const podeFinalizarCorrecoes = (user.nivel === "aplicador" || user.nivel === "revisor" || user.nivel === "administrador");
-                      
+                      const podeFinalizarCorrecoes =
+                        user.nivel === "aplicador" ||
+                        user.nivel === "revisor" ||
+                        user.nivel === "administrador";
+
                       // Esconder botão se já foi revisado, enviado ou concluído
-                      const statusPermitido = ["Aguardando Correção"].includes(apr.status);
-                      
-                      return (podeFinalizarCorrecoes && temPlanoAcao && statusPermitido) && (
-                        <div className="finalization-section" style={{ marginBottom: '20px' }}>
-                          <div className="section-header">
-                            <h3>✅ Finalizar Correções</h3>
-                            <p>Após corrigir todos os pontos pendentes, clique no botão abaixo para enviar a APR para revisão</p>
+                      const statusPermitido = ["Aguardando Correção"].includes(
+                        apr.status
+                      );
+
+                      return (
+                        podeFinalizarCorrecoes &&
+                        temPlanoAcao &&
+                        statusPermitido && (
+                          <div
+                            className="finalization-section"
+                            style={{ marginBottom: "20px" }}
+                          >
+                            <div className="section-header">
+                              <h3>✅ Finalizar Correções</h3>
+                              <p>
+                                Após corrigir todos os pontos pendentes, clique
+                                no botão abaixo para enviar a APR para revisão
+                              </p>
+                            </div>
+
+                            <div className="finalization-action">
+                              <button
+                                className="btn-finalize-correction"
+                                onClick={(e) => finalizarCorrecoes(e, id)}
+                                style={{
+                                  backgroundColor: "#4caf50",
+                                  color: "white",
+                                  padding: "12px 24px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  border: "none",
+                                  borderRadius: "8px",
+                                  cursor: "pointer",
+                                  width: "100%",
+                                  marginTop: "10px",
+                                }}
+                              >
+                                ✅ Finalizar e Enviar para Revisão
+                              </button>
+                              <p
+                                className="info-text"
+                                style={{
+                                  marginTop: "10px",
+                                  fontSize: "14px",
+                                  color: "#666",
+                                }}
+                              >
+                                ⚠️ Certifique-se de que todas as correções foram
+                                realizadas antes de finalizar
+                              </p>
+                            </div>
                           </div>
-                          
-                          <div className="finalization-action">
-                            <button 
-                              className="btn-finalize-correction" 
-                              onClick={(e) => finalizarCorrecoes(e, id)}
-                              style={{
-                                backgroundColor: '#4caf50',
-                                color: 'white',
-                                padding: '12px 24px',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                width: '100%',
-                                marginTop: '10px'
-                              }}
-                            >
-                              ✅ Finalizar e Enviar para Revisão
-                            </button>
-                            <p className="info-text" style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
-                              ⚠️ Certifique-se de que todas as correções foram realizadas antes de finalizar
-                            </p>
-                          </div>
-                        </div>
+                        )
                       );
                     })()}
 
@@ -1486,98 +1630,225 @@ export default function Open() {
                         <h3>📊 Relatórios Disponíveis</h3>
                         <p>Escolha qual relatório deseja gerar</p>
                       </div>
-                      
+
                       <div className="main-report">
-                        <button className="btn-pdf-main" onClick={(e) => generatePDF(e, "All")}>
+                        <button
+                          className="btn-pdf-main"
+                          onClick={(e) => generatePDF(e, "All")}
+                        >
                           📄 Gerar PDF Completo
                         </button>
                       </div>
-                      
+
                       <div className="secondary-reports">
-                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "oem")}>
+                        <button
+                          className="btn-pdf-secondary"
+                          onClick={(e) => generatePDF(e, "oem")}
+                        >
                           🔧 PDF O&M
                         </button>
-                        <button className="btn-pdf-secondary" onClick={(e) => generatePDF(e, "patrimonio")}>
+                        <button
+                          className="btn-pdf-secondary"
+                          onClick={(e) => generatePDF(e, "patrimonio")}
+                        >
                           🏢 PDF Patrimônio
-                        </button>
-                        <button className="btn-pdf-secondary btn-pdf-inconformidades" onClick={(e) => generatePDFInconformidades(e)}>
-                          ⚠️ PDF Inconformidades
                         </button>
                       </div>
                     </div>
 
-                    {((user.nivel === "administrador" || user.nivel === "revisor" || user.nivel === "revisor_logistica") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado" || apr.status === "Aguardando Revisão")) && (
-                      <div className="revision-section">
-                        <div className="section-header">
-                          <h3>📧 Revisão e Envio</h3>
-                        </div>                      
-                        <div className="revision-action">
-                          <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />
-                          <p className="confirmation-text">Você receberá um e-mail de confirmação após o envio</p>
+                    {(user.nivel === "administrador" ||
+                      user.nivel === "revisor" ||
+                      user.nivel === "revisor_logistica") &&
+                      (apr.status === "Em Aberto" ||
+                        apr.status === "Revisado" ||
+                        apr.status === "Enviado" ||
+                        apr.status === "Aguardando Revisão") && (
+                        <div className="revision-section">
+                          <div className="section-header">
+                            <h3>📧 Revisão e Envio</h3>
+                          </div>
+                          <div className="revision-action">
+                            <EmailLink
+                              apr={apr}
+                              setApr={setApr}
+                              id={id}
+                              logSistem={logSistem}
+                            />
+                            <p className="confirmation-text">
+                              Você receberá um e-mail de confirmação após o
+                              envio
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Seção para ponto_focal enviar para revisão após definir SLAs */}
-                    {(user.nivel === "ponto_focal" && apr.status === "Aguardando Correção") && (
-                      <div className="logistics-section">
-                        <div className="section-header">
-                          <h3>📤 Enviar para Monitoramento</h3>
-                          <p>Após definir todos os planos de ação, envie a APR para monitoramento de SLA</p>
-                          {apr.sla_ponto_focal && (
-                            <div className={`sla-alert ${new Date() > new Date(apr.sla_ponto_focal.toDate()) ? 'sla-expired' : 'sla-active'}`}>
-                              <strong>SLA: </strong>
-                              {new Date(apr.sla_ponto_focal.toDate()).toLocaleDateString('pt-BR')}
-                              {new Date() > new Date(apr.sla_ponto_focal.toDate()) && <span> - ⚠️ VENCIDO</span>}
-                            </div>
-                          )}
+                    {user.nivel === "ponto_focal" &&
+                      apr.status === "Aguardando Correção" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>📤 Enviar para Monitoramento</h3>
+                            <p>
+                              Após definir todos os planos de ação, envie a APR
+                              para monitoramento de SLA
+                            </p>
+                            {apr.sla_ponto_focal && (
+                              <div
+                                className={`sla-alert ${
+                                  new Date() >
+                                  new Date(apr.sla_ponto_focal.toDate())
+                                    ? "sla-expired"
+                                    : "sla-active"
+                                }`}
+                              >
+                                <strong>SLA: </strong>
+                                {new Date(
+                                  apr.sla_ponto_focal.toDate()
+                                ).toLocaleDateString("pt-BR")}
+                                {new Date() >
+                                  new Date(apr.sla_ponto_focal.toDate()) && (
+                                  <span> - ⚠️ VENCIDO</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="finalization-action">
+                            <button
+                              className="btn-send-review"
+                              onClick={(e) => enviarParaMonitoramento(e, id)}
+                            >
+                              📤 Enviar para Monitoramento de SLA
+                            </button>
+                          </div>
                         </div>
-                        <div className="finalization-action">
-                          <button className="btn-send-review" onClick={(e) => enviarParaMonitoramento(e, id)}>
-                            📤 Enviar para Monitoramento de SLA
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {(user.nivel === "revisor_logistica" && (apr.status === "Aguardando Correção" || apr.status === "SLA Ponto Focal Vencido")) && (
-                      <div className="logistics-section">
-                        <div className="section-header">
-                          <h3>🚚 Ponto Focal Logística</h3>
-                          <p>Defina os planos de ação para as inconformidades de logística</p>
-                          {apr.sla_ponto_focal && (
-                            <div className={`sla-alert ${new Date() > new Date(apr.sla_ponto_focal.toDate()) ? 'sla-expired' : 'sla-active'}`}>
-                              <strong>SLA: </strong>
-                              {new Date(apr.sla_ponto_focal.toDate()).toLocaleDateString('pt-BR')}
-                              {new Date() > new Date(apr.sla_ponto_focal.toDate()) && <span> - ⚠️ VENCIDO</span>}
-                            </div>
-                          )}
+                    {/* Seção para ponto_focal enviar para revisão após definir SLAs */}
+                    {user.nivel === "ponto_focal" &&
+                      apr.status === "Enviado" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>📤 Enviar para Revisão</h3>
+                            <p>
+                              Todos os planos de ação foram definidos. Envie a APR
+                              para revisão do revisor e revisor_logistica
+                            </p>
+                            {verificarSeTemPendencias() && (
+                              <div style={{ color: '#ff6b6b', marginTop: '10px', fontSize: '14px' }}>
+                                ⚠️ Ainda existem inconformidades sem plano de ação definido
+                              </div>
+                            )}
+                          </div>
+                          <div className="finalization-action">
+                            <button
+                              className="btn-send-review"
+                              onClick={(e) => enviarParaRevisao(e, id)}
+                              disabled={verificarSeTemPendencias()}
+                              style={{
+                                opacity: verificarSeTemPendencias() ? 0.5 : 1,
+                                cursor: verificarSeTemPendencias() ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              📤 Finalizar e Enviar para Revisão
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    
+
+                    {user.nivel === "revisor_logistica" &&
+                      apr.status === "Aguardando Correção" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>✅ Enviar para Operação</h3>
+                            <p>
+                              Todos os planos de ação foram validados. Envie para operação para que o aplicador confira as correções.
+                            </p>
+                          </div>
+                          <div className="finalization-action">
+                            <button
+                              className="btn-send-review"
+                              onClick={(e) => enviarParaOperacao(e, id)}
+                              disabled={!verificarTodosValidados()}
+                              style={{
+                                opacity: verificarTodosValidados() ? 1 : 0.5,
+                                cursor: verificarTodosValidados() ? 'pointer' : 'not-allowed',
+                              }}
+                            >
+                              📤 Enviar para Operação
+                            </button>
+                            {!verificarTodosValidados() && (
+                              <p style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b' }}>
+                                ⚠️ Nem todos os planos foram validados ainda
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {user.nivel === "revisor_logistica" &&
+                      apr.status === "Em Aberto" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>✅ Acompanhamento de Operação</h3>
+                            <p>
+                              Aguarde o aplicador conferir as correções
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Seção para revisor_logistica finalizar APR após correções */}
+                    {user.nivel === "revisor_logistica" &&
+                      apr.status === "Respondido pela Area" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>✅ Acompanhamento de SLA Concluído</h3>
+                            <p>
+                              As correções foram realizadas. Finalize a APR
+                            </p>
+                          </div>
+                          <div className="finalization-action">
+                            <button
+                              className="btn-send-review"
+                              onClick={(e) => finalizarAPRRevisorLogistica(e, id)}
+                            >
+                              ✅ Finalizar APR
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                     {/* Botão para finalizar APR - apenas quando status for Aguardando Revisão */}
                     {/* Ponto focal NÃO pode encerrar APR, apenas insere planos de ação */}
-                    {((user.nivel === "administrador" || user.nivel === "revisor" || user.nivel === "revisor_logistica" || user.nivel === "aplicador") 
-                      && user.nivel !== "ponto_focal" 
-                      && apr.status === "Aguardando Revisão") && (
-                      <div className="finalization-section">
-                        <div className="section-header">
-                          <h3>✅ Finalização</h3>
-                          <p>Todas as correções foram realizadas. Conclua o processo da APR</p>
+                    {(user.nivel === "administrador" ||
+                      user.nivel === "revisor" ||
+                      user.nivel === "revisor_logistica" ||
+                      user.nivel === "aplicador") &&
+                      user.nivel !== "ponto_focal" &&
+                      apr.status === "Aguardando Revisão" && (
+                        <div className="finalization-section">
+                          <div className="section-header">
+                            <h3>✅ Finalização</h3>
+                            <p>
+                              Todas as correções foram realizadas. Conclua o
+                              processo da APR
+                            </p>
+                          </div>
+
+                          <div className="finalization-action">
+                            <button
+                              className="btn-finalize-main"
+                              onClick={(e) => updateStatusAPR(e, id)}
+                            >
+                              ✅ Encerrar APR
+                            </button>
+                          </div>
                         </div>
-                        
-                        <div className="finalization-action">
-                          <button className="btn-finalize-main" onClick={(e) => updateStatusAPR(e, id)}>
-                            ✅ Encerrar APR
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      )}
                   </form>
                 </div>
               )}
-
             </>
           ) : (
             <div className="container">Carregando dados APR...</div>
