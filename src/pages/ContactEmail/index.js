@@ -391,11 +391,10 @@ export default function ContactEmail() {
   return (
     <div className="apr-contact-email">
       <Header name="Contato">
-        <FiMessageSquare size={25} />
       </Header>
       <div className="content">
 
-        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
+        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1, margin: "20px 15px" }}>
           <TextField
             label="Filtrar por Estado"
             value={filterEstado}
@@ -443,7 +442,7 @@ export default function ContactEmail() {
         </Box>
 
         {paginatedEstados.map((estado) => (
-          <Accordion key={estado}>
+          <Accordion key={estado} sx={{margin: "0px 15px"}}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Checkbox
                 checked={!!selectedEstados[estado]}

@@ -179,7 +179,7 @@ export default function LogManagement() {
         <FiMessageSquare size={25} onClick={() => loadAllLogs()} />
       </Header>
       <div className="content">
-        <div style={{ marginBottom: "20px" }} className="info-user">
+        <div style={{ margin: "20px 15px" }} className="info-user">
           <Autocomplete
             freeSolo
             size="small"
@@ -226,7 +226,7 @@ export default function LogManagement() {
           </Button>
         </div>
         {userDetails && searchUser && (
-          <div style={{ marginBottom: "20px" }} className="details-user">
+          <div style={{ margin: "20px 15px" }} className="details-user">
             <Typography variant="h6">Informações do Usuário:</Typography>
             <Typography>Nome: {userDetails.nome}</Typography>
             <Typography>Email: {userDetails.email}</Typography>

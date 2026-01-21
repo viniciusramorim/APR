@@ -18,8 +18,9 @@
 }
 
 .filter-reports-container {
-  padding: 20px 0px 10px 15px;
+  padding: 20px 20px 10px 15px;
   background: $reports-bg-color;
+  margin:20px;
 }
 
 @include respond-to(medium) {

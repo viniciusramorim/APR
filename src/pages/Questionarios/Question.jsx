@@ -691,9 +691,8 @@ const ChecklistManager = () => {
 
   return (
     <div className="apr-digital">
-      <Header />
+      <Header name="Gerenciamento de Checklist" subtitle="Crie, edite e gerencie seus checklists de forma eficiente."></Header>
       <div className="content">
-        <Title name="Gerenciamento de Checklist" />
         <div className="container">
           <Container maxWidth="xl">
             <Box sx={{ mt: 4, mb: 4 }}>

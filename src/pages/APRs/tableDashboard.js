@@ -19,6 +19,7 @@ import ModalLog from "../../components/Modal_Logs";
 import { Link } from "react-router-dom";
 import { ArrowBack, Close, Search } from "@mui/icons-material";
 import { TableHead, TableSortLabel } from "@mui/material";
+import "../APRs/index.scss";
 
 // Função para salvar a página no localStorage
 const savePageToLocalStorage = (page) => {

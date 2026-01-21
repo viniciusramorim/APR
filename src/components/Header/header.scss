@@ -51,6 +51,7 @@
   max-width: 100%;
   width: 100%;
   position: relative;
+  margin-top: 100px;
 }
 
 .header-fixed {
@@ -62,8 +63,11 @@
     align-content: center;
     justify-content: space-between;
     align-items: center;
-    position:relative;
+    position:fixed;
+    top: 0px;
+    width: 100%;
     margin-bottom: 20px;
+    z-index: 1000;
 }
 .header-fixed::before {
     content: '';

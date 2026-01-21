@@ -504,6 +504,19 @@ export default function Dashboard() {
               xs={5.5}
               sm={6}
               md={2.9}
+              sx={styles.pendendia}
+            >
+              <Grid>Aguardando Ponto Focal</Grid>
+              <Grid>{chamados.filter((x) => x.status === "Aguardando Correção").length}</Grid>
+            </Grid>
+
+            <Grid
+              container
+              item
+              direction="column"
+              xs={5.5}
+              sm={6}
+              md={2.9}
               sx={styles.containerDash}
             >
               <Grid>Em Aberto</Grid>

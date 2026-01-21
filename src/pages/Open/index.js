@@ -868,6 +868,332 @@ export default function Open() {
     window.open(`/open/${aprId}`, "_blank");
   }
 
+  // Função para gerar PDF apenas das inconformidades
+  async function generateInconformidadesPDF(e) {
+    e.preventDefault();
+
+    let pdf = {
+      compress: true,
+      content: [],
+    };
+
+    pdf.content.push({
+      image: await getBase64ImageFromURL(telefonicaLogo),
+      width: 100,
+      margin: [0, 0, 0, 10],
+    });
+
+    pdf.content.push({
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
+    });
+
+    pdf.content.push({
+      text: "RELATÓRIO DE INCONFORMIDADES",
+      fontSize: 18,
+      bold: true,
+      alignment: "center",
+      margin: [0, 20, 0, 10],
+      color: "#00529B",
+    });
+
+    pdf.content.push({
+      margin: [0, 20, 0, 0],
+      table: {
+        widths: [300, 300],
+        body: [["ID: " + apr.apr_id]],
+      },
+      layout: "noBorders",
+    });
+
+    pdf.content.push({
+      margin: [0, 10, 0, 0],
+      table: {
+        widths: [300, 300],
+        body: [
+          [
+            "Nome: " + apr.user_id.nome,
+            "Criado em: " + format(apr.created.toDate(), "dd/MM/yyyy HH:mm"),
+          ],
+        ],
+      },
+      layout: "noBorders",
+    });
+
+    pdf.content.push({
+      margin: [0, 10, 0, 0],
+      table: {
+        widths: [300, 300],
+        body: [
+          [
+            "Sigla-UF: " +
+              (apr.site_id?.Sigla || "N/A") +
+              "-" +
+              (apr.site_id?.Estado || "N/A"),
+            "Unidade: " + (apr.site_id?.Nome || "N/A"),
+          ],
+        ],
+      },
+      layout: "noBorders",
+    });
+
+    pdf.content.push({
+      canvas: [
+        { type: "rect", x: -20, y: 0, w: 560, h: 1, lineColor: "lightblue" },
+      ],
+      margin: [0, 20, 0, 0],
+    });
+
+    let temInconformidades = false;
+
+    for (const area of apr.checklist) {
+      const docs = area[1];
+      let areaComInconformidades = false;
+
+      for (const doc of docs) {
+        if (!doc) continue;
+
+        // Verificar se é uma inconformidade
+        const isInconformidade =
+          doc.resp !== "" &&
+          doc.resp !== "N/A" &&
+          doc.resp !== doc.respGabarito;
+
+        if (!isInconformidade) continue;
+
+        if (!areaComInconformidades) {
+          pdf.content.push({
+            text: area[0],
+            bold: true,
+            fontSize: 16,
+            margin: [0, 20, 0, 10],
+            color: "#00529B",
+            decoration: "underline",
+          });
+          areaComInconformidades = true;
+        }
+
+        temInconformidades = true;
+
+        // Processar imagens
+        for (const imgs of doc.imagesURL) {
+          imgs.url = await getBase64ImageFromURL(imgs.url);
+        }
+
+        pdf.content.push({
+          text: `${doc.question}`,
+          fontSize: 12,
+          bold: true,
+          margin: [0, 10, 0, 5],
+          background: "#FFE5E5",
+          alignment: "left",
+        });
+
+        // Resposta com cor de destaque
+        pdf.content.push({
+          table: {
+            widths: ["*"],
+            body: [
+              [
+                {
+                  text: doc.resp,
+                  fillColor: "#F44336",
+                  color: "white",
+                  alignment: "center",
+                  bold: true,
+                  margin: [0, 5, 0, 5],
+                },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: function () {
+              return 0;
+            },
+            vLineWidth: function () {
+              return 0;
+            },
+          },
+          margin: [0, 5, 0, 5],
+        });
+
+        // Opções de lista
+        if (doc.optionListResp?.length > 0) {
+          pdf.content.push({
+            ul: doc.optionListResp.map((option) => `${option}`),
+            margin: [10, 5, 0, 5],
+          });
+        }
+
+        // Quantidade
+        if (doc.respQuantidade) {
+          pdf.content.push({
+            text: `Quantidade: ${doc.respQuantidade}`,
+            margin: [10, 5, 0, 5],
+            italics: true,
+          });
+        }
+
+        if (doc.respInputNumber) {
+          pdf.content.push({
+            text: `Quantidade: ${doc.respInputNumber}`,
+            margin: [10, 5, 0, 5],
+            italics: true,
+          });
+        }
+
+        // Observações
+        if (doc.respTextArea !== "") {
+          pdf.content.push({
+            text: `Observações: ${doc.respTextArea}`,
+            italics: true,
+            margin: [10, 5, 0, 5],
+            color: "#666",
+          });
+        }
+
+        // Plano de Ação (se existir)
+        if (doc.resp_pa_selectedOption) {
+          pdf.content.push({
+            text: "Plano de Ação:",
+            bold: true,
+            fontSize: 11,
+            margin: [10, 10, 0, 5],
+            color: "#00529B",
+          });
+
+          pdf.content.push({
+            text: `Opção: ${doc.resp_pa_selectedOption}`,
+            margin: [20, 5, 0, 5],
+          });
+
+          if (doc.resp_pa_sla) {
+            pdf.content.push({
+              text: `SLA: ${format(
+                doc.resp_pa_sla.toDate(),
+                "dd/MM/yyyy"
+              )}`,
+              margin: [20, 5, 0, 5],
+            });
+          }
+
+          if (doc.resp_pa_responsavel) {
+            pdf.content.push({
+              text: `Responsável: ${doc.resp_pa_responsavel}`,
+              margin: [20, 5, 0, 5],
+            });
+          }
+
+          if (doc.resp_pa_observacao) {
+            pdf.content.push({
+              text: `Observação: ${doc.resp_pa_observacao}`,
+              margin: [20, 5, 0, 5],
+              italics: true,
+            });
+          }
+
+          if (doc.resp_pa_status) {
+            const statusColor =
+              doc.resp_pa_status === "Concluido"
+                ? "#4CAF50"
+                : doc.resp_pa_status === "Em Andamento"
+                ? "#FFA500"
+                : "#F44336";
+
+            pdf.content.push({
+              text: `Status: ${doc.resp_pa_status}`,
+              margin: [20, 5, 0, 5],
+              color: statusColor,
+              bold: true,
+            });
+          }
+        }
+
+        // Imagens ANTES (originais da inconformidade)
+        if (doc.imagesURL && doc.imagesURL.length > 0) {
+          pdf.content.push({
+            text: "📸 Fotos ANTES:",
+            bold: true,
+            fontSize: 11,
+            margin: [10, 10, 0, 5],
+            color: "#F44336",
+          });
+
+          for (const imgs of doc.imagesURL) {
+            try {
+              pdf.content.push({
+                image: imgs.url,
+                width: 150,
+                height: 150,
+                margin: [20, 5, 10, 5],
+              });
+            } catch (error) {
+              console.log("Erro ao adicionar imagem ANTES: ", error);
+            }
+          }
+        }
+
+        // Imagens DEPOIS (correção)
+        if (doc.plano_acao?.imagens_correcao && doc.plano_acao.imagens_correcao.length > 0) {
+          pdf.content.push({
+            text: "✅ Fotos DEPOIS (Correção):",
+            bold: true,
+            fontSize: 11,
+            margin: [10, 10, 0, 5],
+            color: "#4CAF50",
+          });
+
+          for (const imgUrl of doc.plano_acao.imagens_correcao) {
+            try {
+              const imgBase64 = await getBase64ImageFromURL(imgUrl);
+              pdf.content.push({
+                image: imgBase64,
+                width: 150,
+                height: 150,
+                margin: [20, 5, 10, 5],
+              });
+            } catch (error) {
+              console.log("Erro ao adicionar imagem DEPOIS: ", error);
+            }
+          }
+        }
+
+        pdf.content.push({
+          canvas: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 520,
+              y2: 0,
+              lineWidth: 0.5,
+              lineColor: "#ccc",
+            },
+          ],
+          margin: [0, 20, 0, 20],
+        });
+      }
+    }
+
+    if (!temInconformidades) {
+      pdf.content.push({
+        text: "Nenhuma inconformidade encontrada! ✅",
+        fontSize: 14,
+        alignment: "center",
+        margin: [0, 50, 0, 0],
+        color: "#4CAF50",
+        bold: true,
+      });
+    }
+
+    pdfMake
+      .createPdf(pdf)
+      .download(`APR_Inconformidades_${apr.apr_id}_${Date.now()}.pdf`);
+
+    toast.success("PDF de Inconformidades gerado com sucesso!");
+  }
+
   return (
     <div>
       <Header name="Aplicar APR" subtitle="Gerador de Relatórios"></Header>
@@ -1652,6 +1978,12 @@ export default function Open() {
                           onClick={(e) => generatePDF(e, "patrimonio")}
                         >
                           🏢 PDF Patrimônio
+                        </button>
+                        <button
+                          className="btn-pdf-secondary"
+                          onClick={(e) => generateInconformidadesPDF(e)}
+                        >
+                          ⚠️ PDF Inconformidades
                         </button>
                       </div>
                     </div>

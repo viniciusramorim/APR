@@ -513,7 +513,7 @@ export default function Oem() {
         <FiFileText size={25} />
       </Header>
       <div className="content">
-        <div className="filter-reports-container">
+        <div className="filter-reports-container" sx={{ margin:"20px" }}>
           <div className="filter-reports">
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={3}>
@@ -730,7 +730,7 @@ export default function Oem() {
                                       </Grid>
                                       <Grid item xs={12} sm={2}>
                                         {(user.nivel === "administrador" ||
-                                            user.nivel === "revisor") && <ModalLog sx={{zIndex:1}} chamadoId={question.uid} />}
+                                          user.nivel === "revisor") && <ModalLog sx={{ zIndex: 1 }} chamadoId={question.uid} />}
                                       </Grid>
                                     </Grid>
                                   </Grid>
