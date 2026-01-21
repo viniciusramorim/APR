@@ -394,6 +394,14 @@ export default function New() {
   }
 
   function hasRequired() {
+    // Validar Tipo de Loja
+    if (siteInfo.tipoSite && ["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) {
+      if (!tipoLoja || tipoLoja === "") {
+        toast.error("O campo 'Tipo de Loja' é obrigatório");
+        return true;
+      }
+    }
+    
     for (let area of questions) {
       for (let question of area[1]) {
         let questionStatus = enableQuestions(question);

@@ -30,6 +30,7 @@ export default function Reports() {
   const [filterMotivo, setFilterMotivo] = useState("");
   const [filterTipoSite, setFilterTipoSite] = useState("");
   const [includeQuestions, setIncludeQuestions] = useState(false);
+  const [sitesCache, setSitesCache] = useState(new Map());
 
   useEffect(() => {
     addBodyClass('page-reports');
@@ -38,68 +39,98 @@ export default function Reports() {
   async function loadChamados() {
     setLoading(true);
     try {
-      let query = firebase.firestore().collection("aprs-producao");
+      const allResults = [];
+      const newCache = new Map();
 
-      // Filtro por Data
+      // Dividir período em lotes de 30 dias se houver filtro de data
       if (filterDate.startDate && filterDate.endDate) {
-        console.log('data filter')
+        console.log('Buscando dados em lotes mensais para evitar timeout...');
         const start = new Date(filterDate.startDate);
         const end = new Date(filterDate.endDate);
-        end.setDate(end.getDate() + 1); // Inclui o dia final
-        query = query.where("created", ">=", start).where("created", "<", end);
-      }
-
-      // Filtro por Status
-      if (filterStatus) {
-        console.log('data status')
-        query = query.where("status", "==", filterStatus);
-      }
-
-      // Filtro por Motivo
-      if (filterMotivo && filterMotivo !== "Todos") {
-        console.log('motivo filter')
-        query = query.where("motivo_apr", "==", filterMotivo);
-      }
-
-      // Filtro por Tipo de Site
-      if (filterTipoSite && filterTipoSite !== "todos") {
-        console.log('tipo site filter')
-        query = query.where("site_id.tipoSite", "==", filterTipoSite);
-      }
-
-      query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query
-
-      const snapshot = await query.get();
-      const list = [];
-
-      // Enriquecer dados com informações atualizadas da collection sites
-      for (const doc of snapshot.docs) {
-        const aprData = { id: doc.id, ...doc.data() };
         
-        try {
-          // Buscar dados atualizados da collection sites
-          const siteQuery = await firebase.firestore().collection('sites')
-            .where("Sigla", "==", aprData.site_id.Sigla)
-            .where("Estado", "==", aprData.site_id.Estado)
-            .get();
+        let currentStart = new Date(start);
+        let batchNumber = 1;
+        
+        while (currentStart < end) {
+          let currentEnd = new Date(currentStart);
+          currentEnd.setDate(currentEnd.getDate() + 30); // Lotes de 30 dias
           
-          if (!siteQuery.empty) {
-            const siteData = siteQuery.docs[0].data();
-            // Atualizar os dados do site com informações mais recentes
-            aprData.site_id = {
-              ...aprData.site_id,
-              Operador_logistico: siteData.Operador_logistico || siteData['Operador Logistico'] || aprData.site_id.Operador_logistico,
-              Cobertura_Seguro: siteData.Cobertura_Seguro || siteData['Cobertura Seguro'] || aprData.site_id.Cobertura_Seguro
-            };
+          if (currentEnd > end) {
+            currentEnd = new Date(end);
           }
-        } catch (error) {
-          console.error('Erro ao buscar dados do site:', error);
+          currentEnd.setDate(currentEnd.getDate() + 1); // Inclui o dia final
+          
+          console.log(`Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
+          
+          // Construir query para este período
+          let query = firebase.firestore().collection("aprs-producao")
+            .where("created", ">=", currentStart)
+            .where("created", "<", currentEnd);
+
+          // Aplicar outros filtros
+          if (filterStatus) {
+            query = query.where("status", "==", filterStatus);
+          }
+          if (filterMotivo && filterMotivo !== "Todos") {
+            query = query.where("motivo_apr", "==", filterMotivo);
+          }
+          if (filterTipoSite && filterTipoSite !== "todos") {
+            query = query.where("site_id.tipoSite", "==", filterTipoSite);
+          }
+          query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
+
+          const snapshot = await query.get();
+          console.log(`  -> Encontrados ${snapshot.docs.length} APRs neste lote`);
+          
+          // Processar resultados deste lote
+          snapshot.docs.forEach(doc => {
+            const aprData = { id: doc.id, ...doc.data() };
+            const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
+            
+            if (!newCache.has(siteKey) && aprData.site_id) {
+              newCache.set(siteKey, aprData.site_id);
+            }
+            
+            allResults.push(aprData);
+          });
+          
+          // Avançar para o próximo período
+          currentStart = new Date(currentEnd);
+          batchNumber++;
         }
+      } else {
+        // Sem filtro de data - busca normal
+        let query = firebase.firestore().collection("aprs-producao");
+
+        if (filterStatus) {
+          query = query.where("status", "==", filterStatus);
+        }
+        if (filterMotivo && filterMotivo !== "Todos") {
+          query = query.where("motivo_apr", "==", filterMotivo);
+        }
+        if (filterTipoSite && filterTipoSite !== "todos") {
+          query = query.where("site_id.tipoSite", "==", filterTipoSite);
+        }
+        query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
+
+        const snapshot = await query.get();
+        console.log(`Carregados ${snapshot.docs.length} APRs`);
         
-        list.push(aprData);
+        snapshot.docs.forEach(doc => {
+          const aprData = { id: doc.id, ...doc.data() };
+          const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
+          
+          if (!newCache.has(siteKey) && aprData.site_id) {
+            newCache.set(siteKey, aprData.site_id);
+          }
+          
+          allResults.push(aprData);
+        });
       }
 
-      setChamados(list);
+      setSitesCache(newCache);
+      console.log(`Total: ${allResults.length} APRs carregados com ${newCache.size} sites únicos`);
+      setChamados(allResults);
     } catch (err) {
       console.error("Deu algum erro: ", err);
     }
@@ -136,22 +167,17 @@ export default function Reports() {
   }
 
   // Função para processar o APRworksheet
-  async function v0(apr) {
+  async function v0(apr, siteData) {
     if (!apr.peso) return "-";
 
     try {
-      // Fetch the site document based on apr.site_id
-      const querySnapshot = await firebase.firestore().collection('sites')
-        .where("Sigla", "==", apr.site_id.Sigla)
-        .where("Estado", "==", apr.site_id.Estado)
-        .get();
-
-      if (querySnapshot.empty) {
-        console.log("Nenhum documento encontrado.");
-        return;
+      // Usar dados do cache ao invés de fazer nova query
+      if (!siteData) {
+        console.log("Dados do site não encontrados no cache.");
+        return "-";
       }
 
-      const site = querySnapshot.docs[0].data();
+      const site = siteData;
       const classif = calculatePontos(apr.peso);
 
       // Verifying site values
@@ -191,9 +217,21 @@ export default function Reports() {
   async function updateState(snapshot) {
     setLoading(true)
     const relatorioApr = [];
-    const promises = snapshot.map(doc => {
-      if (doc.created !== undefined) {
-        return v0(doc).then(result => {
+    
+    // Processar em lotes para evitar timeout
+    const batchSize = 50;
+    console.log(`Processando ${snapshot.length} APRs em lotes de ${batchSize}...`);
+    
+    for (let i = 0; i < snapshot.length; i += batchSize) {
+      const batch = snapshot.slice(i, i + batchSize);
+      console.log(`Processando lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(snapshot.length/batchSize)}...`);
+      
+      const promises = batch.map(doc => {
+        if (doc.created !== undefined) {
+          const siteKey = `${doc.site_id.Sigla}_${doc.site_id.Estado}`;
+          const siteData = sitesCache.get(siteKey);
+          
+          return v0(doc, siteData).then(result => {
           if (includeQuestions) {
             if (doc.checklist && doc.status !== "Com Exceção") {
               doc.checklist.forEach((blocoQuestion) => {
@@ -358,18 +396,18 @@ export default function Reports() {
           }
         });
       } else {
-        return Promise.resolve();
-      }
-    });
+          return Promise.resolve();
+        }
+      });
 
-    Promise.all(promises).then(() => {
-      console.log(relatorioApr);
-      downloadExcel(relatorioApr);
-      setLoading(false)
-    }).catch(error => {
-      console.error("Erro ao processar documentos:", error);
-      setLoading(false)
-    });
+      await Promise.all(promises).catch(error => {
+        console.error("Erro ao processar lote:", error);
+      });
+    }
+    
+    console.log(`Processamento completo. Total de registros: ${relatorioApr.length}`);
+    downloadExcel(relatorioApr);
+    setLoading(false);
   }
 
   return (
