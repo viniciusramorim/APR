@@ -1018,8 +1018,12 @@ export default function Open() {
                     })}
 
                     <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
-                    <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
-                    <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
+                    {user.nivel !== "usuario_gcm" && (
+                      <>
+                        <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
+                        <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
+                      </>
+                    )}
                     {((user.nivel === "administrador" || user.nivel === "revisor") && (apr.status === "Em Aberto" || apr.status === "Revisado" || apr.status === "Enviado")) && (
                       <Fragment>
                         <EmailLink apr={apr} setApr={setApr} id={id} logSistem={logSistem} />

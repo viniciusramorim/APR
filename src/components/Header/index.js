@@ -133,6 +133,18 @@ export default function Header() {
 
         {user.nivel === "administrador" && (
           <>
+            <Tooltip title="Aplicar APR" placement="right" arrow>
+              <Link to="/new">
+                <PlaylistAddCheckSharpIcon color="#000" size={20} />
+                <i id="label-menu">Aplicar APR</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="APRs" placement="right" arrow>
+              <Link to="/aprs">
+                <FileDownloadDoneSharpIcon color="#000" size={20} />
+                <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
             <Tooltip title="Novo Site" placement="right" arrow>
               <Link to="/new_site">
                 <PlaylistAddSharpIcon color="#000" size={20} />
@@ -210,6 +222,29 @@ export default function Header() {
               <Link to="/contact-email">
                 <Email color="#000" size={20} />
                 <i id="label-menu">Gerenciar Emails</i>
+              </Link>
+            </Tooltip>
+          </>
+        )}
+
+        {user.nivel === "usuario_gcm" && (
+          <>
+            <Tooltip title="Aplicar APR" placement="right" arrow>
+              <Link to="/new">
+                <PlaylistAddCheckSharpIcon color="#000" size={20} />
+                <i id="label-menu">Aplicar APR</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="APRs" placement="right" arrow>
+              <Link to="/aprs">
+                <FileDownloadDoneSharpIcon color="#000" size={20} />
+                <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Relatório" placement="right" arrow>
+              <Link to="/reports">
+                <ContentPasteSearchSharpIcon color="#000" size={20} />
+                <i id="label-menu">Relatório</i>
               </Link>
             </Tooltip>
           </>
