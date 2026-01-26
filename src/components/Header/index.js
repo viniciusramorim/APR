@@ -227,7 +227,7 @@ export default function Header() {
           </>
         )}
 
-        {user.nivel === "usuario_gcm" && (
+        {user.nivel === "usuario_gcn" && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">

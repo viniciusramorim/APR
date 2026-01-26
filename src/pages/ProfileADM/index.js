@@ -405,7 +405,7 @@ export default function ProfileADM() {
                             >
                               Administrador
                             </MenuItem>
-                            <MenuItem value={"usuario_gcm"}>Usuário GCM</MenuItem>
+                            <MenuItem value={"usuario_gcn"}>Usuário GCM</MenuItem>
                             <MenuItem value={"aplicador"}>Aplicador</MenuItem>
                             <MenuItem value={"supervisor"}>Supervisor</MenuItem>
                             <MenuItem value={"revisor"}>Revisor</MenuItem>

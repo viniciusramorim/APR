@@ -1018,7 +1018,7 @@ export default function Open() {
                     })}
 
                     <button onClick={(e) => generatePDF(e, "All")}>Gerar PDF</button>
-                    {user.nivel !== "usuario_gcm" && (
+                    {user.nivel !== "usuario_gcn" && (
                       <>
                         <button onClick={(e) => generatePDF(e, "oem")}>Gerar PDF O&M</button>
                         <button onClick={(e) => generatePDF(e, "patrimonio")}>Gerar PDF Patrimonio</button>
