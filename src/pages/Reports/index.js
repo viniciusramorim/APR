@@ -75,7 +75,7 @@ export default function Reports() {
             query = query.where("motivo_apr", "==", filterMotivo);
           }
           if (filterTipoSite && filterTipoSite !== "todos") {
-            query = query.where("site_id.tipoSite", "==", filterTipoSite);
+            query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
           }
           query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
 
@@ -109,7 +109,7 @@ export default function Reports() {
           query = query.where("motivo_apr", "==", filterMotivo);
         }
         if (filterTipoSite && filterTipoSite !== "todos") {
-          query = query.where("site_id.tipoSite", "==", filterTipoSite);
+          query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
         }
         query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
 
@@ -249,6 +249,7 @@ export default function Reports() {
                       VALOR_TRANSPORTE: doc.valor_transporte ? parseInt(doc.valor_transporte) / 100 : '-',
                       VALOR_ARMAZENAMENTO: doc.valor_armazenamento ? parseInt(doc.valor_armazenamento) / 100 : '-',
                       MOTIVO: doc.motivo_apr,
+                      TIPO_CHECKLIST: doc.site_id.tipoSite,
                       CLASSIFICACAO: calculatePontos(doc.peso),
                       PESO: doc.peso,
                       BLOCO: blocoQuestion[0],
@@ -516,6 +517,9 @@ export default function Reports() {
                     <MenuItem value="LOJA">LOJA</MenuItem>
                     <MenuItem value="LOJA DEALER">LOJA DEALER</MenuItem>
                     <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
+                    <MenuItem value={"pgr cd movel"}>PGR CD MÓVEL</MenuItem>
+                    <MenuItem value={"pgr cd fixa"}>PGR CD FIXA</MenuItem>
+                    <MenuItem value={"pgr cd base cross"}>PGR CD BASE CROSS</MenuItem>
                     <MenuItem value="PROJETO VENEZA">PROJETO VENEZA</MenuItem>
                     <MenuItem value="RETROFIT">RETROFIT</MenuItem>
                     <MenuItem value="TURNKEY">TURNKEY</MenuItem>
