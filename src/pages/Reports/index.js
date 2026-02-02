@@ -519,7 +519,7 @@ export default function Reports() {
                     <MenuItem value="TORRE SEGURA">TORRE SEGURA</MenuItem>
                     <MenuItem value={"pgr cd movel"}>PGR CD MÓVEL</MenuItem>
                     <MenuItem value={"pgr cd fixa"}>PGR CD FIXA</MenuItem>
-                    <MenuItem value={"pgr cd base cross"}>PGR CD BASE CROSS</MenuItem>
+                    <MenuItem value={"pgr base cross"}>PGR BASE CROSS</MenuItem>
                     <MenuItem value="PROJETO VENEZA">PROJETO VENEZA</MenuItem>
                     <MenuItem value="RETROFIT">RETROFIT</MenuItem>
                     <MenuItem value="TURNKEY">TURNKEY</MenuItem>
