@@ -375,11 +375,32 @@ export default function Oem() {
         console.log(`   Todas as propriedades com 'data':`, Object.keys(q).filter(key => key.includes('data')));
       }
 
+      // Lista de municípios de São Paulo considerados Capital
+      const municipiosCapital = [
+        "BERTIOGA", "CAJATI", "CANANÉIA", "CUBATÃO", "ELDORADO", "GUARUJÁ",
+        "IGUAPE", "ILHA COMPRIDA", "ITANHAÉM", "ITARIRI", "JACUPIRANGA", "JUQUIÁ",
+        "MIRACATU", "MONGAGUÁ", "PARIQUERA-AÇU", "PEDRO DE TOLEDO", "PERUÍBE",
+        "PRAIA GRANDE", "REGISTRO", "SANTOS", "SÃO VICENTE", "SETE BARRAS",
+        "SÃO PAULO", "GUARULHOS", "ARUJÁ", "BIRITIBA MIRIM", "DIADEMA",
+        "FERRAZ DE VASCONCELOS", "GUARAREMA", "IGARATÁ", "ITAQUAQUECETUBA",
+        "MAUÁ", "MOGI DAS CRUZES", "PARANAPIACABA", "POÁ", "RIBEIRÃO PIRES",
+        "RIO GRANDE DA SERRA", "SALESÓPOLIS", "SANTA ISABEL", "SANTO ANDRÉ",
+        "SÃO BERNARDO DO CAMPO", "SÃO CAETANO DO SUL", "SUZANO"
+      ];
+
+      // Determinar se é Capital ou Interior (somente para SP)
+      let regiao = "";
+      if (q.uf === "SP") {
+        const municipioUpper = q.municipio ? q.municipio.toUpperCase().trim() : "";
+        regiao = municipiosCapital.includes(municipioUpper) ? "Capital" : "Interior";
+      }
+
       return {
         "UID": safeText(q.uid),
         "ID": safeText(q.id),
         "Sigla": safeText(q.sigla),
         "UF": safeText(q.uf),
+        "Região": safeText(regiao),
         "Tipo de Site": safeText(q.tipoSite),
         "Data da APR": safeText(toBRDate(q.data_apr)),
         "Município": safeText(q.municipio),
@@ -414,6 +435,7 @@ export default function Oem() {
       { wch: 10 }, // ID
       { wch: 10 }, // Sigla
       { wch: 5 },  // UF
+      { wch: 12 }, // Região SP
       { wch: 15 }, // Tipo de Site
       { wch: 12 }, // Data da APR
       { wch: 20 }, // Município
