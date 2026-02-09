@@ -47,21 +47,21 @@ export default function Reports() {
         console.log('Buscando dados em lotes mensais para evitar timeout...');
         const start = new Date(filterDate.startDate);
         const end = new Date(filterDate.endDate);
-        
+
         let currentStart = new Date(start);
         let batchNumber = 1;
-        
+
         while (currentStart < end) {
           let currentEnd = new Date(currentStart);
           currentEnd.setDate(currentEnd.getDate() + 30); // Lotes de 30 dias
-          
+
           if (currentEnd > end) {
             currentEnd = new Date(end);
           }
           currentEnd.setDate(currentEnd.getDate() + 1); // Inclui o dia final
-          
+
           console.log(`Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
-          
+
           // Construir query para este período
           let query = firebase.firestore().collection("aprs-producao")
             .where("created", ">=", currentStart)
@@ -81,19 +81,19 @@ export default function Reports() {
 
           const snapshot = await query.get();
           console.log(`  -> Encontrados ${snapshot.docs.length} APRs neste lote`);
-          
+
           // Processar resultados deste lote
           snapshot.docs.forEach(doc => {
             const aprData = { id: doc.id, ...doc.data() };
             const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
-            
+
             if (!newCache.has(siteKey) && aprData.site_id) {
               newCache.set(siteKey, aprData.site_id);
             }
-            
+
             allResults.push(aprData);
           });
-          
+
           // Avançar para o próximo período
           currentStart = new Date(currentEnd);
           batchNumber++;
@@ -115,15 +115,15 @@ export default function Reports() {
 
         const snapshot = await query.get();
         console.log(`Carregados ${snapshot.docs.length} APRs`);
-        
+
         snapshot.docs.forEach(doc => {
           const aprData = { id: doc.id, ...doc.data() };
           const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
-          
+
           if (!newCache.has(siteKey) && aprData.site_id) {
             newCache.set(siteKey, aprData.site_id);
           }
-          
+
           allResults.push(aprData);
         });
       }
@@ -151,20 +151,20 @@ export default function Reports() {
     XLSX.writeFile(workbook, "apr-digital.xlsx", options);
   }
 
-  // Função para calcular a classificação de risco
-  function calculatePontos(peso) {
-    if (peso <= 10) {
-      return `Risco Muito Baixo`
-    } else if (peso >= 11 && peso <= 30) {
-      return `Risco Baixo`
-    } else if (peso >= 31 && peso <= 50) {
-      return `Risco Médio`
-    } else if (peso >= 51 && peso <= 70) {
-      return `Risco Alto`
-    } else if (peso >= 71) {
-      return `Risco Muito Alto`
-    }
-  }
+  // // Função para calcular a classificação de risco
+  // function calculatePontos(peso) {
+  //   if (peso <= 10) {
+  //     return `Risco Muito Baixo`
+  //   } else if (peso >= 11 && peso <= 30) {
+  //     return `Risco Baixo`
+  //   } else if (peso >= 31 && peso <= 50) {
+  //     return `Risco Médio`
+  //   } else if (peso >= 51 && peso <= 70) {
+  //     return `Risco Alto`
+  //   } else if (peso >= 71) {
+  //     return `Risco Muito Alto`
+  //   }
+  // }
 
   // Função para processar o APRworksheet
   async function v0(apr, siteData) {
@@ -178,36 +178,36 @@ export default function Reports() {
       }
 
       const site = siteData;
-      const classif = calculatePontos(apr.peso);
+      // const classif = calculatePontos(apr.peso);
 
       // Verifying site values
       if (site.CtCritica !== '-' || site.NonStop !== '-' || site.ErbCritica !== '-') return "v0 - Rota Critica";
 
       // Determine the return value based on classification and site criticality
-      switch (classif) {
-        case "Risco Muito Baixo":
-          return site.critical === "Baixo" ? "v4 - Classificação"
-            : site.critical === "Médio" ? "v4 - Classificação"
-              : "v3 - Classificação";
-        case "Risco Baixo":
-          return site.critical === "Baixo" ? "v4 - Classificação"
-            : site.critical === "Médio" ? "v3 - Classificação"
-              : "v3 - Classificação";
-        case "Risco Médio":
-          return site.critical === "Baixo" ? "v3 - Classificação"
-            : site.critical === "Médio" ? "v3 - Classificação"
-              : "v2 - Classificação";
-        case "Risco Alto":
-          return site.critical === "Baixo" ? "v3 - Classificação"
-            : site.critical === "Médio" ? "v2 - Classificação"
-              : "v1 - Classificação";
-        case "Risco Muito Alto":
-          return site.critical === "Baixo" ? "v2 - Classificação"
-            : site.critical === "Médio" ? "v1 - Classificação"
-              : "v0 - Classificação";
-        default:
-          return "-";
-      }
+      // switch (classif) {
+      //   case "Risco Muito Baixo":
+      //     return site.critical === "Baixo" ? "v4 - Classificação"
+      //       : site.critical === "Médio" ? "v4 - Classificação"
+      //         : "v3 - Classificação";
+      //   case "Risco Baixo":
+      //     return site.critical === "Baixo" ? "v4 - Classificação"
+      //       : site.critical === "Médio" ? "v3 - Classificação"
+      //         : "v3 - Classificação";
+      //   case "Risco Médio":
+      //     return site.critical === "Baixo" ? "v3 - Classificação"
+      //       : site.critical === "Médio" ? "v3 - Classificação"
+      //         : "v2 - Classificação";
+      //   case "Risco Alto":
+      //     return site.critical === "Baixo" ? "v3 - Classificação"
+      //       : site.critical === "Médio" ? "v2 - Classificação"
+      //         : "v1 - Classificação";
+      //   case "Risco Muito Alto":
+      //     return site.critical === "Baixo" ? "v2 - Classificação"
+      //       : site.critical === "Médio" ? "v1 - Classificação"
+      //         : "v0 - Classificação";
+      //   default:
+      //     return "-";
+      // }
     } catch (error) {
       console.error("Erro ao consultar o Firestore:", error);
       return "-";
@@ -217,101 +217,201 @@ export default function Reports() {
   async function updateState(snapshot) {
     setLoading(true)
     const relatorioApr = [];
-    
+
+    const buildQuestionWeightMap = async () => {
+      const weightMap = new Map();
+      const snapshot = await firebase.firestore().collection("question").get();
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        Object.entries(data).forEach(([key, value]) => {
+          if (key === "title" || key === "ativo") return;
+          if (!Array.isArray(value)) return;
+
+          value.forEach((question) => {
+            if (!question || !question.questionId) return;
+            const peso =
+              question.peso ??
+              question.peso_rct ??
+              question.peso_daef ??
+              question.peso_fmc ??
+              question.peso_icd;
+
+            if (peso !== undefined && peso !== null && peso !== "") {
+              weightMap.set(question.questionId, peso);
+            }
+          });
+        });
+      });
+
+      return weightMap;
+    };
+
+    const getPesoPergunta = (question, weightMap) => {
+      const localPeso =
+        question.peso ??
+        question.peso_rct ??
+        question.peso_daef ??
+        question.peso_fmc ??
+        question.peso_icd;
+
+      if (localPeso !== undefined && localPeso !== null && localPeso !== "") {
+        return localPeso;
+      }
+
+      if (weightMap && question.questionId && weightMap.has(question.questionId)) {
+        return weightMap.get(question.questionId);
+      }
+
+      return "";
+    };
+
+    const questionWeightMap = includeQuestions
+      ? await buildQuestionWeightMap()
+      : null;
+
     // Processar em lotes para evitar timeout
     const batchSize = 50;
     console.log(`Processando ${snapshot.length} APRs em lotes de ${batchSize}...`);
-    
+
     for (let i = 0; i < snapshot.length; i += batchSize) {
       const batch = snapshot.slice(i, i + batchSize);
-      console.log(`Processando lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(snapshot.length/batchSize)}...`);
-      
+      console.log(`Processando lote ${Math.floor(i / batchSize) + 1}/${Math.ceil(snapshot.length / batchSize)}...`);
+
       const promises = batch.map(doc => {
         if (doc.created !== undefined) {
           const siteKey = `${doc.site_id.Sigla}_${doc.site_id.Estado}`;
           const siteData = sitesCache.get(siteKey);
-          
+
           return v0(doc, siteData).then(result => {
-          if (includeQuestions) {
-            if (doc.checklist && doc.status !== "Com Exceção") {
-              doc.checklist.forEach((blocoQuestion) => {
-                console.log(doc)
-                blocoQuestion[1].forEach((question) => {
-                  if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
-                    relatorioApr.push({
-                      ID: doc.id,
-                      ID_APR: doc.apr_id ? doc.apr_id : '-',
-                      DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-                      STATUS: doc.status,
-                      TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
-                      VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
-                      VALOR_SINISTRO: doc.valor_sinistro ? parseInt(doc.valor_sinistro) / 100 : '-',
-                      VALOR_TRANSPORTE: doc.valor_transporte ? parseInt(doc.valor_transporte) / 100 : '-',
-                      VALOR_ARMAZENAMENTO: doc.valor_armazenamento ? parseInt(doc.valor_armazenamento) / 100 : '-',
-                      MOTIVO: doc.motivo_apr,
-                      TIPO_CHECKLIST: doc.site_id.tipoSite,
-                      CLASSIFICACAO: calculatePontos(doc.peso),
-                      PESO: doc.peso,
-                      BLOCO: blocoQuestion[0],
-                      QUESTIONS: question.question,
-                      QUESTIONS_RESP: question.resp,
-                      QUESTIONS_CHECKS: question.optionListResp ? question.optionListResp.toString() : "",
-                      QUESTIONS_AREA_RESPONSAVEL: question.areaResposavel ? question.areaResposavel.toString() : "",
-                      QUESTIONS_RESPTEXTAREA: question.respTextArea,
-                      QUESTIONS_RESPGABARITO: question.respGabarito,
-                      QUESTIONS_PA: question.openPA,
-                      QUESTION_PA_DATA: question.resp_pa_data
-                        ? format(
-                          question.resp_pa_data.toDate(),
+            if (includeQuestions) {
+              if (doc.checklist && doc.status !== "Com Exceção") {
+                doc.checklist.forEach((blocoQuestion) => {
+                  console.log(doc)
+                  blocoQuestion[1].forEach((question) => {
+                    if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
+                      relatorioApr.push({
+                        ID: doc.id,
+                        ID_APR: doc.apr_id ? doc.apr_id : '-',
+                        DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+                        STATUS: doc.status,
+                        TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
+                        VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
+                        VALOR_SINISTRO: doc.valor_sinistro ? parseInt(doc.valor_sinistro) / 100 : '-',
+                        VALOR_TRANSPORTE: doc.valor_transporte ? parseInt(doc.valor_transporte) / 100 : '-',
+                        VALOR_ARMAZENAMENTO: doc.valor_armazenamento ? parseInt(doc.valor_armazenamento) / 100 : '-',
+                        MOTIVO: doc.motivo_apr,
+                        TIPO_CHECKLIST: doc.site_id.tipoSite,
+                        // CLASSIFICACAO: calculatePontos(doc.peso),
+                        PESO_PERGUNTA: getPesoPergunta(question, questionWeightMap),
+                        BLOCO: blocoQuestion[0],
+                        QUESTIONS: question.question,
+                        QUESTIONS_RESP: question.resp,
+                        QUESTIONS_CHECKS: question.optionListResp ? question.optionListResp.toString() : "",
+                        QUESTIONS_AREA_RESPONSAVEL: question.areaResposavel ? question.areaResposavel.toString() : "",
+                        QUESTIONS_RESPTEXTAREA: question.respTextArea,
+                        QUESTIONS_RESPGABARITO: question.respGabarito,
+                        QUESTIONS_PA: question.openPA,
+                        QUESTION_PA_DATA: question.resp_pa_data
+                          ? format(
+                            question.resp_pa_data.toDate(),
+                            "dd/MM/yyyy HH:mm:ss"
+                          )
+                          : "",
+                        QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
+                        QUESTION_PA_NOME: question.resp_pa_user_name || "",
+                        SIGLA: doc.site_id.Sigla,
+                        SIGLA_GVT: doc.site_id.Sigla_GVT,
+                        TIPO_CHECKLIST: doc.site_id.tipoSite,
+                        NOME_SITE: doc.site_id.Nome,
+                        LAT_SITE: doc.site_id.Latitude,
+                        LNG_SITE: doc.site_id.Longitude,
+                        UF_SITE: doc.site_id.Estado,
+                        END_SITE: doc.site_id.Endereco,
+                        MUNICIPIO_SITE: doc.site_id.Cidade,
+                        BAIRRO_SITE: doc.site_id.Bairro,
+                        CEP_SITE: doc.site_id.CEP,
+                        CRITICIDADE_SITE: doc.site_id.critical,
+                        OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
+                        COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
+                        ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
+                        ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                        ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
+                        TEMP_INCIO: doc.tempoConclusao ? format(
+                          doc.tempoConclusao.inicio.toDate(),
                           "dd/MM/yyyy HH:mm:ss"
-                        )
-                        : "",
-                      QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
-                      QUESTION_PA_NOME: question.resp_pa_user_name || "",
-                      SIGLA: doc.site_id.Sigla,
-                      SIGLA_GVT: doc.site_id.Sigla_GVT,
-                      TIPO_CHECKLIST: doc.site_id.tipoSite,
-                      NOME_SITE: doc.site_id.Nome,
-                      LAT_SITE: doc.site_id.Latitude,
-                      LNG_SITE: doc.site_id.Longitude,
-                      UF_SITE: doc.site_id.Estado,
-                      END_SITE: doc.site_id.Endereco,
-                      MUNICIPIO_SITE: doc.site_id.Cidade,
-                      BAIRRO_SITE: doc.site_id.Bairro,
-                      CEP_SITE: doc.site_id.CEP,
-                      CRITICIDADE_SITE: doc.site_id.critical,
-                      OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
-                      COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
-                      ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-                      ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
-                      ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
-                      TEMP_INCIO: doc.tempoConclusao ? format(
-                        doc.tempoConclusao.inicio.toDate(),
-                        "dd/MM/yyyy HH:mm:ss"
-                      ) : "-",
-                      TEMP_TERMINO: doc.tempoConclusao ? format(
-                        doc.tempoConclusao.conclusao.toDate(),
-                        "dd/MM/yyyy HH:mm:ss"
-                      ) : '-',
-                      TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
-                        (doc.tempoConclusao.conclusao.toDate() -
-                          doc.tempoConclusao.inicio.toDate()) /
-                        (1000 * 60)
-                      ) : '-',
-                      USER_ID: doc.user_id.uid,
-                      USER_NOME: doc.user_id.nome,
-                      USER_UF: doc.user_id.uf,
-                      V0: result,
-                    });
-                  }
+                        ) : "-",
+                        TEMP_TERMINO: doc.tempoConclusao ? format(
+                          doc.tempoConclusao.conclusao.toDate(),
+                          "dd/MM/yyyy HH:mm:ss"
+                        ) : '-',
+                        TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
+                          (doc.tempoConclusao.conclusao.toDate() -
+                            doc.tempoConclusao.inicio.toDate()) /
+                          (1000 * 60)
+                        ) : '-',
+                        USER_ID: doc.user_id.uid,
+                        USER_NOME: doc.user_id.nome,
+                        USER_UF: doc.user_id.uf,
+                        V0: result,
+                      });
+                    }
+                  });
                 });
-              });
-            } else if (doc.status === "Com Exceção") {
+              } else if (doc.status === "Com Exceção") {
+                relatorioApr.push({
+                  ID: doc.id,
+                  ID_APR: doc.apr_id ? doc.apr_id : '-',
+                  DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
+                  STATUS: doc.status,
+                  SIGLA: doc.site_id.Sigla,
+                  SIGLA_GVT: doc.site_id.Sigla_GVT,
+                  TIPO_CHECKLIST: doc.site_id.tipoSite,
+                  NOME_SITE: doc.site_id.Nome,
+                  LAT_SITE: doc.site_id.Latitude,
+                  LNG_SITE: doc.site_id.Longitude,
+                  UF_SITE: doc.site_id.Estado,
+                  END_SITE: doc.site_id.Endereco,
+                  MUNICIPIO_SITE: doc.site_id.Cidade,
+                  BAIRRO_SITE: doc.site_id.Bairro,
+                  CEP_SITE: doc.site_id.CEP,
+                  CRITICIDADE_SITE: doc.site_id.critical,
+                  OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
+                  COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
+                  ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
+                  ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                  ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
+                  TEMP_INCIO: doc.tempoConclusao ? format(
+                    doc.tempoConclusao.inicio.toDate(),
+                    "dd/MM/yyyy HH:mm:ss"
+                  ) : "-",
+                  TEMP_TERMINO: doc.tempoConclusao ? format(
+                    doc.tempoConclusao.conclusao.toDate(),
+                    "dd/MM/yyyy HH:mm:ss"
+                  ) : '-',
+                  TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
+                    (doc.tempoConclusao.conclusao.toDate() -
+                      doc.tempoConclusao.inicio.toDate()) /
+                    (1000 * 60)
+                  ) : '-',
+                  USER_ID: doc.user_id.uid,
+                  USER_NOME: doc.user_id.nome,
+                  USER_UF: doc.user_id.uf,
+                  V0: "-",
+                });
+              }
+            } else {
               relatorioApr.push({
+                PESO_PERGUNTA: "",
                 ID: doc.id,
                 ID_APR: doc.apr_id ? doc.apr_id : '-',
                 DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
                 STATUS: doc.status,
+                TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
+                VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
+                MOTIVO: doc.motivo_apr,
+                // CLASSIFICACAO: calculatePontos(doc.peso),
+                PESO_APR: doc.peso,
                 SIGLA: doc.site_id.Sigla,
                 SIGLA_GVT: doc.site_id.Sigla_GVT,
                 TIPO_CHECKLIST: doc.site_id.tipoSite,
@@ -345,58 +445,11 @@ export default function Reports() {
                 USER_ID: doc.user_id.uid,
                 USER_NOME: doc.user_id.nome,
                 USER_UF: doc.user_id.uf,
-                V0: "-",
+                V0: result,
               });
             }
-          } else {
-            relatorioApr.push({
-              ID: doc.id,
-              ID_APR: doc.apr_id ? doc.apr_id : '-',
-              DATA: format(doc.created.toDate(), "dd/MM/yyyy HH:mm:ss"),
-              STATUS: doc.status,
-              TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
-              VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
-              MOTIVO: doc.motivo_apr,
-              CLASSIFICACAO: calculatePontos(doc.peso),
-              PESO: doc.peso,
-              SIGLA: doc.site_id.Sigla,
-              SIGLA_GVT: doc.site_id.Sigla_GVT,
-              TIPO_CHECKLIST: doc.site_id.tipoSite,
-              NOME_SITE: doc.site_id.Nome,
-              LAT_SITE: doc.site_id.Latitude,
-              LNG_SITE: doc.site_id.Longitude,
-              UF_SITE: doc.site_id.Estado,
-              END_SITE: doc.site_id.Endereco,
-              MUNICIPIO_SITE: doc.site_id.Cidade,
-              BAIRRO_SITE: doc.site_id.Bairro,
-              CEP_SITE: doc.site_id.CEP,
-              CRITICIDADE_SITE: doc.site_id.critical,
-              OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
-                COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
-              ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-              ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
-              ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
-              TEMP_INCIO: doc.tempoConclusao ? format(
-                doc.tempoConclusao.inicio.toDate(),
-                "dd/MM/yyyy HH:mm:ss"
-              ) : "-",
-              TEMP_TERMINO: doc.tempoConclusao ? format(
-                doc.tempoConclusao.conclusao.toDate(),
-                "dd/MM/yyyy HH:mm:ss"
-              ) : '-',
-              TEMP_EFETUADO: doc.tempoConclusao ? Math.ceil(
-                (doc.tempoConclusao.conclusao.toDate() -
-                  doc.tempoConclusao.inicio.toDate()) /
-                (1000 * 60)
-              ) : '-',
-              USER_ID: doc.user_id.uid,
-              USER_NOME: doc.user_id.nome,
-              USER_UF: doc.user_id.uf,
-              V0: result,
-            });
-          }
-        });
-      } else {
+          });
+        } else {
           return Promise.resolve();
         }
       });
@@ -405,7 +458,7 @@ export default function Reports() {
         console.error("Erro ao processar lote:", error);
       });
     }
-    
+
     console.log(`Processamento completo. Total de registros: ${relatorioApr.length}`);
     downloadExcel(relatorioApr);
     setLoading(false);
