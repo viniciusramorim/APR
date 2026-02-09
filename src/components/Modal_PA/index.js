@@ -49,6 +49,7 @@ export default function Modal_PA({
   const [uploadingEvidencia, setUploadingEvidencia] = useState(false);
   const [novaResposta, setNovaResposta] = useState("");
   const [novasImagens, setNovasImagens] = useState([]);
+  const [comentarioCorrecao, setComentarioCorrecao] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const webcamRef = useRef(null);
 
@@ -407,6 +408,7 @@ export default function Modal_PA({
         resolvido_data: new Date(),
         nova_resposta: novaResposta,
         imagens_correcao: imageUrls,
+        comentario_correcao: comentarioCorrecao,
       };
 
       await docRef.update(dados);
@@ -1238,6 +1240,21 @@ export default function Modal_PA({
                       </Box>
                     </Box>
                   )}
+                </Box>
+
+                {/* Comentario da correcao */}
+                <Box sx={{ mb: 3, p: 2, bgcolor: '#f3f4f6', borderRadius: 2, border: '2px solid #cbd5f5' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#334155' }}>
+                    3️⃣ Comentario sobre a correcao:
+                  </Typography>
+                  <TextField
+                    label="Comentario"
+                    value={comentarioCorrecao}
+                    onChange={(e) => setComentarioCorrecao(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={4}
+                  />
                 </Box>
 
                 {/* INFORMAÇÕES ADICIONAIS - DEPOIS */}

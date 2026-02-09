@@ -796,6 +796,18 @@ export default function Open() {
           data_alteracao: new Date(),
         });
 
+      try {
+        const destinatarios = await sendEmailToRevisor(apr, id);
+        logSistem(
+          "Email enviado para revisor - planos de acao definidos",
+          id,
+          destinatarios
+        );
+      } catch (error) {
+        toast.error("Erro ao enviar e-mail para revisor: " + error.message);
+        console.error("Erro ao enviar e-mail para revisor:", error);
+      }
+
       toast.success("APR enviada para revisão com sucesso!");
       logSistem(`APR enviada para revisão pelo ponto focal`, id);
       ReloadAPR();
@@ -803,6 +815,76 @@ export default function Open() {
       toast.error("Erro ao enviar para revisão: " + error.message);
       console.error("Erro:", error);
     }
+  }
+
+  async function fetchRevisorEmails() {
+    const snapshot = await firebase
+      .firestore()
+      .collection("users")
+      .where("nivel", "==", "revisor")
+      .where("status", "==", true)
+      .get();
+
+    const emails = [];
+    snapshot.forEach((doc) => {
+      const email = doc.data().email;
+      if (email && email.trim()) {
+        emails.push(email.trim());
+      }
+    });
+
+    return Array.from(new Set(emails));
+  }
+
+  async function sendEmailToRevisor(aprData, aprId) {
+    const revisorEmails = await fetchRevisorEmails();
+
+    if (!revisorEmails.length) {
+      throw new Error("Nenhum e-mail de revisor encontrado");
+    }
+
+    const destinatario = revisorEmails.join(";");
+    const siteNome = aprData?.site_id?.Nome || "N/I";
+    const siteSigla = aprData?.site_id?.Sigla || "N/I";
+    const siteCidade = aprData?.site_id?.Cidade || "N/I";
+    const siteEstado = aprData?.site_id?.Estado || "N/I";
+    const aprRef = aprData?.apr_id || aprId;
+
+    const emailContent = {
+      remetente: "aprdigital.seg.br@telefonica.com",
+      assunto: `APR Digital - Planos de acao definidos - ${siteSigla}`,
+      destinatario,
+      texto: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 16px;">
+          <h2 style="color: #1976d2;">APR Digital - Revisao Necessaria</h2>
+          <p>Foram incluidos planos de acao para as inconformidades da APR.</p>
+          <p>Por favor, realize a revisao e aprove os planos de acao.</p>
+          <p><strong>APR:</strong> ${aprRef}</p>
+          <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+          <p><strong>Localizacao:</strong> ${siteCidade}/${siteEstado}</p>
+          <p>Para revisar, acesse o link:</p>
+          <p><a href="${window.location.origin}/Open/${aprId}">${window.location.origin}/Open/${aprId}</a></p>
+          <hr />
+          <small>Mensagem automatica - APR Digital</small>
+        </div>
+      `,
+    };
+
+    const response = await fetch(
+      "https://us-central1-aprdigital-b6fcf.cloudfunctions.net/sendEmail",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailContent),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro HTTP! status: ${response.status} - ${errorText}`);
+    }
+
+    return destinatario;
   }
 
   // Função para aplicador finalizar APR após correções
@@ -1055,6 +1137,19 @@ export default function Open() {
 
         // Plano de Ação (se existir)
         if (doc.resp_pa_selectedOption) {
+          const planoAcao = doc.plano_acao || {};
+
+          const formatSla = (value) => {
+            if (!value) return "";
+            if (typeof value.toDate === "function") {
+              return format(value.toDate(), "dd/MM/yyyy");
+            }
+            if (value instanceof Date) {
+              return format(value, "dd/MM/yyyy");
+            }
+            return value;
+          };
+
           pdf.content.push({
             text: "Plano de Ação:",
             bold: true,
@@ -1067,6 +1162,40 @@ export default function Open() {
             text: `Opção: ${doc.resp_pa_selectedOption}`,
             margin: [20, 5, 0, 5],
           });
+
+          const slaTempo = formatSla(planoAcao.tempo);
+          if (slaTempo) {
+            pdf.content.push({
+              text: `SLA: ${slaTempo}`,
+              margin: [20, 5, 0, 5],
+            });
+          }
+
+          const slaLogistica = formatSla(planoAcao.sla_logistica);
+          if (slaLogistica) {
+            pdf.content.push({
+              text: `SLA Logistica: ${slaLogistica}`,
+              margin: [20, 5, 0, 5],
+            });
+          }
+
+          if (planoAcao.comentario) {
+            pdf.content.push({
+              text: `Comentario do Plano de Acao: ${planoAcao.comentario}`,
+              margin: [20, 5, 0, 5],
+              italics: true,
+              color: "#555",
+            });
+          }
+
+          if (planoAcao.comentario_correcao) {
+            pdf.content.push({
+              text: `Comentario da Correcao: ${planoAcao.comentario_correcao}`,
+              margin: [20, 5, 0, 5],
+              italics: true,
+              color: "#555",
+            });
+          }
 
           if (doc.resp_pa_sla) {
             pdf.content.push({
