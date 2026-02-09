@@ -224,6 +224,21 @@ export default function Header() {
                 <i id="label-menu">Gerenciar Emails</i>
               </Link>
             </Tooltip>
+            {[
+          "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+          "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
+          "J8Ktb51lucTxok00HAi2qTv7jQH2",
+          "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+          "WN0EtV44xnV0V87n5wBBXT87QXI2",
+          "Eic8AhQR6ITeEkfOfuV5uo5SGBJ2",
+        ].includes(user.uid) && (
+            <Tooltip title="Gerenciar Sites" placement="right" arrow>
+              <Link to="/sites">
+                <ApprovalOutlinedIcon color="#000" size={20} />
+                <i id="label-menu">Gerenciar Sites</i>
+              </Link>
+            </Tooltip>
+          )}
           </>
         )}
 
