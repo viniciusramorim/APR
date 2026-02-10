@@ -231,7 +231,7 @@ export default function Header() {
           "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
           "WN0EtV44xnV0V87n5wBBXT87QXI2",
           "Eic8AhQR6ITeEkfOfuV5uo5SGBJ2",
-        ].includes(user.uid) && (
+        ].includes(user.uid) && user.nivel === "revisor" && (
             <Tooltip title="Gerenciar Sites" placement="right" arrow>
               <Link to="/sites">
                 <ApprovalOutlinedIcon color="#000" size={20} />
