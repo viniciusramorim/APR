@@ -193,6 +193,7 @@ export default function New() {
   const [geolocationJustification, setGeolocationJustification] = useState("");
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
+  const [aprSalva, setAprSalva] = useState(false);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
 
@@ -267,7 +268,7 @@ export default function New() {
           // Garantir que o valor seja sempre um array
           return [key, Array.isArray(value) ? value : []];
         });
-        
+
         console.log(orderedEntries);
         setQuestions(orderedEntries);
       });
@@ -379,7 +380,7 @@ export default function New() {
 
     let imageArray = [];
     let arrayQuestion = questions[indexA][1][objIndex];
-    
+
     // Garantir que images existe e é um array
     if (!arrayQuestion.images || !Array.isArray(arrayQuestion.images)) {
       console.error("arrayQuestion.images não é um array:", arrayQuestion);
@@ -555,15 +556,15 @@ export default function New() {
     if (obj === null || obj === undefined) {
       return null;
     }
-    
+
     if (Array.isArray(obj)) {
       return obj.map(item => cleanFirebaseData(item)).filter(item => item !== null && item !== undefined);
     }
-    
+
     if (obj instanceof Date) {
       return obj;
     }
-    
+
     if (typeof obj === 'object') {
       const cleaned = {};
       Object.keys(obj).forEach(key => {
@@ -580,7 +581,7 @@ export default function New() {
       });
       return cleaned;
     }
-    
+
     return obj;
   };
 
@@ -961,15 +962,16 @@ export default function New() {
     hideElement("container-questions");
     hideElement("container-save");
     hideElement("container-motivo");
-    
+    setAprSalva(true);
+
     if (siteInfo.tipoSite?.includes('PGR')) {
       hideElement("container-pgr");
     }
-    
+
     if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") {
       hideElement("container-loja");
     }
-    
+
     hideElement("container");
     hideElement("modalLoading");
 
@@ -1234,6 +1236,7 @@ export default function New() {
         <Paper
           elevation={0}
           sx={{
+            mt: 10,
             mb: 3,
             p: 3,
             border: '2px solid #8e24aa',
@@ -1321,12 +1324,13 @@ export default function New() {
                   </Typography>
                 </Box>
 
-                <Grid container spacing={3}>
-                  <Grid item xs={6} sx={{ background: '#f7f7f7', padding: '20px', borderRadius: '4px' }}>
+                <Grid container  display={"flex"} flexWrap={"nowrap"} marginLeft={'-20px'} >
+                  <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
                     <Typography
                       variant="caption"
                       sx={{
                         color: '#64748b',
+                        color:'#fff',
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         letterSpacing: '0.5px',
@@ -1347,11 +1351,11 @@ export default function New() {
                       {siteInfo.Estado}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6} sx={{ background: '#f7f7f7', padding: '20px' }}>
+                  <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
                     <Typography
                       variant="caption"
                       sx={{
-                        color: '#64748b',
+                        color:'#fff',
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         letterSpacing: '0.5px',
@@ -1363,7 +1367,7 @@ export default function New() {
                     <Typography
                       variant="body1"
                       sx={{
-                        fontWeight: 500,
+                        fontWeight: 600,
                         color: '#0f172a',
                         mt: 0.5,
                         fontSize: '0.95rem'
@@ -1375,7 +1379,6 @@ export default function New() {
                 </Grid>
               </Stack>
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <Stack spacing={2.5}>
                 <Box>
@@ -1431,7 +1434,7 @@ export default function New() {
                 </Box>
 
                 <Grid container spacing={3}>
-                  <Grid item xs={6}>
+                  <Grid item xs={6} sx={{ background: '#c0c0c0', minHeight: '100%', padding: '20px' }}>
                     <Typography
                       variant="caption"
                       sx={{
@@ -1459,7 +1462,7 @@ export default function New() {
                       {siteInfo.Latitude}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={6} sx={{ background: '#c0c0c08a', minHeight: '100%', padding: '20px' }}>
                     <Typography
                       variant="caption"
                       sx={{
@@ -1493,8 +1496,9 @@ export default function New() {
           </Grid>
         </Paper>
 
-        {/* Data e Status */}
-        <Box sx={{background:'#f7f7f7', padding:'24px', borderRadius:'8px', border:'solid, 2px, #8e24aa'}}>
+        {/* Data e Status - esconde após salvar */}
+        {!aprSalva && (
+        <Box sx={{ background: '#f7f7f7', padding: '24px', borderRadius: '8px', border: 'solid, 2px, #8e24aa' }}>
           <Box
             sx={{
               mb: 3,
@@ -1663,63 +1667,14 @@ export default function New() {
             </Grid>
           </Grid>
         </Box>
-
-        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
-          <div className="container" id="container-pgr">
-            <label name="valor-armazenamento">
-              Valor Armazenamento
-              <input
-                id="selectValorArmazenamento"
-                name="valor-armazenamento"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorArmazenamento / 100)}
-                onChange={(e) =>
-                  setValorArmazenamento(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor de Armazenamento"
-              ></input>
-            </label>
-            <label name="valor-transporte">
-              Valor Transporte
-              <input
-                id="selectValorTransporte"
-                name="valor-transporte"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorTransporte / 100)}
-                onChange={(e) =>
-                  setValorTransporte(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor de Transporte"
-              ></input>
-            </label>
-            <label name="valor-sinistro">
-              Valor Sinistro
-              <input
-                id="selectValorSinistro"
-                name="valor-sinistro"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorSinistro / 100)}
-                onChange={(e) =>
-                  setValorSinistro(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor do Sinistro"
-              ></input>
-            </label>
-          </div>
         )}
-        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
+
+        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && !aprSalva && (
           <Paper
+            id="container-pgr"
             elevation={0}
             sx={{
+              mt: 3,
               mb: 3,
               p: 3,
               border: '1px solid #e2e8f0',
@@ -1737,7 +1692,7 @@ export default function New() {
             >
               Informações PGR
             </Typography>
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
                 <TextField
@@ -1756,7 +1711,7 @@ export default function New() {
                   sx={{ borderRadius: 2 }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
@@ -1774,7 +1729,7 @@ export default function New() {
                   sx={{ borderRadius: 2 }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
@@ -1796,7 +1751,7 @@ export default function New() {
           </Paper>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
           <Paper
             elevation={0}
             sx={{
@@ -1817,7 +1772,7 @@ export default function New() {
             >
               Informações da Loja
             </Typography>
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
@@ -1840,7 +1795,7 @@ export default function New() {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -1862,7 +1817,7 @@ export default function New() {
           </Paper>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
           <div className="container" id="container-loja">
             <label name="valor-estoque">
               Tipo de Loja
@@ -1906,7 +1861,7 @@ export default function New() {
         <div
           className="container"
           id="container-questions"
-          style={{ display: "none" }}
+          style={{ display: "none", width: "100%", margin: "0 auto" }}
         >
           <div id="checklist" className="form-new">
             {questions.map((area, indexA) => {

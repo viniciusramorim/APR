@@ -76,17 +76,30 @@
   }
 
   #button-area {
-    padding: 0.5em;
-    border-radius: 15px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    color: $white-color;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
     text-align: center;
-    margin-bottom: 0.2em;
     cursor: pointer;
-    border: 1px solid $modal-link-bg;
-    transition: .2s ease-in-out;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
     &:hover {
-      background: $modal-link-bg;
-      color: #fff;
+      background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
     }
   }
 
@@ -193,8 +206,43 @@
 }
 
 .page-new .container-perg {
-  @include container-style($border-color-light, $box-shadow-light);
-  padding: 10px;
+  display: flex;
+  margin: 1em 0 2.5em 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #344767;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    border-left: 4px solid #007bff;
+    padding-left: 1rem;
+  }
+
+  > span {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    
+    &:first-of-type {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 0.75rem;
+    }
+  }
 }
 
 .page-new .clearQuestion {
