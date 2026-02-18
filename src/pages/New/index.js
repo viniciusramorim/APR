@@ -1269,118 +1269,122 @@ export default function New() {
             Dados de endereço e coordenadas do local
           </Typography>
 
-          <Grid container spacing={4}>
-            <Grid item xs={12} sm={6}>
-              <Stack spacing={2.5}>
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#64748b',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    UNIDADE
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 500,
-                      color: '#0f172a',
-                      mt: 0.5,
-                      fontSize: '0.95rem'
-                    }}
-                  >
-                    {siteInfo.Nome}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#64748b',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    ENDEREÇO
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 500,
-                      color: '#0f172a',
-                      mt: 0.5,
-                      fontSize: '0.95rem'
-                    }}
-                  >
-                    {siteInfo.Endereco}
-                  </Typography>
-                </Box>
-
-                <Grid container  display={"flex"} flexWrap={"nowrap"} marginLeft={'-20px'} >
-                  <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#64748b',
-                        color:'#fff',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      UF
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
-                        color: '#0f172a',
-                        mt: 0.5,
-                        fontSize: '0.95rem'
-                      }}
-                    >
-                      {siteInfo.Estado}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color:'#fff',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      CIDADE
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
-                        color: '#0f172a',
-                        mt: 0.5,
-                        fontSize: '0.95rem'
-                      }}
-                    >
-                      {siteInfo.Cidade}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Stack>
+          <Grid container spacing={0}>
+            {/* Linha 1: UNIDADE */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UNIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Nome}
+                </Typography>
+              </Box>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Stack spacing={2.5}>
+
+            {/* Linha 2: ENDEREÇO */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  ENDEREÇO
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Endereco}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Linha 3: UF e CIDADE (lilás - extremidades) */}
+            <Grid container item xs={12} spacing={0} sx={{ mb: 3 }}>
+              <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UF
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Estado}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  CIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Cidade}
+                </Typography>
+              </Grid>
+            </Grid>
+
+            {/* Linha 4: ESTADO e CRITICIDADE */}
+            <Grid container item xs={12} spacing={3} sx={{ mb: 3 }}>
+              <Grid item xs={6}>
                 <Box>
                   <Typography
                     variant="caption"
@@ -1406,7 +1410,8 @@ export default function New() {
                     {siteInfo.Estado}
                   </Typography>
                 </Box>
-
+              </Grid>
+              <Grid item xs={6}>
                 <Box>
                   <Typography
                     variant="caption"
@@ -1432,66 +1437,67 @@ export default function New() {
                     {siteInfo.critical || 'BAIXO'}
                   </Typography>
                 </Box>
+              </Grid>
+            </Grid>
 
-                <Grid container spacing={3}>
-                  <Grid item xs={6} sx={{ background: '#c0c0c0', minHeight: '100%', padding: '20px' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#059669',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5
-                      }}
-                    >
-                      ✅ LATITUDE
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'monospace',
-                        color: '#0f172a',
-                        mt: 0.5,
-                        fontSize: '0.85rem'
-                      }}
-                    >
-                      {siteInfo.Latitude}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6} sx={{ background: '#c0c0c08a', minHeight: '100%', padding: '20px' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#059669',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5
-                      }}
-                    >
-                      ✅ LONGITUDE
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'monospace',
-                        color: '#0f172a',
-                        mt: 0.5,
-                        fontSize: '0.85rem'
-                      }}
-                    >
-                      {siteInfo.Longitude}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Stack>
+            {/* Linha 5: LATITUDE e LONGITUDE (cinza - extremidades) */}
+            <Grid container item xs={12} spacing={0}>
+              <Grid item xs={6} sx={{ background: '#c0c0c0', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LATITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Latitude}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#c0c0c08a', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LONGITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Longitude}
+                </Typography>
+              </Grid>
             </Grid>
           </Grid>
         </Paper>

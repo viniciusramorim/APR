@@ -1580,7 +1580,7 @@ export default function Open() {
                 apr.valor_transporte ||
                 apr.valor_sinistro) && (
                 <div className="container">
-                  <div className="siteInfo" style={{ flexDirection: "column" }}>
+                  <div className="siteInfo">
                     <span>Valor Armazenamento:</span>{" "}
                     {apr.valor_armazenamento
                       ? formatarValor(parseInt(apr.valor_armazenamento))
