@@ -144,11 +144,7 @@ export default function Dashboard() {
       SUL: ["RS", "PR", "SC"],
     };
 
-    query = novasAPRs
-      ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc")
-      : query.orderBy("created", "desc");
-
-    // Aplicar os filtros
+    // Aplicar os filtros PRIMEIRO
     if (filterID !== "")
       query = query.where("apr_id", "==", parseInt(filterID));
     if (filterUF !== "") query = query.where("site_id.Estado", "==", filterUF);
@@ -171,19 +167,17 @@ export default function Dashboard() {
     //valida regional por usuario
     const regional = regionMap[user.regional];
 
-    //filtro por perfil
+    //filtro por perfil - ANTES do orderBy
     query =
       user.nivel === "aplicador" && user.area !== "oem"
         ? query.where("user_id.uid", "==", user.uid)
         : query;
-    query =
-      user.nivel === "supervisor"
-        ? query.where("site_id.Estado", "in", regional)
-        : query;
-    query =
-      user.nivel === "revisor"
-        ? query.where("site_id.Estado", "in", regional)
-        : query;
+    if (user.nivel === "supervisor" && regional) {
+      query = query.where("site_id.Estado", "in", regional);
+    }
+    if (user.nivel === "revisor" && regional) {
+      query = query.where("site_id.Estado", "in", regional);
+    }
     query =
       user.area === "oem"
         ? query.where("status", "in", ["Enviado", "Respondido pela Area"])
@@ -199,6 +193,11 @@ export default function Dashboard() {
           "AUDIT PGR MOVEL",
         ])
         : query;
+
+    // DEPOIS aplicar orderBy
+    query = novasAPRs
+      ? query.orderBy("apr_id", "desc")
+      : query.orderBy("created", "desc");
 
 
     const contarQuestions = (checklist) => {
@@ -221,6 +220,12 @@ export default function Dashboard() {
 
       return { totalQuestions, totalRespondidas };
     };
+
+    // Adicionar limite para evitar timeout
+    // Se não tiver filtros muito específicos, limita os resultados
+    if (!filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional) {
+      query = query.limit(500); // Limita a 500 resultados mais recentes
+    }
 
     await query
       .get()
@@ -271,7 +276,7 @@ export default function Dashboard() {
           if (user.area === "oem" && checklist !== undefined) {
             let paTrue = false;
             checklist.forEach((area) => {
-              area[1].forEach((question) => {
+              area[1]?.forEach((question) => {
                 if (
                   question.openPA === true &&
                   question.respGabarito !== question.resp
