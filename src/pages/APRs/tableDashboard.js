@@ -307,6 +307,7 @@ export default function CustomPaginationActionsTable(props) {
                   </IconButton>
                 </Link>
                 {(user.nivel === "administrador" ||
+                  user.nivel === "revisor_logistica" ||
                   user.nivel === "revisor") && (
                     <IconButton
                       onClick={() => updateStatus(row.id, index)}
@@ -318,15 +319,16 @@ export default function CustomPaginationActionsTable(props) {
                   )}
 
                 {(user.nivel === "administrador") && (
-                    <IconButton
-                      onClick={() => updateStatusRollBack(row.id, index)}
-                      color="secondary"
-                      aria-label="add an alarm"
-                    >
-                      <ArrowBack />
-                    </IconButton>
-                  )}
+                  <IconButton
+                    onClick={() => updateStatusRollBack(row.id, index)}
+                    color="secondary"
+                    aria-label="add an alarm"
+                  >
+                    <ArrowBack />
+                  </IconButton>
+                )}
                 {(user.nivel === "administrador" ||
+                  user.nivel === "revisor_logistica" ||
                   user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
               </TableCell>
             </TableRow>

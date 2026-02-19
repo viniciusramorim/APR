@@ -284,9 +284,9 @@ export default function Open() {
     const siteTableBody = [
       [
         "Sigla-UF: " +
-          (apr.site_id?.Sigla || "N/A") +
-          "-" +
-          (apr.site_id?.Estado || "N/A"),
+        (apr.site_id?.Sigla || "N/A") +
+        "-" +
+        (apr.site_id?.Estado || "N/A"),
         "Criticidade: " + (apr.site_id?.critical || "N/A"),
       ],
       [
@@ -374,20 +374,20 @@ export default function Open() {
         const incluirDoc =
           exportarea === "All"
             ? doc.resp !== "" ||
-              doc.optionListResp?.length > 0 ||
-              doc.respTextArea !== ""
+            doc.optionListResp?.length > 0 ||
+            doc.respTextArea !== ""
             : (exportarea === "oem" &&
-                doc.resp !== "" &&
-                doc.resp !== "N/A" &&
-                doc.resp !== doc.respGabarito &&
-                doc.openPA === true &&
-                doc.areaResposavel?.includes("oem")) ||
-              (exportarea === "patrimonio" &&
-                doc.resp !== "" &&
-                doc.resp !== "N/A" &&
-                doc.resp !== doc.respGabarito &&
-                doc.openPA === true &&
-                doc.areaResposavel?.includes("patrimonio"));
+              doc.resp !== "" &&
+              doc.resp !== "N/A" &&
+              doc.resp !== doc.respGabarito &&
+              doc.openPA === true &&
+              doc.areaResposavel?.includes("oem")) ||
+            (exportarea === "patrimonio" &&
+              doc.resp !== "" &&
+              doc.resp !== "N/A" &&
+              doc.resp !== doc.respGabarito &&
+              doc.openPA === true &&
+              doc.areaResposavel?.includes("patrimonio"));
 
         if (!incluirDoc) continue;
 
@@ -409,8 +409,8 @@ export default function Open() {
             doc.resp === "Sim"
               ? "#4CAF50"
               : doc.resp === "N/A"
-              ? "#FFA500"
-              : "#F44336";
+                ? "#FFA500"
+                : "#F44336";
 
           pdf.content.push({
             table: {
@@ -666,10 +666,9 @@ export default function Open() {
         const hasInconformity =
           question.resp &&
           question.resp !== "N/A" &&
-          question.resp !== question.respGabarito;
-
+          question.openPA !== true;
         // Se tem inconformidade mas não tem plano de ação definido
-        if (hasInconformity && !question.resp_pa_selectedOption) {
+        if (hasInconformity && !question.resp_pa_selectedOption && question.openPA === true) {
           temPendencias = true;
         }
       });
@@ -1010,9 +1009,9 @@ export default function Open() {
         body: [
           [
             "Sigla-UF: " +
-              (apr.site_id?.Sigla || "N/A") +
-              "-" +
-              (apr.site_id?.Estado || "N/A"),
+            (apr.site_id?.Sigla || "N/A") +
+            "-" +
+            (apr.site_id?.Estado || "N/A"),
             "Unidade: " + (apr.site_id?.Nome || "N/A"),
           ],
         ],
@@ -1227,8 +1226,8 @@ export default function Open() {
               doc.resp_pa_status === "Concluido"
                 ? "#4CAF50"
                 : doc.resp_pa_status === "Em Andamento"
-                ? "#FFA500"
-                : "#F44336";
+                  ? "#FFA500"
+                  : "#F44336";
 
             pdf.content.push({
               text: `Status: ${doc.resp_pa_status}`,
@@ -1333,27 +1332,27 @@ export default function Open() {
             <>
               {(user.nivel === "administrador" ||
                 (user.nivel === "revisor" && apr.status === "Em Aberto")) && (
-                <div className="container header-actions">
-                  <div className="siteInfo group-buttons">
-                    <ModalEditSite
-                      idDoc={id}
-                      ReloadAPR={ReloadAPR}
-                      tipoSite={apr.site_id.tipoSite}
-                      logSistem={logSistem}
-                    />
-                    <ModalInfoSiteAPR
-                      sigla={apr.site_id?.Sigla}
-                      estado={apr.site_id?.Estado}
-                    />
-                    <ModalEditMotivo
-                      apr={apr}
-                      id={id}
-                      logSistem={logSistem}
-                      ReloadAPR={ReloadAPR}
-                    />
+                  <div className="container header-actions">
+                    <div className="siteInfo group-buttons">
+                      <ModalEditSite
+                        idDoc={id}
+                        ReloadAPR={ReloadAPR}
+                        tipoSite={apr.site_id.tipoSite}
+                        logSistem={logSistem}
+                      />
+                      <ModalInfoSiteAPR
+                        sigla={apr.site_id?.Sigla}
+                        estado={apr.site_id?.Estado}
+                      />
+                      <ModalEditMotivo
+                        apr={apr}
+                        id={id}
+                        logSistem={logSistem}
+                        ReloadAPR={ReloadAPR}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="container">
                 <div className="info-group">
@@ -1457,7 +1456,7 @@ export default function Open() {
                           {Math.ceil(
                             (apr.tempoConclusao.conclusao.toDate() -
                               apr.tempoConclusao.inicio.toDate()) /
-                              (1000 * 60)
+                            (1000 * 60)
                           )}{" "}
                           min
                         </span>
@@ -1480,24 +1479,23 @@ export default function Open() {
                         <span className="label">Coordenadas:</span>
                         <span className="value">
                           {apr.locationCreated.latitude &&
-                          typeof apr.locationCreated.latitude === "number"
+                            typeof apr.locationCreated.latitude === "number"
                             ? `${apr.locationCreated.latitude.toFixed(
-                                5
-                              )}, ${apr.locationCreated.longitude.toFixed(5)}`
+                              5
+                            )}, ${apr.locationCreated.longitude.toFixed(5)}`
                             : "N/A"}
                         </span>
                       </div>
                       <div className="info-item">
                         <span className="label">Perímetro:</span>
                         <span
-                          className={`perimeter-badge ${
-                            apr.locationCreated.perimetro === "fora perimetro"
+                          className={`perimeter-badge ${apr.locationCreated.perimetro === "fora perimetro"
                               ? "perimeter-outside"
                               : apr.locationCreated.perimetro ===
                                 "Esta dentro do Perimetro"
-                              ? "perimeter-inside"
-                              : "perimeter-unknown"
-                          }`}
+                                ? "perimeter-inside"
+                                : "perimeter-unknown"
+                            }`}
                         >
                           {apr.locationCreated.perimetro}
                         </span>
@@ -1579,23 +1577,23 @@ export default function Open() {
               {(apr.valor_armazenamento ||
                 apr.valor_transporte ||
                 apr.valor_sinistro) && (
-                <div className="container">
-                  <div className="siteInfo">
-                    <span>Valor Armazenamento:</span>{" "}
-                    {apr.valor_armazenamento
-                      ? formatarValor(parseInt(apr.valor_armazenamento))
-                      : "R$ 0"}
-                    <span>Valor Transporte:</span>{" "}
-                    {apr.valor_transporte
-                      ? formatarValor(parseInt(apr.valor_transporte))
-                      : "R$ 0"}
-                    <span>Valor Sinistro:</span>{" "}
-                    {apr.valor_sinistro
-                      ? formatarValor(parseInt(apr.valor_sinistro))
-                      : "R$ 0"}
+                  <div className="container">
+                    <div className="siteInfo">
+                      <span>Valor Armazenamento:</span>{" "}
+                      {apr.valor_armazenamento
+                        ? formatarValor(parseInt(apr.valor_armazenamento))
+                        : "R$ 0"}
+                      <span>Valor Transporte:</span>{" "}
+                      {apr.valor_transporte
+                        ? formatarValor(parseInt(apr.valor_transporte))
+                        : "R$ 0"}
+                      <span>Valor Sinistro:</span>{" "}
+                      {apr.valor_sinistro
+                        ? formatarValor(parseInt(apr.valor_sinistro))
+                        : "R$ 0"}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {apr.valor_estoque && apr.tipo_loja && (
                 <div className="container">
@@ -1727,9 +1725,9 @@ export default function Open() {
                                           </>
                                         )}
                                         {doc.openPA === true &&
-                                        doc.resp !== "N/A" &&
-                                        doc.resp !== doc.respGabarito &&
-                                        user.uid !== apr.id_user ? (
+                                          doc.resp !== "N/A" &&
+                                          doc.resp !== doc.respGabarito &&
+                                          user.uid !== apr.id_user ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -1741,7 +1739,7 @@ export default function Open() {
                                                 >
                                                   <FiCheck size={20} />
                                                   {user.nivel === "aplicador" &&
-                                                  doc.resp_pa_selectedOption
+                                                    doc.resp_pa_selectedOption
                                                     ? "✏️ Corrigir"
                                                     : "Plano de Ação"}
                                                 </a>
@@ -1753,7 +1751,7 @@ export default function Open() {
                                                   }
                                                 >
                                                   {user.nivel === "aplicador" &&
-                                                  doc.resp_pa_selectedOption
+                                                    doc.resp_pa_selectedOption
                                                     ? "✏️ Corrigir"
                                                     : "Plano de Ação"}
                                                 </a>
@@ -1764,16 +1762,16 @@ export default function Open() {
                                           <>
                                             {(doc.plano_acao.tempo ||
                                               doc.plano_acao.comentario) && (
-                                              <>
-                                                <label>Plano de Ação:</label>
-                                                Tempo:{" "}
-                                                <i>{doc.plano_acao.tempo}</i>
-                                                Comentario:{" "}
-                                                <i>
-                                                  {doc.plano_acao.comentario}
-                                                </i>
-                                              </>
-                                            )}
+                                                <>
+                                                  <label>Plano de Ação:</label>
+                                                  Tempo:{" "}
+                                                  <i>{doc.plano_acao.tempo}</i>
+                                                  Comentario:{" "}
+                                                  <i>
+                                                    {doc.plano_acao.comentario}
+                                                  </i>
+                                                </>
+                                              )}
                                           </>
                                         )}
                                       </div>
@@ -1792,26 +1790,27 @@ export default function Open() {
                                       style={{
                                         background:
                                           (doc.resp && doc.answers) ||
-                                          (!doc.resp && !doc.answers)
+                                            (!doc.resp && !doc.answers)
                                             ? "#e7e6e6"
                                             : "transparent",
                                       }}
                                     >
                                       {(apr.status === "Em Aberto" ||
                                         (apr.status === "Aguardando Correção" &&
-                                          user.uid === apr.user_id.uid)) && (
-                                        <ModalEdit
-                                          areaIndex={indexA}
-                                          questionIndex={indexQ}
-                                          questionId={doc.questionId}
-                                          checklistCompleto={
-                                            aprCompleta.checklist
-                                          }
-                                          logSistem={logSistem}
-                                          id={id}
-                                          loadApr={ReloadAPR}
-                                        ></ModalEdit>
-                                      )}
+                                          user.uid === apr.user_id.uid)) && 
+                                        user.nivel !== "ponto_focal" && (
+                                          <ModalEdit
+                                            areaIndex={indexA}
+                                            questionIndex={indexQ}
+                                            questionId={doc.questionId}
+                                            checklistCompleto={
+                                              aprCompleta.checklist
+                                            }
+                                            logSistem={logSistem}
+                                            id={id}
+                                            loadApr={ReloadAPR}
+                                          ></ModalEdit>
+                                        )}
                                       <label>
                                         {indexQ + 1} - {doc.question}
                                       </label>
@@ -1874,7 +1873,7 @@ export default function Open() {
                                               <a
                                                 data-check={
                                                   doc.resp_pa_status ===
-                                                  "Concluido"
+                                                    "Concluido"
                                                     ? "Sim"
                                                     : "Concluido"
                                                 }
@@ -1884,7 +1883,7 @@ export default function Open() {
                                               >
                                                 <FiCheck size={20} />
                                                 {doc.resp_pa_status ===
-                                                "Concluido"
+                                                  "Concluido"
                                                   ? "Plano de Ação Validado"
                                                   : "Plano de Ação"}
                                               </a>
@@ -2122,7 +2121,7 @@ export default function Open() {
                       user.nivel === "revisor_logistica") &&
                       (apr.status === "Em Aberto" ||
                         apr.status === "Revisado" ||
-                        apr.status === "Enviado" ||
+                        (user.nivel === "administrador" && apr.status === "Enviado") ||
                         apr.status === "Aguardando Revisão") && (
                         <div className="revision-section">
                           <div className="section-header">
@@ -2155,12 +2154,11 @@ export default function Open() {
                             </p>
                             {apr.sla_ponto_focal && (
                               <div
-                                className={`sla-alert ${
-                                  new Date() >
-                                  new Date(apr.sla_ponto_focal.toDate())
+                                className={`sla-alert ${new Date() >
+                                    new Date(apr.sla_ponto_focal.toDate())
                                     ? "sla-expired"
                                     : "sla-active"
-                                }`}
+                                  }`}
                               >
                                 <strong>SLA: </strong>
                                 {new Date(
@@ -2168,8 +2166,8 @@ export default function Open() {
                                 ).toLocaleDateString("pt-BR")}
                                 {new Date() >
                                   new Date(apr.sla_ponto_focal.toDate()) && (
-                                  <span> - ⚠️ VENCIDO</span>
-                                )}
+                                    <span> - ⚠️ VENCIDO</span>
+                                  )}
                               </div>
                             )}
                           </div>
@@ -2215,7 +2213,7 @@ export default function Open() {
                           </div>
                         </div>
                       )}
-                    
+
 
                     {user.nivel === "revisor_logistica" &&
                       apr.status === "Aguardando Correção" && (
@@ -2243,18 +2241,6 @@ export default function Open() {
                                 ⚠️ Nem todos os planos foram validados ainda
                               </p>
                             )}
-                          </div>
-                        </div>
-                      )}
-
-                    {user.nivel === "revisor_logistica" &&
-                      apr.status === "Em Aberto" && (
-                        <div className="logistics-section">
-                          <div className="section-header">
-                            <h3>✅ Acompanhamento de Operação</h3>
-                            <p>
-                              Aguarde o aplicador conferir as correções
-                            </p>
                           </div>
                         </div>
                       )}

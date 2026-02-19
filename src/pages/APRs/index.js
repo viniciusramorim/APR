@@ -171,9 +171,9 @@ export default function Dashboard() {
     const regional = regionMap[user.regional];
 
     //filtro por perfil
-    // Aplicadores de logística não filtram por UID (precisam ver APRs de outros para corrigir)
+    // Aplicadores não filtram por UID se forem OEM (precisam ver APRs de outros)
     query =
-      user.nivel === "aplicador" && user.area !== "oem" && user.area !== "logistica"
+      user.nivel === "aplicador" && user.area !== "oem"
         ? query.where("user_id.uid", "==", user.uid)
         : query;
     query =
@@ -300,6 +300,38 @@ export default function Dashboard() {
                   doc.data().created.toDate(),
                   "dd/MM/yyyy HH:mma"
                 ),
+                porcentagem_resp_area:
+                  questoes !== 0
+                    ? ((respondidas / questoes) * 100).toFixed(2) + "%"
+                    : "-",
+                pgr_inconformidade: pgr_inconformidade,
+                totalQuestions: totalQuestions,
+                totalRespondidas: totalRespondidas,
+              });
+            }
+          } else if (user.nivel === "ponto_focal" && checklist !== undefined) {
+            // Ponto focal só vê APRs com plano de ação aberto
+            let temPlanoAcao = false;
+            checklist.forEach((area) => {
+              area[1].forEach((question) => {
+                if (question.openPA === true) {
+                  temPlanoAcao = true;
+                }
+              });
+            });
+
+            if (temPlanoAcao === true) {
+              lista.push({
+                id: doc.id,
+                apr_id: doc.data().apr_id,
+                nome:
+                  doc.data().user_id.nome !== undefined
+                    ? doc.data().user_id.nome
+                    : "",
+                motivo_apr: doc.data().motivo_apr,
+                site_id: doc.data().site_id,
+                status: doc.data().status,
+                created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
                 porcentagem_resp_area:
                   questoes !== 0
                     ? ((respondidas / questoes) * 100).toFixed(2) + "%"
