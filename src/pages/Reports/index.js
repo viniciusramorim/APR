@@ -286,10 +286,31 @@ export default function Reports() {
           return v0(doc, siteData).then(result => {
             if (includeQuestions) {
               if (doc.checklist && doc.status !== "Com Exceção") {
+                // Usar Set para rastrear perguntas já adicionadas e evitar duplicidade
+                // FIXADO: Set criado FORA do forEach para rastrear entre blocos
+                const addedQuestions = new Set();
+                
                 doc.checklist.forEach((blocoQuestion) => {
-                  console.log(doc)
                   blocoQuestion[1].forEach((question) => {
+                    // Criar chave única para evitar duplicação
+                    const questionKey = `${blocoQuestion[0]}_${question.questionId}`;
+                    
+                    // Verificar se a pergunta já foi adicionada
+                    if (addedQuestions.has(questionKey)) {
+                      return; // Pula se já foi adicionada
+                    }
+                    
+                    // Filtrar perguntas que têm resposta
                     if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
+                      // FIXADO: Verificar areaResposavel - deve ter sido designado para alguém responder
+                      // Se areaResposavel não existe ou está vazio, significa que a pergunta não foi destinada a ninguém
+                      if (!question.areaResposavel || !Array.isArray(question.areaResposavel) || question.areaResposavel.length === 0) {
+                        return; // Pula perguntas que não foram designadas para ninguém responder
+                      }
+                      
+                      // Marcar pergunta como adicionada
+                      addedQuestions.add(questionKey);
+                      
                       relatorioApr.push({
                         ID: doc.id,
                         ID_APR: doc.apr_id ? doc.apr_id : '-',
