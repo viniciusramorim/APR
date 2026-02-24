@@ -266,6 +266,21 @@ export default function Reports() {
       return "";
     };
 
+    const hasFilledValue = (value) => {
+      if (value === null || value === undefined) return false;
+      if (Array.isArray(value)) return value.filter((item) => String(item).trim() !== "").length > 0;
+      return String(value).trim() !== "";
+    };
+
+    const isAnsweredByApplicator = (question) => {
+      return (
+        hasFilledValue(question?.resp) ||
+        hasFilledValue(question?.optionListResp) ||
+        hasFilledValue(question?.respTextArea) ||
+        hasFilledValue(question?.respInputNumber)
+      );
+    };
+
     const questionWeightMap = includeQuestions
       ? await buildQuestionWeightMap()
       : null;
@@ -300,8 +315,8 @@ export default function Reports() {
                       return; // Pula se já foi adicionada
                     }
                     
-                    // Filtrar perguntas que têm resposta
-                    if ((question.resp === "" && question.optionListResp !== "") || (question.resp !== "")) {
+                    // Filtrar apenas perguntas realmente respondidas pelo aplicador
+                    if (isAnsweredByApplicator(question)) {
                       // FIXADO: Verificar areaResposavel - deve ter sido designado para alguém responder
                       // Se areaResposavel não existe ou está vazio, significa que a pergunta não foi destinada a ninguém
                       if (!question.areaResposavel || !Array.isArray(question.areaResposavel) || question.areaResposavel.length === 0) {
