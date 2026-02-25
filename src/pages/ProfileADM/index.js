@@ -46,7 +46,7 @@ const MenuProps = {
 };
 
 export default function ProfileADM() {
-  const { user, logSistem } = useContext(AuthContext);
+  const { user, logSistem, updateAllUsersPasswordExpiry } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [checklists, setChecklists] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -54,6 +54,7 @@ export default function ProfileADM() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
+  const [loadingUpdatePassword, setLoadingUpdatePassword] = useState(false);
 
   const permissionMaster = [
     'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2',
@@ -62,6 +63,14 @@ export default function ProfileADM() {
 
 
   const isDisabled = user.uid !== "wQzKfmkPgsV8PULa9t5JLg9Ta6j2";
+
+  async function handleUpdateAllPasswordExpiry() {
+    if (window.confirm("Tem certeza que deseja aplicar expiração de 30 dias a TODOS os usuários?")) {
+      setLoadingUpdatePassword(true);
+      await updateAllUsersPasswordExpiry();
+      setLoadingUpdatePassword(false);
+    }
+  }
 
   const handleChangeChecklist = async (event, id) => {
     const {
@@ -255,6 +264,37 @@ export default function ProfileADM() {
           <span>
             Usuarios Inativos:<b>{contUsers(false)}</b>
           </span>
+        </div>
+
+        <div className="container" style={{ marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderLeft: "4px solid #FF6B35", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", borderRadius: "4px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                ⚙️ Gerenciar Expiração de Senhas
+              </h3>
+              <p style={{ margin: "0", fontSize: "13px", color: "#666" }}>
+                Aplicar contagem de 30 dias para TODOS os usuários
+              </p>
+            </div>
+            <button
+              onClick={handleUpdateAllPasswordExpiry}
+              disabled={loadingUpdatePassword}
+              style={{
+                backgroundColor: loadingUpdatePassword ? "#ccc" : "#FF6B35",
+                color: "white",
+                padding: "12px 24px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: loadingUpdatePassword ? "not-allowed" : "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                transition: "all 0.3s ease"
+              }}
+            >
+              {loadingUpdatePassword ? "🔄 Processando..." : "✓ Aplicar aos 30 dias"}
+            </button>
+          </div>
         </div>
 
         <div className="container filtros">

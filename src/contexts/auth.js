@@ -1,8 +1,19 @@
 import { useState, createContext, useEffect } from "react";
 import firebase from "../services/firebaseConnection";
 import { toast } from "react-toastify";
+import CryptoJS from "crypto-js";
 
 export const AuthContext = createContext({});
+
+/**
+ * FLUXO DE PRIMEIRO LOGIN:
+ * 1. Quando um novo usuário é criado (signUp), o campo 'first_login' é definido como true
+ * 2. No primeiro login (signIn), o campo 'first_login' é incluído nos dados do usuário
+ * 3. A rota prote em Route.js detecta que first_login é true e redireciona para '/first-login-change-password'
+ * 4. O usuário é forçado a alterar sua senha
+ * 5. Após alterar, o campo 'first_login' é definido como false
+ * 6. O usuário é redirecionado para o dashboard (/aprs)
+ */
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -33,6 +44,81 @@ function AuthProvider({ children }) {
       }
     });
   }
+
+  // =========== FUNÇÕES AUXILIARES PARA GERENCIAMENTO DE SENHAS ===========
+
+  /**
+   * Encripta uma senha usando SHA256
+   */
+  function encryptPassword(password) {
+    return CryptoJS.SHA256(password).toString();
+  }
+
+  /**
+   * Calcula a data de expiração da senha (30 dias a partir de hoje)
+   */
+  function calculatePasswordExpiry() {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+    return expiryDate;
+  }
+
+  /**
+   * Adiciona a senha ao histórico criptografado
+   * Desabilitado - não armazena no banco de dados
+   */
+  async function addPasswordHistory(uid, password) {
+    // Função desabilitada - não há armazenamento no banco
+    return true;
+  }
+
+  /**
+   * Verifica se a nova senha já foi utilizada antes
+   * Por enquanto, apenas retorna false (sem validação)
+   */
+  async function checkPasswordHistory(uid, newPassword) {
+    // Validação de histórico desabilitada
+    return false;
+  }
+
+  /**
+   * Verifica se a senha expirou
+   */
+  function isPasswordExpired(passwordExpiryDate) {
+    if (!passwordExpiryDate) return false;
+    
+    // Converter Timestamp do Firebase para Date se necessário
+    let expiry = passwordExpiryDate;
+    if (passwordExpiryDate.toDate) {
+      expiry = passwordExpiryDate.toDate();
+    } else {
+      expiry = new Date(passwordExpiryDate);
+    }
+    
+    const today = new Date();
+    return today > expiry;
+  }
+
+  /**
+   * Calcula quantos dias faltam para expiração
+   */
+  function getDaysUntilPasswordExpiry(passwordExpiryDate) {
+    if (!passwordExpiryDate) return null;
+    
+    // Converter Timestamp do Firebase para Date se necessário
+    let expiry = passwordExpiryDate;
+    if (passwordExpiryDate.toDate) {
+      expiry = passwordExpiryDate.toDate();
+    } else {
+      expiry = new Date(passwordExpiryDate);
+    }
+    
+    const today = new Date();
+    const diffTime = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    return diffTime > 0 ? diffTime : 0;
+  }
+
+  // =======================================================================
 
   //Fazendo login do usuario com reCAPTCHA
   const signIn = async (email, password) => {
@@ -86,6 +172,31 @@ function AuthProvider({ children }) {
       }
 
 
+      // Verificar se a senha expirou
+      if (userProfile.data().password_expiry_date) {
+        const daysUntilExpiry = getDaysUntilPasswordExpiry(userProfile.data().password_expiry_date);
+        
+        if (daysUntilExpiry <= 0) {
+          // Senha expirou - forçar mudança
+          const tempUser = {
+            uid,
+            nome: userProfile.data().nome,
+            email: value.user.email,
+            first_login: true, // Forçar como se fosse primeiro login
+            password_expired: true
+          };
+          setUser(tempUser);
+          storageUser(tempUser);
+          
+          toast.error("Sua senha expirou! Por favor, altere-a para continuar.");
+          setLoadingAuth(false);
+          return;
+        } else if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+          // Avisar que a senha vai expirar em breve
+          toast.warning(`⚠️ Sua senha expirará em ${daysUntilExpiry} dias. Recomendamos alterá-la em breve!`);
+        }
+      }
+
       const data = {
         uid,
         nome: userProfile.data().nome,
@@ -95,6 +206,8 @@ function AuthProvider({ children }) {
         uf: userProfile.data().uf,
         status: userProfile.data().status,
         regional: userProfile.data().regional || "",
+        first_login: userProfile.data().first_login || false,
+        password_expiry_date: userProfile.data().password_expiry_date || null,
       };
 
       await firebase.firestore().collection("users").doc(uid).update({
@@ -205,6 +318,8 @@ function AuthProvider({ children }) {
               nivel: nivel,
               uf: estado,
               status: status,
+              first_login: true,
+              data_criacao: new Date()
             })
             .then(() => {
               console.log(
@@ -218,6 +333,8 @@ function AuthProvider({ children }) {
         console.log(error);
         if (error.code === "auth/email-already-in-use") {
           obterUidEmail(email).then(async (result) => {
+            const expiryDate = calculatePasswordExpiry();
+
             await firebase
               .firestore()
               .collection("users")
@@ -229,6 +346,8 @@ function AuthProvider({ children }) {
                 nivel: nivel,
                 uf: estado,
                 status: status,
+                first_login: true,
+                data_criacao: new Date()
               })
               .then(() => {
                 console.log(
@@ -306,15 +425,27 @@ function AuthProvider({ children }) {
       return;
     }
 
-    user
-      .updatePassword(newPassword)
-      .then(() => {
-        toast.success("Senha alterada com sucesso!");
-        console.log(newPassword);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      await user.updatePassword(newPassword);
+      
+      // Recalcular expiração de senha (30 dias a partir de agora)
+      const newExpiryDate = calculatePasswordExpiry();
+      
+      await firebase
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .update({
+          password_expiry_date: newExpiryDate,
+          password_expired: false,
+          last_password_change: new Date()
+        });
+      
+      toast.success("Senha alterada com sucesso!");
+    } catch (error) {
+      console.log(error);
+      toast.error("Erro ao alterar a senha");
+    }
   }
 
   async function redefinirEmail() {
@@ -434,6 +565,175 @@ function AuthProvider({ children }) {
       .catch((error) => console.error(error));
   }
 
+  // Função para forçar mudança de senha no primeiro login
+  async function forceChangePasswordFirstLogin(newPassword, confirmPassword) {
+    if (!user || !user.first_login) {
+      toast.error("Acesso não autorizado a esta operação");
+      return false;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não conferem!");
+      return false;
+    }
+
+    // Validar força da senha
+    let caps = (newPassword.match(/[A-Z]/g) || []).length;
+    let small = (newPassword.match(/[a-z]/g) || []).length;
+    let num = (newPassword.match(/[0-9]/g) || []).length;
+    let specialSymbol = (newPassword.match(/\W/g) || []).length;
+    let lengthMin = newPassword.length;
+
+    if (caps < 1) {
+      toast.error("Senha deve conter pelo menos uma letra MAIUSCULA");
+      return false;
+    } else if (small < 1) {
+      toast.error("Senha deve conter pelo menos uma letra MINUSCULA");
+      return false;
+    } else if (num < 1) {
+      toast.error("Senha deve conter pelo menos um NUMERO");
+      return false;
+    } else if (specialSymbol < 1) {
+      toast.error("Senha deve conter pelo menos um CARACTER ESPECIAL: @$! % * ? &");
+      return false;
+    } else if (lengthMin < 10) {
+      toast.error("Senha deve conter no minimo 10 CARACTERES");
+      return false;
+    }
+
+    // Verificar se a nova senha já foi utilizada
+    const passwordAlreadyUsed = await checkPasswordHistory(user.uid, newPassword);
+    if (passwordAlreadyUsed) {
+      toast.error("Você não pode usar uma senha que já foi utilizada anteriormente!");
+      return false;
+    }
+
+    try {
+      // Atualizar a senha no Firebase Auth
+      const currentUser = firebase.auth().currentUser;
+      await currentUser.updatePassword(newPassword);
+
+      // Adicionar ao histórico de senhas
+      await addPasswordHistory(user.uid, newPassword);
+
+      // Calcular nova data de expiração
+      const newExpiryDate = calculatePasswordExpiry();
+
+      // Atualizar o status first_login para false e expiração no Firestore
+      await firebase
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .update({
+          first_login: false,
+          password_expired: false,
+          password_expiry_date: newExpiryDate,
+          last_password_change: new Date()
+        });
+
+      // Atualizar o contexto do usuário
+      const updatedUser = { 
+        ...user, 
+        first_login: false,
+        password_expired: false,
+        password_expiry_date: newExpiryDate
+      };
+      setUser(updatedUser);
+      storageUser(updatedUser);
+
+      toast.success("Senha alterada com sucesso! Bem-vindo!");
+      return true;
+    } catch (error) {
+      console.log(error);
+      if (error.code === "auth/weak-password") {
+        toast.error("Senha muito fraca!");
+      } else if (error.code === "auth/requires-recent-login") {
+        toast.error("Sessão expirada. Faça login novamente.");
+      } else {
+        toast.error("Erro ao alterar a senha. Tente novamente.");
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Reset de senha por Admin - recalcula a expiração para 30 dias após reset
+   */
+  async function resetPasswordByAdmin(uid) {
+    try {
+      // Enviar email de reset de senha
+      const userData = (await firebase.firestore().collection("users").doc(uid).get()).data();
+      if (!userData) {
+        toast.error("Usuário não encontrado.");
+        return false;
+      }
+
+      await firebase.auth().sendPasswordResetEmail(userData.email);
+
+      // Recalcular expiration para quando o usuário completar o reset
+      const newExpiryDate = calculatePasswordExpiry();
+      
+      await firebase
+        .firestore()
+        .collection("users")
+        .doc(uid)
+        .update({
+          password_expiry_date: newExpiryDate,
+          password_expired: false,
+          last_password_change: new Date()
+        });
+
+      toast.success("Email de reset enviado! A contagem de 30 dias foi reiniciada.");
+      return true;
+    } catch (error) {
+      console.error("Erro ao resetar senha por admin:", error);
+      toast.error("Erro ao resetar senha. Tente novamente.");
+      return false;
+    }
+  }
+
+  /**
+   * Atualiza TODOS os usuários com password_expiry_date (+30 dias)
+   * Execute uma única vez para aplicar a regra a todos os usuários existentes
+   */
+  async function updateAllUsersPasswordExpiry() {
+    try {
+      setLoadingAuth(true);
+      const usersRef = firebase.firestore().collection("users");
+      const snapshot = await usersRef.get();
+
+      if (snapshot.empty) {
+        toast.error("Nenhum usuário encontrado.");
+        setLoadingAuth(false);
+        return false;
+      }
+
+      const newExpiryDate = calculatePasswordExpiry();
+      let updateCount = 0;
+
+      // Usar batch para atualizar múltiplos documentos
+      const batch = firebase.firestore().batch();
+
+      snapshot.forEach((doc) => {
+        batch.update(doc.ref, {
+          password_expiry_date: newExpiryDate,
+          password_expired: false
+        });
+        updateCount++;
+      });
+
+      await batch.commit();
+      toast.success(`✅ ${updateCount} usuários atualizados com expiração de 30 dias!`);
+      setLoadingAuth(false);
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar usuários:", error);
+      toast.error("Erro ao atualizar usuários. Tente novamente.");
+      setLoadingAuth(false);
+      return false;
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -454,6 +754,11 @@ function AuthProvider({ children }) {
         logSistem,
         getUser,
         trocaSenha,
+        forceChangePasswordFirstLogin,
+        resetPasswordByAdmin,
+        updateAllUsersPasswordExpiry,
+        getDaysUntilPasswordExpiry,
+        isPasswordExpired,
       }}
     >
       {children}

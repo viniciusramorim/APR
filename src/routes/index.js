@@ -2,6 +2,7 @@ import { Switch } from 'react-router-dom';
 import Route from './Route';
 
 import SignIn from '../pages/SignIn';
+import FirstLoginChangePassword from '../pages/FirstLoginChangePassword';
 
 import APRs from '../pages/APRs';
 import Profile from '../pages/Profile';
@@ -28,6 +29,7 @@ export default function Routes() {
     <Switch>
       {/* paginas geral */}
       <Route exact path="/" component={SignIn} />
+      <Route exact path="/first-login-change-password" component={FirstLoginChangePassword} isPrivate />
       <Route exact path="/profile" component={Profile} isPrivate />
       <Route exact path="/profileadm" component={ProfileADM} isPrivate isAdm />
       <Route exact path="/new_site" component={New_Site} isPrivate isAdm />

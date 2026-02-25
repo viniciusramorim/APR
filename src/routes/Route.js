@@ -30,6 +30,21 @@ export default function RouteWrapper({
     return <div></div>;
   }
 
+  // Se o usuário está logado e é seu primeiro login, redirecionar para mudar senha (como fallback)
+  if (signed && user.first_login && location.pathname !== "/first-login-change-password") {
+    return <Redirect to="/first-login-change-password" />;
+  }
+
+  // Se a senha expirou, redirecionar para mudar senha (como fallback)
+  if (signed && user.password_expired && location.pathname !== "/first-login-change-password") {
+    return <Redirect to="/first-login-change-password" />;
+  }
+
+  // Se está tentando acessar a página de mudança de senha mas não é primeira vez nem senha expirada, redirecionar
+  if (signed && !user.first_login && !user.password_expired && location.pathname === "/first-login-change-password") {
+    return <Redirect to={pageTo()} />;
+  }
+
   if (signed && !isPrivate) {
     return <Redirect to={pageTo()} />;
   }

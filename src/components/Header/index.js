@@ -74,24 +74,8 @@ export default function Header() {
       />
 
       <section id="menu">
-        {user.area === "ronda" && (
-          <>
-            <Tooltip title="Aplicar Ronda" placement="right" arrow>
-              <Link to="/newronda">
-                <PlaylistAddCheckSharpIcon color="#000" size={20} />
-                <i id="label-menu">Aplicar Ronda</i>
-              </Link>
-            </Tooltip>
-            <Tooltip title="Rondas Realizadas" placement="right" arrow>
-              <Link to="/dashboardrondas">
-                <FiHome color="#000" size={20} />
-                <i id="label-menu">Rondas Realizadas</i>
-              </Link>
-            </Tooltip>
-          </>
-        )}
 
-        {(user.area === "patrimonial" || user.area === "pci") && (
+        {(user.area === "patrimonial" || user.area === "pci") && user.nivel === "aplicador" && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">
@@ -108,7 +92,7 @@ export default function Header() {
           </>
         )}
 
-        {(user.area === "oem") && (
+        {(user.area === "oem") && user.nivel === "aplicador" && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
               <Link to="/new">
