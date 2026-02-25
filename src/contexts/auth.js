@@ -734,6 +734,45 @@ function AuthProvider({ children }) {
     }
   }
 
+  /**
+   * Força TODOS os usuários a trocar senha no próximo login
+   * Seta first_login: true para todos os usuários
+   */
+  async function forceAllUsersChangePassword() {
+    try {
+      setLoadingAuth(true);
+      const usersRef = firebase.firestore().collection("users");
+      const snapshot = await usersRef.get();
+
+      if (snapshot.empty) {
+        toast.error("Nenhum usuário encontrado.");
+        setLoadingAuth(false);
+        return false;
+      }
+
+      let updateCount = 0;
+      const batch = firebase.firestore().batch();
+
+      snapshot.forEach((doc) => {
+        batch.update(doc.ref, {
+          first_login: true,
+          password_expired: false
+        });
+        updateCount++;
+      });
+
+      await batch.commit();
+      toast.success(`✅ ${updateCount} usuários serão obrigados a trocar senha no próximo login!`);
+      setLoadingAuth(false);
+      return true;
+    } catch (error) {
+      console.error("Erro ao forçar mudança de senha:", error);
+      toast.error("Erro ao forçar mudança de senha. Tente novamente.");
+      setLoadingAuth(false);
+      return false;
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -757,6 +796,7 @@ function AuthProvider({ children }) {
         forceChangePasswordFirstLogin,
         resetPasswordByAdmin,
         updateAllUsersPasswordExpiry,
+        forceAllUsersChangePassword,
         getDaysUntilPasswordExpiry,
         isPasswordExpired,
       }}

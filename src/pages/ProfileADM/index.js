@@ -46,7 +46,7 @@ const MenuProps = {
 };
 
 export default function ProfileADM() {
-  const { user, logSistem, updateAllUsersPasswordExpiry } = useContext(AuthContext);
+  const { user, logSistem, updateAllUsersPasswordExpiry, forceAllUsersChangePassword } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [checklists, setChecklists] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -55,6 +55,7 @@ export default function ProfileADM() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
   const [loadingUpdatePassword, setLoadingUpdatePassword] = useState(false);
+  const [loadingForceChange, setLoadingForceChange] = useState(false);
 
   const permissionMaster = [
     'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2',
@@ -69,6 +70,14 @@ export default function ProfileADM() {
       setLoadingUpdatePassword(true);
       await updateAllUsersPasswordExpiry();
       setLoadingUpdatePassword(false);
+    }
+  }
+
+  async function handleForceAllUsersChangePassword() {
+    if (window.confirm("ATENÇÃO: Todos os usuários serão obrigados a trocar senha no próximo login. Continuar?")) {
+      setLoadingForceChange(true);
+      await forceAllUsersChangePassword();
+      setLoadingForceChange(false);
     }
   }
 
@@ -293,6 +302,37 @@ export default function ProfileADM() {
               }}
             >
               {loadingUpdatePassword ? "🔄 Processando..." : "✓ Aplicar aos 30 dias"}
+            </button>
+          </div>
+        </div>
+
+        <div className="container" style={{ marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderLeft: "4px solid #E74C3C", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", borderRadius: "4px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                🔐 Forçar Mudança de Senha
+              </h3>
+              <p style={{ margin: "0", fontSize: "13px", color: "#666" }}>
+                Obrigar TODOS os usuários a trocar senha no próximo login
+              </p>
+            </div>
+            <button
+              onClick={handleForceAllUsersChangePassword}
+              disabled={loadingForceChange}
+              style={{
+                backgroundColor: loadingForceChange ? "#ccc" : "#E74C3C",
+                color: "white",
+                padding: "12px 24px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: loadingForceChange ? "not-allowed" : "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                transition: "all 0.3s ease"
+              }}
+            >
+              {loadingForceChange ? "🔄 Processando..." : "⚠️ Forçar Mudança"}
             </button>
           </div>
         </div>
