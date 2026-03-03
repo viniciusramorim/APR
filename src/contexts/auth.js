@@ -9,7 +9,7 @@ export const AuthContext = createContext({});
  * FLUXO DE PRIMEIRO LOGIN:
  * 1. Quando um novo usuário é criado (signUp), o campo 'first_login' é definido como true
  * 2. No primeiro login (signIn), o campo 'first_login' é incluído nos dados do usuário
- * 3. A rota prote em Route.js detecta que first_login é true e redireciona para '/first-login-change-password'
+ * 3. A rota prote em Route.js detecta que first_login é true e redireciona para '/validation'
  * 4. O usuário é forçado a alterar sua senha
  * 5. Após alterar, o campo 'first_login' é definido como false
  * 6. O usuário é redirecionado para o dashboard (/aprs)
@@ -65,20 +65,38 @@ function AuthProvider({ children }) {
 
   /**
    * Adiciona a senha ao histórico criptografado
-   * Desabilitado - não armazena no banco de dados
+   * Desabilitado - não há armazenamento em histórico, apenas last_password_hash
    */
   async function addPasswordHistory(uid, password) {
-    // Função desabilitada - não há armazenamento no banco
+    // Função desabilitada
     return true;
   }
 
   /**
    * Verifica se a nova senha já foi utilizada antes
-   * Por enquanto, apenas retorna false (sem validação)
    */
   async function checkPasswordHistory(uid, newPassword) {
-    // Validação de histórico desabilitada
-    return false;
+    try {
+      const userDoc = await firebase.firestore().collection("users").doc(uid).get();
+      const lastPasswordHash = userDoc.data().last_password_hash;
+      
+      if (!lastPasswordHash) {
+        // Sem histórico, permite qualquer senha
+        return false;
+      }
+
+      const encryptedNewPassword = encryptPassword(newPassword);
+      
+      // Se o hash da nova senha for igual ao último hash, rejeita
+      if (encryptedNewPassword === lastPasswordHash) {
+        return true; // Senha já foi usada
+      }
+      
+      return false; // Senha é nova
+    } catch (error) {
+      console.error("Erro ao verificar histórico de senha:", error);
+      return false;
+    }
   }
 
   /**
@@ -182,6 +200,11 @@ function AuthProvider({ children }) {
             uid,
             nome: userProfile.data().nome,
             email: value.user.email,
+            area: userProfile.data().area,
+            nivel: userProfile.data().nivel,
+            uf: userProfile.data().uf,
+            status: userProfile.data().status,
+            regional: userProfile.data().regional || "",
             first_login: true, // Forçar como se fosse primeiro login
             password_expired: true
           };
@@ -438,8 +461,34 @@ function AuthProvider({ children }) {
         .update({
           password_expiry_date: newExpiryDate,
           password_expired: false,
-          last_password_change: new Date()
+          last_password_change: new Date(),
+          last_password_hash: encryptPassword(newPassword)
         });
+
+      // Recarregar os dados do usuário do Firestore para manter o contexto atualizado
+      const userDoc = await firebase
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+      if (userDoc.exists) {
+        const completeUserData = userDoc.data();
+        const updatedUser = {
+          uid: user.uid,
+          nome: completeUserData.nome,
+          email: completeUserData.email,
+          area: completeUserData.area,
+          nivel: completeUserData.nivel,
+          uf: completeUserData.uf,
+          status: completeUserData.status,
+          regional: completeUserData.regional || "",
+          first_login: completeUserData.first_login || false,
+          password_expiry_date: newExpiryDate,
+        };
+        setUser(updatedUser);
+        storageUser(updatedUser);
+      }
       
       toast.success("Senha alterada com sucesso!");
     } catch (error) {
@@ -601,10 +650,10 @@ function AuthProvider({ children }) {
       return false;
     }
 
-    // Verificar se a nova senha já foi utilizada
+    // Verificar se a nova senha é igual à anterior
     const passwordAlreadyUsed = await checkPasswordHistory(user.uid, newPassword);
     if (passwordAlreadyUsed) {
-      toast.error("Você não pode usar uma senha que já foi utilizada anteriormente!");
+      toast.error("Você não pode usar a mesma senha que foi utilizada antes!");
       return false;
     }
 
@@ -612,9 +661,6 @@ function AuthProvider({ children }) {
       // Atualizar a senha no Firebase Auth
       const currentUser = firebase.auth().currentUser;
       await currentUser.updatePassword(newPassword);
-
-      // Adicionar ao histórico de senhas
-      await addPasswordHistory(user.uid, newPassword);
 
       // Calcular nova data de expiração
       const newExpiryDate = calculatePasswordExpiry();
@@ -628,18 +674,35 @@ function AuthProvider({ children }) {
           first_login: false,
           password_expired: false,
           password_expiry_date: newExpiryDate,
-          last_password_change: new Date()
+          last_password_change: new Date(),
+          last_password_hash: encryptPassword(newPassword)
         });
 
-      // Atualizar o contexto do usuário
-      const updatedUser = { 
-        ...user, 
-        first_login: false,
-        password_expired: false,
-        password_expiry_date: newExpiryDate
-      };
-      setUser(updatedUser);
-      storageUser(updatedUser);
+      // Recarregar os dados completos do usuário do Firestore (incluindo nivel, area, etc)
+      const userDoc = await firebase
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+      if (userDoc.exists) {
+        const completeUserData = userDoc.data();
+        const updatedUser = { 
+          uid: user.uid,
+          nome: completeUserData.nome,
+          email: completeUserData.email,
+          area: completeUserData.area,
+          nivel: completeUserData.nivel,
+          uf: completeUserData.uf,
+          status: completeUserData.status,
+          regional: completeUserData.regional || "",
+          first_login: false,
+          password_expired: false,
+          password_expiry_date: newExpiryDate,
+        };
+        setUser(updatedUser);
+        storageUser(updatedUser);
+      }
 
       toast.success("Senha alterada com sucesso! Bem-vindo!");
       return true;
@@ -680,7 +743,8 @@ function AuthProvider({ children }) {
         .update({
           password_expiry_date: newExpiryDate,
           password_expired: false,
-          last_password_change: new Date()
+          last_password_change: new Date(),
+          last_password_hash: "" // Limpar hash para permitir qualquer nova senha
         });
 
       toast.success("Email de reset enviado! A contagem de 30 dias foi reiniciada.");

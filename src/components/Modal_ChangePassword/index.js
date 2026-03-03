@@ -54,7 +54,7 @@ export default function ModalChangePassword({ isOpen, type = "first_login", onCl
         <div className="modal-header-password">
           <div>
             <h2>
-              {isFirstLogin ? "🔐 Primeiro Acesso" : "⚠️ Renovação de Senha"}
+              {isFirstLogin ? "🔐 Primeiro Acesso" : "🔄 Redefinição de Senha"}
             </h2>
             <p>
               {isFirstLogin

@@ -29,7 +29,7 @@ export default function Routes() {
     <Switch>
       {/* paginas geral */}
       <Route exact path="/" component={SignIn} />
-      <Route exact path="/first-login-change-password" component={FirstLoginChangePassword} isPrivate />
+      <Route exact path="/validation" component={FirstLoginChangePassword} isPrivate />
       <Route exact path="/profile" component={Profile} isPrivate />
       <Route exact path="/profileadm" component={ProfileADM} isPrivate isAdm />
       <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
