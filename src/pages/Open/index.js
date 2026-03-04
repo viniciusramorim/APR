@@ -1579,18 +1579,24 @@ export default function Open() {
                 apr.valor_sinistro) && (
                   <div className="container">
                     <div className="siteInfo">
-                      <span>Valor Armazenamento:</span>{" "}
-                      {apr.valor_armazenamento
-                        ? formatarValor(parseInt(apr.valor_armazenamento))
-                        : "R$ 0"}
-                      <span>Valor Transporte:</span>{" "}
-                      {apr.valor_transporte
-                        ? formatarValor(parseInt(apr.valor_transporte))
-                        : "R$ 0"}
-                      <span>Valor Sinistro:</span>{" "}
-                      {apr.valor_sinistro
-                        ? formatarValor(parseInt(apr.valor_sinistro))
-                        : "R$ 0"}
+                      <span>
+                        <strong>VALOR ARMAZENAMENTO:</strong>{" "}
+                        {apr.valor_armazenamento
+                          ? formatarValor(parseInt(apr.valor_armazenamento))
+                          : "R$ 0"}
+                      </span>
+                      <span>
+                        <strong>VALOR TRANSPORTE:</strong>{" "}
+                        {apr.valor_transporte
+                          ? formatarValor(parseInt(apr.valor_transporte))
+                          : "R$ 0"}
+                      </span>
+                      <span>
+                        <strong>VALOR SINISTRO:</strong>{" "}
+                        {apr.valor_sinistro
+                          ? formatarValor(parseInt(apr.valor_sinistro))
+                          : "R$ 0"}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -1727,7 +1733,8 @@ export default function Open() {
                                         {doc.openPA === true &&
                                           doc.resp !== "N/A" &&
                                           doc.resp !== doc.respGabarito &&
-                                          user.uid !== apr.id_user ? (
+                                          user.uid !== apr.id_user &&
+                                          (user.nivel !== "aplicador" || apr.status !== "Em Aberto") ? (
                                           <>
                                             <label className="plano-acao">
                                               {doc.plano_acao.comentario ? (
@@ -1758,22 +1765,7 @@ export default function Open() {
                                               )}
                                             </label>
                                           </>
-                                        ) : (
-                                          <>
-                                            {(doc.plano_acao.tempo ||
-                                              doc.plano_acao.comentario) && (
-                                                <>
-                                                  <label>Plano de Ação:</label>
-                                                  Tempo:{" "}
-                                                  <i>{doc.plano_acao.tempo}</i>
-                                                  Comentario:{" "}
-                                                  <i>
-                                                    {doc.plano_acao.comentario}
-                                                  </i>
-                                                </>
-                                              )}
-                                          </>
-                                        )}
+                                        ) : null}
                                       </div>
                                     );
                                   }
@@ -1798,7 +1790,8 @@ export default function Open() {
                                       {(apr.status === "Em Aberto" ||
                                         (apr.status === "Aguardando Correção" &&
                                           user.uid === apr.user_id.uid)) && 
-                                        user.nivel !== "ponto_focal" && (
+                                        user.nivel !== "ponto_focal" && 
+                                        user.nivel !== "aplicador" && (
                                           <ModalEdit
                                             areaIndex={indexA}
                                             questionIndex={indexQ}
@@ -1867,7 +1860,8 @@ export default function Open() {
                                         doc.resp !== doc.respGabarito &&
                                         doc.resp !== "N/A" &&
                                         doc.resp !== "" &&
-                                        user.uid !== apr.id_user && (
+                                        user.uid !== apr.id_user &&
+                                        (user.nivel !== "aplicador" || apr.status !== "Em Aberto") && (
                                           <label className="plano-acao">
                                             {doc.plano_acao.comentario ? (
                                               <a

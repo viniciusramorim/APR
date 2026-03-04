@@ -447,9 +447,28 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       const responseData = await response.text();
       console.log('Resposta do servidor:', responseData);
 
+      // Verificar se há inconformidades na APR
+      let temInconformidades = false;
+      if (apr.checklist) {
+        apr.checklist.forEach((area) => {
+          area[1].forEach((question) => {
+            const hasInconformity =
+              question.resp &&
+              question.resp !== "N/A" &&
+              question.resp !== question.respGabarito;
+            if (hasInconformity) {
+              temInconformidades = true;
+            }
+          });
+        });
+      }
+
+      // Define o status baseado em inconformidades
+      const novoStatus = temInconformidades ? "Enviado para Área Responsável" : "Enviado";
+
       // Atualizar status da APR no Firestore
       await firebase.firestore().collection('aprs-producao').doc(id).update({
-        status: "Enviado",
+        status: novoStatus,
         data_envio_email: firebase.firestore.FieldValue.serverTimestamp(),
         terms: agreeTerms
       });
@@ -458,7 +477,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
       setApr({
         ...apr,
-        status: "Enviado"
+        status: novoStatus
       });
 
       toast.success("E-mail enviado com sucesso e APR atualizada!");

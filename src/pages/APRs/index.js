@@ -507,7 +507,7 @@ export default function Dashboard() {
       <Header name="APRs" subtitle="Visualize suas APRs">
       </Header>
       <div className="content">
-        {(user.nivel === "administrador" || user.nivel === "revisor") && (
+        {(user.nivel === "administrador" || user.nivel === "revisor" || user.nivel === 'revisor_logistica' ) && (
           <Grid
             container
             marginBottom={2}
@@ -539,7 +539,7 @@ export default function Dashboard() {
               sx={styles.pendendia}
             >
               <Grid>Aguardando Ponto Focal</Grid>
-              <Grid>{chamados.filter((x) => x.status === "Aguardando Correção").length}</Grid>
+              <Grid>{chamados.filter((x) => x.status === "enviado-para-area-responsavel").length}</Grid>
             </Grid>
 
             <Grid
