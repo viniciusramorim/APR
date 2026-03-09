@@ -22,8 +22,10 @@ import {
   MenuItem,
   Link,
   Typography,
+  CircularProgress,
+  Chip,
 } from "@mui/material";
-import { Download } from "@mui/icons-material";
+import { Download, CloudUpload, Description, Image, PictureAsPdf, AudioFile, VideoLibrary, ArchiveOutlined, InsertDriveFile } from "@mui/icons-material";
 
 export default function Modal_PA({
   checklist,
@@ -46,12 +48,19 @@ export default function Modal_PA({
   const [slaLogistica, setSlaLogistica] = useState("");
   const [uploading, setUploading] = useState(false);
   const [notaParecer, setNotaParecer] = useState("");
+  const [resolucaoInconformidade, setResolucaoInconformidade] = useState(null); // 'sim', 'nao' ou null
   const [uploadingEvidencia, setUploadingEvidencia] = useState(false);
   const [novaResposta, setNovaResposta] = useState("");
   const [novasImagens, setNovasImagens] = useState([]);
   const [comentarioCorrecao, setComentarioCorrecao] = useState("");
+  const [historicoLocal, setHistoricoLocal] = useState(conteudo?.plano_acao?.historico_logistica || []);
   const [showCamera, setShowCamera] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [anexosLocal, setAnexosLocal] = useState(conteudo?.plano_acao?.anexos || []);
+  const [arquivosSelecionados, setArquivosSelecionados] = useState([]);
   const webcamRef = useRef(null);
+  const inputFileRef = useRef(null);
 
   const { user } = useContext(AuthContext);
   const { id } = useParams();
@@ -60,10 +69,49 @@ export default function Modal_PA({
     (object) => object?.question === conteudo.question
   );
 
+  // Função para retornar ícone baseado na extensão do arquivo
+  function getFileIcon(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    
+    const iconMap = {
+      // Documentos
+      'pdf': <PictureAsPdf sx={{ color: '#d32f2f', fontSize: '1.5rem' }} />,
+      'doc': <Description sx={{ color: '#1976d2', fontSize: '1.5rem' }} />,
+      'docx': <Description sx={{ color: '#1976d2', fontSize: '1.5rem' }} />,
+      'txt': <Description sx={{ color: '#666', fontSize: '1.5rem' }} />,
+      'xls': <Description sx={{ color: '#388e3c', fontSize: '1.5rem' }} />,
+      'xlsx': <Description sx={{ color: '#388e3c', fontSize: '1.5rem' }} />,
+      'ppt': <Description sx={{ color: '#f57c00', fontSize: '1.5rem' }} />,
+      'pptx': <Description sx={{ color: '#f57c00', fontSize: '1.5rem' }} />,
+      // Imagens
+      'jpg': <Image sx={{ color: '#9c27b0', fontSize: '1.5rem' }} />,
+      'jpeg': <Image sx={{ color: '#9c27b0', fontSize: '1.5rem' }} />,
+      'png': <Image sx={{ color: '#9c27b0', fontSize: '1.5rem' }} />,
+      'gif': <Image sx={{ color: '#9c27b0', fontSize: '1.5rem' }} />,
+      'bmp': <Image sx={{ color: '#9c27b0', fontSize: '1.5rem' }} />,
+      // Áudio
+      'mp3': <AudioFile sx={{ color: '#e91e63', fontSize: '1.5rem' }} />,
+      'wav': <AudioFile sx={{ color: '#e91e63', fontSize: '1.5rem' }} />,
+      'm4a': <AudioFile sx={{ color: '#e91e63', fontSize: '1.5rem' }} />,
+      // Vídeo
+      'mp4': <VideoLibrary sx={{ color: '#ff6f00', fontSize: '1.5rem' }} />,
+      'avi': <VideoLibrary sx={{ color: '#ff6f00', fontSize: '1.5rem' }} />,
+      'mkv': <VideoLibrary sx={{ color: '#ff6f00', fontSize: '1.5rem' }} />,
+      'mov': <VideoLibrary sx={{ color: '#ff6f00', fontSize: '1.5rem' }} />,
+      // Comprimidos
+      'zip': <ArchiveOutlined sx={{ color: '#ff9800', fontSize: '1.5rem' }} />,
+      'rar': <ArchiveOutlined sx={{ color: '#ff9800', fontSize: '1.5rem' }} />,
+      '7z': <ArchiveOutlined sx={{ color: '#ff9800', fontSize: '1.5rem' }} />,
+    };
+    
+    return iconMap[ext] || <InsertDriveFile sx={{ color: '#757575', fontSize: '1.5rem' }} />;
+  }
+
   useEffect(() => {
     function loadConstants() {
       setTempo(conteudo?.plano_acao?.tempo || "");
-      setComentario(conteudo?.plano_acao?.comentario || "");
+      // Ponto focal não deve carregar o comentário anterior, apenas deixar em branco
+      setComentario(user.nivel === "ponto_focal" ? "" : (conteudo?.plano_acao?.comentario || ""));
 
       // Se for revisor_logistica, definir "Logistica" como padrão
       const defaultOption = (user.nivel === "revisor_logistica") ? "Logistica" : "";
@@ -74,13 +122,27 @@ export default function Modal_PA({
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
-      setSlaLogistica(conteudo?.plano_acao?.sla_logistica ?
-        new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0] : "");
+      // Ponto focal não deve carregar o SLA preenchido, apenas deixar em branco para redefinir
+      setSlaLogistica(user.nivel === "ponto_focal" ? "" : (conteudo?.plano_acao?.sla_logistica ?
+        new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0] : ""));
       setNotaParecer(conteudo?.nota_parecer || "");
+      // Resetar resolucaoInconformidade para cada novo modal
+      setResolucaoInconformidade(conteudo?.resp_pa_resolucao || null);
+      // Atualizar histórico local
+      setHistoricoLocal(conteudo?.plano_acao?.historico_logistica || []);
+      // Atualizar anexos local
+      const anexosCarregados = conteudo?.plano_acao?.anexos || [];
+      console.log("📎 Anexos carregados do conteudo:", anexosCarregados);
+      setAnexosLocal(anexosCarregados);
     }
 
     loadConstants();
-  }, []);
+  }, [conteudo, refreshTrigger]);
+
+  // Debug: Log quando arquivos selecionados mudam
+  useEffect(() => {
+    console.log("📋 Estado arquivosSelecionados atualizado:", arquivosSelecionados);
+  }, [arquivosSelecionados]);
 
   // Variável para bloquear edição baseada no usuário e status
   // Revisor, revisor_logistica e administrador podem sempre editar o SLA e comentário da opção Logística
@@ -94,6 +156,33 @@ export default function Modal_PA({
   const statusVisualizacao = ["Revisado", "Enviado", "Concluido", "Respondido pela Area"];
   const isModoVisualizacao = statusVisualizacao.includes(apr.status) && conteudo?.resp_pa_selectedOption && 
     user.nivel !== "revisor_logistica" && user.nivel !== "ponto_focal";
+
+  // Função para verificar se todos os planos de ação foram definidos
+  function todosOsPlanosForamDefinidos() {
+    const checklist = apr.checklist;
+    let todosDefinidos = true;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade mas não tem plano de ação definido
+        if (hasInconformity && !question.resp_pa_selectedOption) {
+          todosDefinidos = false;
+        }
+      });
+    });
+
+    return todosDefinidos;
+  }
+
+  // Função para verificar se o revisor pode validar (quando status for Aguardando Revisão Plano de Ação)
+  function podeValidarPlano() {
+    return apr.status === "Aguardando Revisão Plano de Ação" && user.nivel === "revisor_logistica";
+  };
 
   async function alterarPA() {
     if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
@@ -187,13 +276,16 @@ export default function Modal_PA({
     } else {
       await updateAPR(id);
     }
-
     toast.success("Plano de ação atualizado");
+
     loadApr();
+    setResolucaoInconformidade(null);
     close();
   }
 
   async function UpdatePA() {
+    if (!resolucaoInconformidade) return toast.error("Selecione se a inconformidade foi resolvida");
+    
     const docRef = firebase.firestore().collection(base).doc(id);
 
     const doc = await docRef.get();
@@ -205,55 +297,25 @@ export default function Modal_PA({
     plano.resp_pa_status_alterado_data = new Date();
     plano.resp_pa_status_alterado = user.nome;
     plano.resp_pa_status_parecer = notaParecer;
-    plano.resp_pa_status = "Concluido";
+    plano.resp_pa_status = resolucaoInconformidade === 'sim' ? "Concluido" : "Reprovado";
+    plano.resp_pa_resolucao = resolucaoInconformidade;
 
     await docRef.update(dados);
 
-    toast.success("Plano de ação validado");
+    if (resolucaoInconformidade === 'sim') {
+      toast.success("✅ Plano de ação validado!");
+    } else {
+      // Se foi reprovado, mudar status da APR para retornar ao ponto focal
+      await docRef.update({
+        status: "Enviado para Área Responsável",
+        data_alteracao: new Date(),
+        motivo_reprovacao: notaParecer,
+      });
+      toast.success("❌ Plano de ação reprovado e retornado ao ponto focal");
+    }
     loadApr();
-  }
-
-  async function salvarNovoSLA() {
-    if (!slaLogistica) return toast.error("Preencha o SLA (data)");
-    if (!comentario) return toast.error("Preencha um comentário");
-
-    const docRef = firebase.firestore().collection(base).doc(id);
-    const doc = await docRef.get();
-    if (!doc.exists) return toast.error("Documento não encontrado");
-
-    const dados = doc.data();
-    const plano = dados.checklist[area][1][index];
-
-    // Inicializar histórico se não existir
-    const historicoAtual = plano.plano_acao?.historico_logistica || [];
-    
-    // Adicionar o SLA atual ao histórico (novo registro)
-    historicoAtual.push({
-      data: new Date(),
-      usuario: user.nome,
-      sla: new Date(slaLogistica),
-      comentario: comentario,
-    });
-
-    // Atualizar o plano_acao mantendo o SLA atual e adicionando ao histórico
-    plano.plano_acao = {
-      ...plano.plano_acao,
-      sla_logistica: new Date(slaLogistica),
-      comentario: comentario,
-      historico_logistica: historicoAtual,
-    };
-
-    plano.resp_pa_selectedOption = "Logistica";
-    plano.resp_pa_data = new Date();
-    plano.resp_pa_user_name = user.nome;
-    plano.resp_pa_user_id = user.uid;
-
-    await docRef.update(dados);
-
-    toast.success("SLA salvo com sucesso!");
-    setSlaLogistica("");
-    setComentario("");
-    loadApr();
+    setResolucaoInconformidade(null);
+    close();
   }
 
   async function updateAPR(id) {
@@ -274,48 +336,109 @@ export default function Modal_PA({
 
   // Upload do arquivo para Storage Firebase
   async function handleArquivoChange(e) {
-    if (isReadOnly) return; // bloqueia upload se somente leitura
-    if (!e.target.files[0]) return;
-    const file = e.target.files[0];
-
-    if (file.size > 10 * 1024 * 1024) {
-      return toast.error("Arquivo deve ter até 10MB");
+    console.log("🎯 handleArquivoChange chamado. isReadOnly:", isReadOnly);
+    console.log("👤 Nível do usuário:", user.nivel);
+    
+    // Permitir upload para revisor_logistica e ponto_focal mesmo com isReadOnly = true
+    const podeUpload = !isReadOnly || user.nivel === "revisor_logistica" || user.nivel === "ponto_focal";
+    
+    if (!podeUpload) {
+      console.log("❌ Bloqueado: Usuário não tem permissão");
+      return;
     }
-
+    if (!e.target.files || e.target.files.length === 0) {
+      console.log("❌ Sem arquivos selecionados");
+      return;
+    }
+    
+    const files = Array.from(e.target.files);
+    console.log("📁 Arquivos selecionados:", files);
+    
+    // Mostrar preview dos arquivos selecionados
+    const preview = files.map(f => ({
+      nome: f.name,
+      tamanho: (f.size / 1024 / 1024).toFixed(2),
+    }));
+    console.log("📋 Preview criado:", preview);
+    setArquivosSelecionados(preview);
+    
     setUploading(true);
 
     try {
-      const storageRef = firebase.storage().ref();
-      const arquivoRef = storageRef.child(
-        `anexos_pa/${id}/${area}_q${index}_${file.name}`
-      );
-
-      // Faz upload
-      await arquivoRef.put(file);
-
-      // Pega URL do arquivo
-      const url = await arquivoRef.getDownloadURL();
-
-      // Atualiza o campo no Firestore
       const docRef = firebase.firestore().collection(base).doc(id);
       const doc = await docRef.get();
-      if (!doc.exists) return toast.error("Documento não encontrado");
+      if (!doc.exists) {
+        toast.error("Documento não encontrado");
+        setUploading(false);
+        return;
+      }
+      
       const dados = doc.data();
       const plano = dados.checklist[area][1][index];
+      const anexosAtual = plano.plano_acao?.anexos || [];
+      
+      // Processar cada arquivo
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.warning(`Arquivo ${file.name} excede 10MB e foi ignorado`);
+          continue;
+        }
 
-      // Atualiza anexo no plano_acao
+        try {
+          const storageRef = firebase.storage().ref();
+          const timestamp = Date.now();
+          const arquivoRef = storageRef.child(
+            `anexos_pa/${id}/${area}_q${index}_${timestamp}_${file.name}`
+          );
+
+          // Faz upload
+          await arquivoRef.put(file);
+
+          // Pega URL do arquivo
+          const url = await arquivoRef.getDownloadURL();
+          
+          const novoAnexo = {
+            url: url,
+            nome: file.name,
+            data: new Date(),
+          };
+          anexosAtual.push(novoAnexo);
+          
+          console.log("✅ Arquivo enviado:", file.name, "URL:", url);
+          console.log("📂 Array de anexos atualizado:", anexosAtual);
+          
+          // Atualizar estado local imediatamente
+          setAnexosLocal(prev => [...prev, novoAnexo]);
+          toast.success(`${file.name} anexado com sucesso!`);
+        } catch (fileError) {
+          toast.error(`Erro ao enviar ${file.name}: ` + fileError.message);
+        }
+      }
+
+      // Atualiza anexos no plano_acao
       plano.plano_acao = {
         ...plano.plano_acao,
-        anexo_url: url,
-        anexo_nome: file.name,
+        anexos: anexosAtual,
       };
 
+      console.log("💾 Salvando no Firestore - plano_acao:", plano.plano_acao);
       await docRef.update(dados);
-
-      toast.success("Arquivo anexado com sucesso!");
-      loadApr();
+      console.log("✓ Salvo com sucesso no Firestore");
+      
+      // Limpar input file
+      if (inputFileRef.current) {
+        inputFileRef.current.value = "";
+      }
+      
+      // Limpar arquivos selecionados
+      setArquivosSelecionados([]);
+      
+      // Recarregar após pequeno delay para sincronizar com Firestore
+      setTimeout(() => {
+        loadApr();
+      }, 800);
     } catch (error) {
-      toast.error("Erro ao enviar arquivo: " + error.message);
+      toast.error("Erro ao processar arquivos: " + error.message);
     } finally {
       setUploading(false);
     }
@@ -679,18 +802,82 @@ export default function Modal_PA({
 
         <Box>
           {isReadOnly ? (
-            conteudo?.plano_acao?.anexo_url && (
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<Download />}
-                href={conteudo.plano_acao.anexo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {conteudo.plano_acao.anexo_nome || "Baixar Anexo"}
-              </Button>
-            )
+            <Box>
+              {/* Mostrar anexo antigo (backward compatibility) */}
+              {conteudo?.plano_acao?.anexo_url && (
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<Download />}
+                    href={conteudo.plano_acao.anexo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {conteudo.plano_acao.anexo_nome || "Baixar Anexo"}
+                  </Button>
+                </Box>
+              )}
+              
+              {/* Mostrar novos anexos (múltiplos) */}
+              {anexosLocal && anexosLocal.length > 0 && (
+                <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '2px solid #e8d5f2', background: 'linear-gradient(135deg, #f5f0ff 0%, #fff8ff 100%)' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#660099', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    📎 Arquivos Anexados ({anexosLocal.length})
+                  </Typography>
+                  <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    {anexosLocal.map((anexo, idx) => (
+                      <Link
+                        key={idx}
+                        href={anexo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          p: 1.5,
+                          bgcolor: 'white',
+                          borderRadius: 1.5,
+                          border: '1px solid #e0d5e8',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            bgcolor: '#fafafa',
+                            border: '1px solid #660099',
+                            boxShadow: '0 4px 8px rgba(102, 0, 153, 0.15)',
+                            transform: 'translateX(4px)'
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          {getFileIcon(anexo.nome)}
+                        </Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#660099',
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {anexo.nome}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                            {new Date(anexo.data).toLocaleDateString('pt-BR')}
+                          </Typography>
+                        </Box>
+                        <Download sx={{ color: '#660099', fontSize: '1.2rem', flexShrink: 0 }} />
+                      </Link>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
           ) : (
             <input type="file" onChange={handleArquivoChange} disabled={uploading} />
           )}
@@ -747,22 +934,31 @@ export default function Modal_PA({
               )}
             </Box>
 
-            {/* Histórico de SLAs anteriores se existir */}
-            {conteudo?.plano_acao?.historico_logistica && conteudo.plano_acao.historico_logistica.length > 0 && (
+            {/* Loading ou Histórico de SLAs anteriores */}
+            {loadingHistorico ? (
+              <Box sx={{ mb: 3, p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f3e5f5', borderRadius: 2, border: '2px solid #9c27b0', minHeight: 150 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <CircularProgress sx={{ mb: 2 }} />
+                  <Typography variant="body2" sx={{ color: '#6a1b9a' }}>
+                    Carregando SLA...
+                  </Typography>
+                </Box>
+              </Box>
+            ) : historicoLocal && historicoLocal.length > 0 && (
               <Box sx={{ mb: 3, p: 2, bgcolor: '#f3e5f5', borderRadius: 2, border: '2px solid #9c27b0' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#6a1b9a' }}>
                   📜 Histórico de SLAs Anteriores:
                 </Typography>
-                {conteudo.plano_acao.historico_logistica.map((item, idx) => (
+                {historicoLocal.map((item, idx) => (
                   <Box key={idx} sx={{ mb: 2, p: 1.5, bgcolor: 'white', borderRadius: 1, borderLeft: '4px solid #9c27b0' }}>
                     <Typography variant="caption" sx={{ display: 'block', fontWeight: 'bold' }}>
-                      🕐 {new Date(item.data.seconds * 1000).toLocaleString('pt-BR')}
+                      🕐 {new Date(item.data.seconds ? item.data.seconds * 1000 : item.data).toLocaleString('pt-BR')}
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block' }}>
                       👤 {item.usuario}
                     </Typography>
                     <Typography variant="body2" sx={{ mt: 0.5 }}>
-                      📅 SLA: {new Date(item.sla.seconds * 1000).toLocaleDateString('pt-BR')}
+                      📅 SLA: {new Date(item.sla.seconds ? item.sla.seconds * 1000 : item.sla).toLocaleDateString('pt-BR')}
                     </Typography>
                     {item.comentario && (
                       <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic' }}>
@@ -800,7 +996,7 @@ export default function Modal_PA({
                 onChange={(e) => setSlaLogistica(e.target.value)}
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                helperText="Defina o prazo para tratativa de logística"
+                helperText={`Defina o prazo para tratativa de ${user.area}`}
                 sx={{ mb: 2 }}
               />
               
@@ -814,51 +1010,167 @@ export default function Modal_PA({
                 placeholder="Comentários sobre as tratativas e justificativa para SLA"
                 helperText={conteudo?.plano_acao?.sla_logistica ? "Explique o motivo da alteração do SLA" : "Descreva as ações planejadas"}
               />
-              
-              <Button
-                onClick={() => salvarNovoSLA()}
-                variant="contained"
-                color="primary"
-                startIcon={<FiCheck />}
-                disabled={!slaLogistica || !comentario}
-                sx={{ mt: 2 }}
-              >
-                ➕ Adicionar
-              </Button>
             </Box>
             )}
 
             {/* Área para anexar arquivo */}
             <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                📎 Anexar Documento (Opcional):
+              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#660099' }}>
+                📎 Anexar Documentos (Opcional)
               </Typography>
               
-              {conteudo?.plano_acao?.anexo_url ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<Download />}
-                    href={conteudo.plano_acao.anexo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {conteudo.plano_acao.anexo_nome || "Baixar Anexo Atual"}
-                  </Button>
-                  <Typography variant="caption" color="text.secondary">
-                    Você pode substituir o anexo selecionando um novo arquivo
+              {/* Arquivos selecionados (em processo de upload) - MOSTRAR AQUI PRIMEIRO */}
+              {arquivosSelecionados && arquivosSelecionados.length > 0 && (
+                <Box sx={{ p: 2, mb: 2, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50', background: 'linear-gradient(135deg, #f1f8e9 0%, #e8f5e9 100%)' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#2e7d32', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    ⏳ Arquivos Selecionados ({arquivosSelecionados.length})
                   </Typography>
+                  <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    {arquivosSelecionados.map((arquivo, idx) => (
+                      <Box key={idx} sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        p: 1.5,
+                        bgcolor: 'white',
+                        borderRadius: 1.5,
+                        border: '1px solid #81c784',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          {getFileIcon(arquivo.nome)}
+                        </Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#2e7d32',
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {arquivo.nome}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#666', display: 'block' }}>
+                            {arquivo.tamanho} MB
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#4caf50', fontWeight: 'bold' }}>
+                          🔄 Enviando...
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
                 </Box>
-              ) : null}
+              )}
+              
+              {/* Zona de upload visual */}
+              <Box
+                sx={{
+                  p: 2,
+                  border: '2px dashed #660099',
+                  borderRadius: 2,
+                  bgcolor: 'white',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1,
+                  transition: 'all 0.3s ease',
+                  textAlign: 'center',
+                  mb: 2,
+                  '&:hover': {
+                    bgcolor: uploading ? 'white' : '#f0e6ff',
+                    borderColor: uploading ? '#660099' : '#660099',
+                  },
+                }}
+                onClick={() => !uploading && inputFileRef.current?.click()}
+              >
+                {uploading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" color="primary">
+                      Enviando arquivos...
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box>
+                    <CloudUpload sx={{ fontSize: 40, color: '#660099', mb: 1 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#660099', mb: 0.5 }}>
+                      Clique ou arraste arquivos aqui
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Você pode adicionar múltiplos arquivos (máx. 10MB cada)
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
               
               <input 
+                ref={inputFileRef}
                 type="file" 
                 onChange={handleArquivoChange} 
                 disabled={uploading}
-                style={{ marginTop: '8px' }}
+                multiple
+                style={{ display: 'none' }}
               />
-              {uploading && <Typography variant="caption" color="primary">Enviando arquivo...</Typography>}
+              
+              {/* Listagem de anexos existentes */}
+              {anexosLocal && anexosLocal.length > 0 && (
+                <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '2px solid #e8d5f2', background: 'linear-gradient(135deg, #f5f0ff 0%, #fff8ff 100%)' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#660099', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    📎 Arquivos Anexados ({anexosLocal.length})
+                  </Typography>
+                  <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    {anexosLocal.map((anexo, idx) => (
+                      <Link
+                        key={idx}
+                        href={anexo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          p: 1.5,
+                          bgcolor: 'white',
+                          borderRadius: 1.5,
+                          border: '1px solid #e0d5e8',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            bgcolor: '#fafafa',
+                            border: '1px solid #660099',
+                            boxShadow: '0 4px 8px rgba(102, 0, 153, 0.15)',
+                            transform: 'translateX(4px)'
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          {getFileIcon(anexo.nome)}
+                        </Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#660099',
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {anexo.nome}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                            {new Date(anexo.data).toLocaleDateString('pt-BR')}
+                          </Typography>
+                        </Box>
+                        <Download sx={{ color: '#660099', fontSize: '1.2rem', flexShrink: 0 }} />
+                      </Link>
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Box>
 
             {/* Mostrar quem definiu anteriormente */}
@@ -930,21 +1242,82 @@ export default function Modal_PA({
             </Box>
 
             {/* Mostrar anexo do plano de ação se existir */}
-            {conteudo?.plano_acao?.anexo_url && (
-              <Box sx={{ mb: 3 }}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<Download />}
-                  href={conteudo.plano_acao.anexo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fullWidth
-                >
-                  📎 {conteudo.plano_acao.anexo_nome || "Baixar Anexo do Plano"}
-                </Button>
-              </Box>
-            )}
+            <Box sx={{ mb: 3 }}>
+              {conteudo?.plano_acao?.anexo_url && (
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<Download />}
+                    href={conteudo.plano_acao.anexo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    fullWidth
+                  >
+                    📎 {conteudo.plano_acao.anexo_nome || "Baixar Anexo do Plano"}
+                  </Button>
+                </Box>
+              )}
+              
+              {/* Mostrar novos anexos (múltiplos) */}
+              {anexosLocal && anexosLocal.length > 0 && (
+                <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '2px solid #e8d5f2', background: 'linear-gradient(135deg, #f5f0ff 0%, #fff8ff 100%)' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#660099', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    📎 Arquivos Anexados ({anexosLocal.length})
+                  </Typography>
+                  <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    {anexosLocal.map((anexo, idx) => (
+                      <Link
+                        key={idx}
+                        href={anexo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          p: 1.5,
+                          bgcolor: 'white',
+                          borderRadius: 1.5,
+                          border: '1px solid #e0d5e8',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            bgcolor: '#fafafa',
+                            border: '1px solid #660099',
+                            boxShadow: '0 4px 8px rgba(102, 0, 153, 0.15)',
+                            transform: 'translateX(4px)'
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          {getFileIcon(anexo.nome)}
+                        </Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#660099',
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {anexo.nome}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                            {new Date(anexo.data).toLocaleDateString('pt-BR')}
+                          </Typography>
+                        </Box>
+                        <Download sx={{ color: '#660099', fontSize: '1.2rem', flexShrink: 0 }} />
+                      </Link>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
 
             {/* Status de correção */}
             {conteudo?.plano_acao?.resolvido ? (
@@ -1270,23 +1643,184 @@ export default function Modal_PA({
                 </Box>
 
                 {/* Mostrar anexo do plano de ação se existir */}
-                {conteudo?.plano_acao?.anexo_url && (
-                  <Box sx={{ mb: 2 }}>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<Download />}
-                      href={conteudo.plano_acao.anexo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      fullWidth
-                    >
-                      📎 {conteudo.plano_acao.anexo_nome || "Baixar Anexo do Plano"}
-                    </Button>
-                  </Box>
-                )}
+                <Box sx={{ mb: 2 }}>
+                  {conteudo?.plano_acao?.anexo_url && (
+                    <Box sx={{ mb: 2 }}>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<Download />}
+                        href={conteudo.plano_acao.anexo_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        fullWidth
+                      >
+                        📎 {conteudo.plano_acao.anexo_nome || "Baixar Anexo do Plano"}
+                      </Button>
+                    </Box>
+                  )}
+                  
+                  {/* Mostrar novos anexos (múltiplos) */}
+                  {anexosLocal && anexosLocal.length > 0 && (
+                    <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '2px solid #e8d5f2', background: 'linear-gradient(135deg, #f5f0ff 0%, #fff8ff 100%)' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#660099', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        📎 Arquivos Anexados ({anexosLocal.length})
+                      </Typography>
+                      <Box sx={{ display: 'grid', gap: 1.5 }}>
+                        {anexosLocal.map((anexo, idx) => (
+                          <Link
+                            key={idx}
+                            href={anexo.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1.5,
+                              p: 1.5,
+                              bgcolor: 'white',
+                              borderRadius: 1.5,
+                              border: '1px solid #e0d5e8',
+                              textDecoration: 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                bgcolor: '#fafafa',
+                                border: '1px solid #660099',
+                                boxShadow: '0 4px 8px rgba(102, 0, 153, 0.15)',
+                                transform: 'translateX(4px)'
+                              },
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                              {getFileIcon(anexo.nome)}
+                            </Box>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: '#660099',
+                                  fontWeight: 500,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {anexo.nome}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                                {new Date(anexo.data).toLocaleDateString('pt-BR')}
+                              </Typography>
+                            </Box>
+                            <Download sx={{ color: '#660099', fontSize: '1.2rem', flexShrink: 0 }} />
+                          </Link>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
               </>
             )}
+          </Box>
+        ) : podeValidarPlano() ? (
+          /* Interface para revisor_logistica validar plano de ação */
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2, color: '#9c27b0', fontWeight: 'bold' }}>
+              ✅ Validação de Plano de Ação
+            </Typography>
+
+            {/* Mostrar a pergunta */}
+            <Box sx={{ mb: 3, p: 2, bgcolor: '#fff3e0', borderRadius: 2, border: '2px solid #ff9800' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#e65100' }}>
+                ❓ Pergunta:
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                {conteudo.question}
+              </Typography>
+            </Box>
+
+            {/* Mostrar a resposta do aplicador */}
+            <Box sx={{ mb: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#2e7d32' }}>
+                ✓ Resposta:
+              </Typography>
+              <Typography variant="body1">
+                {conteudo.resp}
+              </Typography>
+            </Box>
+
+            {/* Mostrar o plano de ação definido */}
+            {conteudo?.resp_pa_selectedOption && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: '#f3e5f5', borderRadius: 2, border: '2px solid #9c27b0' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#6a1b9a' }}>
+                  📋 Plano de Ação Definido:
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Tipo:</strong> {conteudo.resp_pa_selectedOption}
+                </Typography>
+                {conteudo?.plano_acao?.comentario && (
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Comentário:</strong> {conteudo.plano_acao.comentario}
+                  </Typography>
+                )}
+                {conteudo?.plano_acao?.sla_logistica && (
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>SLA Logística:</strong> {new Date(conteudo.plano_acao.sla_logistica.toDate()).toLocaleDateString('pt-BR')}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* PERGUNTA: A inconformidade foi resolvida? */}
+            <Box sx={{ mb: 3, p: 2.5, bgcolor: '#e3f2fd', borderRadius: 2, border: '3px solid #1976d2' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2.5, color: '#0d47a1', fontSize: '1.1rem' }}>
+                ❓ A inconformidade foi resolvida?
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2.5 }}>
+                <Button
+                  variant={resolucaoInconformidade === 'sim' ? 'contained' : 'outlined'}
+                  color="success"
+                  size="large"
+                  onClick={() => setResolucaoInconformidade('sim')}
+                  sx={{ flex: 1, fontWeight: 'bold' }}
+                >
+                  ✅ Sim
+                </Button>
+                <Button
+                  variant={resolucaoInconformidade === 'nao' ? 'contained' : 'outlined'}
+                  color="error"
+                  size="large"
+                  onClick={() => setResolucaoInconformidade('nao')}
+                  sx={{ flex: 1, fontWeight: 'bold' }}
+                >
+                  ❌ Não
+                </Button>
+              </Box>
+              {resolucaoInconformidade === 'nao' && (
+                <TextField
+                  label="Motivo da Reprovação"
+                  value={notaParecer}
+                  onChange={(e) => setNotaParecer(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Descreva por que a inconformidade não foi resolvida..."
+                  sx={{ mt: 1 }}
+                />
+              )}
+              {resolucaoInconformidade === 'sim' && (
+                <TextField
+                  label="Parecer de Aprovação"
+                  value={notaParecer}
+                  onChange={(e) => setNotaParecer(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="Adicione um parecer (opcional)..."
+                  sx={{ mt: 1 }}
+                />
+              )}
+            </Box>
           </Box>
         ) : (
           /* Interface normal para outros usuários */
@@ -1336,17 +1870,6 @@ export default function Modal_PA({
                 <Typography variant="subtitle1"><strong>Parecer da segurança:</strong> {conteudo.resp_pa_status_parecer}</Typography>
               </Box>
             )}
-            {(user.nivel === "revisor" || user.nivel === "revisor_logistica" || user.nivel === "administrador") && isReadOnly && !conteudo.resp_pa_status && (
-              <TextField
-                label="Nota Parecer"
-                value={notaParecer}
-                onChange={(e) => setNotaParecer(e.target.value)}
-                fullWidth
-                multiline
-                rows={4}
-                margin="normal"
-              />
-            )}
           </>
         )}
           </>
@@ -1357,17 +1880,29 @@ export default function Modal_PA({
           Cancelar
         </Button>
         
-        {/* Botão específico para ponto_focal e revisor_logistica salvarem SLA */}
         {(user.nivel === "ponto_focal" || user.nivel === "revisor_logistica") && !isModoVisualizacao && (
           <Button 
             onClick={() => alterarPA()} 
             variant="contained" 
-            color="primary"
+            color={todosOsPlanosForamDefinidos() ? "success" : "warning"}
             size="large"
             startIcon={<FiCheck />}
             disabled={!slaLogistica || !comentario}
           >
             💾 Salvar
+          </Button>
+        )}
+        
+        {podeValidarPlano() && conteudo?.resp_pa_selectedOption && (
+          <Button 
+            onClick={() => UpdatePA()} 
+            variant="contained" 
+            color="success"
+            size="large"
+            startIcon={<FiCheck />}
+            disabled={!resolucaoInconformidade || (resolucaoInconformidade === 'nao' && !notaParecer) || (resolucaoInconformidade === 'sim' && !notaParecer)}
+          >
+            ✅ {resolucaoInconformidade === 'sim' ? 'Aprovar' : 'Reprovar'} Plano de Ação
           </Button>
         )}
         

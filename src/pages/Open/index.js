@@ -160,6 +160,18 @@ export default function Open() {
         });
 
         setApr(apr);
+        
+        // 🔄 ATUALIZAR o detail com os novos dados se estiver em aberto
+        if (detail && area) {
+          const detailAtualizado = apr.checklist[area][1].find(
+            (item) => item.question === detail.question
+          );
+          if (detailAtualizado) {
+            console.log("🔄 Detail atualizado com novos dados do Firestore");
+            setDetail(detailAtualizado);
+          }
+        }
+        
         setLoadApr(true);
       })
       .catch((error) => {
@@ -812,6 +824,69 @@ export default function Open() {
       ReloadAPR();
     } catch (error) {
       toast.error("Erro ao enviar para revisão: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
+  // Função para ponto focal retornar APR para revisor após preencher planos de ação
+  async function devolverParaRevisor(e, id) {
+    e.preventDefault();
+
+    // Verificar se todos os planos de ação foram preenchidos
+    const checklist = apr.checklist;
+    let temPendencias = false;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade mas não tem plano de ação definido
+        if (hasInconformity && !question.resp_pa_selectedOption) {
+          temPendencias = true;
+        }
+      });
+    });
+
+    if (temPendencias) {
+      toast.error("Ainda existem inconformidades sem plano de ação definido!");
+      return;
+    }
+
+    let confirm = window.confirm(
+      "Confirma o retorno da APR para revisão de planos de ação? O revisor será notificado."
+    );
+    if (confirm === false) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Aguardando Revisão Plano de Ação",
+          data_devolucao_ponto_focal: firebase.firestore.FieldValue.serverTimestamp(),
+          data_alteracao: new Date(),
+        });
+
+      try {
+        const destinatarios = await sendEmailToRevisor(apr, id);
+        logSistem(
+          "Email enviado para revisor - APR retornada com planos de ação preenchidos",
+          id,
+          destinatarios
+        );
+      } catch (error) {
+        console.error("Erro ao enviar e-mail para revisor:", error);
+      }
+
+      toast.success("✅ APR retornada ao revisor para validação!");
+      logSistem(`APR retornada para revisão de planos de ação pelo ponto focal`, id);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao devolver para revisão: " + error.message);
       console.error("Erro:", error);
     }
   }
@@ -2208,6 +2283,36 @@ export default function Open() {
                         </div>
                       )}
 
+                    {/* Seção para ponto_focal retornar APR ao revisor após preencher planos de ação */}
+                    {user.nivel === "ponto_focal" &&
+                      apr.status === "Enviado para Área Responsável" && (
+                        <div className="logistics-section">
+                          <div className="section-header">
+                            <h3>↩️ Retornar para Revisor</h3>
+                            <p>
+                              Após preencher todos os planos de ação, retorne a APR para revisão
+                            </p>
+                            {verificarSeTemPendencias() && (
+                              <div style={{ color: '#ff6b6b', marginTop: '10px', fontSize: '14px' }}>
+                                ⚠️ Ainda existem inconformidades sem plano de ação definido
+                              </div>
+                            )}
+                          </div>
+                          <div className="finalization-action">
+                            <button
+                              className="btn-send-review"
+                              onClick={(e) => devolverParaRevisor(e, id)}
+                              disabled={verificarSeTemPendencias()}
+                              style={{
+                                opacity: verificarSeTemPendencias() ? 0.5 : 1,
+                                cursor: verificarSeTemPendencias() ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              ↩️ Retornar para Revisor
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                     {user.nivel === "revisor_logistica" &&
                       apr.status === "Aguardando Correção" && (

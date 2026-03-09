@@ -155,7 +155,9 @@ export default function Dashboard() {
       query = query.where("site_id.Sigla", "==", filterSigla);
     if (filterTipoSite !== "")
       query = query.where("site_id.tipoSite", "==", filterTipoSite);
-    if (filterStatus !== "") query = query.where("status", "==", filterStatus);
+    // Revisor e revisor_logistica veem todos os status, outros usuários podem filtrar
+    if (filterStatus !== "" && user.nivel !== "revisor" && user.nivel !== "revisor_logistica")
+      query = query.where("status", "==", filterStatus);
     if (filterNome !== "")
       query = query.where("user_id.nome", "==", filterNome);
     if (filterMotivo !== "")
@@ -177,11 +179,15 @@ export default function Dashboard() {
         ? query.where("user_id.uid", "==", user.uid)
         : query;
     query =
-      user.nivel === "supervisor"
+      user.nivel === "supervisor" && regional
         ? query.where("site_id.Estado", "in", regional)
         : query;
     query =
-      user.nivel === "revisor"
+      user.nivel === "revisor" && regional
+        ? query.where("site_id.Estado", "in", regional)
+        : query;
+    query =
+      user.nivel === "revisor_logistica" && regional
         ? query.where("site_id.Estado", "in", regional)
         : query;
     query =
@@ -192,17 +198,21 @@ export default function Dashboard() {
       user.area === "pci"
         ? query.where("site_id.tipoSite", "in", ["PCI", "RPCI"])
         : query;
+    // Filtro para ponto_focal: status específico + área do usuário
+    if (user.nivel === "ponto_focal") {
+      query = query.where("status", "in", ["Enviado para Área Responsável"]);
+      if (user.area === "logistica") {
+        query = query.where("area", "==", "logistica");
+      } else if (user.area === "patrimonial") {
+        query = query.where("area", "!=", "logistica");
+      }
+    }
     query =
       user.nivel === "auditor"
         ? query.where("site_id.tipoSite", "in", [
           "AUDIT PGR FIXA",
           "AUDIT PGR MOVEL",
         ])
-        : query;
-    // Filtro para revisor_logistica - APRs que precisam de SLA definido
-    query =
-      user.nivel === "revisor_logistica"
-        ? query.where("status", "in", ["Em Aberto","Respondido pela Area", "Aguardando Correção", "SLA Ponto Focal Vencido", "Aguardando Revisão"])
         : query;
 
 
@@ -539,7 +549,7 @@ export default function Dashboard() {
               sx={styles.pendendia}
             >
               <Grid>Aguardando Ponto Focal</Grid>
-              <Grid>{chamados.filter((x) => x.status === "enviado-para-area-responsavel").length}</Grid>
+              <Grid>{chamados.filter((x) => x.status === "Enviado para Área Responsável").length}</Grid>
             </Grid>
 
             <Grid
