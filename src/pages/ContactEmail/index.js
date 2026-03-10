@@ -481,7 +481,7 @@ export default function ContactEmail() {
                     </IconButton>
                   </AccordionSummary>
                   <AccordionDetails>
-                    {["OEM", "Patrimonial", "Predial", "Logistica"].map((tipo) => {
+                    {["OEM", "Patrimonial", "Predial", "Logistica","Armazenamento", "Transporte"].map((tipo) => {
                       const key = `email_${tipo.toLowerCase()}`;
                       return (
                         <Box key={tipo} mb={2}>
@@ -567,12 +567,13 @@ export default function ContactEmail() {
               displayEmpty
               sx={{ mt: 2 }}
             >
-              <MenuItem disabled value="">
+              <MenuItem disabled selected value="Selecione uma área">
                 Selecione a área responsável
               </MenuItem>
               <MenuItem value="OEM">OEM</MenuItem>
               <MenuItem value="Patrimonial">Patrimonial</MenuItem>
               <MenuItem value="Predial">Predial</MenuItem>
+              <MenuItem value="Logistica">Logistica</MenuItem>
             </Select>
           </DialogContent>
           <DialogActions>
@@ -697,6 +698,9 @@ export default function ContactEmail() {
               <MenuItem value="OEM">OEM</MenuItem>
               <MenuItem value="Patrimonial">Patrimonial</MenuItem>
               <MenuItem value="Predial">Predial</MenuItem>
+              <MenuItem value="Logistica">Logistica</MenuItem>
+              <MenuItem value="Armazenamento">Armazenamento</MenuItem>
+              <MenuItem value="Transporte">Transporte</MenuItem>
             </Select>
             <TextField
               fullWidth
