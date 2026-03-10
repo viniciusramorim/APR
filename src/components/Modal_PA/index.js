@@ -285,6 +285,7 @@ export default function Modal_PA({
 
   async function UpdatePA() {
     if (!resolucaoInconformidade) return toast.error("Selecione se a inconformidade foi resolvida");
+    if (!notaParecer?.trim()) return toast.error("Preencha um comentário da validação");
     
     const docRef = firebase.firestore().collection(base).doc(id);
 
@@ -294,11 +295,27 @@ export default function Modal_PA({
     const dados = doc.data();
     const plano = dados.checklist[area][1][index];
 
+    let imagensValidacao = plano?.resp_pa_validacao_imagens || [];
+
+    if (novasImagens.length > 0) {
+      imagensValidacao = [];
+      for (const img of novasImagens) {
+        const storageRef = firebase.storage().ref();
+        const imagemRef = storageRef.child(
+          `validacao_pa/${id}/${area}_q${index}_${Date.now()}_${img.name}`
+        );
+        await imagemRef.put(img);
+        const url = await imagemRef.getDownloadURL();
+        imagensValidacao.push(url);
+      }
+    }
+
     plano.resp_pa_status_alterado_data = new Date();
     plano.resp_pa_status_alterado = user.nome;
-    plano.resp_pa_status_parecer = notaParecer;
+    plano.resp_pa_status_parecer = notaParecer.trim();
     plano.resp_pa_status = resolucaoInconformidade === 'sim' ? "Concluido" : "Reprovado";
     plano.resp_pa_resolucao = resolucaoInconformidade;
+    plano.resp_pa_validacao_imagens = imagensValidacao;
 
     await docRef.update(dados);
 
@@ -315,6 +332,9 @@ export default function Modal_PA({
     }
     loadApr();
     setResolucaoInconformidade(null);
+    setNotaParecer("");
+    setNovasImagens([]);
+    setShowCamera(false);
     close();
   }
 
@@ -325,6 +345,76 @@ export default function Modal_PA({
     });
   }
 
+  async function fetchRevisorEmails() {
+    const snapshot = await firebase
+      .firestore()
+      .collection("users")
+      .where("nivel", "==", "revisor")
+      .where("status", "==", true)
+      .get();
+
+    const emails = [];
+    snapshot.forEach((doc) => {
+      const email = doc.data().email;
+      if (email && email.trim()) {
+        emails.push(email.trim());
+      }
+    });
+
+    return Array.from(new Set(emails));
+  }
+
+  async function sendEmailToRevisor(aprData, aprId) {
+    const revisorEmails = await fetchRevisorEmails();
+
+    if (!revisorEmails.length) {
+      throw new Error("Nenhum e-mail de revisor encontrado");
+    }
+
+    const destinatario = revisorEmails.join(";");
+    const siteNome = aprData?.site_id?.Nome || "N/I";
+    const siteSigla = aprData?.site_id?.Sigla || "N/I";
+    const siteCidade = aprData?.site_id?.Cidade || "N/I";
+    const siteEstado = aprData?.site_id?.Estado || "N/I";
+    const aprRef = aprData?.apr_id || aprId;
+
+    const emailContent = {
+      remetente: "aprdigital.seg.br@telefonica.com",
+      assunto: `APR Digital - Planos de acao definidos - ${siteSigla}`,
+      destinatario,
+      texto: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 16px;">
+          <h2 style="color: #1976d2;">APR Digital - Revisao Necessaria</h2>
+          <p>O ponto focal inseriu os SLAs e retornou a APR para revisao.</p>
+          <p>Por favor, realize a revisao e aprove os planos de acao.</p>
+          <p><strong>APR:</strong> ${aprRef}</p>
+          <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+          <p><strong>Localizacao:</strong> ${siteCidade}/${siteEstado}</p>
+          <p>Para revisar, acesse o link:</p>
+          <p><a href="${window.location.origin}/Open/${aprId}">${window.location.origin}/Open/${aprId}</a></p>
+          <hr />
+          <small>Mensagem automatica - APR Digital</small>
+        </div>
+      `,
+    };
+
+    const response = await fetch(
+      "https://us-central1-aprdigital-b6fcf.cloudfunctions.net/sendEmail",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailContent),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro HTTP! status: ${response.status} - ${errorText}`);
+    }
+
+    return destinatario;
+  }
+
   // Nova função para atualizar status quando ponto focal finaliza
   async function updateAPRStatusLogistics(id) {
     await firebase.firestore().collection(base).doc(id).update({
@@ -332,6 +422,12 @@ export default function Modal_PA({
       data_ponto_focal_resposta: firebase.firestore.FieldValue.serverTimestamp(),
       data_alteracao: new Date(),
     });
+
+    try {
+      await sendEmailToRevisor(apr, id);
+    } catch (error) {
+      console.error("Erro ao enviar e-mail para revisor:", error);
+    }
   }
 
   // Upload do arquivo para Storage Firebase
@@ -608,6 +704,190 @@ export default function Modal_PA({
     const novaLista = novasImagens.filter((_, i) => i !== index);
     setNovasImagens(novaLista);
   };
+
+  function renderResolucaoInconformidade(showSubmitButton = false) {
+    const anexosValidacaoSalvos = Array.isArray(conteudo?.resp_pa_validacao_imagens)
+      ? conteudo.resp_pa_validacao_imagens
+      : [];
+
+    return (
+      <Box sx={{ mb: 3, p: 2.5, bgcolor: '#e3f2fd', borderRadius: 2, border: '3px solid #1976d2' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2.5, color: '#0d47a1', fontSize: '1.1rem' }}>
+          ❓ A inconformidade foi resolvida?
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 2, mb: 2.5 }}>
+          <Button
+            variant={resolucaoInconformidade === 'sim' ? 'contained' : 'outlined'}
+            color="success"
+            size="large"
+            onClick={() => setResolucaoInconformidade('sim')}
+            sx={{ flex: 1, fontWeight: 'bold' }}
+          >
+            ✅ Sim
+          </Button>
+          <Button
+            variant={resolucaoInconformidade === 'nao' ? 'contained' : 'outlined'}
+            color="error"
+            size="large"
+            onClick={() => setResolucaoInconformidade('nao')}
+            sx={{ flex: 1, fontWeight: 'bold' }}
+          >
+            ❌ Não
+          </Button>
+        </Box>
+
+        <TextField
+          label="Comentário do Revisor"
+          value={notaParecer}
+          onChange={(e) => setNotaParecer(e.target.value)}
+          fullWidth
+          multiline
+          rows={3}
+          placeholder={resolucaoInconformidade === 'nao' ? 'Descreva o motivo da reprovação...' : 'Descreva o parecer da validação...'}
+          sx={{ mb: 2 }}
+        />
+
+        <Box sx={{ p: 2, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
+          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#2e7d32' }}>
+            📸 Evidências da validação (opcional)
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<FiCamera />}
+              onClick={() => setShowCamera(!showCamera)}
+            >
+              {showCamera ? "Fechar Câmera" : "Abrir Câmera"}
+            </Button>
+
+            <Button variant="outlined" component="label">
+              Galeria
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length > 0) {
+                    setNovasImagens((prev) => [...prev, ...files]);
+                    toast.success(`${files.length} imagem(ns) adicionada(s)!`);
+                  }
+                }}
+              />
+            </Button>
+          </Box>
+
+          {showCamera && (
+            <Box sx={{ mb: 2 }}>
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                width="100%"
+                videoConstraints={{ facingMode: "environment" }}
+              />
+              <Button
+                variant="contained"
+                color="success"
+                onClick={capturarFoto}
+                fullWidth
+                sx={{ mt: 1 }}
+              >
+                Capturar Foto
+              </Button>
+            </Box>
+          )}
+
+          {novasImagens.length > 0 && (
+            <Box>
+              <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 'bold', color: 'success.main' }}>
+                ✅ Imagens selecionadas: {novasImagens.length}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {novasImagens.map((img, idx) => (
+                  <Box key={idx} sx={{ position: 'relative', width: 100, height: 100 }}>
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt={`Foto ${idx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        border: '2px solid #4caf50'
+                      }}
+                    />
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => removerImagem(idx)}
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        minWidth: 24,
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        p: 0
+                      }}
+                    >
+                      X
+                    </Button>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {anexosValidacaoSalvos.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 'bold', color: '#1b5e20' }}>
+                📎 Anexos já inseridos: {anexosValidacaoSalvos.length}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {anexosValidacaoSalvos.map((imgUrl, idx) => (
+                  <Box key={idx} sx={{ width: 100, height: 100 }}>
+                    <img
+                      src={imgUrl}
+                      alt={`Anexo salvo ${idx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        border: '2px solid #66bb6a',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => window.open(imgUrl, '_blank')}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Box>
+
+        {showSubmitButton && (
+          <Button
+            onClick={() => UpdatePA()}
+            variant="contained"
+            color={resolucaoInconformidade === 'nao' ? 'error' : 'success'}
+            size="large"
+            fullWidth
+            sx={{ mt: 2 }}
+            disabled={!resolucaoInconformidade || !notaParecer?.trim()}
+          >
+            {resolucaoInconformidade === 'nao' ? '❌ Reprovar Plano de Ação' : '✅ Aprovar Plano de Ação'}
+          </Button>
+        )}
+      </Box>
+    );
+  }
 
   function renderOptionInputs() {
     return (
@@ -969,14 +1249,7 @@ export default function Modal_PA({
                 ))}
                 {user.nivel === "revisor_logistica" && (
                   <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #ddd' }}>
-                    <Button 
-                      onClick={() => UpdatePA()} 
-                      variant="contained" 
-                      color="success"
-                      fullWidth
-                    >
-                      ✅ Validar SLA
-                    </Button>
+                    {renderResolucaoInconformidade(true)}
                   </Box>
                 )}
               </Box>
@@ -1408,6 +1681,33 @@ export default function Modal_PA({
                     <strong>Parecer:</strong> {conteudo.resp_pa_status_parecer}
                   </Typography>
                 )}
+
+                {Array.isArray(conteudo?.resp_pa_validacao_imagens) && conteudo.resp_pa_validacao_imagens.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      <strong>Anexos da validação:</strong> {conteudo.resp_pa_validacao_imagens.length}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {conteudo.resp_pa_validacao_imagens.map((imgUrl, idx) => (
+                        <Box key={idx} sx={{ width: 100, height: 100 }}>
+                          <img
+                            src={imgUrl}
+                            alt={`Validação ${idx + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: 4,
+                              border: '2px solid #9c27b0',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => window.open(imgUrl, '_blank')}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
@@ -1771,56 +2071,7 @@ export default function Modal_PA({
               </Box>
             )}
 
-            {/* PERGUNTA: A inconformidade foi resolvida? */}
-            <Box sx={{ mb: 3, p: 2.5, bgcolor: '#e3f2fd', borderRadius: 2, border: '3px solid #1976d2' }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2.5, color: '#0d47a1', fontSize: '1.1rem' }}>
-                ❓ A inconformidade foi resolvida?
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2.5 }}>
-                <Button
-                  variant={resolucaoInconformidade === 'sim' ? 'contained' : 'outlined'}
-                  color="success"
-                  size="large"
-                  onClick={() => setResolucaoInconformidade('sim')}
-                  sx={{ flex: 1, fontWeight: 'bold' }}
-                >
-                  ✅ Sim
-                </Button>
-                <Button
-                  variant={resolucaoInconformidade === 'nao' ? 'contained' : 'outlined'}
-                  color="error"
-                  size="large"
-                  onClick={() => setResolucaoInconformidade('nao')}
-                  sx={{ flex: 1, fontWeight: 'bold' }}
-                >
-                  ❌ Não
-                </Button>
-              </Box>
-              {resolucaoInconformidade === 'nao' && (
-                <TextField
-                  label="Motivo da Reprovação"
-                  value={notaParecer}
-                  onChange={(e) => setNotaParecer(e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  placeholder="Descreva por que a inconformidade não foi resolvida..."
-                  sx={{ mt: 1 }}
-                />
-              )}
-              {resolucaoInconformidade === 'sim' && (
-                <TextField
-                  label="Parecer de Aprovação"
-                  value={notaParecer}
-                  onChange={(e) => setNotaParecer(e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={2}
-                  placeholder="Adicione um parecer (opcional)..."
-                  sx={{ mt: 1 }}
-                />
-              )}
-            </Box>
+            {renderResolucaoInconformidade(false)}
           </Box>
         ) : (
           /* Interface normal para outros usuários */
@@ -1900,7 +2151,7 @@ export default function Modal_PA({
             color="success"
             size="large"
             startIcon={<FiCheck />}
-            disabled={!resolucaoInconformidade || (resolucaoInconformidade === 'nao' && !notaParecer) || (resolucaoInconformidade === 'sim' && !notaParecer)}
+            disabled={!resolucaoInconformidade || !notaParecer?.trim()}
           >
             ✅ {resolucaoInconformidade === 'sim' ? 'Aprovar' : 'Reprovar'} Plano de Ação
           </Button>
