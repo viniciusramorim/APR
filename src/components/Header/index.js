@@ -114,7 +114,28 @@ export default function Header() {
             </Tooltip>
           </>
         )}
-
+        {user.nivel === "supervisor" && (
+          <>
+            <Tooltip title="Aplicar APR" placement="right" arrow>
+              <Link to="/new">
+                <PlaylistAddCheckSharpIcon color="#000" size={20} />
+                <i id="label-menu">Aplicar APR</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="APRs" placement="right" arrow>
+              <Link to="/aprs">
+                <FileDownloadDoneSharpIcon color="#000" size={20} />
+                <i id="label-menu">APRs</i>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Relatório" placement="right" arrow>
+              <Link to="/reports">
+                <ContentPasteSearchSharpIcon color="#000" size={20} />
+                <i id="label-menu">Relatório</i>
+              </Link>
+            </Tooltip>
+          </>
+        )}
         {user.nivel === "administrador" && (
           <>
             <Tooltip title="Aplicar APR" placement="right" arrow>
@@ -260,13 +281,13 @@ export default function Header() {
           "WN0EtV44xnV0V87n5wBBXT87QXI2",
           "Eic8AhQR6ITeEkfOfuV5uo5SGBJ2",
         ].includes(user.uid) && (
-          <Tooltip title="Gerenciar Sites" placement="right" arrow>
-            <Link to="/sites">
-              <ApprovalOutlinedIcon color="#000" size={20} />
-              <i id="label-menu">Gerenciar Sites</i>
-            </Link>
-          </Tooltip>
-        )}
+            <Tooltip title="Gerenciar Sites" placement="right" arrow>
+              <Link to="/sites">
+                <ApprovalOutlinedIcon color="#000" size={20} />
+                <i id="label-menu">Gerenciar Sites</i>
+              </Link>
+            </Tooltip>
+          )}
       </section>
       <SignUpModal open={openModal} onClose={handleCloseModal} />
     </div>
