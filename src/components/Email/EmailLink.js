@@ -102,6 +102,44 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
             }
           }
 
+          if (emailTypes.includes('Armazenamento')) {
+            console.log('🔍 Buscando email_armazenamento:', data.email_armazenamento);
+            let armazenamentoEmail = data.email_armazenamento;
+            
+            // Fallback: se não encontrar email_armazenamento, tenta email_logistica_armazenamento
+            if (!armazenamentoEmail || armazenamentoEmail.length === 0) {
+              console.log('  └─ Não encontrado, tentando email_logistica_armazenamento:', data.email_logistica_armazenamento);
+              armazenamentoEmail = data.email_logistica_armazenamento;
+            }
+            
+            if (armazenamentoEmail) {
+              const processed = processEmail(armazenamentoEmail);
+              console.log('✅ Email Armazenamento processado:', processed);
+              if (processed) emailFields.push(processed);
+            } else {
+              console.log('❌ email_armazenamento e email_logistica_armazenamento não encontrados no documento');
+            }
+          }
+
+          if (emailTypes.includes('Transporte')) {
+            console.log('🔍 Buscando email_transporte:', data.email_transporte);
+            let transporteEmail = data.email_transporte;
+            
+            // Fallback: se não encontrar email_transporte, tenta email_logistica_transporte
+            if (!transporteEmail || transporteEmail.length === 0) {
+              console.log('  └─ Não encontrado, tentando email_logistica_transporte:', data.email_logistica_transporte);
+              transporteEmail = data.email_logistica_transporte;
+            }
+            
+            if (transporteEmail) {
+              const processed = processEmail(transporteEmail);
+              console.log('✅ Email Transporte processado:', processed);
+              if (processed) emailFields.push(processed);
+            } else {
+              console.log('❌ email_transporte e email_logistica_transporte não encontrados no documento');
+            }
+          }
+
           console.log('📋 Email fields coletados:', emailFields);
 
           // Unindo os e-mails em uma string única, removendo espaços extras e duplicatas
@@ -147,7 +185,8 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     console.log('🚚 Sigla começa com CD (Logística)?', isSiteLogistics);
     
     apr.checklist.forEach((area, areaIndex) => {
-      console.log(`\n📂 Verificando Área ${areaIndex}:`, area[0]);
+      const blockName = area[0].toLowerCase();
+      console.log(`\n📂 Verificando Bloco ${areaIndex}:`, area[0]);
       
       area[1].forEach((question, qIndex) => {
         // Verifica se existe resposta e se é diferente do gabarito
@@ -157,20 +196,28 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
         if (hasInconformity) {
           totalInconformidades++;
-          console.log(`\n❌ Inconformidade ${totalInconformidades} [Área ${areaIndex}, Questão ${qIndex}]:`);
+          console.log(`\n❌ Inconformidade ${totalInconformidades} [Bloco ${areaIndex}, Questão ${qIndex}]:`);
           console.log('  📝 Pergunta:', question.question || question.pergunta);
           console.log('  ❌ Resposta:', question.resp);
           console.log('  ✅ Gabarito:', question.respGabarito);
+          console.log('  🏢 Bloco:', blockName);
           console.log('  🏢 Área Responsável:', question.areaResposavel);
-          console.log('  📋 Todos os campos da questão:', Object.keys(question));
 
-          // Se a SIGLA do site começa com CD, adiciona APENAS logística (ignora areaResposavel)
-          if (isSiteLogistics) {
-            console.log('  🚚 Sigla começa com CD - adicionando APENAS Logística');
+          // PRIORIDADE: Detecta baseado no NOME DO BLOCO (mais específico que areaResposavel)
+          if (blockName.includes("armazenamento")) {
+            console.log('  📦 Bloco ARMAZENAMENTO detectado - adicionando Armazenamento');
+            foundEmailTypes.add("Armazenamento");
+          } else if (blockName.includes("sinistro")) {
+            console.log('  ⚠️ Bloco SINISTRO detectado - mapeando para Logistica');
             foundEmailTypes.add("Logistica");
-          } else {
-            // Site NÃO é PGR, usa a lógica normal de areaResposavel
-            if (question.areaResposavel && question.areaResposavel.length > 0) {
+          } else if (blockName.includes("transporte") || blockName.includes("fixa") || blockName.includes("movel")) {
+            console.log('  🚚 Bloco TRANSPORTE detectado - adicionando Transporte');
+            foundEmailTypes.add("Transporte");
+          } else if (blockName.includes("logistica") || blockName.includes("logística")) {
+            console.log('  🚛 Bloco LOGÍSTICA detectado - adicionando Logistica');
+            foundEmailTypes.add("Logistica");
+          } else if (question.areaResposavel && question.areaResposavel.length > 0) {
+            // Fallback: Usa areaResposavel apenas se não detectou pelo nome do bloco
               // Verifica se areaResposavel é array ou string
               const areas = Array.isArray(question.areaResposavel) 
                 ? question.areaResposavel 
@@ -194,16 +241,11 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
                   console.log('      ✅ Adicionando Predial');
                   foundEmailTypes.add("Predial");
                 }
-                if (areaLower.includes("logistica") || areaLower.includes("logística")) {
-                  console.log('      ✅ Adicionando Logistica');
-                  foundEmailTypes.add("Logistica");
-                }
               });
-            } else {
-              // Se não tem área responsável definida ou está vazio, assume que precisa enviar email genérico
-              console.warn('  ⚠️ Inconformidade sem área responsável definida ou vazia - adicionando CMC como padrão');
-              foundEmailTypes.add("CMC");
-            }
+          } else {
+            // Se não tem área responsável definida ou está vazio, assume que precisa enviar email genérico
+            console.warn('  ⚠️ Inconformidade sem área responsável definida ou vazia - adicionando CMC como padrão');
+            foundEmailTypes.add("CMC");
           }
         }
       });
@@ -378,12 +420,32 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     try {
       console.log('=== PREPARANDO ENVIO DE EMAIL ===');
-      console.log('Emails destinatários carregados:', emails);
+      console.log('Emails bruto recebido:', emails);
       console.log('Email types:', emailTypes);
       
+      // Validar e limpar emails com rigor
+      const emailsArray = emails
+        .split(';')
+        .map(e => e.trim().replace(/[;\s]/g, '')) // Remove espaços e pontos-e-vírgula
+        .filter(e => {
+          const isValid = e && e.includes('@') && e.length > 5;
+          console.log(`  ✓ Email "${e}" → válido? ${isValid}`);
+          return isValid;
+        });
+      
+      console.log('Emails após limpeza:', emailsArray);
+      
+      // Remover duplicatas
+      const uniqueEmails = [...new Set(emailsArray)];
+      console.log('Emails sem duplicatas:', uniqueEmails);
+      
+      // Juntar com vírgula SEM espaço
+      const emailsFinal = uniqueEmails.join(',');
+      console.log('Emails finais para envio:', emailsFinal);
+      
       // Validar se há emails para enviar
-      if (!emails || emails.trim() === '') {
-        console.error('ERRO: Emails vazios!');
+      if (!emailsFinal || emailsFinal.trim() === '') {
+        console.error('ERRO: Emails vazios após limpeza!');
         console.error('DocRef usado:', docRef);
         console.error('Email types buscados:', emailTypes);
         throw new Error('Nenhum email de destinatário foi encontrado. Verifique se os emails estão cadastrados para: ' + docRef);
@@ -392,7 +454,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       const emailContent = {
         remetente: "aprdigital.seg.br@telefonica.com",
         assunto: `APR_Digital - ${apr.site_id.Sigla} - ${apr.site_id.Cidade} - ${apr.site_id.Estado}`,
-        destinatario: emails, // Enviar como string, não array
+        destinatario: uniqueEmails, // Enviar como ARRAY em vez de string
         texto: `
         <div style='display: flex; text-align: center; justify-content: center; flex-direction: column; max-width: 600px; margin: 0 auto;'>
           <img src='https://i.postimg.cc/xCsFXPWb/image.png' />
@@ -423,8 +485,10 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       };
 
       console.log('=== ENVIANDO EMAIL ===');
-      console.log('Destinatário:', emailContent.destinatario);
+      console.log('Destinatário final (array):', uniqueEmails);
+      console.log('Destinatário JSON:', JSON.stringify(emailContent.destinatario));
       console.log('Assunto:', emailContent.assunto);
+      console.log('URL destino:', "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital");
 
       const response = await fetch(
         "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
@@ -436,6 +500,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       );
 
       console.log('Status da resposta:', response.status);
+      console.log('Status OK?:', response.ok);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -445,7 +510,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
       }
 
       const responseData = await response.text();
-      console.log('Resposta do servidor:', responseData);
+      console.log('Resposta sucesso do servidor:', responseData);
 
       // Verificar se há inconformidades na APR
       let temInconformidades = false;

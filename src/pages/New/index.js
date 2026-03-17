@@ -21,6 +21,7 @@ import {
   ButtonGroup,
   Card,
   CardContent,
+  CardActions,
   Checkbox,
   Container,
   FormControl,
@@ -33,6 +34,8 @@ import {
   Stack,
   TextField,
   Typography,
+  Chip,
+  Alert,
 } from "@mui/material";
 
 const ITEM_HEIGHT = 30;
@@ -997,18 +1000,164 @@ export default function New() {
     }
 
     return root.render(
-      <>
-        <span>APR Finalizada com Sucesso !</span>
-        <span>
-          ID da sua APR : <i>{id}</i>
-        </span>
-        <span>
-          Classificação : <i>{classificacao}</i>
-        </span>
+      <Card
+        elevation={0}
+        sx={{
+          background: "#ffffff",
+          borderRadius: 2,
+          overflow: "hidden",
+          width: "100%",
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        <CardContent sx={{ p: 4 }}>
+          <Stack spacing={3} alignItems="center">
+            {/* Título */}
+            <Box sx={{ textAlign: "center" }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  fontWeight: 500, 
+                  color: "#667eea",
+                  mb: 1.5,
+                  letterSpacing: "-0.3px",
+                  fontSize: "1.5rem"
+                }}
+              >
+                APR Finalizada com Sucesso
+              </Typography>
+            </Box>
 
-        <a href={"/aprs"}>Ir Pagina Inicial</a>
-        <a href={`/open/${id}`}>Ir APR Criada</a>
-      </>
+            {/* Informações */}
+            <Stack spacing={2.5} sx={{ width: "100%" }}>
+              {/* ID */}
+              <Box 
+                sx={{ 
+                  p: 2.5, 
+                  backgroundColor: "#f8fbff", 
+                  borderRadius: 1.5,
+                  borderLeft: "3px solid #667eea",
+                }}
+              >
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: "#94a3b8", 
+                    fontWeight: 500, 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                    fontSize: "0.7rem"
+                  }}
+                >
+                  ID da APR
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 400, 
+                    color: "#667eea", 
+                    mt: 0.75,
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    letterSpacing: "0.5px"
+                  }}
+                >
+                  {id}
+                </Typography>
+              </Box>
+
+              {/* Classificação */}
+              <Box 
+                sx={{ 
+                  p: 2.5, 
+                  backgroundColor: "#f8fbff", 
+                  borderRadius: 1.5,
+                  borderLeft: "3px solid #764ba2",
+                }}
+              >
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: "#94a3b8", 
+                    fontWeight: 500, 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                    fontSize: "0.7rem"
+                  }}
+                >
+                  Classificação de Risco
+                </Typography>
+                <Box sx={{ mt: 0.75, display: "flex", justifyContent: "flex-start", gap: 1 }}>
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 0.5,
+                      backgroundColor: "#f0f3ff",
+                      color: "#667eea",
+                      borderRadius: 1,
+                      fontWeight: 500,
+                      fontSize: "0.9rem",
+                      border: "1px solid #e0e7ff"
+                    }}
+                  >
+                    {classificacao}
+                  </Box>
+                </Box>
+              </Box>
+            </Stack>
+          </Stack>
+        </CardContent>
+
+        <CardActions 
+          sx={{ 
+            bgcolor: "#ffffff", 
+            justifyContent: "center", 
+            gap: 1.5, 
+            p: 3,
+            borderTop: "1px solid #e2e8f0"
+          }}
+        >
+          <Button
+            variant="outlined"
+            href="/aprs"
+            size="small"
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.9rem",
+              borderColor: "#cbd5e1",
+              color: "#64748b",
+              py: 0.75,
+              px: 2.5,
+              "&:hover": {
+                borderColor: "#667eea",
+                color: "#667eea",
+                backgroundColor: "#f8fbff"
+              }
+            }}
+          >
+            Voltar
+          </Button>
+          <Button
+            variant="contained"
+            href={`/open/${id}`}
+            size="small"
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.9rem",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              py: 0.75,
+              px: 2.5,
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)"
+              }
+            }}
+          >
+            Visualizar
+          </Button>
+        </CardActions>
+      </Card>
     );
   }
 
@@ -2155,11 +2304,18 @@ export default function New() {
           </div>
         </div>
 
-        <div
-          className="container"
+        <Box
           id="container-conclusion"
-          style={{ display: "none" }}
-        ></div>
+          sx={{
+            display: "none",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "auto",
+            gap: 3,
+            mt: 3,
+          }}
+        />
 
         {/* Modal de Geolocalização */}
         {showGeolocationModal && (

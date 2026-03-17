@@ -147,6 +147,9 @@ export default function ContactEmail() {
         email_oem: docToEdit.email_oem || [],
         email_patrimonial: docToEdit.email_patrimonial || [],
         email_predial: docToEdit.email_predial || [],
+        email_logistica: docToEdit.email_logistica || [],
+        email_armazenamento: docToEdit.email_armazenamento || [],
+        email_transporte: docToEdit.email_transporte || [],
       });
       await firebase.firestore().collection("contact_email").doc(docToEdit.id).delete();
       await logSistem("Nome do município alterado", newDocId);
@@ -171,6 +174,9 @@ export default function ContactEmail() {
         email_oem: [...(docToEdit.email_oem || [])],
         email_patrimonial: [...(docToEdit.email_patrimonial || [])],
         email_predial: [...(docToEdit.email_predial || [])],
+        email_logistica: [...(docToEdit.email_logistica || [])],
+        email_armazenamento: [...(docToEdit.email_armazenamento || [])],
+        email_transporte: [...(docToEdit.email_transporte || [])],
       });
       await logSistem("Município duplicado", newDocId);
 
@@ -249,7 +255,7 @@ export default function ContactEmail() {
     const docSnap = await docRef.get();
     if (!docSnap.exists) return;
     const data = docSnap.data();
-    const tipos = ["email_oem", "email_patrimonial", "email_predial"];
+    const tipos = ["email_oem", "email_patrimonial", "email_predial", "email_logistica", "email_armazenamento", "email_transporte"];
     tipos.forEach((key) => {
       data[key] = (data[key] || []).filter((e) => e !== editEmail);
     });
@@ -283,6 +289,9 @@ export default function ContactEmail() {
         email_oem: [],
         email_patrimonial: [],
         email_predial: [],
+        email_logistica: [],
+        email_armazenamento: [],
+        email_transporte: [],
         [targetKey]: emails,
       };
       await docRef.set(newData);
@@ -574,6 +583,8 @@ export default function ContactEmail() {
               <MenuItem value="Patrimonial">Patrimonial</MenuItem>
               <MenuItem value="Predial">Predial</MenuItem>
               <MenuItem value="Logistica">Logistica</MenuItem>
+              <MenuItem value="Armazenamento">Armazenamento</MenuItem>
+              <MenuItem value="Transporte">Transporte</MenuItem>
             </Select>
           </DialogContent>
           <DialogActions>

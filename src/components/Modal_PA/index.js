@@ -24,6 +24,8 @@ import {
   Typography,
   CircularProgress,
   Chip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { Download, CloudUpload, Description, Image, PictureAsPdf, AudioFile, VideoLibrary, ArchiveOutlined, InsertDriveFile } from "@mui/icons-material";
 
@@ -43,6 +45,14 @@ export default function Modal_PA({
   const [comentario, setComentario] = useState("");
   const [justificativa, setJustificativa] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
+  const [activeTab, setActiveTab] = useState(0); // 0: Plano de ação, 1: OEM (para revisor)
+  // Estados para OEM (aba separada)
+  const [selectedOptionOEM, setSelectedOptionOEM] = useState("");
+  const [comentarioOEM, setComentarioOEM] = useState("");
+  const [justificativaOEM, setJustificativaOEM] = useState("");
+  const [nomeDetentoraOEM, setNomeDetentoraOEM] = useState("");
+  const [numeroChamadoOEM, setNumeroChamadoOEM] = useState("");
+  // Fim estados OEM
   const [nomeDetentora, setNomeDetentora] = useState("");
   const [numeroChamado, setNumeroChamado] = useState("");
   const [slaLogistica, setSlaLogistica] = useState("");
@@ -137,7 +147,7 @@ export default function Modal_PA({
     }
 
     loadConstants();
-  }, [conteudo, refreshTrigger]);
+  }, [conteudo, refreshTrigger, user.nivel]);
 
   // Debug: Log quando arquivos selecionados mudam
   useEffect(() => {
@@ -194,21 +204,27 @@ export default function Modal_PA({
     const dados = doc.data();
     const plano = dados.checklist[area][1][index];
 
+    // Se revisor_logistica e selectedOption vazio, definir como Logistica automaticamente
+    let optionToSave = selectedOption;
+    if (user.nivel === "revisor_logistica" && !selectedOption) {
+      optionToSave = "Logistica";
+    }
+
     // Validações básicas
-    if (selectedOption === "Sim") {
+    if (optionToSave === "Sim") {
       if (!tempo) return toast("Selecione um SLA (data)");
       if (!comentario) return toast("Preencha um comentário");
-    } else if (selectedOption === "Não") {
+    } else if (optionToSave === "Não") {
       if (!justificativa) return toast("Selecione uma justificativa");
       if (!comentario) return toast("Preencha um comentário");
-    } else if (selectedOption === "Detentora") {
+    } else if (optionToSave === "Detentora") {
       if (!nomeDetentora) return toast("Preencha a detentora");
       if (!numeroChamado) return toast("Preencha o número de chamado");
       if (!comentario) return toast("Preencha um comentário");
-    } else if (selectedOption === "Patrimonio") {
+    } else if (optionToSave === "Patrimonio") {
       if (!numeroChamado) return toast("Preencha o número de chamado");
       if (!comentario) return toast("Preencha um comentário");
-    } else if (selectedOption === "Logistica") {
+    } else if (optionToSave === "Logistica") {
       if (!slaLogistica) return toast("Preencha o SLA (data)");
       if (!comentario) return toast("Preencha um comentário");
     } else {
@@ -217,25 +233,25 @@ export default function Modal_PA({
 
     // Monta o objeto plano_acao para salvar
     let planoAcaoToSave = {};
-    if (selectedOption === "Sim") {
+    if (optionToSave === "Sim") {
       planoAcaoToSave = {
         tempo,
         comentario,
       };
-    } else if (selectedOption === "Não") {
+    } else if (optionToSave === "Não") {
       planoAcaoToSave = { justificativa, comentario };
-    } else if (selectedOption === "Detentora") {
+    } else if (optionToSave === "Detentora") {
       planoAcaoToSave = {
         nome_detentora: nomeDetentora,
         numero_chamado: numeroChamado,
         comentario,
       };
-    } else if (selectedOption === "Patrimonio") {
+    } else if (optionToSave === "Patrimonio") {
       planoAcaoToSave = {
         numero_chamado: numeroChamado,
         comentario,
       };
-    } else if (selectedOption === "Logistica") {
+    } else if (optionToSave === "Logistica") {
       // Inicializar histórico se não existir
       const historicoAtual = plano.plano_acao?.historico_logistica || [];
       
@@ -263,7 +279,7 @@ export default function Modal_PA({
     }
 
     plano.plano_acao = planoAcaoToSave;
-    plano.resp_pa_selectedOption = selectedOption;
+    plano.resp_pa_selectedOption = optionToSave;
     plano.resp_pa_data = new Date();
     plano.resp_pa_user_name = user.nome;
     plano.resp_pa_user_id = user.uid;
@@ -321,6 +337,8 @@ export default function Modal_PA({
 
     if (resolucaoInconformidade === 'sim') {
       toast.success("✅ Plano de ação validado!");
+      // Enviar email ao ponto focal informando aprovação
+      await sendEmailToPontoFocal(apr, id, conteudo.question);
     } else {
       // Se foi reprovado, mudar status da APR para retornar ao ponto focal
       await docRef.update({
@@ -329,6 +347,8 @@ export default function Modal_PA({
         motivo_reprovacao: notaParecer,
       });
       toast.success("❌ Plano de ação reprovado e retornado ao ponto focal");
+      // Enviar email ao ponto focal informando rejeição
+      await sendEmailRejeitadoToPontoFocal(apr, id, conteudo.question, notaParecer);
     }
     loadApr();
     setResolucaoInconformidade(null);
@@ -413,6 +433,328 @@ export default function Modal_PA({
     }
 
     return destinatario;
+  }
+
+  // Buscar email do ponto focal na contact_email baseado no estado e município
+  async function fetchPontoFocalEmail() {
+    try {
+      const siteEstado = apr?.site_id?.Estado || "";
+      const siteCidade = apr?.site_id?.Cidade || "";
+
+      if (!siteEstado || !siteCidade) {
+        console.warn("Estado ou cidade não encontrados no APR");
+        return null;
+      }
+
+      console.log(`🔍 Procurando email do ponto focal para: ${siteEstado} - ${siteCidade}`);
+
+      // Primeiro, tentar buscar na contact_email com a chave {ESTADO}-{MUNICIPIO}
+      const docKey = `${siteEstado.toUpperCase()}-${siteCidade.toUpperCase()}`;
+      console.log(`📄 Tentando buscar documento com chave: ${docKey}`);
+
+      const contactEmailDoc = await firebase
+        .firestore()
+        .collection("contact_email")
+        .doc(docKey)
+        .get();
+
+      if (contactEmailDoc.exists) {
+        const data = contactEmailDoc.data();
+        console.log(`✓ Documento encontrado para ${docKey}`, data);
+
+        // Procurar por campos de email do ponto focal em ordem de preferência
+        const fieldPriority = [
+          "email_ponto_focal",
+          "email_logistica_ponto_focal", 
+          "ponto_focal_email",
+          "email_logistica",
+          "email_armazenamento",
+          "email_transporte",
+        ];
+
+        for (const field of fieldPriority) {
+          if (data[field]) {
+            const email = Array.isArray(data[field]) ? data[field][0] : data[field];
+            if (email && typeof email === "string" && email.trim()) {
+              console.log(`✓ Email encontrado no campo '${field}': ${email.trim()}`);
+              return email.trim();
+            }
+          }
+        }
+
+        console.warn(`⚠️ Nenhum campo de email encontrado no documento ${docKey}`);
+      } else {
+        console.warn(`⚠️ Documento contact_email não encontrado para: ${docKey}`);
+      }
+
+      // Se não encontrou, buscar um email padrão de ponto focal em qualquer documento
+      console.log("🔄 Tentando buscar email de ponto focal padrão...");
+      const allContactsSnapshot = await firebase
+        .firestore()
+        .collection("contact_email")
+        .limit(1)
+        .get();
+
+      if (!allContactsSnapshot.empty) {
+        const firstDoc = allContactsSnapshot.docs[0];
+        const data = firstDoc.data();
+
+        for (const field of ["email_ponto_focal", "email_logistica", "email_armazenamento"]) {
+          if (data[field]) {
+            const email = Array.isArray(data[field]) ? data[field][0] : data[field];
+            if (email && typeof email === "string" && email.trim()) {
+              console.log(`⚠️ Usando email de fallback: ${email.trim()}`);
+              return email.trim();
+            }
+          }
+        }
+      }
+
+      console.error("❌ Nenhum email de ponto focal foi encontrado");
+      return null;
+    } catch (error) {
+      console.error("❌ Erro ao buscar email do ponto focal:", error);
+      return null;
+    }
+  }
+
+  // Enviar email ao ponto focal informando aprovação do plano de ação
+  async function sendEmailToPontoFocal(aprData, aprId, question, motivo = "") {
+    try {
+      const pontoFocalEmail = await fetchPontoFocalEmail();
+
+      if (!pontoFocalEmail) {
+        console.warn("Email do ponto focal não encontrado");
+        return;
+      }
+
+      const siteNome = aprData?.site_id?.Nome || "N/I";
+      const siteSigla = aprData?.site_id?.Sigla || "N/I";
+      const siteCidade = aprData?.site_id?.Cidade || "N/I";
+      const siteEstado = aprData?.site_id?.Estado || "N/I";
+      const aprRef = aprData?.apr_id || aprId;
+
+      // Garantir que destinatario é array
+      const destinatarioArray = Array.isArray(pontoFocalEmail) 
+        ? pontoFocalEmail 
+        : [pontoFocalEmail];
+
+      const emailContent = {
+        remetente: "aprdigital.seg.br@telefonica.com",
+        assunto: `APR Digital - Plano de Ação Aprovado - ${siteSigla}`,
+        destinatario: destinatarioArray,
+        texto: `
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>APR Digital - Plano de Ação Aprovado</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { background-color: #660099; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; margin: -30px -30px 30px -30px; }
+                .header h1 { margin: 0; font-size: 24px; }
+                .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+                .site-info { background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .site-info p { margin: 8px 0; }
+                .approval-box { background-color: #e8f5e9; border: 2px solid #4caf50; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                .question-box { background-color: #f5f5f5; padding: 15px; border-left: 4px solid #4caf50; margin: 15px 0; }
+                .action-button { display: inline-block; background-color: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>APR Digital</h1>
+                  <p>✅ Plano de Ação Aprovado</p>
+                </div>
+
+                <p>Olá,</p>
+                
+                <p>O revisor <strong>aprovou</strong> o plano de ação para a seguinte inconformidade:</p>
+                
+                <div class="question-box">
+                  <p><strong>❓ Pergunta/Inconformidade:</strong></p>
+                  <p>${question || "N/I"}</p>
+                </div>
+                
+                <div class="site-info">
+                  <h3 style="margin-top: 0;">Informações da APR</h3>
+                  <p><strong>APR:</strong> ${aprRef}</p>
+                  <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+                  <p><strong>Localização:</strong> ${siteCidade}/${siteEstado}</p>
+                </div>
+                
+                <div class="approval-box">
+                  <p><strong>✓ Status:</strong> Aprovado para implementação</p>
+                  <p>O plano de ação foi validado e aprovado. Agora é necessário implementar a solução na área responsável.</p>
+                </div>
+                
+                <p style="margin: 20px 0; line-height: 1.6;">
+                  <strong>Ação necessária:</strong> Por favor, verifique se o plano de ação foi implementado e se a inconformidade foi resolvida na área.
+                </p>
+                
+                <p style="text-align: center;">
+                  <a href="${window.location.origin}/Open/${aprId}" class="action-button">Acessar APR para Verificar</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <small style="color: #999;">Mensagem automática gerada pelo Sistema APR Digital</small>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+
+      console.log('=== ENVIANDO EMAIL APROVAÇÃO PA ===');
+      console.log('Destinatário final (array):', destinatarioArray);
+      console.log('Assunto:', emailContent.assunto);
+      console.log('URL destino:', "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital");
+
+      const response = await fetch(
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailContent),
+        }
+      );
+
+      console.log('Status da resposta:', response.status);
+      console.log('Status OK?:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erro ao enviar email ao ponto focal: ${response.status} - ${errorText}`);
+        return;
+      }
+
+      console.log("Email de aprovação enviado ao ponto focal com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar email ao ponto focal:", error);
+    }
+  }
+
+  // Enviar email ao ponto focal informando rejeição do plano de ação
+  async function sendEmailRejeitadoToPontoFocal(aprData, aprId, question, motivo = "") {
+    try {
+      const pontoFocalEmail = await fetchPontoFocalEmail();
+
+      if (!pontoFocalEmail) {
+        console.warn("Email do ponto focal não encontrado");
+        return;
+      }
+
+      const siteNome = aprData?.site_id?.Nome || "N/I";
+      const siteSigla = aprData?.site_id?.Sigla || "N/I";
+      const siteCidade = aprData?.site_id?.Cidade || "N/I";
+      const siteEstado = aprData?.site_id?.Estado || "N/I";
+      const aprRef = aprData?.apr_id || aprId;
+
+      // Garantir que destinatario é array
+      const destinatarioArray = Array.isArray(pontoFocalEmail) 
+        ? pontoFocalEmail 
+        : [pontoFocalEmail];
+
+      const motivoTexto = motivo && motivo.trim() 
+        ? `<p style="background-color: #fff3cd; padding: 12px; border-left: 4px solid #ff9800; margin: 16px 0;"><strong>Motivo da rejeição:</strong><br/>${motivo}</p>`
+        : "";
+
+      const emailContent = {
+        remetente: "aprdigital.seg.br@telefonica.com",
+        assunto: `APR Digital - Plano de Ação Rejeitado - ${siteSigla}`,
+        destinatario: destinatarioArray,
+        texto: `
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>APR Digital - Plano de Ação Rejeitado</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { background-color: #660099; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; margin: -30px -30px 30px -30px; }
+                .header h1 { margin: 0; font-size: 24px; }
+                .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+                .site-info { background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .site-info p { margin: 8px 0; }
+                .rejection-box { background-color: #ffebee; border: 2px solid #f44336; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                .reason-box { background-color: #fff3cd; border-left: 4px solid #ff9800; padding: 15px; margin: 15px 0; }
+                .question-box { background-color: #f5f5f5; padding: 15px; border-left: 4px solid #f44336; margin: 15px 0; }
+                .action-button { display: inline-block; background-color: #f44336; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>APR Digital</h1>
+                  <p>❌ Plano de Ação Rejeitado</p>
+                </div>
+
+                <p>Olá,</p>
+                
+                <p>Infelizmente, o revisor <strong>rejeitou o plano de ação</strong> para a seguinte inconformidade. Há problemas que precisam ser corrigidos:</p>
+                
+                <div class="question-box">
+                  <p><strong>❓ Pergunta/Inconformidade:</strong></p>
+                  <p>${question || "N/I"}</p>
+                </div>
+                
+                ${motivoTexto}
+                
+                <div class="site-info">
+                  <h3 style="margin-top: 0;">Informações da APR</h3>
+                  <p><strong>APR:</strong> ${aprRef}</p>
+                  <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+                  <p><strong>Localização:</strong> ${siteCidade}/${siteEstado}</p>
+                </div>
+                
+                <div class="rejection-box">
+                  <p><strong>⚠️ Status:</strong> Pendente de Correção</p>
+                  <p>O plano de ação não foi aprovado e requer ajustes conforme os comentários do revisor.</p>
+                </div>
+                
+                <p style="margin: 20px 0; line-height: 1.6;">
+                  <strong>O que fazer:</strong> Por favor, revise o plano de ação e atualize-o de acordo com os comentários do revisor. Assim que corrigir, envie novamente para validação.
+                </p>
+                
+                <p style="text-align: center;">
+                  <a href="${window.location.origin}/Open/${aprId}" class="action-button">Acessar APR e Corrigir</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <small style="color: #999;">Mensagem automática gerada pelo Sistema APR Digital</small>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+
+      console.log('=== ENVIANDO EMAIL REJEIÇÃO PA ===');
+      console.log('Destinatário final (array):', destinatarioArray);
+      console.log('Assunto:', emailContent.assunto);
+      console.log('Motivo:', motivo);
+
+      const response = await fetch(
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailContent),
+        }
+      );
+
+      console.log('Status da resposta:', response.status);
+      console.log('Status OK?:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erro ao enviar email de rejeição: ${response.status} - ${errorText}`);
+        return;
+      }
+
+      console.log("Email de rejeição enviado ao ponto focal com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar email de rejeição:", error);
+    }
   }
 
   // Nova função para atualizar status quando ponto focal finaliza
@@ -1162,6 +1504,108 @@ export default function Modal_PA({
             <input type="file" onChange={handleArquivoChange} disabled={uploading} />
           )}
         </Box>
+      </Box>
+    );
+  }
+
+  // Função para renderizar inputs específicos da aba OEM
+  function renderOptionInputsOEM() {
+    return (
+      <Box display="flex" flexDirection="column" gap={2}>
+        {selectedOptionOEM === "Sim" && (
+          <>
+            <TextField
+              label="Comentário OEM"
+              value={comentarioOEM}
+              onChange={(e) => setComentarioOEM(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
+        {selectedOptionOEM === "Não" && (
+          <>
+            <TextField
+              label="Justificativa OEM"
+              value={justificativaOEM}
+              onChange={(e) => setJustificativaOEM(e.target.value)}
+              select
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            >
+              <MenuItem value="Instalada solução similar">
+                Instalada solução similar
+              </MenuItem>
+              <MenuItem value="Sem orçamento">Sem orçamento</MenuItem>
+              <MenuItem value="Solução em desacordo">Solução em desacordo</MenuItem>
+              <MenuItem value="Discordância de necessidade">
+                Discordância de necessidade
+              </MenuItem>
+            </TextField>
+            <TextField
+              label="Comentário OEM"
+              value={comentarioOEM}
+              onChange={(e) => setComentarioOEM(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
+        {selectedOptionOEM === "Detentora" && (
+          <>
+            <TextField
+              label="Nome Detentora OEM"
+              value={nomeDetentoraOEM}
+              onChange={(e) => setNomeDetentoraOEM(e.target.value.toUpperCase())}
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+            <TextField
+              label="Número Chamado OEM"
+              value={numeroChamadoOEM}
+              onChange={(e) => setNumeroChamadoOEM(e.target.value.toUpperCase())}
+              fullWidth
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+            <TextField
+              label="Comentário OEM"
+              value={comentarioOEM}
+              onChange={(e) => setComentarioOEM(e.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+              slotProps={isReadOnly && {
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          </>
+        )}
       </Box>
     );
   }
@@ -2076,49 +2520,259 @@ export default function Modal_PA({
         ) : (
           /* Interface normal para outros usuários */
           <>
-            <FormControl component="fieldset" fullWidth>
-              <FormLabel component="legend">Responsável</FormLabel>
-              <RadioGroup
-                row
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-              >
-                {user.nivel === "revisor_logistica" ? (
-                  // Revisor de logística só vê a opção Logística
-                  <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
-                ) : user.nivel === "revisor" ? (
-                  // Revisor comum NÃO vê a opção Logística
-                  <>
-                    <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
-                    <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
-                    <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
-                    <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
-                  </>
-                ) : (
-                  // Administrador e outros usuários veem todas as opções
-                  <>
-                    <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
-                    <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
-                    <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
-                    <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
-                    <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
-                  </>
+            {(user.nivel === "revisor" || user.nivel === "administrador") ? (
+              // REVISOR / ADMINISTRADOR COM ABAS
+              <Box>
+                <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ borderBottom: '2px solid #660099', mb: 2 }}>
+                  <Tab label="📋 Plano de Ação" />
+                  <Tab label="🏢 OEM" />
+                </Tabs>
+
+                {activeTab === 0 && (
+                  // Aba Plano de Ação
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 3, color: '#660099', fontWeight: 'bold', borderBottom: '2px solid #660099', pb: 1 }}>
+                      📋 Plano de Ação
+                    </Typography>
+
+                    {/* Card para seleção do tipo de resposta */}
+                    <Box sx={{ p: 3, bgcolor: '#f3e5f5', borderRadius: 2, mb: 3, border: '2px solid #660099', background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#6a1b9a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        🎯 Responsável
+                      </Typography>
+                      <FormControl component="fieldset" fullWidth>
+                        <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1.5 }}>Selecione a opção</FormLabel>
+                        <RadioGroup
+                          row
+                          value={selectedOption}
+                          onChange={(e) => setSelectedOption(e.target.value)}
+                        >
+                          <FormControlLabel 
+                            value="Sim" 
+                            control={<Radio />} 
+                            label="✓ Sim" 
+                            disabled={isReadOnly}
+                            sx={{ mr: 3 }}
+                          />
+                          <FormControlLabel 
+                            value="Não" 
+                            control={<Radio />} 
+                            label="✗ Não" 
+                            disabled={isReadOnly}
+                            sx={{ mr: 3 }}
+                          />
+                          <FormControlLabel 
+                            value="Patrimonio" 
+                            control={<Radio />} 
+                            label="🏗️ Patrimonio" 
+                            disabled={isReadOnly}
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Box>
+
+                    {/* Inputs baseado na seleção */}
+                    <Box sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2, border: '1px solid #e0e0e0', background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#424242' }}>
+                        📝 Detalhes:
+                      </Typography>
+                      {renderOptionInputs()}
+                    </Box>
+
+                    {/* Card de informações se já foi respondido */}
+                    {conteudo?.resp_pa_user_name && (
+                      <Box sx={{ mt: 3, p: 2.5, bgcolor: '#e3f2fd', borderRadius: 2, border: '2px solid #1976d2', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#0d47a1', display: 'flex', alignItems: 'center', gap: 1 }}>
+                          ✓ Última Atualização
+                        </Typography>
+                        <Box sx={{ display: 'grid', gap: 0.8 }}>
+                          <Typography variant="body2">
+                            <strong>👤 Por:</strong> {conteudo.resp_pa_user_name}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>📅 Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString('pt-BR') : "N/D"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Card de validação se existir */}
+                    {conteudo?.resp_pa_status_alterado && (
+                      <Box sx={{ mt: 3, p: 2.5, bgcolor: '#f3f4f6', borderRadius: 2, border: '2px solid #4b5563', background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#1f2937', display: 'flex', alignItems: 'center', gap: 1 }}>
+                          🔍 Validação
+                        </Typography>
+                        <Box sx={{ display: 'grid', gap: 0.8 }}>
+                          <Typography variant="body2">
+                            <strong>✓ Validado por:</strong> {conteudo.resp_pa_status_alterado}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>📅 Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString('pt-BR') : "N/D"}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Status:</strong> <Chip label={conteudo.resp_pa_status} color="primary" size="small" />
+                          </Typography>
+                          {conteudo.resp_pa_status_parecer && (
+                            <Typography variant="body2" sx={{ mt: 1, p: 1, bgcolor: 'white', borderRadius: 1, borderLeft: '4px solid #6a1b9a' }}>
+                              <strong>💬 Parecer:</strong> {conteudo.resp_pa_status_parecer}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                 )}
-              </RadioGroup>
-            </FormControl>
-            <Box mt={2}>{renderOptionInputs()}</Box>
-            {conteudo?.resp_pa_user_name && (
-              <Box mt={2}>
-                <Typography variant="subtitle1"><strong>Respondido por:</strong> {conteudo.resp_pa_user_name}</Typography>
-                <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString() : ""}</Typography>
+
+                {activeTab === 1 && (
+                  // Aba OEM - Layout bonito
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 3, color: '#d32f2f', fontWeight: 'bold', borderBottom: '2px solid #d32f2f', pb: 1 }}>
+                      🏢 Gestão OEM
+                    </Typography>
+
+                    {/* Card para seleção do tipo de resposta */}
+                    <Box sx={{ p: 3, bgcolor: '#ffebee', borderRadius: 2, mb: 3, border: '2px solid #d32f2f', background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#b71c1c', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        📋 Classificação OEM
+                      </Typography>
+                      <FormControl component="fieldset" fullWidth>
+                        <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1.5 }}>Tipo de Resposta OEM</FormLabel>
+                        <RadioGroup
+                          row
+                          value={selectedOptionOEM}
+                          onChange={(e) => setSelectedOptionOEM(e.target.value)}
+                        >
+                          <FormControlLabel 
+                            value="Sim" 
+                            control={<Radio />} 
+                            label="✓ Sim" 
+                            disabled={isReadOnly}
+                            sx={{ mr: 3 }}
+                          />
+                          <FormControlLabel 
+                            value="Não" 
+                            control={<Radio />} 
+                            label="✗ Não" 
+                            disabled={isReadOnly}
+                            sx={{ mr: 3 }}
+                          />
+                          <FormControlLabel 
+                            value="Detentora" 
+                            control={<Radio />} 
+                            label="🏛️ Detentora" 
+                            disabled={isReadOnly}
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Box>
+
+                    {/* Inputs baseado na seleção */}
+                    <Box sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2, border: '1px solid #e0e0e0', background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 2, color: '#424242' }}>
+                        📝 Detalhes da Resposta OEM:
+                      </Typography>
+                      {renderOptionInputsOEM()}
+                    </Box>
+
+                    {/* Card de informações se já foi respondido */}
+                    {conteudo?.resp_pa_user_name && (
+                      <Box sx={{ mt: 3, p: 2.5, bgcolor: '#e3f2fd', borderRadius: 2, border: '2px solid #1976d2', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#0d47a1', display: 'flex', alignItems: 'center', gap: 1 }}>
+                          ✓ Última Atualização
+                        </Typography>
+                        <Box sx={{ display: 'grid', gap: 0.8 }}>
+                          <Typography variant="body2">
+                            <strong>👤 Por:</strong> {conteudo.resp_pa_user_name}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>📅 Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString('pt-BR') : "N/D"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Card de validação se existir */}
+                    {conteudo?.resp_pa_status_alterado && (
+                      <Box sx={{ mt: 3, p: 2.5, bgcolor: '#f3e5f5', borderRadius: 2, border: '2px solid #9c27b0', background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#6a1b9a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                          🔍 Validação OEM
+                        </Typography>
+                        <Box sx={{ display: 'grid', gap: 0.8 }}>
+                          <Typography variant="body2">
+                            <strong>✓ Validado por:</strong> {conteudo.resp_pa_status_alterado}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>📅 Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString('pt-BR') : "N/D"}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Status:</strong> <Chip label={conteudo.resp_pa_status} color="primary" size="small" />
+                          </Typography>
+                          {conteudo.resp_pa_status_parecer && (
+                            <Typography variant="body2" sx={{ mt: 1, p: 1, bgcolor: 'white', borderRadius: 1, borderLeft: '4px solid #9c27b0' }}>
+                              <strong>💬 Parecer:</strong> {conteudo.resp_pa_status_parecer}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {conteudo?.resp_pa_user_name && (
+                  <Box mt={2}>
+                    <Typography variant="subtitle1"><strong>Respondido por:</strong> {conteudo.resp_pa_user_name}</Typography>
+                    <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString() : ""}</Typography>
+                  </Box>
+                )}
+                {conteudo?.resp_pa_status_alterado && (
+                  <Box mt={2}>
+                    <Typography variant="subtitle1"><strong>Validado por:</strong> {conteudo.resp_pa_status_alterado}</Typography>
+                    <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString() : ""}</Typography>
+                    <Typography variant="subtitle1"><strong>Status:</strong> {conteudo.resp_pa_status}</Typography>
+                    <Typography variant="subtitle1"><strong>Parecer da segurança:</strong> {conteudo.resp_pa_status_parecer}</Typography>
+                  </Box>
+                )}
               </Box>
-            )}
-            {conteudo?.resp_pa_status_alterado && (
-              <Box mt={2}>
-                <Typography variant="subtitle1"><strong>Validado por:</strong> {conteudo.resp_pa_status_alterado}</Typography>
-                <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString() : ""}</Typography>
-                <Typography variant="subtitle1"><strong>Status:</strong> {conteudo.resp_pa_status}</Typography>
-                <Typography variant="subtitle1"><strong>Parecer da segurança:</strong> {conteudo.resp_pa_status_parecer}</Typography>
+            ) : (
+              // OUTROS USUÁRIOS (administrador, etc)
+              <Box>
+                <FormControl component="fieldset" fullWidth>
+                  <FormLabel component="legend">Responsável</FormLabel>
+                  <RadioGroup
+                    row
+                    value={selectedOption}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                  >
+                    {user.nivel === "revisor_logistica" ? (
+                      // Revisor de logística só vê a opção Logística
+                      <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
+                    ) : (
+                      // Administrador e outros usuários veem todas as opções
+                      <>
+                        <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
+                        <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
+                        <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
+                        <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+                        <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
+                      </>
+                    )}
+                  </RadioGroup>
+                </FormControl>
+                <Box mt={2}>{renderOptionInputs()}</Box>
+                {conteudo?.resp_pa_user_name && (
+                  <Box mt={2}>
+                    <Typography variant="subtitle1"><strong>Respondido por:</strong> {conteudo.resp_pa_user_name}</Typography>
+                    <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_data ? new Date(conteudo.resp_pa_data.seconds * 1000).toLocaleString() : ""}</Typography>
+                  </Box>
+                )}
+                {conteudo?.resp_pa_status_alterado && (
+                  <Box mt={2}>
+                    <Typography variant="subtitle1"><strong>Validado por:</strong> {conteudo.resp_pa_status_alterado}</Typography>
+                    <Typography variant="subtitle1"><strong>Data:</strong> {conteudo.resp_pa_status_alterado_data ? new Date(conteudo.resp_pa_status_alterado_data.seconds * 1000).toLocaleString() : ""}</Typography>
+                    <Typography variant="subtitle1"><strong>Status:</strong> {conteudo.resp_pa_status}</Typography>
+                    <Typography variant="subtitle1"><strong>Parecer da segurança:</strong> {conteudo.resp_pa_status_parecer}</Typography>
+                  </Box>
+                )}
               </Box>
             )}
           </>

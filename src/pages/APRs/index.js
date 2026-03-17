@@ -143,29 +143,34 @@ export default function Dashboard() {
       SUL: ["RS", "PR", "SC"],
     };
 
-    query = novasAPRs
-      ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc")
-      : query.orderBy("created", "desc");
+    // ⚠️ Se filtrar por ID, essa deve ser a primeira query (sem orderBy antes)
+    if (filterID !== "") {
+      query = listRef.where("apr_id", "==", parseInt(filterID));
+    } else {
+      query = novasAPRs
+        ? query.where("apr_id", ">", 0).orderBy("apr_id", "desc")
+        : query.orderBy("created", "desc");
+    }
 
-    // Aplicar os filtros
-    if (filterID !== "")
-      query = query.where("apr_id", "==", parseInt(filterID));
-    if (filterUF !== "") query = query.where("site_id.Estado", "==", filterUF);
-    if (filterSigla !== "")
-      query = query.where("site_id.Sigla", "==", filterSigla);
-    if (filterTipoSite !== "")
-      query = query.where("site_id.tipoSite", "==", filterTipoSite);
-    // Revisor e revisor_logistica veem todos os status, outros usuários podem filtrar
-    if (filterStatus !== "" && user.nivel !== "revisor" && user.nivel !== "revisor_logistica")
-      query = query.where("status", "==", filterStatus);
-    if (filterNome !== "")
-      query = query.where("user_id.nome", "==", filterNome);
-    if (filterMotivo !== "")
-      query = query.where("motivo_apr", "==", filterMotivo);
-    if (filterRegional !== "") {
-      const estados = regionMap[filterRegional];
-      if (estados) {
-        query = query.where("site_id.Estado", "in", estados);
+    // Aplicar os filtros (apenas se não for filtro por ID)
+    if (filterID === "") {
+      if (filterUF !== "") query = query.where("site_id.Estado", "==", filterUF);
+      if (filterSigla !== "")
+        query = query.where("site_id.Sigla", "==", filterSigla);
+      if (filterTipoSite !== "")
+        query = query.where("site_id.tipoSite", "==", filterTipoSite);
+      // Revisor e revisor_logistica veem todos os status, outros usuários podem filtrar
+      if (filterStatus !== "" && user.nivel !== "revisor" && user.nivel !== "revisor_logistica")
+        query = query.where("status", "==", filterStatus);
+      if (filterNome !== "")
+        query = query.where("user_id.nome", "==", filterNome);
+      if (filterMotivo !== "")
+        query = query.where("motivo_apr", "==", filterMotivo);
+      if (filterRegional !== "") {
+        const estados = regionMap[filterRegional];
+        if (estados) {
+          query = query.where("site_id.Estado", "in", estados);
+        }
       }
     }
 
@@ -243,6 +248,11 @@ export default function Dashboard() {
         const lista = [];
 
         snapshot.forEach((doc) => {
+          // Filtro para revisor_logistica: apenas APRs com tipoSite contendo "PGR"
+          if (user.nivel === "revisor_logistica" && !doc.data().site_id.tipoSite.includes("PGR")) {
+            return; // Pula este documento
+          }
+
           let questoes = 0;
           let respondidas = 0;
           let pgr_inconformidade = 0;
@@ -320,11 +330,11 @@ export default function Dashboard() {
               });
             }
           } else if (user.nivel === "ponto_focal" && checklist !== undefined) {
-            // Ponto focal só vê APRs com plano de ação aberto
+            // Ponto focal só vê APRs com plano de ação aberto E com resposta diferente do gabarito
             let temPlanoAcao = false;
             checklist.forEach((area) => {
               area[1].forEach((question) => {
-                if (question.openPA === true) {
+                if (question.openPA === true && question.resp && question.resp !== question.respGabarito) {
                   temPlanoAcao = true;
                 }
               });
