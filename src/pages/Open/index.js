@@ -2043,6 +2043,8 @@ export default function Open() {
                                                   doc.resp_pa_status ===
                                                     "Concluido"
                                                     ? "Sim"
+                                                    : doc.resp_pa_status === "Reprovado"
+                                                    ? "Reprovado"
                                                     : "Concluido"
                                                 }
                                                 onClick={() =>
@@ -2053,6 +2055,8 @@ export default function Open() {
                                                 {doc.resp_pa_status ===
                                                   "Concluido"
                                                   ? "Plano de Ação Validado"
+                                                  : doc.resp_pa_status === "Reprovado"
+                                                  ? "Plano de Ação Reprovado"
                                                   : "Plano de Ação"}
                                               </a>
                                             ) : (
