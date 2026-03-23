@@ -119,6 +119,7 @@ export default function Dashboard() {
 
   // Função para carregar os chamados com base nos filtros
   const loadChamados = async (novasAPRs = false) => {
+    console.log("👤 User:", { nivel: user.nivel, area: user.area, uid: user.uid });
     setLoading(true);
     let query = listRef;
 
@@ -205,11 +206,12 @@ export default function Dashboard() {
         : query;
     // Filtro para ponto_focal: status específico + área do usuário
     if (user.nivel === "ponto_focal") {
-      query = query.where("status", "in", ["Enviado para Área Responsável"]);
-      if (user.area === "logistica") {
-        query = query.where("area", "==", "logistica");
-      } else if (user.area === "patrimonial") {
-        query = query.where("area", "!=", "logistica");
+      console.log("🔍 Ponto focal filtro - area:", user.area);
+      query = query.where("status", "==", "Enviado para Área Responsável");
+      // TESTE: Removendo filtro de área temporariamente para debugar
+      console.log("⚠️ TESTE: Filtro de área REMOVIDO temporariamente");
+      if (!user.area) {
+        console.warn("⚠️ Ponto focal sem area definida");
       }
     }
     query =
@@ -245,6 +247,10 @@ export default function Dashboard() {
     await query
       .get()
       .then((snapshot) => {
+        console.log("📊 Query resultado - Total docs:", snapshot.size);
+        if (user.nivel === "ponto_focal") {
+          console.log("🔍 Ponto focal recebeu", snapshot.size, "documentos");
+        }
         const lista = [];
 
         snapshot.forEach((doc) => {
@@ -330,37 +336,27 @@ export default function Dashboard() {
               });
             }
           } else if (user.nivel === "ponto_focal" && checklist !== undefined) {
-            // Ponto focal só vê APRs com plano de ação aberto E com resposta diferente do gabarito
-            let temPlanoAcao = false;
-            checklist.forEach((area) => {
-              area[1].forEach((question) => {
-                if (question.openPA === true && question.resp && question.resp !== question.respGabarito) {
-                  temPlanoAcao = true;
-                }
-              });
+            // Ponto focal vê todas as APRs dos status configurados
+            // Sem restrição adicional - pois já filtra por status na query
+            lista.push({
+              id: doc.id,
+              apr_id: doc.data().apr_id,
+              nome:
+                doc.data().user_id.nome !== undefined
+                  ? doc.data().user_id.nome
+                  : "",
+              motivo_apr: doc.data().motivo_apr,
+              site_id: doc.data().site_id,
+              status: doc.data().status,
+              created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+              porcentagem_resp_area:
+                questoes !== 0
+                  ? ((respondidas / questoes) * 100).toFixed(2) + "%"
+                  : "-",
+              pgr_inconformidade: pgr_inconformidade,
+              totalQuestions: totalQuestions,
+              totalRespondidas: totalRespondidas,
             });
-
-            if (temPlanoAcao === true) {
-              lista.push({
-                id: doc.id,
-                apr_id: doc.data().apr_id,
-                nome:
-                  doc.data().user_id.nome !== undefined
-                    ? doc.data().user_id.nome
-                    : "",
-                motivo_apr: doc.data().motivo_apr,
-                site_id: doc.data().site_id,
-                status: doc.data().status,
-                created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
-                porcentagem_resp_area:
-                  questoes !== 0
-                    ? ((respondidas / questoes) * 100).toFixed(2) + "%"
-                    : "-",
-                pgr_inconformidade: pgr_inconformidade,
-                totalQuestions: totalQuestions,
-                totalRespondidas: totalRespondidas,
-              });
-            }
           } else {
             lista.push({
               id: doc.id,
@@ -384,11 +380,13 @@ export default function Dashboard() {
           }
         });
 
+        console.log("📝 Total de APRs na lista final:", lista.length);
         setChamados(lista);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Erro ao carregar APRs: ", err);
+        console.error("❌ Erro ao carregar APRs: ", err);
+        console.error("Detalhes:", err.message);
         setLoading(false);
       });
   };
@@ -491,13 +489,6 @@ export default function Dashboard() {
         break;
     }
   };
-
-  // function contAprs(status) {
-  //   var quantidadeElementos = chamados.filter(
-  //     (x) => x.status === status
-  //   ).length;
-  //   return chamados.filter(x) => x.status === status).length;;
-  // }
 
   function contAprs(status) {
     const quantidadeElementos = chamados.filter((x) => {

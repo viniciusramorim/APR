@@ -189,6 +189,30 @@ export default function Modal_PA({
     return todosDefinidos;
   }
 
+  // Função para verificar se todos os planos de SLA foram preenchidos (para ponto_focal)
+  function todosPlanosComSLAPreenchido() {
+    const checklist = apr.checklist;
+    let todosPlanosComSLA = true;
+
+    checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp &&
+          question.resp !== "N/A" &&
+          question.resp !== question.respGabarito;
+
+        // Se tem inconformidade e é do tipo Logistica, deve ter SLA preenchido
+        if (hasInconformity && question.resp_pa_selectedOption === "Logistica") {
+          if (!question.conteudo?.plano_acao?.sla_logistica) {
+            todosPlanosComSLA = false;
+          }
+        }
+      });
+    });
+
+    return todosPlanosComSLA;
+  }
+
   // Função para verificar se o revisor pode validar (quando status for Aguardando Revisão Plano de Ação)
   function podeValidarPlano() {
     return apr.status === "Aguardando Revisão Plano de Ação" && user.nivel === "revisor_logistica";
@@ -196,6 +220,11 @@ export default function Modal_PA({
 
   async function alterarPA() {
     if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
+
+    // Validação para ponto_focal: todos os planos de SLA devem estar preenchidos
+    if (user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido()) {
+      return toast.error("Todos os planos de ação devem ter SLA preenchido antes de enviar");
+    }
 
     const docRef = firebase.firestore().collection(base).doc(id);
     const doc = await docRef.get();
@@ -1045,6 +1074,29 @@ export default function Modal_PA({
   const removerImagem = (index) => {
     const novaLista = novasImagens.filter((_, i) => i !== index);
     setNovasImagens(novaLista);
+  };
+
+  // Função para ponto_focal fazer upload de arquivos
+  const handleFileUpload = (event) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Limitar a 5 arquivos
+    if (arquivosSelecionados.length + files.length > 5) {
+      toast.warning("Máximo de 5 arquivos permitidos");
+      return;
+    }
+
+    // Validar tamanho (máximo 10MB por arquivo)
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`Arquivo ${file.name} excede 10MB`);
+        return;
+      }
+    }
+
+    setArquivosSelecionados([...arquivosSelecionados, ...files]);
+    toast.success(`${files.length} arquivo(s) selecionado(s)`);
   };
 
   function renderResolucaoInconformidade(showSubmitButton = false) {
@@ -2520,7 +2572,149 @@ export default function Modal_PA({
         ) : (
           /* Interface normal para outros usuários */
           <>
-            {(user.nivel === "revisor" || user.nivel === "administrador") ? (
+            {user.nivel === "ponto_focal" ? (
+              // INTERFACE SIMPLIFICADA PARA PONTO FOCAL
+              <Box>
+                {/* Pergunta */}
+                <Box sx={{ mb: 2, p: 2, bgcolor: '#fff3e0', borderRadius: 1.5, border: '2px solid #ff9800' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#e65100' }}>
+                    ❓ Pergunta
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                    {conteudo.question}
+                  </Typography>
+                </Box>
+
+                {/* Imagem da Pergunta (anexos do aplicador) */}
+                {conteudo.imagesURL && conteudo.imagesURL.length > 0 && (
+                  <Box sx={{ mb: 3, p: 2, bgcolor: '#fafafa', borderRadius: 1.5, border: '2px solid #ff9800' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#ff6f00' }}>
+                      📸 Imagem Anexada
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                      {conteudo.imagesURL.map((img, idx) => (
+                        <Box key={idx} sx={{ cursor: 'pointer' }}>
+                          <img 
+                            src={img.url ? img.url : img} 
+                            alt={`Anexo ${idx + 1}`}
+                            style={{ 
+                              width: '100%', 
+                              maxHeight: '250px',
+                              objectFit: 'cover',
+                              borderRadius: '8px',
+                              border: '2px solid #ff9800',
+                              boxShadow: '0 2px 8px rgba(255, 152, 0, 0.2)',
+                            }}
+                            onClick={() => window.open(img.url ? img.url : img, '_blank')}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Histórico de SLAs */}
+                {conteudo?.plano_acao?.historico_logistica && conteudo.plano_acao.historico_logistica.length > 0 && (
+                  <Box sx={{ mb: 3, p: 2, bgcolor: '#e3f2fd', borderRadius: 1.5, border: '2px solid #0277bd' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#0277bd' }}>
+                      📋 Histórico de SLAs Anteriores
+                    </Typography>
+                    {conteudo.plano_acao.historico_logistica.map((historico, index) => (
+                      <Box key={index} sx={{ mb: 1.5, pb: 1.5, borderBottom: index < conteudo.plano_acao.historico_logistica.length - 1 ? '1px solid #90caf9' : 'none' }}>
+                        <Typography variant="caption" sx={{ display: 'block', color: '#0277bd', fontWeight: 'bold' }}>
+                          📅 {historico.data ? new Date(historico.data.seconds * 1000).toLocaleDateString('pt-BR') : 'N/D'} - {historico.usuario || 'N/D'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', color: '#1565c0' }}>
+                          <strong>SLA:</strong> {historico.sla ? new Date(historico.sla.toDate()).toLocaleDateString('pt-BR') : 'N/D'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', color: '#424242', mt: 0.5 }}>
+                          {historico.comentario || 'Sem comentário'}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                {/* Formulário simplificado para Ponto Focal */}
+                <Box sx={{ p: 2.5, bgcolor: '#f0f4f8', borderRadius: 1.5, border: '2px solid #0277bd', background: 'linear-gradient(135deg, #f0f4f8 0%, #e1f5fe 100%)' }}>
+                  <Typography variant="h6" sx={{ mb: 2.5, color: '#01579b', fontWeight: 'bold' }}>
+                    📋 Defina o Plano de Ação
+                  </Typography>
+
+                  {/* SLA - Data */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0277bd' }}>
+                      📅 Data de SLA/Prazo:
+                    </Typography>
+                    <TextField
+                      type="date"
+                      value={slaLogistica}
+                      onChange={(e) => setSlaLogistica(e.target.value)}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      disabled={isReadOnly}
+                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                    />
+                  </Box>
+
+                  {/* Comentário */}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#0277bd' }}>
+                      💬 Ações a Executar / Comentário:
+                    </Typography>
+                    <TextField
+                      label="Descreva as ações necessárias"
+                      value={comentario}
+                      onChange={(e) => setComentario(e.target.value)}
+                      fullWidth
+                      multiline
+                      rows={4}
+                      disabled={isReadOnly}
+                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                    />
+                  </Box>
+
+                  {/* Upload de Anexo */}
+                  <Box sx={{ mb: 2.5, p: 2, bgcolor: 'white', borderRadius: 1.5, border: '2px dashed #0277bd' }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 'bold', color: '#0277bd' }}>
+                      📎 Anexe Documentos/Evidências (Opcional)
+                    </Typography>
+                    <input
+                      ref={inputFileRef}
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                      disabled={isReadOnly}
+                    />
+                    <Button
+                      variant="outlined"
+                      startIcon={<CloudUpload />}
+                      onClick={() => inputFileRef.current?.click()}
+                      fullWidth
+                      disabled={isReadOnly || uploading}
+                    >
+                      {uploading ? 'Enviando...' : '⬆️ Selecionar Arquivos'}
+                    </Button>
+                    {arquivosSelecionados.length > 0 && (
+                      <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {arquivosSelecionados.map((arquivo, idx) => (
+                          <Chip
+                            key={idx}
+                            label={arquivo.name}
+                            onDelete={() => {
+                              setArquivosSelecionados(prev => prev.filter((_, i) => i !== idx));
+                            }}
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            ) : (user.nivel === "revisor" || user.nivel === "administrador") ? (
               // REVISOR / ADMINISTRADOR COM ABAS
               <Box>
                 <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ borderBottom: '2px solid #660099', mb: 2 }}>
@@ -2792,7 +2986,8 @@ export default function Modal_PA({
             color={todosOsPlanosForamDefinidos() ? "success" : "warning"}
             size="large"
             startIcon={<FiCheck />}
-            disabled={!slaLogistica || !comentario}
+            disabled={!slaLogistica || !comentario || (user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido())}
+            title={user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido() ? "Todos os planos de ação devem ter SLA preenchido" : ""}
           >
             💾 Salvar
           </Button>

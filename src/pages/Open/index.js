@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
+import { Drawer, Box, Chip, Button, Divider, Typography } from "@mui/material";
 
 import "./open.scss";
 
@@ -40,6 +41,9 @@ export default function Open() {
   const [area, setArea] = useState();
   const [historicoAPRs, setHistoricoAPRs] = useState([]);
   const [loadHistorico, setLoadHistorico] = useState(false);
+  // Estados para o drawer de estatísticas
+  const [showPADrawer, setShowPADrawer] = useState(false);
+  const [paStats, setPAStats] = useState({ total: 0, aprovados: 0, reprovados: 0 });
 
   const formatarValor = (valor) => {
     let result = new Intl.NumberFormat("pt-BR", {
@@ -171,6 +175,9 @@ export default function Open() {
             setDetail(detailAtualizado);
           }
         }
+
+        // 📊 Calcular estatísticas de planos de ação
+        calcularEstatisticasPA(apr);
         
         setLoadApr(true);
       })
@@ -178,6 +185,32 @@ export default function Open() {
         console.log("DEU ALGUM ERRO!", error);
         setLoadApr(false);
       });
+  }
+
+  // Função para calcular estatísticas de planos de ação
+  function calcularEstatisticasPA(aprData) {
+    let total = 0;
+    let aprovados = 0;
+    let reprovados = 0;
+
+    aprData.checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        // Contar como PA se tem uma resposta inconformidade (resp diferente do respGabarito)
+        const hasInconformity = question.resp && question.resp !== "N/A" && question.resp !== question.respGabarito;
+        
+        if (hasInconformity && question.resp_pa_selectedOption) {
+          total++;
+          
+          if (question.resp_pa_status === "Concluido") {
+            aprovados++;
+          } else if (question.resp_pa_status === "Reprovado") {
+            reprovados++;
+          }
+        }
+      });
+    });
+
+    setPAStats({ total, aprovados, reprovados });
   }
 
   useEffect(() => {
@@ -887,6 +920,282 @@ export default function Open() {
       ReloadAPR();
     } catch (error) {
       toast.error("Erro ao devolver para revisão: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
+  // Buscar email do ponto focal baseado no estado e município
+  async function fetchPontoFocalEmail() {
+    try {
+      const siteEstado = apr?.site_id?.Estado || "";
+      const siteCidade = apr?.site_id?.Cidade || "";
+
+      if (!siteEstado || !siteCidade) {
+        console.warn("Estado ou cidade não encontrados no APR");
+        return null;
+      }
+
+      const docKey = `${siteEstado.toUpperCase()}-${siteCidade.toUpperCase()}`;
+      const contactEmailDoc = await firebase
+        .firestore()
+        .collection("contact_email")
+        .doc(docKey)
+        .get();
+
+      if (contactEmailDoc.exists) {
+        const data = contactEmailDoc.data();
+        const fieldPriority = [
+          "email_ponto_focal",
+          "email_logistica_ponto_focal",
+          "ponto_focal_email",
+          "email_logistica",
+          "email_armazenamento",
+          "email_transporte",
+        ];
+
+        for (const field of fieldPriority) {
+          if (data[field]) {
+            const email = Array.isArray(data[field]) ? data[field][0] : data[field];
+            if (email && typeof email === "string" && email.trim()) {
+              return email.trim();
+            }
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Erro ao buscar email do ponto focal:", error);
+      return null;
+    }
+  }
+
+  // Coletar todos os planos reprovados
+  function coletarPlanosReprovados() {
+    const planosReprovados = [];
+
+    apr.checklist.forEach((area, indexA) => {
+      area[1].forEach((question) => {
+        if (question.resp_pa_status === "Reprovado") {
+          planosReprovados.push({
+            area: area[0],
+            pergunta: question.question,
+            parecer: question.resp_pa_status_parecer,
+            revisor: question.resp_pa_status_alterado,
+          });
+        }
+      });
+    });
+
+    return planosReprovados;
+  }
+
+  // Enviar email unificado com todos os planos reprovados
+  async function enviarEmailUnificadoPA() {
+    try {
+      const planosReprovados = coletarPlanosReprovados();
+
+      if (planosReprovados.length === 0) {
+        toast.info("Não há planos reprovados para notificar.");
+        return;
+      }
+
+      const pontoFocalEmail = await fetchPontoFocalEmail();
+
+      if (!pontoFocalEmail) {
+        toast.error("Email do ponto focal não encontrado!");
+        return;
+      }
+
+      const siteNome = apr?.site_id?.Nome || "N/I";
+      const siteSigla = apr?.site_id?.Sigla || "N/I";
+      const siteCidade = apr?.site_id?.Cidade || "N/I";
+      const siteEstado = apr?.site_id?.Estado || "N/I";
+      const aprRef = apr?.apr_id || id;
+
+      // Montar lista de planos reprovados em HTML
+      const planosHTML = planosReprovados
+        .map(
+          (plano, idx) => `
+        <div style="background-color: #ffebee; border-left: 4px solid #f44336; padding: 15px; margin: 10px 0; border-radius: 4px;">
+          <p><strong>${idx + 1}. ${plano.pergunta}</strong></p>
+          <p><strong>Área:</strong> ${plano.area}</p>
+          <p><strong>Motivo da rejeição:</strong> ${plano.parecer}</p>
+          <p><strong>Revisor:</strong> ${plano.revisor}</p>
+        </div>
+      `
+        )
+        .join("");
+
+      const destinatarioArray = Array.isArray(pontoFocalEmail)
+        ? pontoFocalEmail
+        : [pontoFocalEmail];
+
+      const emailContent = {
+        remetente: "aprdigital.seg.br@telefonica.com",
+        assunto: `APR Digital - Planos de Ação Rejeitados (${planosReprovados.length}) - ${siteSigla}`,
+        destinatario: destinatarioArray,
+        texto: `
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>APR Digital - Planos de Ação Rejeitados</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { background-color: #660099; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; margin: -30px -30px 30px -30px; }
+                .header h1 { margin: 0; font-size: 24px; }
+                .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+                .site-info { background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .site-info p { margin: 8px 0; }
+                .stats-box { background-color: #fff3cd; border: 2px solid #ff9800; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                .plans-container { margin: 20px 0; }
+                .action-button { display: inline-block; background-color: #f44336; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>APR Digital</h1>
+                  <p>⚠️ Revisão de Planos de Ação</p>
+                </div>
+
+                <p>Olá,</p>
+                
+                <p>Os revisores analisaram os planos de ação enviados e <strong>${planosReprovados.length} plano(s) foi/foram reprovado(s)</strong>. Veja os detalhes abaixo:</p>
+                
+                <div class="site-info">
+                  <h3 style="margin-top: 0;">Informações da APR</h3>
+                  <p><strong>APR:</strong> ${aprRef}</p>
+                  <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+                  <p><strong>Localização:</strong> ${siteCidade}/${siteEstado}</p>
+                </div>
+
+                <div class="stats-box">
+                  <p><strong>📊 Resumo de Validação</strong></p>
+                  <p>Total de planos: ${paStats.total}</p>
+                  <p>✅ Aprovados: ${paStats.aprovados}</p>
+                  <p>❌ Reprovados: ${paStats.reprovados}</p>
+                </div>
+
+                <div class="plans-container">
+                  <h3>📋 Planos Reprovados:</h3>
+                  ${planosHTML}
+                </div>
+
+                <p style="margin: 20px 0; line-height: 1.6;">
+                  <strong>O que fazer:</strong> Por favor, revise os comentários dos revisores e atualize os planos de ação conforme necessário.
+                </p>
+                
+                <p style="text-align: center;">
+                  <a href="${window.location.origin}/Open/${id}" class="action-button">Acessar APR e Corrigir</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <small style="color: #999;">Mensagem automática gerada pelo Sistema APR Digital</small>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+
+      const response = await fetch(
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailContent),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro HTTP! status: ${response.status} - ${errorText}`);
+      }
+
+      toast.success(`✅ Email enviado ao ponto focal com ${planosReprovados.length} plano(s) reprovado(s)!`);
+      logSistem(`Email unificado enviado ao ponto focal com planos reprovados`, id);
+    } catch (error) {
+      toast.error("Erro ao enviar email: " + error.message);
+      console.error("Erro ao enviar email unificado:", error);
+    }
+  }
+
+  // Função para devolver APR ao ponto focal após revisão de PAs
+  async function devolverAprAoPontoFocal(e) {
+    e.preventDefault();
+
+    const temReprovados = paStats.reprovados > 0;
+
+    let confirm = window.confirm(
+      temReprovados
+        ? `Confirma o retorno da APR ao ponto focal? ${paStats.reprovados} plano(s) foi/foram reprovado(s). Um email com os detalhes será enviado.`
+        : "Confirma o retorno da APR ao ponto focal?"
+    );
+
+    if (!confirm) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Enviado para Área Responsável",
+          data_alteracao: new Date(),
+        });
+
+      // Se houver planos reprovados, enviar email unificado
+      if (temReprovados) {
+        await enviarEmailUnificadoPA();
+      } else {
+        toast.success("✅ APR retornada ao ponto focal!");
+      }
+
+      logSistem("APR retornada ao ponto focal após revisão de planos de ação", id);
+      setShowPADrawer(false);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao devolver APR: " + error.message);
+      console.error("Erro:", error);
+    }
+  }
+
+  // Função para finalizar APR
+  async function finalizarAPR(e) {
+    e.preventDefault();
+
+    const temPendentes = paStats.total > (paStats.aprovados + paStats.reprovados);
+
+    if (temPendentes) {
+      toast.error(
+        `Ainda há ${paStats.total - (paStats.aprovados + paStats.reprovados)} plano(s) pendente(s) de validação.`
+      );
+      return;
+    }
+
+    let confirm = window.confirm(
+      `Confirma o encerramento da APR? ${paStats.aprovados} plano(s) aprovado(s) e ${paStats.reprovados} reprovado(s).`
+    );
+
+    if (!confirm) return;
+
+    try {
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(id)
+        .update({
+          status: "Finalizado",
+          data_alteracao: new Date(),
+        });
+
+      toast.success("✅ APR finalizada com sucesso!");
+      logSistem("APR finalizada", id);
+      setShowPADrawer(false);
+      ReloadAPR();
+    } catch (error) {
+      toast.error("Erro ao finalizar APR: " + error.message);
       console.error("Erro:", error);
     }
   }
@@ -1826,11 +2135,9 @@ export default function Open() {
                                   const temInconformidade = doc.resp !== "N/A" && 
                                                           doc.resp !== doc.respGabarito &&
                                                           doc.resp !== "";
-                                  const temPlanoAcao = doc.plano_acao && 
-                                                     doc.plano_acao.comentario &&
-                                                     doc.plano_acao.comentario.trim() !== "";
+                                  const temPlanoAcao = doc.openPA === true; // Verificar se PA foi aberto
                                   
-                                  // Se não tem inconformidade OU não tem plano de ação, retorna null
+                                  // Se não tem inconformidade OU não tem plano de ação aberto, retorna null
                                   if (!temInconformidade || !temPlanoAcao) {
                                     return null;
                                   }
@@ -2054,9 +2361,9 @@ export default function Open() {
                                                 <FiCheck size={20} />
                                                 {doc.resp_pa_status ===
                                                   "Concluido"
-                                                  ? "Plano de Ação Validado"
+                                                  ? "Plano de ação validado"
                                                   : doc.resp_pa_status === "Reprovado"
-                                                  ? "Plano de Ação Reprovado"
+                                                  ? "Plano de ação recusado"
                                                   : "Plano de Ação"}
                                               </a>
                                             ) : (
@@ -2314,6 +2621,75 @@ export default function Open() {
                         </div>
                       )}
 
+                    {/* Seção para validação de planos de ação */}
+                    {(user.nivel === "revisor" || user.nivel === "administrador") &&
+                      apr.status === "Aguardando Revisão Plano de Ação" && (
+                        <div className="pa-validation-section" style={{ marginTop: "20px" }}>
+                          <div className="section-header">
+                            <h3>✅ Validação de Planos de Ação</h3>
+                            <p>Valide os planos de ação definidos pelo ponto focal</p>
+                          </div>
+                          
+                          {/* Estatísticas visíveis */}
+                          <div style={{ 
+                            display: "flex", 
+                            gap: "10px", 
+                            marginBottom: "15px",
+                            flexWrap: "wrap"
+                          }}>
+                            <div style={{
+                              backgroundColor: "#e3f2fd",
+                              border: "2px solid #1976d2",
+                              borderRadius: "8px",
+                              padding: "12px 16px",
+                              fontWeight: "bold",
+                              color: "#0d47a1"
+                            }}>
+                              📊 Total: {paStats.total}
+                            </div>
+                            <div style={{
+                              backgroundColor: "#e8f5e9",
+                              border: "2px solid #4caf50",
+                              borderRadius: "8px",
+                              padding: "12px 16px",
+                              fontWeight: "bold",
+                              color: "#1b5e20"
+                            }}>
+                              ✅ Aprovados: {paStats.aprovados}
+                            </div>
+                            <div style={{
+                              backgroundColor: "#ffebee",
+                              border: "2px solid #f44336",
+                              borderRadius: "8px",
+                              padding: "12px 16px",
+                              fontWeight: "bold",
+                              color: "#b71c1c"
+                            }}>
+                              ❌ Recusados: {paStats.reprovados}
+                            </div>
+                          </div>
+
+                          <div className="revision-action" style={{ marginTop: "10px" }}>
+                            <button
+                              className="btn-send-review"
+                              onClick={() => setShowPADrawer(true)}
+                              style={{
+                                backgroundColor: "#660099",
+                                color: "white",
+                                padding: "12px 24px",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              📊 Ver Validações ({paStats.aprovados} ✅ / {paStats.reprovados} ❌)
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                     {/* Seção para ponto_focal enviar para revisão após definir SLAs */}
                     {user.nivel === "ponto_focal" &&
                       apr.status === "Aguardando Correção" && (
@@ -2519,6 +2895,118 @@ export default function Open() {
           {showPostModalLoading && (
             <ModalLoading close={togglePostModalLoading} />
           )}
+
+          {/* Drawer de Estatísticas de Planos de Ação */}
+          <Drawer
+            anchor="right"
+            open={showPADrawer}
+            onClose={() => setShowPADrawer(false)}
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: 350,
+                padding: 2,
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#660099" }}>
+                📊 Validação de Planos
+              </Typography>
+
+              <Divider sx={{ mb: 2 }} />
+
+              {/* Estatísticas */}
+              <Box sx={{ mb: 3 }}>
+                <Chip
+                  label={`Total: ${paStats.total}`}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mb: 1, width: "100%" }}
+                />
+                <Chip
+                  label={`✅ Aprovados: ${paStats.aprovados}`}
+                  sx={{
+                    mb: 1,
+                    width: "100%",
+                    backgroundColor: "#4caf50",
+                    color: "white",
+                  }}
+                />
+                <Chip
+                  label={`❌ Recusados: ${paStats.reprovados}`}
+                  sx={{
+                    mb: 1,
+                    width: "100%",
+                    backgroundColor: "#f44336",
+                    color: "white",
+                  }}
+                />
+              </Box>
+
+              <Divider sx={{ mb: 2 }} />
+
+              {/* Resumo de Pendência */}
+              <Box sx={{ mb: 3, p: 1.5, backgroundColor: "white", borderRadius: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
+                  Status:
+                </Typography>
+                {paStats.total === 0 ? (
+                  <Typography variant="caption" sx={{ color: "#666" }}>
+                    Nenhum plano de ação para validar
+                  </Typography>
+                ) : (
+                  <Typography variant="caption">
+                    {paStats.aprovados + paStats.reprovados === paStats.total ? (
+                      <span style={{ color: "#4caf50" }}>✓ Todas as validações concluídas</span>
+                    ) : (
+                      <span style={{ color: "#ff9800" }}>
+                        ⏳ {paStats.total - (paStats.aprovados + paStats.reprovados)} pendente(s)
+                      </span>
+                    )}
+                  </Typography>
+                )}
+              </Box>
+
+              <Divider sx={{ mb: 2 }} />
+
+              {/* Botões de Ação */}
+              {(user.nivel === "revisor" || user.nivel === "administrador") && (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, flex: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={devolverAprAoPontoFocal}
+                    disabled={paStats.total === 0}
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    📤 Devolver ao Ponto
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={finalizarAPR}
+                    disabled={
+                      paStats.total === 0 ||
+                      paStats.total > paStats.aprovados + paStats.reprovados
+                    }
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    ✅ Finalizar APR
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowPADrawer(false)}
+                    sx={{ mt: "auto", fontWeight: "bold" }}
+                  >
+                    Fechar
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          </Drawer>
         </div>
       </div>
     </div>
