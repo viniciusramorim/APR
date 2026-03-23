@@ -44,9 +44,15 @@ export default function Reports() {
 
       // Dividir período em lotes de 30 dias se houver filtro de data
       if (filterDate.startDate && filterDate.endDate) {
-        console.log('Buscando dados em lotes mensais para evitar timeout...');
+        console.log('🔍 Buscando dados em lotes de 30 dias para evitar timeout...');
         const start = new Date(filterDate.startDate);
         const end = new Date(filterDate.endDate);
+        
+        // Validar intervalo máximo
+        const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
+        if (diffDays > 90) {
+          console.warn('⚠️ Intervalo de data muito grande (>90 dias). Dividindo em lotes de 30 dias.');
+        }
 
         let currentStart = new Date(start);
         let batchNumber = 1;
@@ -60,33 +66,54 @@ export default function Reports() {
           }
           currentEnd.setDate(currentEnd.getDate() + 1); // Inclui o dia final
 
-          console.log(`Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
+          console.log(`📦 Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
 
-          // Construir query para este período
+          // Construir query - aplicar filtros no Firestore quando possível
           let query = firebase.firestore().collection("aprs-producao")
             .where("created", ">=", currentStart)
             .where("created", "<", currentEnd);
 
-          // Aplicar outros filtros
+          // Aplicar outros filtros - mas de forma otimizada
+          // Apenas aplicar um filtro adicional além da data para evitar timeout
           if (filterStatus) {
             query = query.where("status", "==", filterStatus);
-          }
-          if (filterMotivo && filterMotivo !== "Todos") {
+          } else if (filterMotivo && filterMotivo !== "Todos") {
             query = query.where("motivo_apr", "==", filterMotivo);
-          }
-          if (filterTipoSite && filterTipoSite !== "todos") {
+          } else if (filterTipoSite && filterTipoSite !== "todos") {
             query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
           }
-          query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
+          
+          // Filtro de auditor sempre aplicável
+          if (user.nivel === 'auditor') {
+            query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
+          }
+
+          // Aplicar limite para evitar timeout
+          query = query.limit(3000);
 
           const snapshot = await query.get();
-          console.log(`  -> Encontrados ${snapshot.docs.length} APRs neste lote`);
+          console.log(`   ✓ Encontrados ${snapshot.docs.length} APRs neste lote`);
 
-          // Processar resultados deste lote
+          // Processar resultados deste lote - aplicar filtros restantes em memória
           snapshot.docs.forEach(doc => {
             const aprData = { id: doc.id, ...doc.data() };
-            const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
+            
+            // Aplicar filtros em memória para aqueles que não foram aplicados no Firestore
+            if (filterStatus && aprData.status !== filterStatus) {
+              return;
+            }
+            if (filterMotivo && filterMotivo !== "Todos" && aprData.motivo_apr !== filterMotivo) {
+              return;
+            }
+            if (filterTipoSite && filterTipoSite !== "todos") {
+              const tipoSiteUpper = filterTipoSite.toUpperCase();
+              const tipoSiteLower = filterTipoSite.toLowerCase();
+              if (aprData.site_id?.tipoSite !== tipoSiteUpper && aprData.site_id?.tipoSite !== tipoSiteLower) {
+                return;
+              }
+            }
 
+            const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
             if (!newCache.has(siteKey) && aprData.site_id) {
               newCache.set(siteKey, aprData.site_id);
             }
@@ -97,29 +124,52 @@ export default function Reports() {
           // Avançar para o próximo período
           currentStart = new Date(currentEnd);
           batchNumber++;
+
+          // Delay pequeno entre lotes para não sobrecarregar
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       } else {
-        // Sem filtro de data - busca normal
+        // Sem filtro de data - busca normal com limitação
+        console.log('⚠️ Sem filtro de data. Recomenda-se usar período específico para melhor performance.');
         let query = firebase.firestore().collection("aprs-producao");
 
         if (filterStatus) {
           query = query.where("status", "==", filterStatus);
-        }
-        if (filterMotivo && filterMotivo !== "Todos") {
+        } else if (filterMotivo && filterMotivo !== "Todos") {
           query = query.where("motivo_apr", "==", filterMotivo);
-        }
-        if (filterTipoSite && filterTipoSite !== "todos") {
+        } else if (filterTipoSite && filterTipoSite !== "todos") {
           query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
         }
-        query = user.nivel === 'auditor' ? query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']) : query;
+        
+        if (user.nivel === 'auditor') {
+          query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
+        }
+
+        // Limitar quando sem data
+        query = query.orderBy('created', 'desc').limit(1000);
 
         const snapshot = await query.get();
-        console.log(`Carregados ${snapshot.docs.length} APRs`);
+        console.log(`📋 Carregados ${snapshot.docs.length} APRs`);
 
+        // Aplicar filtros em memória para aqueles não aplicados no Firestore
         snapshot.docs.forEach(doc => {
           const aprData = { id: doc.id, ...doc.data() };
-          const siteKey = `${aprData.site_id.Sigla}_${aprData.site_id.Estado}`;
+          
+          if (filterStatus && aprData.status !== filterStatus) {
+            return;
+          }
+          if (filterMotivo && filterMotivo !== "Todos" && aprData.motivo_apr !== filterMotivo) {
+            return;
+          }
+          if (filterTipoSite && filterTipoSite !== "todos") {
+            const tipoSiteUpper = filterTipoSite.toUpperCase();
+            const tipoSiteLower = filterTipoSite.toLowerCase();
+            if (aprData.site_id?.tipoSite !== tipoSiteUpper && aprData.site_id?.tipoSite !== tipoSiteLower) {
+              return;
+            }
+          }
 
+          const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
           if (!newCache.has(siteKey) && aprData.site_id) {
             newCache.set(siteKey, aprData.site_id);
           }
@@ -129,10 +179,10 @@ export default function Reports() {
       }
 
       setSitesCache(newCache);
-      console.log(`Total: ${allResults.length} APRs carregados com ${newCache.size} sites únicos`);
+      console.log(`✅ Total: ${allResults.length} APRs carregados com ${newCache.size} sites únicos`);
       setChamados(allResults);
     } catch (err) {
-      console.error("Deu algum erro: ", err);
+      console.error("❌ Erro ao carregar dados: ", err);
     }
     setLoading(false);
   }

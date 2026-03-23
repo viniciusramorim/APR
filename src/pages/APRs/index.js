@@ -105,6 +105,12 @@ export default function Dashboard() {
   const [filterRegional, setFilterRegional] = useState(
     savedFilters.filterRegional || ""
   );
+  const [filterDataInicio, setFilterDataInicio] = useState(
+    savedFilters.filterDataInicio || ""
+  );
+  const [filterDataFim, setFilterDataFim] = useState(
+    savedFilters.filterDataFim || ""
+  );
 
   useEffect(() => {
     addBodyClass("page-dash");
@@ -162,6 +168,14 @@ export default function Dashboard() {
       if (estados) {
         query = query.where("site_id.Estado", "in", estados);
       }
+    }
+    // Filtro de data - apenas se ambas as datas forem preenchidas
+    if (filterDataInicio !== "" && filterDataFim !== "") {
+      const dataInicio = new Date(filterDataInicio);
+      dataInicio.setHours(0, 0, 0, 0);
+      const dataFim = new Date(filterDataFim);
+      dataFim.setHours(23, 59, 59, 999);
+      query = query.where("created", ">=", dataInicio).where("created", "<=", dataFim);
     }
 
     //valida regional por usuario
@@ -223,8 +237,14 @@ export default function Dashboard() {
 
     // Adicionar limite para evitar timeout
     // Se não tiver filtros muito específicos, limita os resultados
-    if (!filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional) {
+    if (!filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional && !filterDataInicio && !filterDataFim) {
       query = query.limit(500); // Limita a 500 resultados mais recentes
+    } else if (filterDataInicio && filterDataFim && !filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional) {
+      // Se apenas data está sendo usado como filtro, limita a 1000
+      query = query.limit(1000);
+    } else {
+      // Com filtros específicos, permite até 2000
+      query = query.limit(2000);
     }
 
     await query
@@ -392,6 +412,8 @@ export default function Dashboard() {
     setFilterID("");
     setFilterMotivo("");
     setFilterRegional("");
+    setFilterDataInicio("");
+    setFilterDataFim("");
     clearSessionStorage();
   };
 
@@ -406,6 +428,8 @@ export default function Dashboard() {
       filterID,
       filterMotivo,
       filterRegional,
+      filterDataInicio,
+      filterDataFim,
       [name]: value,
     };
     saveFiltersToSessionStorage(newFilters);
@@ -434,6 +458,12 @@ export default function Dashboard() {
         break;
       case "filterRegional":
         setFilterRegional(value);
+        break;
+      case "filterDataInicio":
+        setFilterDataInicio(value);
+        break;
+      case "filterDataFim":
+        setFilterDataFim(value);
         break;
       default:
         break;
@@ -813,6 +843,38 @@ export default function Dashboard() {
                   <MenuItem value="Revisado">Revisado</MenuItem>
                 </Select>
               </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={1.4}>
+              <TextField
+                id="dataInicio"
+                type="date"
+                label="Data Início"
+                value={filterDataInicio}
+                onChange={(e) =>
+                  handleFilterChange("filterDataInicio", e.target.value)
+                }
+                variant="outlined"
+                fullWidth
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={1.4}>
+              <TextField
+                id="dataFim"
+                type="date"
+                label="Data Fim"
+                value={filterDataFim}
+                onChange={(e) =>
+                  handleFilterChange("filterDataFim", e.target.value)
+                }
+                variant="outlined"
+                fullWidth
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
             </Grid>
 
             <Grid item xs={12} sm={12} md={2}>
