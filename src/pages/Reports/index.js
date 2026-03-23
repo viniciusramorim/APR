@@ -42,119 +42,77 @@ export default function Reports() {
       const allResults = [];
       const newCache = new Map();
 
-      // Dividir período em lotes de 30 dias se houver filtro de data
+      // Validar se tem pelo menos uma data preenchida
+      if (!filterDate.startDate && !filterDate.endDate) {
+        console.warn('⚠️ Preencha pelo menos a Data Início ou Data Fim para fazer a busca.');
+        setChamados([]);
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔍 Buscando dados em lotes de 30 dias para evitar timeout...');
+      
+      // Determinar intervalo de data
+      let start, end;
+      
       if (filterDate.startDate && filterDate.endDate) {
-        console.log('🔍 Buscando dados em lotes de 30 dias para evitar timeout...');
-        const start = new Date(filterDate.startDate);
-        const end = new Date(filterDate.endDate);
-        
-        // Validar intervalo máximo
-        const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-        if (diffDays > 90) {
-          console.warn('⚠️ Intervalo de data muito grande (>90 dias). Dividindo em lotes de 30 dias.');
+        // Ambas preenchidas
+        start = new Date(filterDate.startDate + "T00:00:00Z");
+        end = new Date(filterDate.endDate + "T23:59:59Z");
+        console.log(`📅 Período: ${filterDate.startDate} até ${filterDate.endDate}`);
+      } else if (filterDate.startDate && !filterDate.endDate) {
+        // Apenas início - até hoje
+        start = new Date(filterDate.startDate + "T00:00:00Z");
+        end = new Date();
+        end.setHours(23, 59, 59, 999);
+        console.log(`📅 Período: ${filterDate.startDate} até hoje (${end.toLocaleDateString()})`);
+      } else if (!filterDate.startDate && filterDate.endDate) {
+        // Apenas fim - desde 2000
+        start = new Date("2000-01-01T00:00:00Z");
+        end = new Date(filterDate.endDate + "T23:59:59Z");
+        console.log(`📅 Período: Desde 2000 até ${filterDate.endDate}`);
+      }
+      
+      // Validar intervalo máximo
+      const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
+      if (diffDays > 90) {
+        console.warn('⚠️ Intervalo de data muito grande (>90 dias). Dividindo em lotes de 30 dias.');
+      }
+
+      let currentStart = new Date(start);
+      let batchNumber = 1;
+
+      while (currentStart < end) {
+        let currentEnd = new Date(currentStart);
+        currentEnd.setDate(currentEnd.getDate() + 30); // Lotes de 30 dias
+
+        if (currentEnd > end) {
+          currentEnd = new Date(end);
         }
 
-        let currentStart = new Date(start);
-        let batchNumber = 1;
+        console.log(`📦 Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
 
-        while (currentStart < end) {
-          let currentEnd = new Date(currentStart);
-          currentEnd.setDate(currentEnd.getDate() + 30); // Lotes de 30 dias
+        // Construir query - aplicar apenas filtro de data no Firestore
+        let query = firebase.firestore().collection("aprs-producao")
+          .where("created", ">=", currentStart)
+          .where("created", "<=", currentEnd);
 
-          if (currentEnd > end) {
-            currentEnd = new Date(end);
-          }
-          currentEnd.setDate(currentEnd.getDate() + 1); // Inclui o dia final
-
-          console.log(`📦 Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
-
-          // Construir query - aplicar filtros no Firestore quando possível
-          let query = firebase.firestore().collection("aprs-producao")
-            .where("created", ">=", currentStart)
-            .where("created", "<", currentEnd);
-
-          // Aplicar outros filtros - mas de forma otimizada
-          // Apenas aplicar um filtro adicional além da data para evitar timeout
-          if (filterStatus) {
-            query = query.where("status", "==", filterStatus);
-          } else if (filterMotivo && filterMotivo !== "Todos") {
-            query = query.where("motivo_apr", "==", filterMotivo);
-          } else if (filterTipoSite && filterTipoSite !== "todos") {
-            query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
-          }
-          
-          // Filtro de auditor sempre aplicável
-          if (user.nivel === 'auditor') {
-            query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
-          }
-
-          // Aplicar limite para evitar timeout
-          query = query.limit(3000);
-
-          const snapshot = await query.get();
-          console.log(`   ✓ Encontrados ${snapshot.docs.length} APRs neste lote`);
-
-          // Processar resultados deste lote - aplicar filtros restantes em memória
-          snapshot.docs.forEach(doc => {
-            const aprData = { id: doc.id, ...doc.data() };
-            
-            // Aplicar filtros em memória para aqueles que não foram aplicados no Firestore
-            if (filterStatus && aprData.status !== filterStatus) {
-              return;
-            }
-            if (filterMotivo && filterMotivo !== "Todos" && aprData.motivo_apr !== filterMotivo) {
-              return;
-            }
-            if (filterTipoSite && filterTipoSite !== "todos") {
-              const tipoSiteUpper = filterTipoSite.toUpperCase();
-              const tipoSiteLower = filterTipoSite.toLowerCase();
-              if (aprData.site_id?.tipoSite !== tipoSiteUpper && aprData.site_id?.tipoSite !== tipoSiteLower) {
-                return;
-              }
-            }
-
-            const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
-            if (!newCache.has(siteKey) && aprData.site_id) {
-              newCache.set(siteKey, aprData.site_id);
-            }
-
-            allResults.push(aprData);
-          });
-
-          // Avançar para o próximo período
-          currentStart = new Date(currentEnd);
-          batchNumber++;
-
-          // Delay pequeno entre lotes para não sobrecarregar
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      } else {
-        // Sem filtro de data - busca normal com limitação
-        console.log('⚠️ Sem filtro de data. Recomenda-se usar período específico para melhor performance.');
-        let query = firebase.firestore().collection("aprs-producao");
-
-        if (filterStatus) {
-          query = query.where("status", "==", filterStatus);
-        } else if (filterMotivo && filterMotivo !== "Todos") {
-          query = query.where("motivo_apr", "==", filterMotivo);
-        } else if (filterTipoSite && filterTipoSite !== "todos") {
-          query = query.where("site_id.tipoSite", "in", [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()]);
-        }
-        
+        // Filtro de auditor se necessário
         if (user.nivel === 'auditor') {
           query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
         }
 
-        // Limitar quando sem data
-        query = query.orderBy('created', 'desc').limit(1000);
+        // Aplicar limite para evitar timeout
+        query = query.limit(3000);
 
         const snapshot = await query.get();
-        console.log(`📋 Carregados ${snapshot.docs.length} APRs`);
+        console.log(`   ✓ Encontrados ${snapshot.docs.length} APRs neste lote`);
 
-        // Aplicar filtros em memória para aqueles não aplicados no Firestore
+        // Processar resultados deste lote - aplicar outros filtros em memória
         snapshot.docs.forEach(doc => {
           const aprData = { id: doc.id, ...doc.data() };
           
+          // Aplicar filtros em memória para melhor performance
           if (filterStatus && aprData.status !== filterStatus) {
             return;
           }
@@ -176,6 +134,13 @@ export default function Reports() {
 
           allResults.push(aprData);
         });
+
+        // Avançar para o próximo período
+        currentStart = new Date(currentEnd);
+        batchNumber++;
+
+        // Delay pequeno entre lotes para não sobrecarregar
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       setSitesCache(newCache);

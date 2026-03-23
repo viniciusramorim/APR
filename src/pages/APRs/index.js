@@ -150,69 +150,61 @@ export default function Dashboard() {
       SUL: ["RS", "PR", "SC"],
     };
 
-    // Aplicar os filtros PRIMEIRO
-    if (filterID !== "")
-      query = query.where("apr_id", "==", parseInt(filterID));
-    if (filterUF !== "") query = query.where("site_id.Estado", "==", filterUF);
-    if (filterSigla !== "")
-      query = query.where("site_id.Sigla", "==", filterSigla);
-    if (filterTipoSite !== "")
-      query = query.where("site_id.tipoSite", "==", filterTipoSite);
-    if (filterStatus !== "") query = query.where("status", "==", filterStatus);
-    if (filterNome !== "")
-      query = query.where("user_id.nome", "==", filterNome);
-    if (filterMotivo !== "")
-      query = query.where("motivo_apr", "==", filterMotivo);
-    if (filterRegional !== "") {
-      const estados = regionMap[filterRegional];
-      if (estados) {
-        query = query.where("site_id.Estado", "in", estados);
+    // ESTRATÉGIA: Aplicar filtros críticos no Firestore, resto em memória
+    // Filtro de data com UTC correto
+    if (filterDataInicio !== "" || filterDataFim !== "") {
+      // Se apenas data inicio está preenchida
+      if (filterDataInicio !== "" && filterDataFim === "") {
+        const dataInicio = new Date(filterDataInicio + "T00:00:00Z");
+        const hoje = new Date();
+        hoje.setHours(23, 59, 59, 999);
+        query = query.where("created", ">=", dataInicio).where("created", "<=", hoje);
+        console.log(`📅 Filtro: APRs de ${filterDataInicio} até hoje (${hoje.toLocaleDateString()})`);
+      }
+      // Se apenas data fim está preenchida
+      else if (filterDataInicio === "" && filterDataFim !== "") {
+        const dataFim = new Date(filterDataFim + "T23:59:59Z");
+        query = query.where("created", "<=", dataFim);
+        console.log(`📅 Filtro: APRs do início até ${filterDataFim}`);
+      }
+      // Se ambas estão preenchidas
+      else if (filterDataInicio !== "" && filterDataFim !== "") {
+        const dataInicio = new Date(filterDataInicio + "T00:00:00Z");
+        const dataFim = new Date(filterDataFim + "T23:59:59Z");
+        query = query.where("created", ">=", dataInicio).where("created", "<=", dataFim);
+        console.log(`📅 Filtro: APRs de ${filterDataInicio} até ${filterDataFim}`);
       }
     }
-    // Filtro de data - apenas se ambas as datas forem preenchidas
-    if (filterDataInicio !== "" && filterDataFim !== "") {
-      const dataInicio = new Date(filterDataInicio);
-      dataInicio.setHours(0, 0, 0, 0);
-      const dataFim = new Date(filterDataFim);
-      dataFim.setHours(23, 59, 59, 999);
-      query = query.where("created", ">=", dataInicio).where("created", "<=", dataFim);
+
+    // Aplicar filtro de perfil/nível
+    if (user.nivel === "aplicador" && user.area !== "oem") {
+      query = query.where("user_id.uid", "==", user.uid);
+    } else if (user.area === "oem") {
+      query = query.where("status", "in", ["Enviado", "Respondido pela Area"]);
+    } else if (user.area === "pci") {
+      query = query.where("site_id.tipoSite", "in", ["PCI", "RPCI"]);
+    } else if (user.nivel === "auditor") {
+      query = query.where("site_id.tipoSite", "in", ["AUDIT PGR FIXA", "AUDIT PGR MOVEL"]);
     }
 
-    //valida regional por usuario
+    // Filtro por regional do usuário se aplicável
     const regional = regionMap[user.regional];
-
-    //filtro por perfil - ANTES do orderBy
-    query =
-      user.nivel === "aplicador" && user.area !== "oem"
-        ? query.where("user_id.uid", "==", user.uid)
-        : query;
     if (user.nivel === "supervisor" && regional) {
       query = query.where("site_id.Estado", "in", regional);
-    }
-    if (user.nivel === "revisor" && regional) {
+    } else if (user.nivel === "revisor" && regional) {
       query = query.where("site_id.Estado", "in", regional);
     }
-    query =
-      user.area === "oem"
-        ? query.where("status", "in", ["Enviado", "Respondido pela Area"])
-        : query;
-    query =
-      user.area === "pci"
-        ? query.where("site_id.tipoSite", "in", ["PCI", "RPCI"])
-        : query;
-    query =
-      user.nivel === "auditor"
-        ? query.where("site_id.tipoSite", "in", [
-          "AUDIT PGR FIXA",
-          "AUDIT PGR MOVEL",
-        ])
-        : query;
 
-    // DEPOIS aplicar orderBy
+    // Nota: Outros filtros (ID, UF, Sigla, TipoSite, Status, Nome, Motivo, Regional manual)
+    // serão aplicados em memória para evitar timeout (múltiplos where simultâneos)
+
+    // Aplicar orderBy
     query = novasAPRs
       ? query.orderBy("apr_id", "desc")
       : query.orderBy("created", "desc");
 
+    // Adicionar limite para evitar timeout
+    query = query.limit(5000);
 
     const contarQuestions = (checklist) => {
       let totalQuestions = 0;
@@ -235,28 +227,47 @@ export default function Dashboard() {
       return { totalQuestions, totalRespondidas };
     };
 
-    // Adicionar limite para evitar timeout
-    // Se não tiver filtros muito específicos, limita os resultados
-    if (!filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional && !filterDataInicio && !filterDataFim) {
-      query = query.limit(500); // Limita a 500 resultados mais recentes
-    } else if (filterDataInicio && filterDataFim && !filterID && !filterSigla && !filterUF && !filterTipoSite && !filterStatus && !filterNome && !filterMotivo && !filterRegional) {
-      // Se apenas data está sendo usado como filtro, limita a 1000
-      query = query.limit(1000);
-    } else {
-      // Com filtros específicos, permite até 2000
-      query = query.limit(2000);
-    }
-
     await query
       .get()
       .then((snapshot) => {
         const lista = [];
 
         snapshot.forEach((doc) => {
+          const docData = doc.data();
+          
+          // Aplicar filtros em memória (para não quebrar query com múltiplos where)
+          if (filterID !== "" && docData.apr_id !== parseInt(filterID)) {
+            return; // Não adiciona se não bate
+          }
+          if (filterUF !== "" && docData.site_id?.Estado !== filterUF) {
+            return;
+          }
+          if (filterSigla !== "" && docData.site_id?.Sigla !== filterSigla) {
+            return;
+          }
+          if (filterTipoSite !== "" && docData.site_id?.tipoSite !== filterTipoSite) {
+            return;
+          }
+          if (filterStatus !== "" && docData.status !== filterStatus) {
+            return;
+          }
+          if (filterNome !== "" && docData.user_id?.nome !== filterNome) {
+            return;
+          }
+          if (filterMotivo !== "" && docData.motivo_apr !== filterMotivo) {
+            return;
+          }
+          if (filterRegional !== "") {
+            const estados = regionMap[filterRegional];
+            if (!estados || !estados.includes(docData.site_id?.Estado)) {
+              return;
+            }
+          }
+
           let questoes = 0;
           let respondidas = 0;
           let pgr_inconformidade = 0;
-          const checklist = doc.data().checklist;
+          const checklist = docData.checklist;
           const { totalQuestions, totalRespondidas } =
             contarQuestions(checklist);
 
