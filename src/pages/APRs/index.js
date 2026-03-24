@@ -128,6 +128,12 @@ export default function Dashboard() {
   const loadChamados = async (novasAPRs = false) => {
     setLoading(true);
     let query = listRef;
+    const normalizedFilterID = String(filterID || "").trim();
+    const hasIdFilter = normalizedFilterID !== "";
+    const hasDateFilter = filterDataInicio !== "" || filterDataFim !== "";
+    const numericFilterID = Number(normalizedFilterID);
+    const hasNumericFilterID =
+      hasIdFilter && Number.isFinite(numericFilterID) && normalizedFilterID !== "";
 
     const regionMap = {
       CO_N: [
@@ -152,7 +158,7 @@ export default function Dashboard() {
 
     // ESTRATÉGIA: Aplicar filtros críticos no Firestore, resto em memória
     // Filtro de data com UTC correto
-    if (filterDataInicio !== "" || filterDataFim !== "") {
+    if (!hasIdFilter && hasDateFilter) {
       // Se apenas data inicio está preenchida
       if (filterDataInicio !== "" && filterDataFim === "") {
         const dataInicio = new Date(filterDataInicio + "T00:00:00Z");
@@ -195,16 +201,28 @@ export default function Dashboard() {
       query = query.where("site_id.Estado", "in", regional);
     }
 
+    // Guarda a base da query para fallback quando o ID estiver salvo como string.
+    const baseQuery = query;
+
+    // Otimização: com ID informado, tenta buscar direto no Firestore por igualdade.
+    if (hasNumericFilterID) {
+      query = query.where("apr_id", "==", numericFilterID);
+    }
+
     // Nota: Outros filtros (ID, UF, Sigla, TipoSite, Status, Nome, Motivo, Regional manual)
     // serão aplicados em memória para evitar timeout (múltiplos where simultâneos)
 
     // Aplicar orderBy
-    query = novasAPRs
+    query = hasIdFilter
       ? query.orderBy("apr_id", "desc")
-      : query.orderBy("created", "desc");
+      : hasDateFilter
+        ? query.orderBy("created", "desc")
+        : novasAPRs
+          ? query.orderBy("apr_id", "desc")
+          : query.orderBy("created", "desc");
 
-    // Adicionar limite para evitar timeout
-    query = query.limit(5000);
+    // Com filtro de ID, o recorte pode ser menor e mais rápido.
+    query = hasIdFilter ? query.limit(50) : query.limit(5000);
 
     const contarQuestions = (checklist) => {
       let totalQuestions = 0;
@@ -227,18 +245,20 @@ export default function Dashboard() {
       return { totalQuestions, totalRespondidas };
     };
 
-    await query
-      .get()
-      .then((snapshot) => {
-        const lista = [];
+    const mapSnapshotToList = (snapshot) => {
+      const lista = [];
 
-        snapshot.forEach((doc) => {
-          const docData = doc.data();
-          
-          // Aplicar filtros em memória (para não quebrar query com múltiplos where)
-          if (filterID !== "" && docData.apr_id !== parseInt(filterID)) {
-            return; // Não adiciona se não bate
+      snapshot.forEach((doc) => {
+        const docData = doc.data();
+
+        // Se ID estiver preenchido, ele funciona de forma independente dos demais filtros.
+        if (hasIdFilter) {
+          const docAprId = String(docData.apr_id ?? "").trim();
+          if (docAprId !== normalizedFilterID) {
+            return;
           }
+        } else {
+          // Aplicar demais filtros em memória para evitar query muito pesada.
           if (filterUF !== "" && docData.site_id?.Estado !== filterUF) {
             return;
           }
@@ -263,87 +283,64 @@ export default function Dashboard() {
               return;
             }
           }
+        }
 
-          let questoes = 0;
-          let respondidas = 0;
-          let pgr_inconformidade = 0;
-          const checklist = docData.checklist;
-          const { totalQuestions, totalRespondidas } =
-            contarQuestions(checklist);
+        let questoes = 0;
+        let respondidas = 0;
+        let pgr_inconformidade = 0;
+        const checklist = docData.checklist;
+        const { totalQuestions, totalRespondidas } =
+          contarQuestions(checklist);
 
-          if (
-            doc.data().site_id.tipoSite === "AUDIT PGR FIXA" ||
-            doc.data().site_id.tipoSite === "AUDIT PGR MOVEL"
-          ) {
-            checklist.forEach((area) => {
-              area[1].forEach((question) => {
-                if (
-                  question.respGabarito !== question.resp &&
-                  question.resp !== ""
-                ) {
-                  pgr_inconformidade++;
-                }
-              });
+        if (
+          doc.data().site_id.tipoSite === "AUDIT PGR FIXA" ||
+          doc.data().site_id.tipoSite === "AUDIT PGR MOVEL"
+        ) {
+          checklist.forEach((area) => {
+            area[1].forEach((question) => {
+              if (
+                question.respGabarito !== question.resp &&
+                question.resp !== ""
+              ) {
+                pgr_inconformidade++;
+              }
             });
-          }
+          });
+        }
 
-          if (doc.data().status === "Respondido pela Area") {
-            checklist.forEach((area) => {
-              area[1].forEach((question) => {
-                if (
-                  question.openPA === true &&
-                  question.respGabarito !== question.resp &&
-                  question.resp !== ""
-                ) {
-                  questoes++;
-                  if (question.plano_acao.comentario) {
-                    respondidas++;
-                  }
+        if (doc.data().status === "Respondido pela Area") {
+          checklist.forEach((area) => {
+            area[1].forEach((question) => {
+              if (
+                question.openPA === true &&
+                question.respGabarito !== question.resp &&
+                question.resp !== ""
+              ) {
+                questoes++;
+                if (question.plano_acao.comentario) {
+                  respondidas++;
                 }
-              });
+              }
             });
-          }
+          });
+        }
 
-          if (user.area === "oem" && checklist !== undefined) {
-            let paTrue = false;
-            checklist.forEach((area) => {
-              area[1]?.forEach((question) => {
-                if (
-                  question.openPA === true &&
-                  question.respGabarito !== question.resp
-                ) {
-                  paTrue = true;
-                }
-              });
+        if (user.area === "oem" && checklist !== undefined) {
+          let paTrue = false;
+          checklist.forEach((area) => {
+            area[1]?.forEach((question) => {
+              if (
+                question.openPA === true &&
+                question.respGabarito !== question.resp
+              ) {
+                paTrue = true;
+              }
             });
+          });
 
-            if (paTrue === true) {
-              lista.push({
-                id: doc.id,
-                nome:
-                  doc.data().user_id.nome !== undefined
-                    ? doc.data().user_id.nome
-                    : "",
-                motivo_apr: doc.data().motivo_apr,
-                site_id: doc.data().site_id,
-                status: doc.data().status,
-                created: format(
-                  doc.data().created.toDate(),
-                  "dd/MM/yyyy HH:mma"
-                ),
-                porcentagem_resp_area:
-                  questoes !== 0
-                    ? ((respondidas / questoes) * 100).toFixed(2) + "%"
-                    : "-",
-                pgr_inconformidade: pgr_inconformidade,
-                totalQuestions: totalQuestions,
-                totalRespondidas: totalRespondidas,
-              });
-            }
-          } else {
+          if (paTrue === true) {
             lista.push({
               id: doc.id,
-              apr_id: doc.data().apr_id,
               nome:
                 doc.data().user_id.nome !== undefined
                   ? doc.data().user_id.nome
@@ -351,7 +348,10 @@ export default function Dashboard() {
               motivo_apr: doc.data().motivo_apr,
               site_id: doc.data().site_id,
               status: doc.data().status,
-              created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+              created: format(
+                doc.data().created.toDate(),
+                "dd/MM/yyyy HH:mma"
+              ),
               porcentagem_resp_area:
                 questoes !== 0
                   ? ((respondidas / questoes) * 100).toFixed(2) + "%"
@@ -361,15 +361,52 @@ export default function Dashboard() {
               totalRespondidas: totalRespondidas,
             });
           }
-        });
-
-        setChamados(lista);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Erro ao carregar APRs: ", err);
-        setLoading(false);
+        } else {
+          lista.push({
+            id: doc.id,
+            apr_id: doc.data().apr_id,
+            nome:
+              doc.data().user_id.nome !== undefined
+                ? doc.data().user_id.nome
+                : "",
+            motivo_apr: doc.data().motivo_apr,
+            site_id: doc.data().site_id,
+            status: doc.data().status,
+            created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+            porcentagem_resp_area:
+              questoes !== 0
+                ? ((respondidas / questoes) * 100).toFixed(2) + "%"
+                : "-",
+            pgr_inconformidade: pgr_inconformidade,
+            totalQuestions: totalQuestions,
+            totalRespondidas: totalRespondidas,
+          });
+        }
       });
+
+      return lista;
+    };
+
+    try {
+      const snapshot = await query.get();
+      let lista = mapSnapshotToList(snapshot);
+
+      // Fallback para legado: tenta ID como string se o campo estiver salvo com tipo diferente.
+      if (hasIdFilter && hasNumericFilterID && lista.length === 0) {
+        const fallbackSnapshot = await baseQuery
+          .where("apr_id", "==", normalizedFilterID)
+          .orderBy("apr_id", "desc")
+          .limit(50)
+          .get();
+        lista = mapSnapshotToList(fallbackSnapshot);
+      }
+
+      setChamados(lista);
+      setLoading(false);
+    } catch (err) {
+      console.error("Erro ao carregar APRs: ", err);
+      setLoading(false);
+    }
   };
 
   // Função para atualizar o status de uma APR
@@ -644,7 +681,7 @@ export default function Dashboard() {
                 onChange={(e) =>
                   handleFilterChange(
                     "filterID",
-                    e.target.value.toUpperCase().slice(0, 6)
+                    e.target.value.replace(/\D/g, "").slice(0, 10)
                   )
                 }
                 variant="outlined"
