@@ -1162,6 +1162,124 @@ export default function Open() {
   }
 
   // Função para finalizar APR
+  async function sendEmailAprovacaoFinal() {
+    try {
+      const pontoFocalEmail = await fetchPontoFocalEmail();
+
+      if (!pontoFocalEmail) {
+        console.warn("Email do ponto focal não encontrado");
+        return;
+      }
+
+      const siteNome = apr?.site_id?.Nome || "N/I";
+      const siteSigla = apr?.site_id?.Sigla || "N/I";
+      const siteCidade = apr?.site_id?.Cidade || "N/I";
+      const siteEstado = apr?.site_id?.Estado || "N/I";
+      const aprRef = apr?.apr_id || id;
+
+      const destinatarioArray = Array.isArray(pontoFocalEmail)
+        ? pontoFocalEmail
+        : [pontoFocalEmail];
+
+      const emailContent = {
+        remetente: "aprdigital.seg.br@telefonica.com",
+        assunto: `APR Digital - Aprovada e Concluída - ${siteSigla}`,
+        destinatario: destinatarioArray,
+        texto: `
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>APR Digital - Aprovada e Concluída</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { background-color: #4caf50; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; margin: -30px -30px 30px -30px; }
+                .header h1 { margin: 0; font-size: 24px; }
+                .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+                .site-info { background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .site-info p { margin: 8px 0; }
+                .success-box { background-color: #e8f5e9; border: 2px solid #4caf50; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                .stats-box { background-color: #f0f4ff; border: 2px solid #1976d2; padding: 15px; border-radius: 6px; margin: 15px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>APR Digital</h1>
+                  <p>✅ Aprovada e Concluída</p>
+                </div>
+
+                <p>Parabéns!</p>
+                
+                <p>A APR foi <strong>validada e aprovada</strong> por todos os revisores! Agora é possível prosseguir com a implementação dos planos de ação.</p>
+                
+                <div class="site-info">
+                  <h3 style="margin-top: 0;">Informações da APR</h3>
+                  <p><strong>APR:</strong> ${aprRef}</p>
+                  <p><strong>Site:</strong> ${siteNome} (${siteSigla})</p>
+                  <p><strong>Localização:</strong> ${siteCidade}/${siteEstado}</p>
+                </div>
+
+                <div class="stats-box">
+                  <p><strong>📊 Resumo Final de Validação</strong></p>
+                  <p><strong>✓ Total de planos:</strong> ${paStats.total}</p>
+                  <p><strong>✅ Aprovados:</strong> ${paStats.aprovados}</p>
+                  <p><strong>❌ Rejeitados:</strong> ${paStats.reprovados}</p>
+                </div>
+                
+                <div class="success-box">
+                  <p><strong>✓ Status Final:</strong> Concluído</p>
+                  <p>Todos os planos de ação foram validados e aprovados. Proceda com a implementação das soluções conforme os SLAs definidos.</p>
+                </div>
+                
+                <p style="margin: 20px 0; line-height: 1.6;">
+                  <strong>Próximos passos:</strong> 
+                  <br/>
+                  1. Implemente os planos de ação aprovados na área responsável
+                  <br/>
+                  2. Monitore o cumprimento dos SLAs
+                  <br/>
+                  3. Procure manter os prazos estabelecidos para minimizar riscos
+                </p>
+                
+                <p style="text-align: center;">
+                  <a href="${window.location.origin}/Open/${id}" style="display: inline-block; background-color: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Acessar APR para Detalhes</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <small style="color: #999;">Mensagem automática gerada pelo Sistema APR Digital</small>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+
+      console.log('=== ENVIANDO EMAIL APROVAÇÃO FINAL ===');
+      console.log('Destinatário:', destinatarioArray);
+      console.log('Assunto:', emailContent.assunto);
+
+      const response = await fetch(
+        "https://us-central1-seguranca-patrimonial-385514.cloudfunctions.net/sendMail_APRDigital",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailContent),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erro ao enviar email ao ponto focal: ${response.status} - ${errorText}`);
+        return;
+      }
+
+      console.log("✅ Email de aprovação final enviado ao ponto focal com sucesso");
+      logSistem("Email enviado ao ponto focal - APR aprovada e concluída", id, destinatarioArray);
+    } catch (error) {
+      console.error("Erro ao enviar email de aprovação final:", error);
+    }
+  }
+
   async function finalizarAPR(e) {
     e.preventDefault();
 
@@ -1171,6 +1289,25 @@ export default function Open() {
       toast.error(
         `Ainda há ${paStats.total - (paStats.aprovados + paStats.reprovados)} plano(s) pendente(s) de validação.`
       );
+      return;
+    }
+
+    // ✅ Validar se todos os planos de ação têm SLA preenchido (ponto focal)
+    let todosComSLA = true;
+    apr.checklist.forEach((area) => {
+      area[1].forEach((question) => {
+        const hasInconformity =
+          question.resp !== question.respGabarito;
+        if (hasInconformity && question.resp_pa_selectedOption === "Logistica") {
+          if (!question.conteudo?.plano_acao?.sla_logistica) {
+            todosComSLA = false;
+          }
+        }
+      });
+    });
+
+    if (!todosComSLA) {
+      toast.error("❌ Todos os planos de ação devem ter SLA preenchido antes de finalizar!");
       return;
     }
 
@@ -1189,6 +1326,9 @@ export default function Open() {
           status: "Finalizado",
           data_alteracao: new Date(),
         });
+
+      // Enviar email de aprovação final ao ponto focal
+      await sendEmailAprovacaoFinal();
 
       toast.success("✅ APR finalizada com sucesso!");
       logSistem("APR finalizada", id);
@@ -2253,6 +2393,7 @@ export default function Open() {
                                 } else if (
                                   user.nivel === "revisor" ||
                                   user.nivel === "administrador" ||
+                                  user.nivel === "revisor_logistica" ||
                                   user.uid === apr.user_id.uid
                                 ) {
                                   return (
@@ -2622,7 +2763,7 @@ export default function Open() {
                       )}
 
                     {/* Seção para validação de planos de ação */}
-                    {(user.nivel === "revisor" || user.nivel === "administrador") &&
+                    {(user.nivel === "revisor" || user.nivel === "administrador" || user.nivel === "revisor_logistica") &&
                       apr.status === "Aguardando Revisão Plano de Ação" && (
                         <div className="pa-validation-section" style={{ marginTop: "20px" }}>
                           <div className="section-header">

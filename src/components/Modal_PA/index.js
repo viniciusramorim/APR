@@ -119,35 +119,57 @@ export default function Modal_PA({
 
   useEffect(() => {
     function loadConstants() {
+      // Se for revisor_logistica, ativar aba de Plano de Ação (0) automaticamente
+      if (user.nivel === "revisor_logistica") {
+        setActiveTab(0);
+      }
+
       setTempo(conteudo?.plano_acao?.tempo || "");
-      // Ponto focal não deve carregar o comentário anterior, apenas deixar em branco
-      setComentario(user.nivel === "ponto_focal" ? "" : (conteudo?.plano_acao?.comentario || ""));
+      // Ponto focal deve sempre deixar em branco para redefinir
+      if (user.nivel === "ponto_focal") {
+        setComentario("");
+        setSlaLogistica("");
+      } else {
+        // Todos os outros (revisor, revisor_logistica, administrador) carregam e podem editar
+        setComentario(conteudo?.plano_acao?.comentario || "");
+        if (conteudo?.plano_acao?.sla_logistica) {
+          setSlaLogistica(new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0]);
+        } else {
+          setSlaLogistica("");
+        }
+      }
 
-      // Se for revisor_logistica, definir "Logistica" como padrão
       const defaultOption = (user.nivel === "revisor_logistica") ? "Logistica" : "";
-
       setSelectedOption(
         conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
       );
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
-      // Ponto focal não deve carregar o SLA preenchido, apenas deixar em branco para redefinir
-      setSlaLogistica(user.nivel === "ponto_focal" ? "" : (conteudo?.plano_acao?.sla_logistica ?
-        new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0] : ""));
       setNotaParecer(conteudo?.nota_parecer || "");
-      // Resetar resolucaoInconformidade para cada novo modal
       setResolucaoInconformidade(conteudo?.resp_pa_resolucao || null);
-      // Atualizar histórico local
       setHistoricoLocal(conteudo?.plano_acao?.historico_logistica || []);
-      // Atualizar anexos local
       const anexosCarregados = conteudo?.plano_acao?.anexos || [];
       console.log("📎 Anexos carregados do conteudo:", anexosCarregados);
       setAnexosLocal(anexosCarregados);
     }
 
     loadConstants();
-  }, [conteudo, refreshTrigger, user.nivel]);
+  }, [conteudo, user.nivel]);
+
+  // Debug: Log dos estados importantes
+  useEffect(() => {
+    console.log(
+      "🔍 State Modal_PA - slaLogistica:",
+      slaLogistica,
+      "| comentario:",
+      comentario,
+      "| selectedOption:",
+      selectedOption,
+      "| user.nivel:",
+      user.nivel
+    );
+  }, [slaLogistica, comentario, selectedOption]);
 
   // Debug: Log quando arquivos selecionados mudam
   useEffect(() => {
@@ -156,9 +178,11 @@ export default function Modal_PA({
 
   // Variável para bloquear edição baseada no usuário e status
   // Revisor, revisor_logistica e administrador podem sempre editar o SLA e comentário da opção Logística
+  // Ponto focal também pode editar para adicionar/alterar SLAs
   // Para revisor_logistica, isReadOnly só é true se a pergunta já tem um plano de ação definido (para mostrar o botão Validar)
   const isReadOnly = conteudo?.resp_pa_selectedOption && 
     user.nivel !== "revisor_logistica" && 
+    user.nivel !== "ponto_focal" &&
     !((user.nivel === "revisor" || user.nivel === "administrador") && conteudo?.resp_pa_selectedOption === "Logistica");
 
   // Modo visualização: mostrar histórico completo quando APR está em status final
@@ -219,12 +243,14 @@ export default function Modal_PA({
   };
 
   async function alterarPA() {
-    if (isReadOnly) return; // segurança extra para não alterar se for somente leitura
-
-    // Validação para ponto_focal: todos os planos de SLA devem estar preenchidos
-    if (user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido()) {
-      return toast.error("Todos os planos de ação devem ter SLA preenchido antes de enviar");
+    console.log("🔹 alterarPA chamado - selectedOption:", selectedOption);
+    if (isReadOnly) {
+      console.log("🔴 isReadOnly = true, retornando");
+      return;
     }
+
+    // ✅ Validação de "todos os planos" é só na finalização, não aqui!
+    // Aqui cada pergunta é individual
 
     const docRef = firebase.firestore().collection(base).doc(id);
     const doc = await docRef.get();
@@ -232,6 +258,7 @@ export default function Modal_PA({
 
     const dados = doc.data();
     const plano = dados.checklist[area][1][index];
+    console.log("🔹 Plano atual:", plano);
 
     // Se revisor_logistica e selectedOption vazio, definir como Logistica automaticamente
     let optionToSave = selectedOption;
@@ -254,9 +281,18 @@ export default function Modal_PA({
       if (!numeroChamado) return toast("Preencha o número de chamado");
       if (!comentario) return toast("Preencha um comentário");
     } else if (optionToSave === "Logistica") {
-      if (!slaLogistica) return toast("Preencha o SLA (data)");
-      if (!comentario) return toast("Preencha um comentário");
+      console.log("🔹 Opção Logistica selecionada");
+      console.log("slaLogistica:", slaLogistica, "comentario:", comentario);
+      if (!slaLogistica) {
+        console.log("🔴 SLA vazio");
+        return toast("Preencha o SLA (data)");
+      }
+      if (!comentario) {
+        console.log("🔴 Comentário vazio");
+        return toast("Preencha um comentário");
+      }
     } else {
+      console.log("🔴 Opção não reconhecida:", optionToSave);
       return toast("Selecione uma opção");
     }
 
@@ -284,11 +320,11 @@ export default function Modal_PA({
       // Inicializar histórico se não existir
       const historicoAtual = plano.plano_acao?.historico_logistica || [];
       
-      // Adicionar entrada atual ao histórico se já existe SLA
+      // Adicionar a SLA atual ao histórico APENAS SE for uma edição (SLA anterior existe)
       if (plano.plano_acao?.sla_logistica) {
         historicoAtual.push({
-          data: new Date(),
-          usuario: user.nome,
+          data: plano.resp_pa_data || new Date(),
+          usuario: plano.resp_pa_user_name || user.nome,
           sla: plano.plano_acao.sla_logistica,
           comentario: plano.plano_acao.comentario || '',
         });
@@ -313,7 +349,11 @@ export default function Modal_PA({
     plano.resp_pa_user_name = user.nome;
     plano.resp_pa_user_id = user.uid;
 
+    console.log("🔹 Salvando plano com novos valores:", planoAcaoToSave);
+    
     await docRef.update(dados);
+    
+    console.log("✅ Documento atualizado no Firebase");
 
     // Se for revisor de logística finalizando plano de ação, atualizar status da APR
     if (user.nivel === "revisor_logistica") {
@@ -321,8 +361,39 @@ export default function Modal_PA({
     } else {
       await updateAPR(id);
     }
+    
+    // Se for opção Logistica, não fecha o modal - só adiciona ao histórico e limpa
+    if (optionToSave === "Logistica") {
+      console.log("✅ SLA Logistica adicionado com sucesso!");
+      toast.success("✅ SLA adicionado ao histórico!");
+      
+      // Atualizar o histórico local imediatamente para aparecer na lista
+      if (plano.plano_acao?.sla_logistica) {
+        const novoHistoricoLocal = [
+          ...(historicoLocal || []),
+          {
+            data: plano.resp_pa_data || new Date(),
+            usuario: plano.resp_pa_user_name || user.nome,
+            sla: plano.plano_acao.sla_logistica,
+            comentario: plano.plano_acao.comentario || '',
+          }
+        ];
+        setHistoricoLocal(novoHistoricoLocal);
+      }
+      
+      // Limpar campos para adicionar próximo SLA
+      setSlaLogistica("");
+      setComentario("");
+      // Recarregar a APR para atualizar o histórico no modal
+      loadApr();
+      // NÃO fecha o modal
+      console.log("🔹 Modal permanece aberto para adicionar mais SLAs");
+      return;
+    }
+    
+    // Para outras opções, fecha normalmente
+    console.log("✅ Plano de ação atualizado (não é Logistica)");
     toast.success("Plano de ação atualizado");
-
     loadApr();
     setResolucaoInconformidade(null);
     close();
@@ -366,8 +437,7 @@ export default function Modal_PA({
 
     if (resolucaoInconformidade === 'sim') {
       toast.success("✅ Plano de ação validado!");
-      // Enviar email ao ponto focal informando aprovação
-      await sendEmailToPontoFocal(apr, id, conteudo.question);
+      // Email consolidado será enviado ao final da revisão em Open/index.js
     } else {
       // Se foi reprovado, mudar status da APR para retornar ao ponto focal
       await docRef.update({
@@ -376,8 +446,7 @@ export default function Modal_PA({
         motivo_reprovacao: notaParecer,
       });
       toast.success("❌ Plano de ação reprovado e retornado ao ponto focal");
-      // Enviar email ao ponto focal informando rejeição
-      await sendEmailRejeitadoToPontoFocal(apr, id, conteudo.question, notaParecer);
+      // Email consolidado será enviado ao final da revisão em Open/index.js
     }
     loadApr();
     setResolucaoInconformidade(null);
@@ -1398,7 +1467,7 @@ export default function Modal_PA({
         {selectedOption === "Logistica" && (
           <>
             {/* Histórico de SLAs e Comentários anteriores */}
-            {conteudo?.plano_acao?.historico_logistica && conteudo.plano_acao.historico_logistica.length > 0 && (
+            {historicoLocal && historicoLocal.length > 0 && (
               <Box 
                 sx={{ 
                   mb: 2, 
@@ -1411,13 +1480,13 @@ export default function Modal_PA({
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
                   📋 Histórico de Alterações
                 </Typography>
-                {conteudo.plano_acao.historico_logistica.map((historico, index) => (
+                {historicoLocal.map((historico, index) => (
                   <Box 
                     key={index} 
                     sx={{ 
                       mb: 1.5, 
                       pb: 1.5, 
-                      borderBottom: index < conteudo.plano_acao.historico_logistica.length - 1 ? '1px solid #ddd' : 'none' 
+                      borderBottom: index < historicoLocal.length - 1 ? '1px solid #ddd' : 'none' 
                     }}
                   >
                     <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
@@ -1434,6 +1503,29 @@ export default function Modal_PA({
                     </Typography>
                   </Box>
                 ))}
+              </Box>
+            )}
+
+            {/* Card com SLA atual */}
+            {conteudo?.plano_acao?.sla_logistica && (
+              <Box 
+                sx={{ 
+                  mb: 3, 
+                  p: 2, 
+                  bgcolor: '#e3f2fd', 
+                  borderRadius: 1,
+                  border: '2px solid #1976d2'
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#0d47a1' }}>
+                  ✅ SLA Atual
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Data:</strong> {new Date(conteudo.plano_acao.sla_logistica.toDate()).toLocaleDateString('pt-BR')}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Comentário:</strong> {conteudo.plano_acao.comentario || 'N/D'}
+                </Typography>
               </Box>
             )}
 
@@ -2614,13 +2706,13 @@ export default function Modal_PA({
                 )}
 
                 {/* Histórico de SLAs */}
-                {conteudo?.plano_acao?.historico_logistica && conteudo.plano_acao.historico_logistica.length > 0 && (
+                {historicoLocal && historicoLocal.length > 0 && (
                   <Box sx={{ mb: 3, p: 2, bgcolor: '#e3f2fd', borderRadius: 1.5, border: '2px solid #0277bd' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#0277bd' }}>
                       📋 Histórico de SLAs Anteriores
                     </Typography>
-                    {conteudo.plano_acao.historico_logistica.map((historico, index) => (
-                      <Box key={index} sx={{ mb: 1.5, pb: 1.5, borderBottom: index < conteudo.plano_acao.historico_logistica.length - 1 ? '1px solid #90caf9' : 'none' }}>
+                    {historicoLocal.map((historico, index) => (
+                      <Box key={index} sx={{ mb: 1.5, pb: 1.5, borderBottom: index < historicoLocal.length - 1 ? '1px solid #90caf9' : 'none' }}>
                         <Typography variant="caption" sx={{ display: 'block', color: '#0277bd', fontWeight: 'bold' }}>
                           📅 {historico.data ? new Date(historico.data.seconds * 1000).toLocaleDateString('pt-BR') : 'N/D'} - {historico.usuario || 'N/D'}
                         </Typography>
@@ -2986,10 +3078,10 @@ export default function Modal_PA({
             color={todosOsPlanosForamDefinidos() ? "success" : "warning"}
             size="large"
             startIcon={<FiCheck />}
-            disabled={!slaLogistica || !comentario || (user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido())}
-            title={user.nivel === "ponto_focal" && !todosPlanosComSLAPreenchido() ? "Todos os planos de ação devem ter SLA preenchido" : ""}
+            disabled={!slaLogistica || !comentario}
+            title="Preencha SLA e comentário"
           >
-            💾 Salvar
+            ➕ Adicionar
           </Button>
         )}
         
