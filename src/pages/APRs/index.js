@@ -855,6 +855,9 @@ export default function Dashboard() {
                   <MenuItem value="CHECK SEG PROTEÇÃO">CHECK SEG PROTEÇÃO</MenuItem>
                   <MenuItem value="AUDIT PGR FIXA">AUDIT PGR FIXA</MenuItem>
                   <MenuItem value="AUDIT PGR MOVEL">AUDIT PGR MOVEL</MenuItem>
+                  <MenuItem value="PGR CD MOVEL">PGR CD MOVEL</MenuItem>
+                  <MenuItem value="PGR CD FIXA">PGR CD FIXA</MenuItem>
+                  <MenuItem value="PGR BASE CROSS">PGR BASE CROSS</MenuItem>
                   <MenuItem value="OUTDOOR">OUTDOOR</MenuItem>
                   <MenuItem value="INDOOR">INDOOR</MenuItem>
                   <MenuItem value="SMARTTAG2">SMARTTAG</MenuItem>
