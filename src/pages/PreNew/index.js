@@ -1,7 +1,7 @@
 import "./prenew.scss";
 import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
-import { FiClipboard } from "react-icons/fi";
+import { FiClipboard, FiMap, FiActivity, FiTag, FiSearch, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import firebase from "../../services/firebaseConnection";
@@ -226,7 +226,7 @@ export default function PreNew() {
         <Title name="Aplicar APR">
           <FiClipboard size={25} />
         </Title>
-        <div className="container">
+        <div className="container filters-container">
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -275,25 +275,27 @@ export default function PreNew() {
             </Grid>
             <Grid item xs={12} md={4}>
               <Button
-                variant="contained"
-                color="primary"
+                className="btn-search"
                 onClick={handleSearch}
                 disabled={loading}
-                style={{ backgroundColor: "#380054e8" }}
                 fullWidth
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : "Buscar"}
+                {loading ? <CircularProgress size={24} color="inherit" /> : (
+                  <>
+                    <FiSearch style={{ marginRight: '8px' }} /> Buscar
+                  </>
+                )}
               </Button>
             </Grid>
             <Grid item xs={12} md={2}>
               <Button
                 variant="outlined"
-                color="secondary"
+                className="btn-clear"
                 onClick={clearFilters}
                 fullWidth
                 style={{ height: '40px' }}
               >
-                Limpar
+                <FiTrash2 style={{ marginRight: '8px' }} /> Limpar
               </Button>
             </Grid>
             <Grid item xs={12} md={2}>
@@ -332,52 +334,51 @@ export default function PreNew() {
                     <span className="site-nome">{siteItem.nome}</span>
                   </div>
                   <div className="site-info-sub">
-                    <span>{siteItem.estado} - {siteItem.cidade}</span>
-                    <span className="site-tipo">{siteItem.tipoSite}</span>
+                    <span><FiMap size={14} /> {siteItem.estado} - {siteItem.cidade}</span>
+                    <span className="site-tipo"><FiTag size={14} /> {siteItem.tipoSite}</span>
                   </div>
                 </div>
               ))}
 
-              <Grid container spacing={2} justifyContent="right" style={{ marginTop: "10px" }}>
-                <Grid item xs={12} md={2.3} textAlign="right">
-                  <FormControl variant="outlined" size="small" fullWidth>
-                    <InputLabel id="results-per-page-label">Resultados por Página</InputLabel>
-                    <Select
-                      labelId="results-per-page-label"
-                      id="results-per-page"
-                      value={resultsPerPage}
-                      onChange={handlePaginationChange}
-                      label="Resultados por Página"
-                    >
-                      <MenuItem value={5}>5</MenuItem>
-                      <MenuItem value={10}>10</MenuItem>
-                      <MenuItem value={20}>20</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={1.5} textAlign="right">
+              <div className="pagination-container">
+                <div className="pagination-info">
+                  Mostrando {paginatedSites.length} de {site.length} sites
+                </div>
+                
+                <FormControl variant="outlined" size="small" className="pagination-select">
+                  <InputLabel id="results-per-page-label">Sites por página</InputLabel>
+                  <Select
+                    labelId="results-per-page-label"
+                    id="results-per-page"
+                    value={resultsPerPage}
+                    onChange={handlePaginationChange}
+                    label="Sites por página"
+                  >
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={20}>20</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <div className="pagination-actions">
                   <Button
                     variant="outlined"
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page === 0}
-                    style={{ borderColor: "#380054e8" }}
-                    fullWidth
+                    className="pagination-btn"
                   >
-                    Anterior
+                    <FiChevronLeft /> Anterior
                   </Button>
-                </Grid>
-                <Grid item xs={12} md={1.5} textAlign="right">
                   <Button
                     variant="outlined"
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
-                    style={{ borderColor: "#380054e8", color: "#380054e8" }}
-                    fullWidth
+                    className="pagination-btn next"
                   >
-                    Próximo
+                    Próximo <FiChevronRight />
                   </Button>
-                </Grid>
-              </Grid>
+                </div>
+              </div>
             </>
           )}
         </div>
