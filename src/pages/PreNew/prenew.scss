@@ -232,23 +232,84 @@
 
   .site-item-content {
     display: flex;
-    gap: 10px;
-    padding: 10px 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
     min-width: 100%;
-    width: fit-content;
-    border-bottom: 1px solid $btn-secondary-hover-bg;
-    padding: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
 
-    p {
-      padding: 0px 10px;
+    .site-info-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .site-sigla {
+        font-weight: 800;
+        font-size: 1.1em;
+        color: #8a42e7; // Primary purple
+        background: rgba(138, 66, 231, 0.1);
+        padding: 2px 8px;
+        border-radius: 4px;
+        min-width: 60px;
+        text-align: center;
+      }
+
+      .site-nome {
+        font-weight: 600;
+        font-size: 1.05em;
+        text-transform: uppercase;
+        color: #333;
+      }
+    }
+
+    .site-info-sub {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 0.85em;
+      color: #666;
+      padding-left: 72px;
+
+      span {
+        display: flex;
+        align-items: center;
+      }
+
+      .site-tipo {
+        background: rgba(0, 0, 0, 0.05);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: #555;
+      }
+
+      .site-critical {
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 0.9em;
+        text-transform: uppercase;
+
+        &.critical { background-color: #f44336; color: white; }
+        &.high { background-color: #ff9800; color: white; }
+        &.medium { background-color: #2196f3; color: white; }
+        &.low { background-color: #4caf50; color: white; }
+      }
     }
 
     &:hover {
-      background: $card-title-color;
-      transition: 0.2s ease;
-      color: $white-color;
-      cursor: pointer;
-      border-radius: 8px;
+      background: rgba(138, 66, 231, 0.08);
+      transform: translateX(5px);
+      border-color: #8a42e7;
+
+      .site-nome, .site-info-sub {
+        color: #000;
+      }
     }
   }
 }

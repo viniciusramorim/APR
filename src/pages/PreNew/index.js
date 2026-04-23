@@ -98,118 +98,106 @@ export default function PreNew() {
   // Handle changes in the sigla input
   function handleSiglaChange(event) {
     setSigla(event.target.value.toUpperCase());
-    if (event.target.value !== "") {
-      setNome("");
-    }
   }
 
   // Handle changes in the nome input
   function handleNomeChange(event) {
-    setNome(event.target.value);
-    if (event.target.value !== "") {
-      setSigla("");
-    }
+    setNome(event.target.value.toUpperCase());
   }
 
   async function handleSearch() {
-    if (sigla.trim() === "" && nome.trim() === "") {
-      return toast.error("Digite uma sigla ou nome para buscar...");
+    if (sigla.trim() === "" && nome.trim() === "" && uf === "Todos") {
+      return toast.error("Digite algo ou selecione um estado para buscar...");
     }
 
-    const searchSigla = normalizeString(sigla.trim());
-    const searchNome = normalizeString(nome.trim());
+    setLoading(true);
     let filteredData = [];
 
-    setLoading(true); // INICIA LOADING
-
     try {
-      let searchQuery = firebase.firestore().collection("sites");
+      let query = firebase.firestore().collection("sites");
 
       if (uf !== "Todos") {
-        searchQuery = searchQuery.where("Estado", "==", uf.toUpperCase());
+        query = query.where("Estado", "==", uf.toUpperCase());
       }
 
-      // Buscando por sigla usando where
-      if (searchSigla) {
-        const siglaSnapshot = await searchQuery
-          .where("Sigla", ">=", searchSigla)
-          .get();
-
-        siglaSnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (!filteredData.some((item) => item.nome === data.Nome)) {
-            filteredData.push({
-              id: doc.id,
-              nome: data.Nome,
-              cidade: data.Cidade,
-              cep: data.CEP,
-              complemento: data.Complemento,
-              estado: data.Estado,
-              endereco: data.Endereco,
-              numero: data.Numero,
-              latitude: data.Latitude,
-              longitude: data.Longitude,
-              tipoSite: data.tipoSite,
-              critical: data.critical,
-              geohash: data.geohash,
-              sigla: data.Sigla,
-              tipo_contrato: data.tipoContrato,
-              detentora: data.Detentora,
-              userLastUpdate: data.userLastUpdate || "-",
-              lastUpdate: data.lastUpdate
-                ? format(data.lastUpdate.toDate(), "dd/MM/yyyy HH:mm")
-                : "-",
-            });
-          }
-        });
+      // Se tiver sigla, usa como filtro primário (prefixo)
+      if (sigla.trim() !== "") {
+        const searchSigla = normalizeString(sigla.trim());
+        query = query.where("Sigla", ">=", searchSigla)
+          .where("Sigla", "<=", searchSigla + "\uf8ff");
+      }
+      // Se não tiver sigla mas tiver nome, usa nome como filtro primário (prefixo)
+      else if (nome.trim() !== "") {
+        const searchNome = normalizeString(nome.trim());
+        query = query.where("Nome", ">=", searchNome)
+          .where("Nome", "<=", searchNome + "\uf8ff");
+      }
+      // Se tiver apenas UF, limita a busca
+      else {
+        query = query.limit(100);
       }
 
-      // Buscando por nome sem where completo
-      if (searchNome) {
-        const snapshot = await searchQuery.get();
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const nome = data.Nome || "";
+      const snapshot = await query.get();
 
-          const normalizedNome = normalizeString(nome);
+      snapshot.forEach((doc) => {
+        const data = doc.data();
 
-          if (normalizedNome.includes(searchNome)) {
-            if (!filteredData.some((item) => item.nome === data.Nome)) {
-              filteredData.push({
-                id: doc.id,
-                nome: data.Nome,
-                cidade: data.Cidade,
-                cep: data.CEP,
-                complemento: data.Complemento,
-                estado: data.Estado,
-                endereco: data.Endereco,
-                numero: data.Numero,
-                latitude: data.Latitude,
-                longitude: data.Longitude,
-                tipoSite: data.tipoSite,
-                critical: data.critical,
-                geohash: data.geohash,
-                sigla: data.Sigla,
-                tipo_contrato: data.tipoContrato,
-                detentora: data.Detentora,
-                userLastUpdate: data.userLastUpdate || "-",
-                lastUpdate: data.lastUpdate
-                  ? format(data.lastUpdate.toDate(), "dd/MM/yyyy HH:mm")
-                  : "-",
-              });
-            }
-          }
+        // Se ambos foram preenchidos, fazemos um filtro adicional em memória para o que não foi na query
+        if (sigla.trim() !== "" && nome.trim() !== "") {
+          const searchNome = normalizeString(nome.trim());
+          const normalizedNome = normalizeString(data.Nome || "");
+          if (!normalizedNome.includes(searchNome)) return;
+        }
+
+        filteredData.push({
+          id: doc.id,
+          nome: data.Nome,
+          cidade: data.Cidade,
+          cep: data.CEP,
+          complemento: data.Complemento,
+          estado: data.Estado,
+          endereco: data.Endereco,
+          numero: data.Numero,
+          latitude: data.Latitude,
+          longitude: data.Longitude,
+          tipoSite: data.tipoSite,
+          critical: data.critical,
+          geohash: data.geohash,
+          sigla: data.Sigla,
+          tipo_contrato: data.tipoContrato,
+          detentora: data.Detentora,
+          userLastUpdate: data.userLastUpdate || "-",
+          lastUpdate: data.lastUpdate
+            ? format(data.lastUpdate.toDate(), "dd/MM/yyyy HH:mm")
+            : "-",
         });
+      });
+
+      if (filteredData.length === 0) {
+        toast.info("Nenhum site encontrado com esses filtros.");
       }
 
       setSite(filteredData);
       setPage(0);
     } catch (err) {
-      console.log("Erro ao buscar sites:", err);
-      toast.error("Erro ao buscar sites. Verifique sua conexão.");
+      console.error("Erro ao buscar sites:", err);
+      toast.error("Erro ao buscar sites. Tente refinar sua busca.");
     }
 
-    setLoading(false); // FINALIZA LOADING
+    setLoading(false);
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }
+
+  function clearFilters() {
+    setSigla("");
+    setNome("");
+    setUf("Todos");
+    setSite([]);
   }
 
   function handlePaginationChange(event) {
@@ -248,7 +236,7 @@ export default function PreNew() {
                 variant="outlined"
                 value={sigla}
                 onChange={handleSiglaChange}
-                disabled={nome !== ""}
+                onKeyPress={handleKeyPress}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -259,7 +247,7 @@ export default function PreNew() {
                 variant="outlined"
                 value={nome}
                 onChange={handleNomeChange}
-                disabled={sigla !== ""}
+                onKeyPress={handleKeyPress}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -297,7 +285,18 @@ export default function PreNew() {
                 {loading ? <CircularProgress size={24} color="inherit" /> : "Buscar"}
               </Button>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={2}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={clearFilters}
+                fullWidth
+                style={{ height: '40px' }}
+              >
+                Limpar
+              </Button>
+            </Grid>
+            <Grid item xs={12} md={2}>
               <ModalNovoSite user={user} />
             </Grid>
           </Grid>
@@ -315,70 +314,71 @@ export default function PreNew() {
         </div>
 
         <div className="container content-apr">
-          {loading && (
+          {loading ? (
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <CircularProgress />
               <p>Buscando sites...</p>
             </div>
-          )}
+          ) : (
+            <>
+              {paginatedSites.map((siteItem) => (
+                <div
+                  key={siteItem.id}
+                  className="site-item-content"
+                  onClick={() => handleList([siteItem])}
+                >
+                  <div className="site-info-main">
+                    <span className="site-sigla">{siteItem.sigla}</span>
+                    <span className="site-nome">{siteItem.nome}</span>
+                  </div>
+                  <div className="site-info-sub">
+                    <span>{siteItem.estado} - {siteItem.cidade}</span>
+                    <span className="site-tipo">{siteItem.tipoSite}</span>
+                  </div>
+                </div>
+              ))}
 
-          {!loading &&
-            paginatedSites.map((item) => (
-              <div
-                key={item.id}
-                className="site-item-content"
-                onClick={() => handleList([item])}
-              >
-                <p>
-                  <strong>
-                    {item.sigla} - {item.nome}
-                  </strong>{" "}
-                  - {item.estado} - {item.cidade}
-                </p>
-              </div>
-            ))}
-
-          {!loading && (
-            <Grid container spacing={2} justifyContent="right" style={{ marginTop: "10px" }}>
-              <Grid item xs={12} md={2.3} textAlign="right">
-                <FormControl variant="outlined" size="small" fullWidth>
-                  <InputLabel id="results-per-page-label">Resultados por Página</InputLabel>
-                  <Select
-                    labelId="results-per-page-label"
-                    id="results-per-page"
-                    value={resultsPerPage}
-                    onChange={handlePaginationChange}
-                    label="Resultados por Página"
+              <Grid container spacing={2} justifyContent="right" style={{ marginTop: "10px" }}>
+                <Grid item xs={12} md={2.3} textAlign="right">
+                  <FormControl variant="outlined" size="small" fullWidth>
+                    <InputLabel id="results-per-page-label">Resultados por Página</InputLabel>
+                    <Select
+                      labelId="results-per-page-label"
+                      id="results-per-page"
+                      value={resultsPerPage}
+                      onChange={handlePaginationChange}
+                      label="Resultados por Página"
+                    >
+                      <MenuItem value={5}>5</MenuItem>
+                      <MenuItem value={10}>10</MenuItem>
+                      <MenuItem value={20}>20</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={1.5} textAlign="right">
+                  <Button
+                    variant="outlined"
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 0}
+                    style={{ borderColor: "#380054e8" }}
+                    fullWidth
                   >
-                    <MenuItem value={5}>5</MenuItem>
-                    <MenuItem value={10}>10</MenuItem>
-                    <MenuItem value={20}>20</MenuItem>
-                  </Select>
-                </FormControl>
+                    Anterior
+                  </Button>
+                </Grid>
+                <Grid item xs={12} md={1.5} textAlign="right">
+                  <Button
+                    variant="outlined"
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
+                    style={{ borderColor: "#380054e8", color: "#380054e8" }}
+                    fullWidth
+                  >
+                    Próximo
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={1.5} textAlign="right">
-                <Button
-                  variant="outlined"
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 0}
-                  style={{ borderColor: "#380054e8" }}
-                  fullWidth
-                >
-                  Anterior
-                </Button>
-              </Grid>
-              <Grid item xs={12} md={1.5} textAlign="right">
-                <Button
-                  variant="outlined"
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
-                  style={{ borderColor: "#380054e8", color: "#380054e8" }}
-                  fullWidth
-                >
-                  Próximo
-                </Button>
-              </Grid>
-            </Grid>
+            </>
           )}
         </div>
       </div>
