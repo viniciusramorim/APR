@@ -60,7 +60,7 @@ const contentStyle = {
 };
 
 export default function ModalInfoSite(props) {
-  const { site, loadSites, logSistem, user } = props;
+  const { site, loadSites, logSistem, user, readOnly } = props;
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
@@ -69,17 +69,21 @@ export default function ModalInfoSite(props) {
   }
   const handleClose = () => setOpen(false);
 
-  const removeSite = () => {
+  const reprovaSite = () => {
     firebase.firestore().collection('sites-aprovacao')
       .doc(site.id)
-      .delete()
+      .update({
+        status: 'REPROVADO',
+        reprovado_por: user.nome,
+        data_reprovacao: new Date()
+      })
       .then(() => {
-        toast.success('Site para aprovação removido com sucesso.');
-        logSistem(`REMOVIDO-SITE ${site.Nome} - ${site.Sigla}`, site.id);
+        toast.success('Site reprovado com sucesso.');
+        logSistem(`REPROVADO-SITE ${site.Nome} - ${site.Sigla}`, site.id);
         handleClose();
         loadSites();
       })
-      .catch((err) => toast('Erro ao remover site. ' + err))
+      .catch((err) => toast('Erro ao reprovar site. ' + err))
   };
 
   const aprovaSite = () => {
@@ -107,11 +111,21 @@ export default function ModalInfoSite(props) {
         userLastUpdate: user.nome
       })
       .then((result) => {
-        toast.success('Site para aprovação cadastrado com sucesso.');
-        logSistem(`APROVADO-SITE ${site.Nome} - ${site.Sigla}`, result.id);
-        removeSite();
+        firebase.firestore().collection('sites-aprovacao')
+          .doc(site.id)
+          .update({
+            status: 'APROVADO',
+            aprovado_por: user.nome,
+            data_aprovacao: new Date()
+          })
+          .then(() => {
+            toast.success('Site aprovado e cadastrado com sucesso.');
+            logSistem(`APROVADO-SITE ${site.Nome} - ${site.Sigla}`, result.id);
+            handleClose();
+            loadSites();
+          });
       })
-      .catch((err) => toast('Erro ao remover site. ' + err))
+      .catch((err) => toast('Erro ao aprovar site. ' + err))
   };
 
   return (
@@ -339,30 +353,32 @@ export default function ModalInfoSite(props) {
           </Box>
 
           {/* Footer Fixo */}
-          <Box sx={footerStyle}>
-            <Grid container spacing={2} justifyContent="flex-end">
-              <Grid item>
-                <Button 
-                  size="medium" 
-                  color="error" 
-                  variant="outlined" 
-                  onClick={removeSite}
-                >
-                  Remover
-                </Button>
+          {!readOnly && (
+            <Box sx={footerStyle}>
+              <Grid container spacing={2} justifyContent="flex-end">
+                <Grid item>
+                  <Button 
+                    size="medium" 
+                    color="error" 
+                    variant="outlined" 
+                    onClick={reprovaSite}
+                  >
+                    Reprovar
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button 
+                    size="medium" 
+                    color="primary" 
+                    variant="contained" 
+                    onClick={aprovaSite}
+                  >
+                    Aprovar
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Button 
-                  size="medium" 
-                  color="primary" 
-                  variant="contained" 
-                  onClick={aprovaSite}
-                >
-                  Aprovar
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
+            </Box>
+          )}
         </Box>
       </Modal>
     </div>

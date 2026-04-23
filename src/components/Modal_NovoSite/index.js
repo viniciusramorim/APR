@@ -130,7 +130,10 @@ export default function ModalNovoSite(props) {
         .get();
 
       if (!pendenteSnapshot.empty) {
-        return toast.error('Já existe uma solicitação pendente para esta sigla!');
+        const hasPending = pendenteSnapshot.docs.some(doc => !doc.data().status || doc.data().status === 'PENDENTE');
+        if (hasPending) {
+          return toast.error('Já existe uma solicitação pendente para esta sigla!');
+        }
       }
     } catch (error) {
       console.error("Erro ao validar duplicidade de sigla:", error);
@@ -166,6 +169,7 @@ export default function ModalNovoSite(props) {
         user_uid: user.uid,
         Detentora: detentora,
         created: new Date(),
+        status: 'PENDENTE',
       })
       .then(() => {
         console.log('Cadastro feito com sucesso.');

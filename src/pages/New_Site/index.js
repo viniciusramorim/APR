@@ -7,6 +7,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
+  Tab,
+  Box,
 } from "@mui/material";
 import { useState, useEffect, useContext } from "react";
 import { FiMapPin } from "react-icons/fi";
@@ -28,6 +31,11 @@ export default function New_Site() {
 
   const [file, setFile] = useState();
   const [sitesAprovacao, setSitesAprovacao] = useState([]);
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
   useEffect(() => {
     loadSitesAprovacao();
@@ -322,10 +330,11 @@ export default function New_Site() {
           <FiMapPin size={25} onClick={() => console.log(sitesAprovacao)} />
         </Title>
 
-        {user.uid ===
-          ("wQzKfmkPgsV8PULa9t5JLg9Ta6j2" ||
-            "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2") && (
-            <div className="container inputfile">
+        {[
+          "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+          "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+        ].includes(user.uid) && (
+            <div className="container inputfile" style={{ width: '100%' }}>
               <label id="arquive">
                 Selecionar arquivo
                 <input
@@ -349,48 +358,139 @@ export default function New_Site() {
           "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
           "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
         ].includes(user.uid) && (
-            <Grid container className="container">
-              <TableContainer component={Paper}>
-                <Table size="small" aria-label="a dense table">
-                  <TableHead className="new-site-table">
-                    <TableRow>
-                      <TableCell align="center">Sigla</TableCell>
-                      <TableCell align="center">UF</TableCell>
-                      <TableCell align="center">Municipio</TableCell>
-                      <TableCell align="center">Lat</TableCell>
-                      <TableCell align="center">Lng</TableCell>
-                      <TableCell align="center">Data</TableCell>
-                      <TableCell align="center"></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sitesAprovacao.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                      >
-                        <TableCell align="center">{row.Sigla}</TableCell>
-                        <TableCell align="center">{row.Estado}</TableCell>
-                        <TableCell align="center">{row.Cidade}</TableCell>
-                        <TableCell align="center">{row.Latitude}</TableCell>
-                        <TableCell align="center">{row.Longitude}</TableCell>
-                        <TableCell align="center">
-                          {format(row.created.toDate(), "dd/MM/yyyy HH:mm")}
-                        </TableCell>
-                        <TableCell align="center">
-                          <ModalInfoSite
-                            site={row}
-                            loadSites={loadSitesAprovacao}
-                            logSistem={logSistem}
-                            user={user}
-                          ></ModalInfoSite>
-                        </TableCell>
+            <div className="container" style={{ width: '100%', marginTop: '20px', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'rgba(0, 0, 0, 0.12)', mb: 3 }}>
+                <Tabs 
+                  value={tabValue} 
+                  onChange={handleTabChange} 
+                  aria-label="site approval tabs"
+                  sx={{
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: '#000',
+                      height: 3,
+                    },
+                    '& .MuiTab-root': {
+                      color: 'rgba(0, 0, 0, 0.6)',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem',
+                      textTransform: 'uppercase',
+                    },
+                    '& .Mui-selected': {
+                      color: '#000 !important',
+                    },
+                  }}
+                >
+                  <Tab label="Solicitações Pendentes" />
+                  <Tab label="Histórico" />
+                </Tabs>
+              </Box>
+
+              {tabValue === 0 && (
+                <TableContainer component={Paper} sx={{ width: '100%' }}>
+                  <Table size="small" aria-label="pending table">
+                    <TableHead className="new-site-table">
+                      <TableRow>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Sigla</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>UF</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Municipio</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Lat</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Lng</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Data Solicitação</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Ações</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
+                    </TableHead>
+                    <TableBody>
+                      {sitesAprovacao
+                        .filter(row => !row.status || row.status === 'PENDENTE')
+                        .map((row) => (
+                          <TableRow
+                            key={row.id}
+                            sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                          >
+                            <TableCell align="center">{row.Sigla}</TableCell>
+                            <TableCell align="center">{row.Estado}</TableCell>
+                            <TableCell align="center">{row.Cidade}</TableCell>
+                            <TableCell align="center">{row.Latitude}</TableCell>
+                            <TableCell align="center">{row.Longitude}</TableCell>
+                            <TableCell align="center">
+                              {format(row.created.toDate(), "dd/MM/yyyy HH:mm")}
+                            </TableCell>
+                            <TableCell align="center">
+                              <ModalInfoSite
+                                site={row}
+                                loadSites={loadSitesAprovacao}
+                                logSistem={logSistem}
+                                user={user}
+                              ></ModalInfoSite>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+
+              {tabValue === 1 && (
+                <TableContainer component={Paper} sx={{ width: '100%' }}>
+                  <Table size="small" aria-label="history table">
+                    <TableHead className="new-site-table">
+                      <TableRow>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Sigla</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>UF</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Municipio</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Status</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Resolvido por</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Data Resolução</TableCell>
+                        <TableCell align="center" sx={{ color: '#fff', fontWeight: 'bold' }}>Detalhes</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {sitesAprovacao
+                        .filter(row => row.status === 'APROVADO' || row.status === 'REPROVADO')
+                        .sort((a, b) => {
+                          const dateA = a.data_aprovacao || a.data_reprovacao || a.created;
+                          const dateB = b.data_aprovacao || b.data_reprovacao || b.created;
+                          return dateB.toDate() - dateA.toDate();
+                        })
+                        .map((row) => (
+                          <TableRow
+                            key={row.id}
+                            sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                          >
+                            <TableCell align="center">{row.Sigla}</TableCell>
+                            <TableCell align="center">{row.Estado}</TableCell>
+                            <TableCell align="center">{row.Cidade}</TableCell>
+                            <TableCell align="center">
+                              <span style={{ 
+                                color: row.status === 'APROVADO' ? '#4caf50' : '#f44336',
+                                fontWeight: 'bold'
+                              }}>
+                                {row.status}
+                              </span>
+                            </TableCell>
+                            <TableCell align="center">
+                              {row.aprovado_por || row.reprovado_por || '-'}
+                            </TableCell>
+                            <TableCell align="center">
+                              {row.data_aprovacao ? format(row.data_aprovacao.toDate(), "dd/MM/yyyy HH:mm") : 
+                               row.data_reprovacao ? format(row.data_reprovacao.toDate(), "dd/MM/yyyy HH:mm") : '-'}
+                            </TableCell>
+                            <TableCell align="center">
+                              <ModalInfoSite
+                                site={row}
+                                loadSites={loadSitesAprovacao}
+                                logSistem={logSistem}
+                                user={user}
+                                readOnly={true}
+                              ></ModalInfoSite>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </div>
           )}
       </div>
     </div>
