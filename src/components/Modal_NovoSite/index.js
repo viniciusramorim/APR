@@ -40,8 +40,9 @@ export default function ModalNovoSite(props) {
 
   const handleSiglaChange = (event) => {
     const { value } = event.target;
-    // Limita a 3 caracteres e permite apenas letras maiúsculas
-    const newValue = value.slice(0, 3).toUpperCase();
+    // Limita a 3 caracteres para tipos comuns, ou 30 para lojas e permite letras maiúsculas
+    const limit = ['LOJA DEALER', 'LOJA VIVO', 'CROSS DOCKING'].includes(tipoSite) ? 30 : 3;
+    const newValue = value.slice(0, limit).toUpperCase();
     setSigla(newValue);
   };
 
@@ -92,15 +93,15 @@ export default function ModalNovoSite(props) {
   const handleTipoSite = (event) => {
     let value = event.target.value;
 
-    if(value === 'LOJA DEALER') setSigla('LOJA DEALER')
-    else if(value === 'LOJA VIVO') setSigla('LOJA VIVO')
-    else if(value === 'CROSS DOCKING') setSigla('CROSS DOCKING')
+    if (value === 'LOJA DEALER') setSigla('LOJA DEALER')
+    else if (value === 'LOJA VIVO') setSigla('LOJA VIVO')
+    else if (value === 'CROSS DOCKING') setSigla('CROSS DOCKING')
     else setSigla('')
 
     setTipoSite(value)
   }
 
-  function submit() {
+  async function submit() {
     if (nomeSite === '') return toast.error('Voce precisa preencher um nome de site.')
     if (sigla === '') return toast.error('Voce precisa preencher uma sigla.')
     if (uf === '') return toast.error('Voce precisa preencher uma Unidade Federativa (UF).')
@@ -112,6 +113,29 @@ export default function ModalNovoSite(props) {
     if (cep === '') return toast.error('Voce precisa preencher um CEP.')
     if (criticidade === '') return toast.error('Voce precisa preencher uma criticidade.')
     if (tipoSite === '') return toast.error('Voce precisa preencher um tipo de site.')
+
+    // Validação para verificar se a sigla já existe no banco de sites
+    try {
+      const siteSnapshot = await firebase.firestore().collection('sites')
+        .where('Sigla', '==', sigla)
+        .get();
+
+      if (!siteSnapshot.empty) {
+        return toast.error('Esta sigla já está cadastrada no sistema!');
+      }
+
+      // Verifica se já existe uma solicitação pendente com esta sigla
+      const pendenteSnapshot = await firebase.firestore().collection('sites-aprovacao')
+        .where('Sigla', '==', sigla)
+        .get();
+
+      if (!pendenteSnapshot.empty) {
+        return toast.error('Já existe uma solicitação pendente para esta sigla!');
+      }
+    } catch (error) {
+      console.error("Erro ao validar duplicidade de sigla:", error);
+      return toast.error('Erro ao validar sigla. Tente novamente.');
+    }
 
     try {
       var hash = geofire.geohashForLocation([parseFloat(latitude), parseFloat(longitude)]);
@@ -204,10 +228,13 @@ export default function ModalNovoSite(props) {
                 label="Sigla Movel"
                 variant="filled"
                 fullWidth
-                disabled={['LOJA DEALER', 'LOJA VIVO', 'CROSS DOCKING'].includes(tipoSite)}
+                disabled={['CROSS DOCKING'].includes(tipoSite)}
                 value={sigla}
                 onChange={handleSiglaChange}
-                inputProps={{ maxLength: 3, pattern: '[A-Z]*' }}
+                inputProps={{
+                  maxLength: ['LOJA DEALER', 'LOJA VIVO', 'CROSS DOCKING'].includes(tipoSite) ? 30 : 3,
+                  pattern: ['LOJA DEALER', 'LOJA VIVO', 'CROSS DOCKING'].includes(tipoSite) ? '[A-Z0-9 ]*' : '[A-Z]*'
+                }}
               />
             </Grid>
             <Grid item xs={5} md={5}>
@@ -320,7 +347,7 @@ export default function ModalNovoSite(props) {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={12}>
               <TextField
                 size="small"
