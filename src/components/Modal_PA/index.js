@@ -68,6 +68,10 @@ export default function Modal_PA({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [anexosLocal, setAnexosLocal] = useState(conteudo?.plano_acao?.anexos || []);
+  const [planoAcaoLocal, setPlanoAcaoLocal] = useState(conteudo?.plano_acao || {});
+  const [respPASelectedOptionLocal, setRespPASelectedOptionLocal] = useState(
+    conteudo?.resp_pa_selectedOption || ""
+  );
   const [arquivosSelecionados, setArquivosSelecionados] = useState([]);
   const webcamRef = useRef(null);
   const inputFileRef = useRef(null);
@@ -139,7 +143,10 @@ export default function Modal_PA({
         }
       }
 
-      const defaultOption = (user.nivel === "revisor_logistica") ? "Logistica" : "";
+      const defaultOption =
+        user.nivel === "revisor_logistica" || user.nivel === "ponto_focal"
+          ? "Logistica"
+          : "";
       setSelectedOption(
         conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
       );
@@ -149,6 +156,10 @@ export default function Modal_PA({
       setNotaParecer(conteudo?.nota_parecer || "");
       setResolucaoInconformidade(conteudo?.resp_pa_resolucao || null);
       setHistoricoLocal(conteudo?.plano_acao?.historico_logistica || []);
+      setPlanoAcaoLocal(conteudo?.plano_acao || {});
+      setRespPASelectedOptionLocal(
+        conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
+      );
       const anexosCarregados = conteudo?.plano_acao?.anexos || [];
       console.log("📎 Anexos carregados do conteudo:", anexosCarregados);
       setAnexosLocal(anexosCarregados);
@@ -262,7 +273,7 @@ export default function Modal_PA({
 
     // Se revisor_logistica e selectedOption vazio, definir como Logistica automaticamente
     let optionToSave = selectedOption;
-    if (user.nivel === "revisor_logistica" && !selectedOption) {
+    if ((user.nivel === "revisor_logistica" || user.nivel === "ponto_focal") && !selectedOption) {
       optionToSave = "Logistica";
     }
 
@@ -348,6 +359,9 @@ export default function Modal_PA({
     plano.resp_pa_data = new Date();
     plano.resp_pa_user_name = user.nome;
     plano.resp_pa_user_id = user.uid;
+
+    setPlanoAcaoLocal(planoAcaoToSave);
+    setRespPASelectedOptionLocal(optionToSave);
 
     console.log("🔹 Salvando plano com novos valores:", planoAcaoToSave);
     
@@ -457,10 +471,15 @@ export default function Modal_PA({
   }
 
   async function updateAPR(id) {
-    await firebase.firestore().collection(base).doc(id).update({
-      status: "Respondido pela Area",
+    const updateData = {
       data_alteracao: new Date(),
-    });
+    };
+
+    if (user.nivel !== "ponto_focal") {
+      updateData.status = "Respondido pela Area";
+    }
+
+    await firebase.firestore().collection(base).doc(id).update(updateData);
   }
 
   async function fetchRevisorEmails() {
@@ -1507,7 +1526,7 @@ export default function Modal_PA({
             )}
 
             {/* Card com SLA atual */}
-            {conteudo?.plano_acao?.sla_logistica && (
+            {planoAcaoLocal?.sla_logistica && (
               <Box 
                 sx={{ 
                   mb: 3, 
@@ -1521,10 +1540,10 @@ export default function Modal_PA({
                   ✅ SLA Atual
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Data:</strong> {new Date(conteudo.plano_acao.sla_logistica.toDate()).toLocaleDateString('pt-BR')}
+                  <strong>Data:</strong> {new Date(planoAcaoLocal.sla_logistica.seconds ? planoAcaoLocal.sla_logistica.seconds * 1000 : planoAcaoLocal.sla_logistica).toLocaleDateString('pt-BR')}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Comentário:</strong> {conteudo.plano_acao.comentario || 'N/D'}
+                  <strong>Comentário:</strong> {planoAcaoLocal.comentario || 'N/D'}
                 </Typography>
               </Box>
             )}
@@ -1844,10 +1863,24 @@ export default function Modal_PA({
             )}
 
             {/* Formulário para definir SLA */}
+            {planoAcaoLocal?.sla_logistica && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #43a047' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1.5, color: '#2e7d32' }}>
+                  ✅ SLA Atual
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 0.5, color: '#1b5e20' }}>
+                  <strong>Data:</strong> {new Date(planoAcaoLocal.sla_logistica.seconds ? planoAcaoLocal.sla_logistica.seconds * 1000 : planoAcaoLocal.sla_logistica).toLocaleDateString('pt-BR')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#1b5e20' }}>
+                  <strong>Comentário:</strong> {planoAcaoLocal.comentario || 'N/D'}
+                </Typography>
+              </Box>
+            )}
+
             {user.nivel !== "revisor_logistica" && (
             <Box sx={{ mb: 3, p: 3, bgcolor: '#e3f2fd', borderRadius: 2, border: '2px solid #1976d2' }}>
               <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#0d47a1' }}>
-                📅 {conteudo?.plano_acao?.sla_logistica ? "Redefinir SLA:" : "Definir SLA:"}
+                📅 {planoAcaoLocal?.sla_logistica ? "Redefinir SLA:" : "Definir SLA:"}
               </Typography>
               
               <TextField
@@ -1869,7 +1902,7 @@ export default function Modal_PA({
                 multiline
                 rows={4}
                 placeholder="Comentários sobre as tratativas e justificativa para SLA"
-                helperText={conteudo?.plano_acao?.sla_logistica ? "Explique o motivo da alteração do SLA" : "Descreva as ações planejadas"}
+                helperText={planoAcaoLocal?.sla_logistica ? "Explique o motivo da alteração do SLA" : "Descreva as ações planejadas"}
               />
             </Box>
             )}
@@ -2724,6 +2757,20 @@ export default function Modal_PA({
                         </Typography>
                       </Box>
                     ))}
+                  </Box>
+                )}
+
+                {planoAcaoLocal?.sla_logistica && (
+                  <Box sx={{ mb: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 1.5, border: '2px solid #43a047' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#2e7d32' }}>
+                      ✅ SLA Atual
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#1b5e20' }}>
+                      <strong>Data:</strong> {new Date(planoAcaoLocal.sla_logistica.seconds ? planoAcaoLocal.sla_logistica.seconds * 1000 : planoAcaoLocal.sla_logistica).toLocaleDateString('pt-BR')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#1b5e20' }}>
+                      <strong>Comentário:</strong> {planoAcaoLocal.comentario || 'N/D'}
+                    </Typography>
                   </Box>
                 )}
 

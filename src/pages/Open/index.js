@@ -2269,16 +2269,17 @@ export default function Open() {
                               style={{ display: "none" }}
                             >
                               {area[1].map((doc, indexQ) => {
-                                // FILTRO: Ponto Focal - mostrar APENAS perguntas com inconformidade + plano de ação
+                                const temInconformidade =
+                                  doc.resp !== "N/A" &&
+                                  doc.resp !== doc.respGabarito &&
+                                  doc.resp !== "";
+
+                                // Ponto focal deve ver as inconformidades normalmente.
+                                // A regra de openPA controla apenas a exibição do botão
+                                // de plano de ação, não a pergunta em si.
                                 if ((user.nivel === "ponto_focal") && 
                                     apr.status !== "Em Aberto") {
-                                  const temInconformidade = doc.resp !== "N/A" && 
-                                                          doc.resp !== doc.respGabarito &&
-                                                          doc.resp !== "";
-                                  const temPlanoAcao = doc.openPA === true; // Verificar se PA foi aberto
-                                  
-                                  // Se não tem inconformidade OU não tem plano de ação aberto, retorna null
-                                  if (!temInconformidade || !temPlanoAcao) {
+                                  if (!temInconformidade) {
                                     return null;
                                   }
                                 }
@@ -2582,17 +2583,41 @@ export default function Open() {
                                       )}
                                       {doc.openPA === true &&
                                         doc.resp !== doc.respGabarito &&
-                                        doc.plano_acao.comentario && (
+                                        doc.resp !== "N/A" &&
+                                        doc.resp !== "" && (
                                           <label className="plano-acao">
-                                            <a
-                                              data-check="Sim"
-                                              onClick={() =>
-                                                togglePostModal(doc, indexA)
-                                              }
-                                            >
-                                              <FiCheck size={20} />
-                                              Plano de Ação
-                                            </a>
+                                            {doc.plano_acao?.comentario ? (
+                                              <a
+                                                data-check={
+                                                  doc.resp_pa_status ===
+                                                    "Concluido"
+                                                    ? "Sim"
+                                                    : doc.resp_pa_status === "Reprovado"
+                                                      ? "Reprovado"
+                                                      : "Concluido"
+                                                }
+                                                onClick={() =>
+                                                  togglePostModal(doc, indexA)
+                                                }
+                                              >
+                                                <FiCheck size={20} />
+                                                {doc.resp_pa_status ===
+                                                  "Concluido"
+                                                  ? "Plano de ação validado"
+                                                  : doc.resp_pa_status === "Reprovado"
+                                                    ? "Plano de ação recusado"
+                                                    : "Plano de Ação"}
+                                              </a>
+                                            ) : (
+                                              <a
+                                                data-check="Não"
+                                                onClick={() =>
+                                                  togglePostModal(doc, indexA)
+                                                }
+                                              >
+                                                Plano de Ação
+                                              </a>
+                                            )}
                                           </label>
                                         )}
                                       {(user.nivel === "administrador" ||
