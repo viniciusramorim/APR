@@ -114,25 +114,27 @@ export default function ModalNovoSite(props) {
     if (criticidade === '') return toast.error('Voce precisa preencher uma criticidade.')
     if (tipoSite === '') return toast.error('Voce precisa preencher um tipo de site.')
 
-    // Validação para verificar se a sigla já existe no banco de sites
+    // Validação para verificar se a sigla já existe no banco de sites para a mesma UF
     try {
       const siteSnapshot = await firebase.firestore().collection('sites')
         .where('Sigla', '==', sigla)
+        .where('Estado', '==', uf)
         .get();
 
       if (!siteSnapshot.empty) {
-        return toast.error('Esta sigla já está cadastrada no sistema!');
+        return toast.error('Esta sigla já está cadastrada para esta UF no sistema!');
       }
 
-      // Verifica se já existe uma solicitação pendente com esta sigla
+      // Verifica se já existe uma solicitação pendente com esta sigla para a mesma UF
       const pendenteSnapshot = await firebase.firestore().collection('sites-aprovacao')
         .where('Sigla', '==', sigla)
+        .where('Estado', '==', uf)
         .get();
 
       if (!pendenteSnapshot.empty) {
         const hasPending = pendenteSnapshot.docs.some(doc => !doc.data().status || doc.data().status === 'PENDENTE');
         if (hasPending) {
-          return toast.error('Já existe uma solicitação pendente para esta sigla!');
+          return toast.error('Já existe uma solicitação pendente para esta sigla nesta UF!');
         }
       }
     } catch (error) {
