@@ -1,5 +1,16 @@
 import { useState, useEffect, useContext } from "react";
-import { FiMessageSquare } from "react-icons/fi";
+import {
+  FiMessageSquare,
+  FiSearch,
+  FiAlertCircle,
+  FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiSend,
+  FiMessageCircle,
+  FiFileText,
+  FiActivity
+} from "react-icons/fi";
 import { format } from "date-fns";
 import { AuthContext } from "../../contexts/auth";
 import Header from "../../components/Header";
@@ -17,23 +28,82 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Backdrop,
+  CircularProgress,
+  Box,
 } from "@mui/material";
+import { useMemo } from "react";
 
 const styles = {
-  containerDash: {
-    background: "#380054e8",
+  kpiCard: {
+    background: "rgba(255, 255, 255, 0.05)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
     color: "#fff",
-    padding: "6px",
-    borderRadius: "8px",
+    padding: "15px",
+    borderRadius: "12px",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    cursor: "default",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    "&:hover": {
+      transform: "translateY(-5px)",
+      boxShadow: "0 12px 20px rgba(0, 0, 0, 0.3)",
+      filter: "brightness(1.1)",
+    }
   },
-  pendendia: {
-    background: "#ef0808e8",
+  kpiTitle: {
+    fontSize: "0.75rem",
+    fontWeight: "600",
     color: "#fff",
-    padding: "6px",
-    borderRadius: "8px",
+    marginBottom: "8px",
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: "0.8px",
+    textShadow: "1px 1px 2px rgba(0,0,0,0.2)"
+  },
+  kpiValue: {
+    fontSize: "1.6rem",
+    fontWeight: "bold",
+    color: "#fff",
+    textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
+  },
+  kpiIcon: {
+    fontSize: "1.4rem",
+    marginBottom: "10px",
+    color: "#fff"
+  },
+  pendenciaCard: {
+    background: "linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%)",
+  },
+  emAbertoCard: {
+    background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+  },
+  canceladoCard: {
+    background: "linear-gradient(135deg, #232526 0%, #414345 100%)",
+  },
+  revisadoCard: {
+    background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+  },
+  enviadoCard: {
+    background: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)",
+  },
+  respondidoCard: {
+    background: "linear-gradient(135deg, #f83600 0%, #f9d423 100%)",
+  },
+  concluidoCard: {
+    background: "linear-gradient(135deg, #000000 0%, #434343 100%)",
+  },
+  totalCard: {
+    background: "linear-gradient(135deg, #380054 0%, #6a008a 100%)",
   },
   gridContainer: {
-    gap: "10px",
+    gap: "12px",
+    padding: "20px 0",
   },
 };
 
@@ -54,21 +124,12 @@ const loadPageFromSessionStorage = () => {
   return savedPage ? parseInt(savedPage, 10) : 0;
 };
 
-// Função para salvar o botão clicado no localStorage
-const saveLastButtonToSessionStorage = (button) => {
-  sessionStorage.setItem("lastButtonClicked", button);
-};
 
-// Função para carregar o último botão clicado do localStorage
-const loadLastButtonFromSessionStorage = () => {
-  return sessionStorage.getItem("lastButtonClicked");
-};
 
 // Função para limpar as informações de filtro e paginação do localStorage
 const clearSessionStorage = () => {
   sessionStorage.removeItem("filters");
   sessionStorage.removeItem("tablePage");
-  sessionStorage.removeItem("lastButtonClicked");
 };
 
 // Função para adicionar uma classe ao body
@@ -112,20 +173,57 @@ export default function Dashboard() {
     savedFilters.filterDataFim || ""
   );
 
+  // Otimização: Calcular contagens do Dashboard de forma eficiente
+  const dashboardStats = useMemo(() => {
+    const counts = {
+      emAberto: 0,
+      cancelado: 0,
+      revisado: 0,
+      enviado: 0,
+      respondidoArea: 0,
+      concluido: 0,
+      pendencia10Dias: 0,
+    };
+
+    const now = new Date();
+
+    chamados.forEach((x) => {
+      // Contagem básica por status
+      if (x.status === "Em Aberto") counts.emAberto++;
+      else if (x.status === "Cancelado") counts.cancelado++;
+      else if (x.status === "Revisado") counts.revisado++;
+      else if (x.status === "Enviado") counts.enviado++;
+      else if (x.status === "Respondido pela Area") counts.respondidoArea++;
+      else if (x.status === "Concluido") counts.concluido++;
+
+      // Lógica específica para pendência de 10 dias
+      if (x.status === "Em Aberto" && x.created) {
+        try {
+          const [datePart] = x.created.split(" ");
+          const [day, month, year] = datePart.split("/");
+          const createdDate = new Date(`${year}-${month}-${day}`);
+          const diffMs = now - createdDate;
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          if (diffDays > 10) {
+            counts.pendencia10Dias++;
+          }
+        } catch (e) {
+          console.error("Erro ao processar data para stats:", e);
+        }
+      }
+    });
+
+    return counts;
+  }, [chamados]);
+
   useEffect(() => {
     addBodyClass("page-dash");
-
-    // Recupera o último botão clicado e dispara o clique correspondente
-    const lastButtonClicked = loadLastButtonFromSessionStorage();
-    if (lastButtonClicked === "all") {
-      loadChamados(false);
-    } else if (lastButtonClicked === "new") {
-      loadChamados(true);
-    }
+    // Carrega os chamados inicialmente
+    loadChamados(false);
   }, []);
 
   // Função para carregar os chamados com base nos filtros
-  const loadChamados = async (novasAPRs = false) => {
+  const loadChamados = async (novasAPRs = false, searchAll = false) => {
     setLoading(true);
     let query = listRef;
     const normalizedFilterID = String(filterID || "").trim();
@@ -201,6 +299,33 @@ export default function Dashboard() {
       query = query.where("site_id.Estado", "in", regional);
     }
 
+    // OTIMIZAÇÃO: Puxar filtros de igualdade para o Firestore para reduzir tráfego e aumentar velocidade
+    if (filterStatus !== "") {
+      query = query.where("status", "==", filterStatus);
+    }
+    if (filterUF !== "") {
+      query = query.where("site_id.Estado", "==", filterUF);
+    }
+    if (filterTipoSite !== "") {
+      query = query.where("site_id.tipoSite", "==", filterTipoSite);
+    }
+    if (filterMotivo !== "") {
+      query = query.where("motivo_apr", "==", filterMotivo);
+    }
+    if (filterNome !== "") {
+      query = query.where("user_id.nome", "==", filterNome);
+    }
+    if (filterSigla !== "") {
+      query = query.where("site_id.Sigla", "==", filterSigla);
+    }
+    // Regional manual: Apenas para administradores (evita conflito de 'in' em outros perfis)
+    if (filterRegional !== "" && user.nivel === "administrador") {
+      const estados = regionMap[filterRegional];
+      if (estados) {
+        query = query.where("site_id.Estado", "in", estados);
+      }
+    }
+
     // Guarda a base da query para fallback quando o ID estiver salvo como string.
     const baseQuery = query;
 
@@ -221,8 +346,17 @@ export default function Dashboard() {
           ? query.orderBy("apr_id", "desc")
           : query.orderBy("created", "desc");
 
-    // Com filtro de ID, o recorte pode ser menor e mais rápido.
-    query = hasIdFilter ? query.limit(50) : query.limit(5000);
+    // Limites inteligentes para evitar lentidão
+    // Se for busca por ID, traz apenas 1 (ou poucos legados).
+    // Se houver filtro de data ou se o usuário pediu 'Tudo', não aplicamos o limite de 1000.
+    if (hasIdFilter) {
+      query = query.limit(10);
+    } else if (hasDateFilter || searchAll) {
+      // Sem limite ou um limite muito alto para garantir que traz tudo do período
+      console.log("🔍 Buscando sem limite (Filtro de data ou Buscar Tudo ativo)");
+    } else {
+      query = query.limit(1000);
+    }
 
     const contarQuestions = (checklist) => {
       let totalQuestions = 0;
@@ -258,26 +392,8 @@ export default function Dashboard() {
             return;
           }
         } else {
-          // Aplicar demais filtros em memória para evitar query muito pesada.
-          if (filterUF !== "" && docData.site_id?.Estado !== filterUF) {
-            return;
-          }
-          if (filterSigla !== "" && docData.site_id?.Sigla !== filterSigla) {
-            return;
-          }
-          if (filterTipoSite !== "" && docData.site_id?.tipoSite !== filterTipoSite) {
-            return;
-          }
-          if (filterStatus !== "" && docData.status !== filterStatus) {
-            return;
-          }
-          if (filterNome !== "" && docData.user_id?.nome !== filterNome) {
-            return;
-          }
-          if (filterMotivo !== "" && docData.motivo_apr !== filterMotivo) {
-            return;
-          }
-          if (filterRegional !== "") {
+          // Aplicar demais filtros em memória para os que não puderam ser otimizados na query (ex: regional para não-admins)
+          if (filterRegional !== "" && user.nivel !== "administrador") {
             const estados = regionMap[filterRegional];
             if (!estados || !estados.includes(docData.site_id?.Estado)) {
               return;
@@ -525,28 +641,7 @@ export default function Dashboard() {
   //   return chamados.filter(x) => x.status === status).length;;
   // }
 
-  function contAprs(status) {
-    const quantidadeElementos = chamados.filter((x) => {
-      if (x.status !== status) return false;
 
-      // Parse da data
-      const [datePart, timePartWithPeriod] = x.created.split(' ');
-      const [day, month, year] = datePart.split('/');
-      const timePart = timePartWithPeriod.slice(0, -2);
-      const period = timePartWithPeriod.slice(-2);
-      const formattedDateStr = `${year}-${month}-${day}`;
-      const createdDate = new Date(formattedDateStr);
-
-      const now = new Date();
-      const diffMs = now - createdDate;
-      const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-      // Só conta se estiver em aberto E tiver mais de 5 dias
-      return diffDays > 10;
-    }).length;
-
-    return quantidadeElementos;
-  }
 
   return (
     <div className="apr-digital">
@@ -558,114 +653,113 @@ export default function Dashboard() {
         {(user.nivel === "administrador" || user.nivel === "revisor") && (
           <Grid
             container
-            marginBottom={2}
+            marginBottom={3}
             justifyContent="center"
-            alignItems="center"
-            textAlign="center"
+            alignItems="stretch"
             sx={styles.gridContainer}
           >
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.pendendia}
+              md={1.4}
             >
-              <Grid>Pendencia de Revisão (10 dias)</Grid>
-              <Grid>{contAprs("Em Aberto")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.pendenciaCard }}>
+                <FiAlertCircle style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Em Aberto</Grid>
-              <Grid>{chamados.filter((x) => x.status === "Em Aberto").length}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.emAbertoCard }}>
+                <FiClock style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Em Aberto</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.emAberto}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Cancelado</Grid>
-              <Grid>{contAprs("Cancelado")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.canceladoCard }}>
+                <FiXCircle style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Cancelado</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.cancelado}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Revisado</Grid>
-              <Grid>{contAprs("Revisado")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.revisadoCard }}>
+                <FiCheckCircle style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Revisado</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.revisado}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Enviado</Grid>
-              <Grid>{contAprs("Enviado")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                <FiSend style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Enviado</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.enviado}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={5}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Respondido pela Área</Grid>
-              <Grid>{contAprs("Respondido pela Area")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.respondidoCard }}>
+                <FiMessageCircle style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Respondido</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.respondidoArea}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={6}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Concluido</Grid>
-              <Grid>{contAprs("Concluido")}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.concluidoCard }}>
+                <FiFileText style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Concluido</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.concluido}</Box>
+              </Box>
             </Grid>
 
             <Grid
-              container
               item
-              direction="column"
               xs={5.5}
               sm={5}
-              md={2.9}
-              sx={styles.containerDash}
+              md={1.4}
             >
-              <Grid>Total</Grid>
-              <Grid>{chamados.length}</Grid>
+              <Box sx={{ ...styles.kpiCard, ...styles.totalCard }}>
+                <FiActivity style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Total</Box>
+                <Box sx={styles.kpiValue}>{chamados.length}</Box>
+              </Box>
             </Grid>
           </Grid>
         )}
@@ -928,62 +1022,68 @@ export default function Dashboard() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={12} md={2}>
+            <Grid item xs={12} sm={6} md={1.2}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => loadChamados(false, false)}
+                fullWidth
+                disabled={loading}
+                startIcon={<FiSearch />}
+                title="Busca os primeiros 1000 registros"
+              >
+                Buscar
+              </Button>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={1.2}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => loadChamados(false, true)}
+                fullWidth
+                disabled={loading}
+                startIcon={<FiSearch />}
+                title="Busca todos os registros filtrados"
+              >
+                Buscar Tudo
+              </Button>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={1}>
               <Button
                 variant="outlined"
                 color="secondary"
                 onClick={clearFilters}
                 fullWidth
               >
-                Limpar Filtros
+                Limpar
               </Button>
             </Grid>
           </Grid>
         </div>
 
-        <Grid
-          container
-          marginTop={2}
-          marginBottom={2}
-          justifyContent="flex-end"
-          alignItems="center"
-        >
-          <ButtonGroup size="small" aria-label="small button group">
-            <Button
-              size="small"
-              color="secondary"
-              variant="contained"
-              onClick={() => {
-                loadChamados(false);
-                saveLastButtonToSessionStorage("all");
-              }}
-              disabled={loading}
-            >
-              {loading ? "Carregando APRs..." : "Listar Todas APRs"}
-            </Button>
-            <Button
-              size="small"
-              color="secondary"
-              variant="outlined"
-              style={{ marginLeft: "10px" }}
-              onClick={() => {
-                loadChamados(true);
-                saveLastButtonToSessionStorage("new");
-              }}
-              disabled={loading}
-            >
-              {loading ? "Carregando APRs..." : "Listar Novas APRs"}
-            </Button>
-          </ButtonGroup>
-        </Grid>
-
         {/* Lista de resultados */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <span style={{ fontSize: '0.9rem', color: '#666' }}>
+            {chamados.length > 0 ? `Exibindo ${chamados.length} registros` : 'Nenhum registro encontrado'}
+          </span>
+        </div>
+
         <TableDashboard
           chamados={chamados}
           user={user}
           updateStatus={updateStatus}
           updateStatusRollBack={updateStatusRollBack}
         />
+
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+          <span style={{ marginLeft: '15px', fontSize: '1.2rem' }}>Carregando dados, por favor aguarde...</span>
+        </Backdrop>
       </div>
     </div>
   );

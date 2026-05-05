@@ -17,8 +17,13 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import ModalLog from "../../components/Modal_Logs";
 import { Link } from "react-router-dom";
-import { ArrowBack, Close, Search } from "@mui/icons-material";
-import { TableHead, TableSortLabel } from "@mui/material";
+import { TableHead, TableSortLabel, Tooltip } from "@mui/material";
+import { 
+  FiEye, 
+  FiTrash2, 
+  FiRotateCcw, 
+  FiList 
+} from "react-icons/fi";
 
 // Função para salvar a página no localStorage
 const savePageToLocalStorage = (page) => {
@@ -299,34 +304,66 @@ export default function CustomPaginationActionsTable(props) {
               <TableCell data-label="%" align="center">
                 {row.porcentagem_resp_area}
               </TableCell>
-              <TableCell style={{ width: 160 }} align="center">
-                <Link to={`/open/${row.id}`}>
-                  <IconButton color="info">
-                    <Search />
-                  </IconButton>
-                </Link>
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && (
-                    <IconButton
-                      onClick={() => updateStatus(row.id, index)}
-                      color="error"
-                      aria-label="add an alarm"
+              <TableCell align="center" style={{ minWidth: 150 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                  <Tooltip title="Exibir Detalhes">
+                    <Link 
+                      to={`/open/${row.id}`}
+                      style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
                     >
-                      <Close />
-                    </IconButton>
+                      <IconButton 
+                        size="small"
+                        sx={{ 
+                          color: "#2196f3",
+                          backgroundColor: "rgba(33, 150, 243, 0.1)",
+                          "&:hover": { backgroundColor: "rgba(33, 150, 243, 0.2)" }
+                        }}
+                      >
+                        <FiEye />
+                      </IconButton>
+                    </Link>
+                  </Tooltip>
+
+                  {(user.nivel === "administrador" || user.nivel === "revisor") && (
+                    <Tooltip title="Cancelar APR">
+                      <IconButton
+                        size="small"
+                        onClick={() => updateStatus(row.id, index)}
+                        sx={{ 
+                          color: "#f44336",
+                          backgroundColor: "rgba(244, 67, 54, 0.1)",
+                          "&:hover": { backgroundColor: "rgba(244, 67, 54, 0.2)" }
+                        }}
+                      >
+                        <FiTrash2 />
+                      </IconButton>
+                    </Tooltip>
                   )}
 
-                {(user.nivel === "administrador") && (
-                    <IconButton
-                      onClick={() => updateStatusRollBack(row.id, index)}
-                      color="secondary"
-                      aria-label="add an alarm"
-                    >
-                      <ArrowBack />
-                    </IconButton>
+                  {user.nivel === "administrador" && (
+                    <Tooltip title="Voltar Status (Rollback)">
+                      <IconButton
+                        size="small"
+                        onClick={() => updateStatusRollBack(row.id, index)}
+                        sx={{ 
+                          color: "#9c27b0",
+                          backgroundColor: "rgba(156, 39, 176, 0.1)",
+                          "&:hover": { backgroundColor: "rgba(156, 39, 176, 0.2)" }
+                        }}
+                      >
+                        <FiRotateCcw />
+                      </IconButton>
+                    </Tooltip>
                   )}
-                {(user.nivel === "administrador" ||
-                  user.nivel === "revisor") && <ModalLog chamadoId={row.id} />}
+
+                  {(user.nivel === "administrador" || user.nivel === "revisor") && (
+                    <Tooltip title="Ver Histórico/Logs">
+                      <Box sx={{ display: 'inline-block' }}>
+                        <ModalLog chamadoId={row.id} />
+                      </Box>
+                    </Tooltip>
+                  )}
+                </Box>
               </TableCell>
             </TableRow>
           ))}
