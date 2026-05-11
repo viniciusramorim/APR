@@ -332,12 +332,6 @@ export default function Reports() {
                     
                     // Filtrar apenas perguntas realmente respondidas pelo aplicador
                     if (isAnsweredByApplicator(question)) {
-                      // FIXADO: Verificar areaResposavel - deve ter sido designado para alguém responder
-                      // Se areaResposavel não existe ou está vazio, significa que a pergunta não foi destinada a ninguém
-                      if (!question.areaResposavel || !Array.isArray(question.areaResposavel) || question.areaResposavel.length === 0) {
-                        return; // Pula perguntas que não foram designadas para ninguém responder
-                      }
-                      
                       // Marcar pergunta como adicionada
                       addedQuestions.add(questionKey);
                       
