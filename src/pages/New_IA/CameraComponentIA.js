@@ -4,7 +4,7 @@ import Modal from "react-modal";
 import { FiCamera, FiX } from "react-icons/fi";
 import { IconButton, Box } from '@mui/material';
 
-const CameraComponent = ({ onCapture }) => {
+const CameraComponent = ({ onCapture, children }) => {
   const webcamRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -57,9 +57,11 @@ const CameraComponent = ({ onCapture }) => {
       justifyContent: 'center',
       inset: '0px',        
       overflow: 'unset', 
+      zIndex: 2000,
     },
     overlay: {
-      backgroundColor: 'rgba(0, 0, 0, 0.8)'
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      zIndex: 2000,
     }
   };
 
@@ -88,9 +90,15 @@ const CameraComponent = ({ onCapture }) => {
 
   return (
     <>
-      <IconButton onClick={openModal} color="primary">
-        <FiCamera size={25} />
-      </IconButton>
+      {children ? (
+        <div onClick={openModal} style={{ cursor: 'pointer', width: '100%', height: '100%' }}>
+          {children}
+        </div>
+      ) : (
+        <IconButton onClick={openModal} color="primary">
+          <FiCamera size={25} />
+        </IconButton>
+      )}
 
       <Modal
         isOpen={isModalOpen}

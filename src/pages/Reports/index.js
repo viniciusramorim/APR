@@ -18,6 +18,9 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
+  LinearProgress,
+  Typography,
+  Box,
 } from "@mui/material";
 
 export default function Reports() {
@@ -30,6 +33,8 @@ export default function Reports() {
   const [filterMotivo, setFilterMotivo] = useState("");
   const [filterTipoSite, setFilterTipoSite] = useState("");
   const [includeQuestions, setIncludeQuestions] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [sitesCache, setSitesCache] = useState(new Map());
 
   useEffect(() => {
@@ -50,34 +55,26 @@ export default function Reports() {
         return;
       }
 
-      console.log('🔍 Buscando dados em lotes de 30 dias para evitar timeout...');
+      console.log('🔍 Buscando dados em lotes para evitar timeout...');
+      setDownloadProgress(0);
+      setIsDownloading(true); // Usando a mesma flag para o loading centralizado
       
       // Determinar intervalo de data
       let start, end;
       
       if (filterDate.startDate && filterDate.endDate) {
-        // Ambas preenchidas
         start = new Date(filterDate.startDate + "T00:00:00Z");
         end = new Date(filterDate.endDate + "T23:59:59Z");
-        console.log(`📅 Período: ${filterDate.startDate} até ${filterDate.endDate}`);
       } else if (filterDate.startDate && !filterDate.endDate) {
-        // Apenas início - até hoje
         start = new Date(filterDate.startDate + "T00:00:00Z");
         end = new Date();
         end.setHours(23, 59, 59, 999);
-        console.log(`📅 Período: ${filterDate.startDate} até hoje (${end.toLocaleDateString()})`);
       } else if (!filterDate.startDate && filterDate.endDate) {
-        // Apenas fim - desde 2000
         start = new Date("2000-01-01T00:00:00Z");
         end = new Date(filterDate.endDate + "T23:59:59Z");
-        console.log(`📅 Período: Desde 2000 até ${filterDate.endDate}`);
       }
       
-      // Validar intervalo máximo
-      const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-      if (diffDays > 90) {
-        console.warn('⚠️ Intervalo de data muito grande (>90 dias). Dividindo em lotes de 30 dias.');
-      }
+      console.log(`📅 Período: ${start.toLocaleDateString()} até ${end.toLocaleDateString()}`);
 
       let currentStart = new Date(start);
       let batchNumber = 1;
@@ -90,67 +87,113 @@ export default function Reports() {
           currentEnd = new Date(end);
         }
 
-        console.log(`📦 Lote ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
+        console.log(`📦 Lote de Tempo ${batchNumber}: ${currentStart.toLocaleDateString()} até ${currentEnd.toLocaleDateString()}`);
 
-        // Construir query - aplicar apenas filtro de data no Firestore
-        let query = firebase.firestore().collection("aprs-producao")
-          .where("created", ">=", currentStart)
-          .where("created", "<=", currentEnd);
+        let hasMoreInTimeBatch = true;
+        let lastVisible = null;
+        let subBatchCount = 1;
 
-        // Filtro de auditor se necessário
-        if (user.nivel === 'auditor') {
-          query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
+        while (hasMoreInTimeBatch) {
+          // Construir query - aplicar filtros diretamente no Firestore para melhor performance
+          let query = firebase.firestore().collection("aprs-producao")
+            .where("created", ">=", currentStart)
+            .where("created", "<=", currentEnd)
+            .orderBy("created");
+
+          // Aplicar filtros de Status e Motivo se selecionados
+          if (filterStatus) {
+            query = query.where("status", "==", filterStatus);
+          }
+          if (filterMotivo && filterMotivo !== "" && filterMotivo !== "Todos") {
+            query = query.where("motivo_apr", "==", filterMotivo);
+          }
+
+          // Lógica para filtro de Tipo de Site combinada com a restrição de Auditor
+          if (filterTipoSite && filterTipoSite !== "" && filterTipoSite !== "todos") {
+            const typesToFilter = [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()];
+            
+            if (user.nivel === 'auditor') {
+              const auditorAllowed = ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL'];
+              const intersection = typesToFilter.filter(t => auditorAllowed.includes(t));
+              
+              if (intersection.length > 0) {
+                query = query.where('site_id.tipoSite', 'in', intersection);
+              } else {
+                // Auditor selecionou um tipo que não tem acesso
+                hasMoreInTimeBatch = false;
+                break;
+              }
+            } else {
+              query = query.where('site_id.tipoSite', 'in', typesToFilter);
+            }
+          } else if (user.nivel === 'auditor') {
+            // Restrição padrão para auditores
+            query = query.where('site_id.tipoSite', 'in', ['AUDIT PGR FIXA', 'AUDIT PGR MOVEL']);
+          }
+
+          // Paginação dentro do lote de tempo
+          if (lastVisible) {
+            query = query.startAfter(lastVisible);
+          }
+
+          // Limite por sub-lote para evitar timeout de rede/memória
+          const subBatchSize = 2000;
+          query = query.limit(subBatchSize);
+
+          const snapshot = await query.get();
+          console.log(`   -> Sub-lote ${subBatchCount}: ${snapshot.docs.length} registros encontrados`);
+
+          if (snapshot.empty) {
+            hasMoreInTimeBatch = false;
+            break;
+          }
+
+          // Processar resultados deste sub-lote
+          snapshot.docs.forEach(doc => {
+            const aprData = { id: doc.id, ...doc.data() };
+            
+            const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
+            if (!newCache.has(siteKey) && aprData.site_id) {
+              newCache.set(siteKey, aprData.site_id);
+            }
+
+            allResults.push(aprData);
+          });
+
+
+          if (snapshot.docs.length < subBatchSize) {
+            hasMoreInTimeBatch = false;
+          } else {
+            lastVisible = snapshot.docs[snapshot.docs.length - 1];
+            subBatchCount++;
+          }
+          
+          // Atualizar progresso baseado no tempo (meta-lotes)
+          const totalTime = end.getTime() - start.getTime();
+          const elapsed = currentEnd.getTime() - start.getTime();
+          const progress = Math.min(Math.round((elapsed / totalTime) * 100), 99); // Deixa 99 até o final total
+          setDownloadProgress(progress);
         }
 
-        // Aplicar limite para evitar timeout
-        query = query.limit(3000);
-
-        const snapshot = await query.get();
-        console.log(`   ✓ Encontrados ${snapshot.docs.length} APRs neste lote`);
-
-        // Processar resultados deste lote - aplicar outros filtros em memória
-        snapshot.docs.forEach(doc => {
-          const aprData = { id: doc.id, ...doc.data() };
-          
-          // Aplicar filtros em memória para melhor performance
-          if (filterStatus && aprData.status !== filterStatus) {
-            return;
-          }
-          if (filterMotivo && filterMotivo !== "Todos" && aprData.motivo_apr !== filterMotivo) {
-            return;
-          }
-          if (filterTipoSite && filterTipoSite !== "todos") {
-            const tipoSiteUpper = filterTipoSite.toUpperCase();
-            const tipoSiteLower = filterTipoSite.toLowerCase();
-            if (aprData.site_id?.tipoSite !== tipoSiteUpper && aprData.site_id?.tipoSite !== tipoSiteLower) {
-              return;
-            }
-          }
-
-          const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
-          if (!newCache.has(siteKey) && aprData.site_id) {
-            newCache.set(siteKey, aprData.site_id);
-          }
-
-          allResults.push(aprData);
-        });
-
-        // Avançar para o próximo período
-        currentStart = new Date(currentEnd);
+        // Avançar para o próximo período (adicionando 1ms para não repetir o último registro se ele cair no limite exato)
+        currentStart = new Date(currentEnd.getTime() + 1);
         batchNumber++;
 
-        // Delay pequeno entre lotes para não sobrecarregar
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Delay pequeno entre lotes para não sobrecarregar o navegador
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
       setSitesCache(newCache);
-      console.log(`✅ Total: ${allResults.length} APRs carregados com ${newCache.size} sites únicos`);
+      console.log(`✅ Extração completa: ${allResults.length} APRs carregados`);
       setChamados(allResults);
     } catch (err) {
       console.error("❌ Erro ao carregar dados: ", err);
+      // Se der erro de índice ausente, o Firestore logará o link no console
     }
     setLoading(false);
+    setDownloadProgress(0); // Resetar após terminar
   }
+
 
   function downloadExcel(data) {
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -230,7 +273,9 @@ export default function Reports() {
   }
 
   async function updateState(snapshot) {
-    setLoading(true)
+    setLoading(true);
+    setIsDownloading(false); // Mudado para false aqui
+    setDownloadProgress(0);
     const relatorioApr = [];
 
     const buildQuestionWeightMap = async () => {
@@ -504,9 +549,15 @@ export default function Reports() {
       });
     }
 
+    setDownloadProgress(100);
     console.log(`Processamento completo. Total de registros: ${relatorioApr.length}`);
     downloadExcel(relatorioApr);
-    setLoading(false);
+    
+    setTimeout(() => {
+      setLoading(false);
+      setIsDownloading(false);
+      setDownloadProgress(0);
+    }, 1000);
   }
 
   return (
@@ -653,22 +704,31 @@ export default function Reports() {
                     disabled={loading}
                     style={{ borderColor: "#380054e8", color: "#380054e8" }}
                   >
-                    {loading ? "Carregando..." : "Filtrar"}
+                    {loading && !isDownloading ? "Filtrando..." : "Filtrar"}
                   </Button>
                 </FormControl>
               </Grid>
             </Grid>
+            {loading && isDownloading && (
+              <Box sx={{ width: '100%', mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 1 }}>
+                  Carregando dados... {downloadProgress}%
+                </Typography>
+                <LinearProgress variant="determinate" value={downloadProgress} sx={{ height: 10, borderRadius: 5 }} />
+              </Box>
+            )}
           </div>
         </div>
 
-        <div className={"container reports"}>
+        <div className={"container reports"} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => updateState(chamados)}
             disabled={loading || chamados.length === 0}
+            style={{ backgroundColor: loading ? '#ccc' : '#380054e8' }}
           >
-            {loading ? "Carregando..." : "Download"}
+            {loading ? "Processando..." : "Download"}
           </Button>
         </div>
         <div className="container reports">
