@@ -6,7 +6,6 @@ import { FiUser } from 'react-icons/fi';
 import { AuthContext } from '../../contexts/auth';
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';
-import Title from '../../components/Title';
 
 import './profile.scss';
 import { toast } from 'react-toastify';
@@ -41,11 +40,9 @@ export default function Profile() {
 
   return (
     <div>
-      <Header />
+      <Header name="Meu perfil" subtitle="Gerência de perfil">
+      </Header>
       <div className="content">
-        <Title name="Meu perfil">
-          <FiUser size={25} onClick={() => console.log(user.uid)} />
-        </Title>
         <div className="container">
           <form className="form-profile" onSubmit={updateNivel}>
             <label>Nome</label>

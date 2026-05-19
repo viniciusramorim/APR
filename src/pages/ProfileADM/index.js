@@ -4,7 +4,6 @@ import { FiUsers, FiLock } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
-import Title from "../../components/Title";
 import Header from "../../components/Header";
 import "./profileAdm.scss";
 import Pagination from "@mui/material/Pagination";
@@ -259,12 +258,11 @@ export default function ProfileADM() {
 
   return (
     <div>
-      <Header />
+      <Header name="ADM Usuarios">
+        <FiUsers size={25} />
+      </Header>
 
       <div className="content">
-        <Title name="ADM Usuarios">
-          <FiUsers size={25} />
-        </Title>
 
         <div className="container indicadores">
           <span>
@@ -490,6 +488,7 @@ export default function ProfileADM() {
                             <MenuItem value={"supervisor"}>Supervisor</MenuItem>
                             <MenuItem value={"revisor"}>Revisor</MenuItem>
                             <MenuItem value={"revisor_logistica"}>Revisor Logistica</MenuItem>
+                            <MenuItem value={"ponto_focal"}>Ponto Focal</MenuItem>
                             <MenuItem value={"auditor"}>Auditor</MenuItem>
                           </Select>
                         </FormControl>

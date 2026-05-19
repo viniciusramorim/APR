@@ -1,17 +1,54 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.title {
-  display: flex;
-  flex-direction: row;
-  margin: 1em 0;
-  border-radius: 5px;
-  background-color: $title-bg-color;
-  padding: 0.8em;
-  font-weight: bold;
+// .title {
+//   display: flex;
+//   flex-direction: row;
+//   border-radius: 5px;
+//   background-color: $title-bg-color;
+//   padding: 20px 30px;
+//   font-weight: bold;
+//   height: 80px;
+//   margin-bottom: 30px;
 
-  span {
-    margin-left: 1em;
-    font-size: 1.5em;
-  }
+//   span {
+//     margin-left: 2em;
+//     font-size: 1.5em;
+//   }
+// }
+
+
+.title-page .name {
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #471461;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-left: 80px;
+  padding-left: 10px;
+  position: relative;
+}
+
+.title-page .subtitle {
+  font-family: 'Montserrat', sans-serif;
+  text-transform: capitalize;
+  color: #471461;
+  font-style: italic;
+  font-size: 12px;
+  margin-left: 80px;
+  padding-left: 10px;
+  position: relative;
+}
+
+.title-page:before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 40px;
+  background: $btn-primary-bg;
+  position: absolute;
+  left: 75px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 10px;
 }

@@ -28,8 +28,23 @@ const CameraComponent = (item) => {
   };
 
   const capturePhoto = () => {
+    if (!webcamRef.current) {
+      console.error("Webcam não disponível");
+      return;
+    }
+    
     const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      console.error("Não foi possível capturar a imagem");
+      return;
+    }
+    
     const blob = dataURLtoBlob(imageSrc);
+    if (!blob) {
+      console.error("Erro ao converter imagem para blob");
+      return;
+    }
+    
     const file = new File([blob], "imagem" + Date.now() + ".jpg", {
       type: "image/jpeg",
     });
@@ -38,28 +53,58 @@ const CameraComponent = (item) => {
   };
 
   const dataURLtoBlob = (dataURL) => {
-    const byteString = atob(dataURL.split(",")[1]);
     if (!dataURL) {
+      console.error("dataURL está null ou undefined");
       return null;
     }
-    const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
+    
+    try {
+      const byteString = atob(dataURL.split(",")[1]);
+      const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
+    } catch (error) {
+      console.error("Erro ao converter dataURL para Blob:", error);
+      return null;
     }
-    return new Blob([ab], { type: mimeString });
   };
 
   function CapturePhoto(indexA, question, camCapture) {
+    // Validar se a estrutura existe
+    if (!item.questions[indexA] || !Array.isArray(item.questions[indexA][1]) || !item.questions[indexA][1]) {
+      console.error("Estrutura de questions inválida no CameraComponent:", { indexA, questions: item.questions });
+      return;
+    }
+
     //se for imagem entao
     let imageArray = [];
     let objIndex = item.questions[indexA][1].findIndex(
       (obj) => obj.questionId === question.questionId
     );
+
+    if (objIndex === -1 || !item.questions[indexA][1][objIndex]) {
+      console.error("Pergunta não encontrada:", { indexA, questionId: question.questionId });
+      return;
+    }
+
+    // Garantir que images existe e é um array
+    if (!item.questions[indexA][1][objIndex].images) {
+      item.questions[indexA][1][objIndex].images = [];
+    }
+
     let arrayQuestion = item.questions[indexA][1][objIndex].images;
 
-    if (item.questions[indexA][1][objIndex].images.length >= 4) {
+    if (!Array.isArray(arrayQuestion)) {
+      console.error("arrayQuestion.images não é um array:", arrayQuestion);
+      item.questions[indexA][1][objIndex].images = [];
+      arrayQuestion = [];
+    }
+
+    if (arrayQuestion.length >= 4) {
       return;
     }
 

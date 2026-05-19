@@ -2,7 +2,6 @@ import React, { useEffect, useState, useContext } from "react";
 import { FiClipboard, FiEdit } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -252,12 +251,10 @@ export default function Sites() {
 
   return (
     <div>
-      <Header />
+      <Header name="Gerenciamento de Sites" subtitle="Cadastro e edição de sites">
+      </Header>
 
       <div className="content">
-        <Title name="Gerenciamento de Sites">
-          <FiClipboard size={25} />
-        </Title>
 
         <div className="filters">
           <TextField

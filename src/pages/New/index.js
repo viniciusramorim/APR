@@ -11,20 +11,31 @@ import "./new.scss";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import ModalLoading from "../../components/Modal_Loading";
 import Modal_Justificativa from "../../components/Modal_Justificativa";
 import CameraComponent from "./CameraComponent";
 import InputComponent from "./InputComponent";
 import {
   Box,
+  Button,
+  ButtonGroup,
+  Card,
+  CardContent,
+  CardActions,
   Checkbox,
+  Container,
   FormControl,
+  Grid,
   ListItemText,
   ListSubheader,
   MenuItem,
+  Paper,
   Select,
+  Stack,
   TextField,
+  Typography,
+  Chip,
+  Alert,
 } from "@mui/material";
 
 const ITEM_HEIGHT = 30;
@@ -185,6 +196,7 @@ export default function New() {
   const [geolocationJustification, setGeolocationJustification] = useState("");
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
+  const [aprSalva, setAprSalva] = useState(false);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
 
@@ -255,7 +267,11 @@ export default function New() {
 
         const orderedEntries = Object.entries(restoData).sort((a, b) =>
           a[0].localeCompare(b[0])
-        );
+        ).map(([key, value]) => {
+          // Garantir que o valor seja sempre um array
+          return [key, Array.isArray(value) ? value : []];
+        });
+
         console.log(orderedEntries);
         setQuestions(orderedEntries);
       });
@@ -359,18 +375,36 @@ export default function New() {
 
   //função do botão remover imagem da lista
   function removeImg(indexA, objIndex, file) {
+    // Validar se a estrutura existe
+    if (!questions[indexA] || !Array.isArray(questions[indexA][1]) || !questions[indexA][1][objIndex]) {
+      console.error("Estrutura de questions inválida:", { indexA, objIndex, questions });
+      return;
+    }
+
     let imageArray = [];
     let arrayQuestion = questions[indexA][1][objIndex];
+
+    // Garantir que images existe e é um array
+    if (!arrayQuestion.images || !Array.isArray(arrayQuestion.images)) {
+      console.error("arrayQuestion.images não é um array:", arrayQuestion);
+      arrayQuestion.images = [];
+      return;
+    }
+
     let index = arrayQuestion.images.findIndex((obj) => obj.name === file.name);
 
-    delete arrayQuestion.images[index];
+    if (index !== -1) {
+      delete arrayQuestion.images[index];
 
-    arrayQuestion.images.forEach((file) => {
-      imageArray.push(file);
-    });
+      arrayQuestion.images.forEach((file) => {
+        if (file) { // Verificar se o file não é undefined após o delete
+          imageArray.push(file);
+        }
+      });
 
-    questions[indexA][1][objIndex].images = imageArray;
-    setQuestions(questions);
+      questions[indexA][1][objIndex].images = imageArray;
+      setQuestions([...questions]); // Usar spread para forçar re-render
+    }
   }
 
   async function updateAssignments() {
@@ -378,9 +412,9 @@ export default function New() {
       .firestore()
       .collection("atribuicoes")
       .doc(id_assign)
-      .update({
+      .update(cleanFirebaseData({
         status: "APR Criada",
-      })
+      }))
       .then(() => {
         console.log("Apr Criada");
       })
@@ -492,9 +526,9 @@ export default function New() {
         .firestore()
         .collection("incrementID")
         .doc("currentID")
-        .update({
+        .update(cleanFirebaseData({
           ID: currentID + 1,
-        });
+        }));
 
       return currentID;
     } catch (error) {
@@ -509,10 +543,10 @@ export default function New() {
       .firestore()
       .collection("sites")
       .doc(id)
-      .update({
+      .update(cleanFirebaseData({
         last_apr: new Date(),
-        last_motivo: motivo,
-      })
+        last_motivo: motivo || "",
+      }))
     console.log('atualizou site concluido')
     return querySnapshot;
   }
@@ -527,6 +561,40 @@ export default function New() {
       togglePostModal(); // Fechar modal de loading
     }
   }
+
+  // Função para remover valores undefined antes de salvar no Firebase
+  const cleanFirebaseData = (obj) => {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => cleanFirebaseData(item)).filter(item => item !== null && item !== undefined);
+    }
+
+    if (obj instanceof Date) {
+      return obj;
+    }
+
+    if (typeof obj === 'object') {
+      const cleaned = {};
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        if (value !== undefined && value !== null) {
+          const cleanedValue = cleanFirebaseData(value);
+          if (cleanedValue !== null && cleanedValue !== undefined) {
+            cleaned[key] = cleanedValue;
+          }
+        } else {
+          // Para campos que são undefined/null, não incluir no objeto final
+          console.warn(`Removendo campo undefined/null: ${key}`, value);
+        }
+      });
+      return cleaned;
+    }
+
+    return obj;
+  };
 
   async function insertData(perimeter) {
     try {
@@ -544,50 +612,13 @@ export default function New() {
 
       const result_peso = calculatePontos();
 
-    incrementID()
-      .then(async (result) => {
-        setSite(id, motivoAPR)
-          .then(async () => {
-            console.log("ID Atual:", result);
+      incrementID()
+        .then(async (result) => {
+          setSite(id, motivoAPR)
+            .then(async () => {
+              console.log("ID Atual:", result);
 
-            console.log({
-              user_id: user,
-              apr_id: result,
-              site_id: siteInfo,
-              created: new Date(),
-              motivo_apr: motivoAPR,
-              valor_armazenamento: valorArmazenamento,
-              valor_transporte: valorTransporte,
-              valor_sinistro: valorSinistro,
-              valor_estoque: valorEstoque,
-              tipo_loja: tipoLoja,
-              status: justificativa ? "Com Exceção" : "Em Aberto",
-              peso: result_peso,
-              justificativa: justificativa ? justificativa : "",
-              locationCreated: geolocationEnabled ? {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                perimetro: perimeter,
-              } : {
-                latitude: null,
-                longitude: null,
-                perimetro: "Geolocalização não habilitada",
-              },
-              tempoConclusao: {
-                inicio: inicio === undefined ? new Date() : inicio,
-                conclusao: new Date(),
-              },
-              geolocation_info: {
-                enabled: geolocationEnabled,
-                justification: geolocationJustification,
-                error: geolocationError
-              },
-            })
-
-            await firebase
-              .firestore()
-              .collection(base)
-              .add({
+              console.log({
                 user_id: user,
                 apr_id: result,
                 site_id: siteInfo,
@@ -620,167 +651,211 @@ export default function New() {
                   error: geolocationError
                 },
               })
-              .then(async (index) => {
-                let containsImage = verifyContainsImage();
 
-                questions.forEach(async (area, indexA) => {
-                  checklist.push({
-                    0: area[0],
-                    1: [],
-                  });
-                  area[1].forEach(async (question, indexQ) => {
-                    question.question && checklist[indexA][1].push({
-                      imagesURL: [],
-                      resp: question.resp,
-                      respTextArea: question.respTextArea,
-                      questionId: question.questionId,
-                      question: question.question,
-                      plano_acao: question.plano_acao,
-                      openPA: question.openPA,
-                      areaResposavel: question.areaResposavel,
-                      respGabarito: question.respGabarito,
-                      answers: question.answers,
-                      selectOptions: question.selectOptions ? question.selectOptions : false,
-                      status: question.status ? question.status : false,
-                      isRequired: question.isRequired ? question.isRequired : false,
-                      optionList: question.optionList ? question.optionList : [],
-                      optionListResp: question.optionListResp ? question.optionListResp : [],
-                      listCheck: question.listCheck ? question.listCheck : "",
-                      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
-                      inputNumber: question.inputNumber ? question.inputNumber : "",
-                      valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
-                      valorEstoque: question.valorEstoque ? question.valorEstoque : [],
-                      valorTransporte: question.valorTransporte ? question.valorTransporte : [],
-                      ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
-                      tipoLoja: question.tipoLoja ? question.tipoLoja : []
+              const aprData = {
+                user_id: user,
+                apr_id: result,
+                site_id: siteInfo,
+                created: new Date(),
+                motivo_apr: motivoAPR || "",
+                valor_armazenamento: valorArmazenamento || "",
+                valor_transporte: valorTransporte || "",
+                valor_sinistro: valorSinistro || "",
+                valor_estoque: valorEstoque || "",
+                tipo_loja: tipoLoja || "",
+                status: justificativa ? "Com Exceção" : "Em Aberto",
+                peso: result_peso || 0,
+                justificativa: justificativa || "",
+                locationCreated: geolocationEnabled ? {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  perimetro: perimeter,
+                } : {
+                  latitude: null,
+                  longitude: null,
+                  perimetro: "Geolocalização não habilitada",
+                },
+                tempoConclusao: {
+                  inicio: inicio || new Date(),
+                  conclusao: new Date(),
+                },
+                geolocation_info: {
+                  enabled: geolocationEnabled || false,
+                  justification: geolocationJustification || "",
+                  error: geolocationError || ""
+                },
+              };
+
+              // Limpar dados antes de enviar para o Firebase
+              console.log("Dados antes da limpeza:", aprData);
+              const cleanedAprData = cleanFirebaseData(aprData);
+              console.log("Dados depois da limpeza:", cleanedAprData);
+
+              await firebase
+                .firestore()
+                .collection(base)
+                .add(cleanedAprData)
+                .then(async (index) => {
+                  let containsImage = verifyContainsImage();
+
+                  questions.forEach(async (area, indexA) => {
+                    checklist.push({
+                      0: area[0],
+                      1: [],
                     });
+                    area[1].forEach(async (question, indexQ) => {
+                      question.question && checklist[indexA][1].push(cleanFirebaseData({
+                        imagesURL: [],
+                        resp: question.resp || "",
+                        respTextArea: question.respTextArea || "",
+                        questionId: question.questionId || "",
+                        question: question.question || "",
+                        plano_acao: question.plano_acao || {},
+                        openPA: question.openPA || false,
+                        areaResposavel: question.areaResposavel || [],
+                        respGabarito: question.respGabarito || "",
+                        answers: question.answers || [],
+                        selectOptions: question.selectOptions || false,
+                        status: question.status || false,
+                        isRequired: question.isRequired || false,
+                        optionList: question.optionList || [],
+                        optionListResp: question.optionListResp || [],
+                        listCheck: question.listCheck || "",
+                        respInputNumber: question.respInputNumber || "",
+                        inputNumber: question.inputNumber || "",
+                        valorArmazenado: question.valorArmazenado || [],
+                        valorEstoque: question.valorEstoque || [],
+                        valorTransporte: question.valorTransporte || [],
+                        ValorSinistro: question.ValorSinistro || [],
+                        tipoLoja: question.tipoLoja || []
+                      }));
 
-                    let imageList = []; // criar uma lista de imagem e reseta a cada questao
-                    //inserção de dados no banco OBS: se contem imagem ou não
-                    if (containsImage === true) {
-                      question.images &&
-                        question.images.forEach(async (file) => {
-                          let imgName = file.name;
-                          let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
+                      let imageList = []; // criar uma lista de imagem e reseta a cada questao
+                      //inserção de dados no banco OBS: se contem imagem ou não
+                      if (containsImage === true) {
+                        question.images &&
+                          question.images.forEach(async (file) => {
+                            let imgName = file.name;
+                            let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
 
-                          let storageRef = await firebase
-                            .storage()
-                            .ref(imgPath);
-                          let upload = storageRef.put(file);
+                            let storageRef = await firebase
+                              .storage()
+                              .ref(imgPath);
+                            let upload = storageRef.put(file);
 
-                          qtdImages = qtdImages + 1;
+                            qtdImages = qtdImages + 1;
 
-                          let uploadCompleted = new Promise(
-                            (resolve, reject) => {
-                              // promise para concluir apos termino de upload geral de fotos
-                              trackUpload(upload)
-                                .then(() => {
-                                  storageRef
-                                    .getDownloadURL()
-                                    .then((downloadUrl) => {
-                                      imageList.push({
-                                        url: downloadUrl,
-                                        ref: storageRef.fullPath,
-                                      });
-                                      try {
-                                        console.log(indexA + "-" + indexQ);
-                                        checklist[indexA][1][
-                                          indexQ
-                                        ].imagesURL = imageList; //define a lista em uma pergunta
-                                      } catch (error) {
-                                        console.log(indexA + "-" + indexQ);
+                            let uploadCompleted = new Promise(
+                              (resolve, reject) => {
+                                // promise para concluir apos termino de upload geral de fotos
+                                trackUpload(upload)
+                                  .then(() => {
+                                    storageRef
+                                      .getDownloadURL()
+                                      .then((downloadUrl) => {
+                                        imageList.push({
+                                          url: downloadUrl,
+                                          ref: storageRef.fullPath,
+                                        });
+                                        try {
+                                          console.log(indexA + "-" + indexQ);
+                                          checklist[indexA][1][
+                                            indexQ
+                                          ].imagesURL = imageList; //define a lista em uma pergunta
+                                        } catch (error) {
+                                          console.log(indexA + "-" + indexQ);
+                                          console.log(
+                                            "Erro ao obter url da imagem" +
+                                            error
+                                          );
+                                        }
+                                        imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
+                                        // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
                                         console.log(
-                                          "Erro ao obter url da imagem" +
-                                          error
+                                          imagesCompleted + " / " + qtdImages
+                                        ); // mostra o status de imagens concluida vs pendentes
+                                        setLoadingImages(
+                                          imagesCompleted + " / " + qtdImages
                                         );
-                                      }
-                                      imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
-                                      // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                                      console.log(
-                                        imagesCompleted + " / " + qtdImages
-                                      ); // mostra o status de imagens concluida vs pendentes
-                                      setLoadingImages(
-                                        imagesCompleted + " / " + qtdImages
-                                      );
-                                      if (imagesCompleted === qtdImages) {
-                                        // retorna como concluido apenas quantos os valores estiverem ok
-                                        resolve();
-                                      }
-                                    })
-                                    .catch((err) => {
-                                      console.log("Erro ao obter URL" + err);
-                                    });
+                                        if (imagesCompleted === qtdImages) {
+                                          // retorna como concluido apenas quantos os valores estiverem ok
+                                          resolve();
+                                        }
+                                      })
+                                      .catch((err) => {
+                                        console.log("Erro ao obter URL" + err);
+                                      });
+                                  })
+                                  .catch((err) => {
+                                    console.log("Erro no upload: " + err);
+                                  });
+                              }
+                            );
+
+                            uploadCompleted.then(async () => {
+                              await firebase
+                                .firestore()
+                                .collection(base)
+                                .doc(index.id)
+                                .update(cleanFirebaseData({
+                                  checklist: checklist,
+                                }))
+                                .then(() => {
+                                  console.log("Completed");
+                                  logSistem("A APR foi criada", index.id);
+                                  conclusionApr(index.id);
                                 })
                                 .catch((err) => {
-                                  console.log("Erro no upload: " + err);
+                                  console.log(err);
                                 });
-                            }
-                          );
-
-                          uploadCompleted.then(async () => {
-                            await firebase
-                              .firestore()
-                              .collection(base)
-                              .doc(index.id)
-                              .update({
-                                checklist: checklist,
-                              })
-                              .then(() => {
-                                console.log("Completed");
-                                logSistem("A APR foi criada", index.id);
-                                conclusionApr(index.id);
-                              })
-                              .catch((err) => {
-                                console.log(err);
-                              });
+                            });
                           });
-                        });
-                    }
-                  });
-                });
-
-                if (containsImage === false) {
-                  console.log(checklist);
-                  await firebase
-                    .firestore()
-                    .collection(base)
-                    .doc(index.id)
-                    .update({
-                      checklist: checklist,
-                    })
-                    .then(async () => {
-                      console.log("Completed not contains Image");
-                      logSistem("A APR foi criado", index.id);
-                      conclusionApr(index.id);
-                    })
-                    .catch((err) => {
-                      console.log("❌ Erro ao inserir APR (sem imagens):", err);
-                      toast.error("❌ Erro ao salvar APR no banco de dados");
-                      togglePostModal();
+                      }
                     });
-                }
+                  });
 
-                if (id_assign !== undefined) {
-                  updateAssignments();
-                }
-              })
-              .catch((err) => {
-                console.log("❌ Erro geral no processo:", err);
-                toast.error("❌ Erro no processo de conclusão da APR");
-                togglePostModal();
-              });
-          })
-          .catch((err) => {
-            console.log("❌ Erro ao inserir informações no SITE:", err);
-            toast.error("❌ Erro ao atualizar informações do site");
-            togglePostModal();
-          });
-      })
-      .catch((err) => {
-        console.log("❌ Erro ao inserir ID:", err);
-        toast.error("❌ Erro ao gerar ID da APR");
-        togglePostModal();
-      });
+                  if (containsImage === false) {
+                    console.log(checklist);
+                    await firebase
+                      .firestore()
+                      .collection(base)
+                      .doc(index.id)
+                      .update(cleanFirebaseData({
+                        checklist: checklist,
+                      }))
+                      .then(async () => {
+                        console.log("Completed not contains Image");
+                        logSistem("A APR foi criado", index.id);
+                        conclusionApr(index.id);
+                      })
+                      .catch((err) => {
+                        console.log("❌ Erro ao inserir APR (sem imagens):", err);
+                        toast.error("❌ Erro ao salvar APR no banco de dados");
+                        togglePostModal();
+                      });
+                  }
+
+                  if (id_assign !== undefined) {
+                    updateAssignments();
+                  }
+                })
+                .catch((err) => {
+                  console.log("❌ Erro geral no processo:", err);
+                  toast.error("❌ Erro no processo de conclusão da APR");
+                  togglePostModal();
+                });
+            })
+            .catch((err) => {
+              console.log("❌ Erro ao inserir informações no SITE:", err);
+              toast.error("❌ Erro ao atualizar informações do site");
+              togglePostModal();
+            });
+        })
+        .catch((err) => {
+          console.log("❌ Erro ao inserir ID:", err);
+          toast.error("❌ Erro ao gerar ID da APR");
+          togglePostModal();
+        });
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
@@ -874,16 +949,49 @@ export default function New() {
   }
 
   function conclusionApr(id) {
-    document.getElementById("container-conclusion").style.display = "flex";
-    document.getElementById("container-questions").style.display = "none";
-    document.getElementById("container-save").style.display = "none";
-    document.getElementById("container-motivo").style.display = "none";
-    if (siteInfo.tipoSite?.includes('PGR')) document.getElementById("container-pgr").style.display = "none";
-    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") document.getElementById("container-loja").style.display = "none";
-    document.getElementById("container").style.display = "none";
-    document.getElementById("modalLoading").style.display = "none";
+    // Função helper para esconder elemento com verificação
+    const hideElement = (elementId) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.style.display = "none";
+      } else {
+        console.warn(`Elemento não encontrado: ${elementId}`);
+      }
+    };
+
+    // Função helper para mostrar elemento com verificação
+    const showElement = (elementId, displayType = "flex") => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.style.display = displayType;
+      } else {
+        console.warn(`Elemento não encontrado: ${elementId}`);
+      }
+    };
+
+    showElement("container-conclusion");
+    hideElement("container-questions");
+    hideElement("container-save");
+    hideElement("container-motivo");
+    setAprSalva(true);
+
+    if (siteInfo.tipoSite?.includes('PGR')) {
+      hideElement("container-pgr");
+    }
+
+    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") {
+      hideElement("container-loja");
+    }
+
+    hideElement("container");
+    hideElement("modalLoading");
 
     var container = document.getElementById("container-conclusion");
+    if (!container) {
+      console.error("Container de conclusão não encontrado!");
+      return;
+    }
+
     var root = createRoot(container);
 
     let peso = calculatePontos();
@@ -900,18 +1008,164 @@ export default function New() {
     }
 
     return root.render(
-      <>
-        <span>APR Finalizada com Sucesso !</span>
-        <span>
-          ID da sua APR : <i>{id}</i>
-        </span>
-        <span>
-          Classificação : <i>{classificacao}</i>
-        </span>
+      <Card
+        elevation={0}
+        sx={{
+          background: "#ffffff",
+          borderRadius: 2,
+          overflow: "hidden",
+          width: "100%",
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        <CardContent sx={{ p: 4 }}>
+          <Stack spacing={3} alignItems="center">
+            {/* Título */}
+            <Box sx={{ textAlign: "center" }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  fontWeight: 500, 
+                  color: "#667eea",
+                  mb: 1.5,
+                  letterSpacing: "-0.3px",
+                  fontSize: "1.5rem"
+                }}
+              >
+                APR Finalizada com Sucesso
+              </Typography>
+            </Box>
 
-        <a href={"/aprs"}>Ir Pagina Inicial</a>
-        <a href={`/open/${id}`}>Ir APR Criada</a>
-      </>
+            {/* Informações */}
+            <Stack spacing={2.5} sx={{ width: "100%" }}>
+              {/* ID */}
+              <Box 
+                sx={{ 
+                  p: 2.5, 
+                  backgroundColor: "#f8fbff", 
+                  borderRadius: 1.5,
+                  borderLeft: "3px solid #667eea",
+                }}
+              >
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: "#94a3b8", 
+                    fontWeight: 500, 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                    fontSize: "0.7rem"
+                  }}
+                >
+                  ID da APR
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 400, 
+                    color: "#667eea", 
+                    mt: 0.75,
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    letterSpacing: "0.5px"
+                  }}
+                >
+                  {id}
+                </Typography>
+              </Box>
+
+              {/* Classificação */}
+              <Box 
+                sx={{ 
+                  p: 2.5, 
+                  backgroundColor: "#f8fbff", 
+                  borderRadius: 1.5,
+                  borderLeft: "3px solid #764ba2",
+                }}
+              >
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: "#94a3b8", 
+                    fontWeight: 500, 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                    fontSize: "0.7rem"
+                  }}
+                >
+                  Classificação de Risco
+                </Typography>
+                <Box sx={{ mt: 0.75, display: "flex", justifyContent: "flex-start", gap: 1 }}>
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 0.5,
+                      backgroundColor: "#f0f3ff",
+                      color: "#667eea",
+                      borderRadius: 1,
+                      fontWeight: 500,
+                      fontSize: "0.9rem",
+                      border: "1px solid #e0e7ff"
+                    }}
+                  >
+                    {classificacao}
+                  </Box>
+                </Box>
+              </Box>
+            </Stack>
+          </Stack>
+        </CardContent>
+
+        <CardActions 
+          sx={{ 
+            bgcolor: "#ffffff", 
+            justifyContent: "center", 
+            gap: 1.5, 
+            p: 3,
+            borderTop: "1px solid #e2e8f0"
+          }}
+        >
+          <Button
+            variant="outlined"
+            href="/aprs"
+            size="small"
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.9rem",
+              borderColor: "#cbd5e1",
+              color: "#64748b",
+              py: 0.75,
+              px: 2.5,
+              "&:hover": {
+                borderColor: "#667eea",
+                color: "#667eea",
+                backgroundColor: "#f8fbff"
+              }
+            }}
+          >
+            Voltar
+          </Button>
+          <Button
+            variant="contained"
+            href={`/open/${id}`}
+            size="small"
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "0.9rem",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              py: 0.75,
+              px: 2.5,
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)"
+              }
+            }}
+          >
+            Visualizar
+          </Button>
+        </CardActions>
+      </Card>
     );
   }
 
@@ -1131,202 +1385,602 @@ export default function New() {
   };
 
   return (
-    <div>
-      <Header />
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
-      <div className="content">
-        <Title name="Aplicar APR">
-          <FiClipboard size={25} onClick={() => console.log(questions)} />
-        </Title>
-
-        <div className="container">
-          <div className="siteInfo">
-            <ul>
-              <li>
-                <span>Unidade: </span>
-                {siteInfo.Nome}
-              </li>
-              <li>
-                <span>Endereço: </span>
-                {siteInfo.Endereco}
-              </li>
-              <li>
-                <span>Estado: </span>
-                {siteInfo.Estado}
-              </li>
-              <li>
-                <span>Criticidade: </span>
-                {siteInfo.critical}
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span>Cidade: </span>
-                {siteInfo.Cidade}
-              </li>
-              <li>
-                <span>Latitude: </span>
-                {siteInfo.Latitude}
-              </li>
-              <li>
-                <span>Longitude: </span>
-                {siteInfo.Longitude}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="container">
-          <div className="siteInfo">
-            <ul>
-              <li>
-                <span>Ultima APR: </span>
-                {lastAPR.data}
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span>Ultima APR Motivo: </span>
-                {lastAPR.motivo}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="container" id="container-save">
-          <div className="save">
-            <a onClick={() => loadIndexedDB()}>Carregar Salvo</a>
-            <a
-              onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
-            >
-              Salvar APR
-            </a>
-          </div>
-        </div>
-
-        <div className="container" id="container-motivo">
-          <Select
-            id="selectMotivo"
-            value={motivoAPR}
-            onChange={(e) => selectMotivoAPR(e)}
-            size="small"
-            displayEmpty
-            placeholder="Selecione um motivo..."
-            sx={{ width: "600px", borderRadius: "8px" }}
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        {/* Informações de Localização */}
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 10,
+            mb: 3,
+            p: 3,
+            border: '2px solid #8e24aa',
+            borderRadius: 2,
+            bgcolor: '#f7f7f7'
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
           >
-            <MenuItem disabled value="">
-              Selecione uma indicação...
-            </MenuItem>
+            📍 Informações de Localização
+          </Typography>
 
-            <MenuItem value={"Mapa de Calor"}>Mapa de Calor</MenuItem>
-            <MenuItem value={"Retrofit"}>Retrofit</MenuItem>
-            <MenuItem value={"Rota Critica DWDM"}>Rota Critica DWDM</MenuItem>
-            <MenuItem value={"Projeto Veneza"}>Projeto Veneza</MenuItem>
-            <MenuItem value={"TurnKey"}>TurnKey</MenuItem>
-            <MenuItem value={"Conectividade nos Sites"}>Conectividade nos Sites</MenuItem>
-            <MenuItem value={"Torre Segura"}>Torre Segura</MenuItem>
-            <MenuItem value={"Internalização Loja Dealer"}>Internalização Loja Dealer</MenuItem>
-            <MenuItem value={"Estoque Avançado"}>Estoque Avançado</MenuItem>
-            <MenuItem value={"Instalação Tag"}>Instalação Tag</MenuItem>
-            <MenuItem value={"Sites Criticos (Mapa de Proteção)"}>Sites Criticos (Mapa de Proteção)</MenuItem>
-            <MenuItem value={"Não Opinada"}>Não Opinada</MenuItem>
-            <MenuItem value={"Opinada"}>Opinada</MenuItem>
-          </Select>
-        </div>
-
-        <div className="container" id="container" style={{ display: "none" }}>
-          <Select
-            id="selectSite"
-            defaultValue={siteInfo.tipoSite}
-            onChange={(e) => getQuestions(e.target.value)}
-            displayEmpty
-            size="small"
-            style={{ width: "600px", borderRadius: "8px" }}
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 3,
+              color: '#64748b',
+              fontWeight: 500
+            }}
           >
-            <MenuItem disabled value="">
-              Selecione um checklist...
-            </MenuItem>
+            Dados de endereço e coordenadas do local
+          </Typography>
 
-            <ListSubheader>Mais Utilizados</ListSubheader>
-            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
-              if (maisUtilizados.includes(index)) {
-                return (
-                  <MenuItem key={index} value={value.id}>
-                    {value.id}
+          <Grid container spacing={0}>
+            {/* Linha 1: UNIDADE */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UNIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Nome}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Linha 2: ENDEREÇO */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  ENDEREÇO
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Endereco}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Linha 3: UF e CIDADE (lilás - extremidades) */}
+            <Grid container item xs={12} spacing={0} sx={{ mb: 3 }}>
+              <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UF
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Estado}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  CIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Cidade}
+                </Typography>
+              </Grid>
+            </Grid>
+
+            {/* Linha 4: ESTADO e CRITICIDADE */}
+            <Grid container item xs={12} spacing={3} sx={{ mb: 3 }}>
+              <Grid item xs={6}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    ESTADO
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.Estado}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    CRITICIDADE
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.critical || 'BAIXO'}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {/* Linha 5: LATITUDE e LONGITUDE (cinza - extremidades) */}
+            <Grid container item xs={12} spacing={0}>
+              <Grid item xs={6} sx={{ background: '#c0c0c0', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LATITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Latitude}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#c0c0c08a', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LONGITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Longitude}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Data e Status - esconde após salvar */}
+        {!aprSalva && (
+        <Box sx={{ background: '#f7f7f7', padding: '24px', borderRadius: '8px', border: 'solid, 2px, #8e24aa' }}>
+          <Box
+            sx={{
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#374151',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 500
+                }}
+              >
+                📅 {lastAPR.data || new Date().toLocaleDateString('pt-BR')}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#64748b',
+                  fontWeight: 500
+                }}
+              >
+                ÚLTIMA APR ATIVA
+              </Typography>
+              <Box
+                sx={{
+                  backgroundColor: '#e2e8f0',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {lastAPR.motivo || 'OPINADA'}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Botões de Controle */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => loadIndexedDB()}
+                sx={{
+                  py: 1.5,
+                  textTransform: 'none',
+                  borderColor: '#cbd5e1',
+                  color: '#475569',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  '&:hover': {
+                    borderColor: '#94a3b8',
+                    bgcolor: '#f8fafc'
+                  }
+                }}
+              >
+                Carregar Salvo
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
+                sx={{
+                  py: 1.5,
+                  textTransform: 'none',
+                  bgcolor: '#3b82f6',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  '&:hover': {
+                    bgcolor: '#2563eb',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }
+                }}
+              >
+                Salvar APR
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* Selects lado a lado */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Select
+                  id="selectMotivo"
+                  value={motivoAPR}
+                  onChange={(e) => selectMotivoAPR(e)}
+                  displayEmpty
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem disabled value="">
+                    Selecione uma indicação...
                   </MenuItem>
-                );
-              }
-              return null;
-            })}
+                  <MenuItem value="Mapa de Calor">Mapa de Calor</MenuItem>
+                  <MenuItem value="Retrofit">Retrofit</MenuItem>
+                  <MenuItem value="Rota Critica DWDM">Rota Critica DWDM</MenuItem>
+                  <MenuItem value="Projeto Veneza">Projeto Veneza</MenuItem>
+                  <MenuItem value="TurnKey">TurnKey</MenuItem>
+                  <MenuItem value="Conectividade nos Sites">Conectividade nos Sites</MenuItem>
+                  <MenuItem value="Torre Segura">Torre Segura</MenuItem>
+                  <MenuItem value="Internalização Loja Dealer">Internalização Loja Dealer</MenuItem>
+                  <MenuItem value="Estoque Avançado">Estoque Avançado</MenuItem>
+                  <MenuItem value="Instalação Tag">Instalação Tag</MenuItem>
+                  <MenuItem value="Sites Criticos (Mapa de Proteção)">Sites Criticos (Mapa de Proteção)</MenuItem>
+                  <MenuItem value="Não Opinada">Não Opinada</MenuItem>
+                  <MenuItem value="Opinada">Opinada</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <ListSubheader>Outros</ListSubheader>
-            {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
-              if (!maisUtilizados.includes(index)) {
-                return (
-                  <MenuItem key={index} value={value.id}>
-                    {value.id}
+            <Grid item xs={12} sm={6} id="container" style={{ display: "none" }}>
+              <FormControl fullWidth>
+                <Select
+                  id="selectSite"
+                  defaultValue={siteInfo.tipoSite}
+                  onChange={(e) => getQuestions(e.target.value)}
+                  displayEmpty
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem disabled value="">
+                    Selecione um checklist...
                   </MenuItem>
-                );
-              }
-              return null;
-            })}
-          </Select>
-        </div>
-
-        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && (
-          <div className="container" id="container-pgr">
-            <label name="valor-armazenamento">
-              Valor Armazenamento
-              <input
-                id="selectValorArmazenamento"
-                name="valor-armazenamento"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorArmazenamento / 100)}
-                onChange={(e) =>
-                  setValorArmazenamento(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor de Armazenamento"
-              ></input>
-            </label>
-            <label name="valor-transporte">
-              Valor Transporte
-              <input
-                id="selectValorTransporte"
-                name="valor-transporte"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorTransporte / 100)}
-                onChange={(e) =>
-                  setValorTransporte(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor de Transporte"
-              ></input>
-            </label>
-            <label name="valor-sinistro">
-              Valor Sinistro
-              <input
-                id="selectValorSinistro"
-                name="valor-sinistro"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorSinistro / 100)}
-                onChange={(e) =>
-                  setValorSinistro(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Valor do Sinistro"
-              ></input>
-            </label>
-          </div>
+                  <ListSubheader>Mais Utilizados</ListSubheader>
+                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                    if (maisUtilizados.includes(index)) {
+                      return (
+                        <MenuItem key={index} value={value.id}>
+                          {value.id}
+                        </MenuItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  <ListSubheader>Outros</ListSubheader>
+                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                    if (!maisUtilizados.includes(index)) {
+                      return (
+                        <MenuItem key={index} value={value.id}>
+                          {value.id}
+                        </MenuItem>
+                      );
+                    }
+                    return null;
+                  })}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Box>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && (
+        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && !aprSalva && (
+          <Paper
+            id="container-pgr"
+            elevation={0}
+            sx={{
+              mt: 3,
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Informações PGR
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorArmazenamento"
+                  label="Valor Armazenamento"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorArmazenamento / 100)}
+                  onChange={(e) =>
+                    setValorArmazenamento(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor de Armazenamento"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorTransporte"
+                  label="Valor Transporte"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorTransporte / 100)}
+                  onChange={(e) =>
+                    setValorTransporte(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor de Transporte"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  id="selectValorSinistro"
+                  label="Valor Sinistro"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorSinistro / 100)}
+                  onChange={(e) =>
+                    setValorSinistro(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Valor do Sinistro"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
+            >
+              Informações da Loja
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <Select
+                    id="selectTipoLoja"
+                    value={tipoLoja}
+                    onChange={(e) => setTipoLoja(e.target.value)}
+                    displayEmpty
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem disabled value="">
+                      Selecione um tipo de loja...
+                    </MenuItem>
+                    <MenuItem value="LOJA ESTOQUE ZERO">LOJA ESTOQUE ZERO</MenuItem>
+                    <MenuItem value="LOJA GALERIA PISO TÉRREO">LOJA GALERIA PISO TÉRREO</MenuItem>
+                    <MenuItem value="GALERIA PISO SUPERIOR">GALERIA PISO SUPERIOR</MenuItem>
+                    <MenuItem value="LOJA RUA">LOJA RUA</MenuItem>
+                    <MenuItem value="LOJA SHOP PISO TERREO">LOJA SHOP PISO TERREO</MenuItem>
+                    <MenuItem value="LOJA SHOP PISO SUPERIOR">LOJA SHOP PISO SUPERIOR</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  id="selectValorEstoque"
+                  label="Valor Estoque"
+                  type="text"
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(valorEstoque / 100)}
+                  onChange={(e) => {
+                    setValorEstoque(e.target.value.replace(/\D/g, ""))
+                  }}
+                  placeholder="Valor de Estoque"
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+
+        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
           <div className="container" id="container-loja">
             <label name="valor-estoque">
               Tipo de Loja
@@ -1370,7 +2024,7 @@ export default function New() {
         <div
           className="container"
           id="container-questions"
-          style={{ display: "none" }}
+          style={{ display: "none", width: "100%", margin: "0 auto" }}
         >
           <div id="checklist" className="form-new">
             {questions.map((area, indexA) => {
@@ -1380,7 +2034,7 @@ export default function New() {
                     {area[0]}
                   </i>
                   <span id={`container-${indexA}`} style={{ display: "none" }}>
-                    {area[1].map((doc, indexDoc) => {
+                    {Array.isArray(area[1]) && area[1].map((doc, indexDoc) => {
                       if (enableQuestions(doc) === true) {
                         return (
                           <div
@@ -1631,6 +2285,7 @@ export default function New() {
                           </div>
                         );
                       }
+                      return null; // Retorna null quando enableQuestions é false
                     })}
                   </span>
                 </div>
@@ -1657,11 +2312,18 @@ export default function New() {
           </div>
         </div>
 
-        <div
-          className="container"
+        <Box
           id="container-conclusion"
-          style={{ display: "none" }}
-        ></div>
+          sx={{
+            display: "none",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "auto",
+            gap: 3,
+            mt: 3,
+          }}
+        />
 
         {/* Modal de Geolocalização */}
         {showGeolocationModal && (
@@ -1729,7 +2391,7 @@ export default function New() {
         />
 
         {showPostModal && <ModalLoading carregamento={loadingImages} />}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 }

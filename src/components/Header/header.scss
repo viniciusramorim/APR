@@ -1,386 +1,81 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
+// Hide the old sidebar and menu as we're now using MUI Drawer
 .sidebar {
-  margin: 15px 5px;
-  padding: 0;
-  width: 50px;
-  // background-color: $sidebar-bg-color;
-  background-color: $sidebar-bg-color;
-  box-shadow: $box-shadow;
-  position: fixed;
-  height: 96.5%;
-  border-radius: 8px;
-  overflow: hidden;
-  z-index: 900!important;
-  overflow-y: scroll;
-
-  .logo {
-    height: 70px;
-    width: 100%;
-    background: $btn-secondary-bg;
-    border-radius: 0px;
-
-    img {
-      object-fit: contain;
-    }
-  }
-
-  a {
-    display: flex;
-    color: $text-color-dark;
-    padding: 0px 10px;
-    margin: 0.9em 0.2em;
-    text-decoration: none;
-    flex-direction: row;
-    align-items: center;
-    transition: ease-in-out 0.4s;
-    font-weight: bold;
-    border-radius: 8px;
-    height: 35px;
-
-    &:hover {
-      background-color: $sidebar-hover-bg;
-      color: $text-color-dark;
-      font-weight: bold;
-    }
-
-    svg {
-      margin-right: 0.5em;
-    }
-
-    &:hover {
-      background-color: #8a42e7;
-    }
-  }
-
-  &.show .MuiButtonBase-root {
-    display: none;
-  }
-
-  @include respond-to(medium) {
-    width: 97%;
-    height: 100%;
-    position: relative;
-    background-color: $btn-secondary-bg;
-    color: $text-color-light;
-
-    div {
-      padding: 15px;
-    }
-
-    a {
-      float: left;
-
-      &:first-of-type {
-        margin: 0.2em 0.2em;
-      }
-
-      svg {
-        display: none;
-      }
-    }
-
-  }
-
-  .logo-m {
-    width: 20px;
-    height: auto;
-    position: absolute;
-    top: 10px;
-    left: 5px
-  }
-
-  @include respond-to(small) {
-    a {
-      text-align: center;
-      float: none;
-      color: $text-color-light;
-
-      svg {
-        display: block;
-      }
-    }
-  }
-}
-
-.info-user {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-
-  label,
-  span,
-  i {
-    text-transform: uppercase;
-    margin-bottom: 0.8em;
-  }
-
-  label {
-    margin-bottom: 0.8em;
-  }
-
-  span,
-  i {
-    color: $text-color-light;
-    margin-bottom: 0.4em;
-  }
-
-  img {
-    height: 40%;
-    width: 90%;
-    margin-left: 10px;
-    filter: brightness(100);
-    margin-bottom: 0.9em;
-  }
-}
-
-.first-patrimonial {
-  border-radius: 8px !important;
-  margin: 0.9em 0.6em !important;
-  padding: 7px 12px !important;
-  color: $white-color !important;
-  background-color: #1fb124;
-
-  &:hover {
-    background-color: #06d322ef !important;
-  }
-}
-
-.ronda {
-  &:hover {
-    background-color: #06b51ebd;
-  }
-}
-
-.content {
-  max-width: 100%;
-  width: 96%;
-  position: absolute;
-  right: 0px;
-  padding: 1px 16px;
-
-  @include respond-to(medium) {
-    max-width: 100%;
-    width: 100%;
-  }
-}
-
-.atribuir {
-  flex-direction: column;
-  align-items: center;
-  max-width: 600px;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  color: $text-color-light;
-
-  &-content {
-    margin: 7px;
-
-    a {
-      transition: transform 0.4s ease-in-out;
-
-      &:hover {
-        transform: scale(1.05);
-      }
-    }
-  }
-
-  &:hover .dropdown-content {
-    display: block;
-  }
-
-  @include respond-to(small) {
-    &-content {
-      display: none;
-    }
-
-    &:hover .dropdown-content {
-      display: block;
-    }
-
-  }
-}
-
-.my-account {
-  background: none;
-  color: $text-color-dark !important;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0px 0px 0px 12px;
-  cursor: pointer;
-
-  div {
-    background: none;
-    padding: 0px;
-
-    button {
-      color: $text-color-dark !important;
-      font-weight: bold;
-      font-style: italic;
-      padding: 0px;
-    }
-  }
-
-  .sidebar & {
-    background: none !important;
-  }
-
-  .sidebar div & button {
-    background: none !important;
-  }
-}
-
-.css-1rl2a4t-MuiAvatar-root {
-  border-radius: 0px;
-}
-
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount.css-1wjzr1s-MuiButtonBase-root-MuiIconButton-root {
-  &:hover {
-    background: rgba(0, 0, 0, 0.06);
-    border-radius: 8px;
-    height: 40px;
-  }
-}
-
-
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount>div {
-  background: none !important;
-  position: relative;
-
-}
-
-button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.myaccount>div button {
-  background: none !important;
-  position: absolute;
-  top: -10px;
-  width: 160px;
-  left: -32px;
-  color: $text-color-dark;
-  font-weight: 700;
-  text-transform: capitalize;
-  font-style: italic;
-
-}
-
-section#menu {
-  button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-78trlr-MuiButtonBase-root-MuiIconButton-root {
-    display: flex;
-    align-items: center;
-    align-content: center;
-    text-transform: capitalize !important;
-
-    svg {
-      margin-left: 5px;
-      fill: #000;
-    }
-
-    div {
-      background: none;
-      padding: 0px 0px 0px 10px;
-
-      * {
-        color: $text-color-dark !important;
-      }
-    }
-  }
-}
-
-@include respond-to(medium) {
-  .sidebar>div:not(.show) {
-    pointer-events: none;
-  }
-}
-
-#sidebar-menu .logo-m {
-  display: block !important;
-  position: absolute;
-  top: 13px;
-  width: 40px;
-}
-
-#sidebar-menu .logo img {
   display: none !important;
 }
 
-#sidebar-menu[style="width: 170px;"] {
-  .logo img {
-    display: block !important;
-  }
+#menu {
+  display: none !important;
+}
 
-  .logo-m {
-    display: none !important;
+// Style for MUI Drawer with white background and purple header
+.MuiDrawer-paper {
+  background-color: white !important;
+}
+
+// Remove all transitions from drawer
+.MuiDrawer-root {
+  .MuiPaper-root {
+    transition: none !important;
   }
 }
 
-#sidebar-menu[style="width: 50px;"] {
-  .logo-m {
-    img {
-      display: block !important;
-    }
-  }
+// Ensure the hamburger menu button has proper styling
+.hamburger-menu-button {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1500;
+  background-color: #8e24aa;
+  color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 
-  .logo {
-    img {
-      display: none !important;
-    }
+  &:hover {
+    background-color: #7b1fa2;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   }
 }
 
-a.myaccount {
-  div {
+// Hide menu mobile completely as we use drawer now
+.menu-mobile,
+.show.mobile {
+  display: none !important;
+}
+
+// Content area adjustments without sidebar
+.content {
+  max-width: 100%;
+  width: 100%;
+  position: relative;
+  margin-top: 100px;
+}
+
+.header-fixed {
+    height: 80px;
+    background: #f7f7f7;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
     align-items: center;
-
-    svg {
-      position: relative;
-      left: 0px;
-      top: 0px;
-
-    }
-
-    button {
-      padding: 0px;
-      margin: 0px;
-      height: unset;
-      text-transform: capitalize;
-      color: #000;
-      font-weight: bold;
-      font-style: italic;
-      margin-left: -5px;
-
-    }
-  }
+    position:fixed;
+    top: 0px;
+    width: 100%;
+    margin-bottom: 20px;
+    z-index: 1000;
 }
-
-
-@media (min-width: 767px) {
-  .show.mobile button {
-    display: none;
-  }
-}
-
-@media (max-width: 767px) {
-  div#sidebar-menu {
-    #menu {
-      display: none;
-    }
-
-    .logo-m {
-      display: none !important;
-    }
-
-    .logo img {
-      overflow: hidden;
-      display: block !important;
-      margin: 0 auto;
-      width: 100%;
-    }
-  }
+.header-fixed::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #aaaaaa;
+    position: absolute;
+    bottom: 0;
+    left: 0;
 }

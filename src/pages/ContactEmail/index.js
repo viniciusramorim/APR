@@ -28,7 +28,6 @@ import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { FiMessageSquare } from "react-icons/fi";
 import { read, utils } from "xlsx";
 import { toast } from "react-toastify";
@@ -148,6 +147,9 @@ export default function ContactEmail() {
         email_oem: docToEdit.email_oem || [],
         email_patrimonial: docToEdit.email_patrimonial || [],
         email_predial: docToEdit.email_predial || [],
+        email_logistica: docToEdit.email_logistica || [],
+        email_armazenamento: docToEdit.email_armazenamento || [],
+        email_transporte: docToEdit.email_transporte || [],
       });
       await firebase.firestore().collection("contact_email").doc(docToEdit.id).delete();
       await logSistem("Nome do município alterado", newDocId);
@@ -172,6 +174,9 @@ export default function ContactEmail() {
         email_oem: [...(docToEdit.email_oem || [])],
         email_patrimonial: [...(docToEdit.email_patrimonial || [])],
         email_predial: [...(docToEdit.email_predial || [])],
+        email_logistica: [...(docToEdit.email_logistica || [])],
+        email_armazenamento: [...(docToEdit.email_armazenamento || [])],
+        email_transporte: [...(docToEdit.email_transporte || [])],
       });
       await logSistem("Município duplicado", newDocId);
 
@@ -250,7 +255,7 @@ export default function ContactEmail() {
     const docSnap = await docRef.get();
     if (!docSnap.exists) return;
     const data = docSnap.data();
-    const tipos = ["email_oem", "email_patrimonial", "email_predial"];
+    const tipos = ["email_oem", "email_patrimonial", "email_predial", "email_logistica", "email_armazenamento", "email_transporte"];
     tipos.forEach((key) => {
       data[key] = (data[key] || []).filter((e) => e !== editEmail);
     });
@@ -284,6 +289,9 @@ export default function ContactEmail() {
         email_oem: [],
         email_patrimonial: [],
         email_predial: [],
+        email_logistica: [],
+        email_armazenamento: [],
+        email_transporte: [],
         [targetKey]: emails,
       };
       await docRef.set(newData);
@@ -391,13 +399,11 @@ export default function ContactEmail() {
 
   return (
     <div className="apr-contact-email">
-      <Header />
+      <Header name="Contato">
+      </Header>
       <div className="content">
-        <Title name="Contato">
-          <FiMessageSquare size={25} />
-        </Title>
 
-        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
+        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1, margin: "20px 15px" }}>
           <TextField
             label="Filtrar por Estado"
             value={filterEstado}
@@ -445,7 +451,7 @@ export default function ContactEmail() {
         </Box>
 
         {paginatedEstados.map((estado) => (
-          <Accordion key={estado}>
+          <Accordion key={estado} sx={{margin: "0px 15px"}}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Checkbox
                 checked={!!selectedEstados[estado]}
@@ -484,7 +490,7 @@ export default function ContactEmail() {
                     </IconButton>
                   </AccordionSummary>
                   <AccordionDetails>
-                    {["OEM", "Patrimonial", "Predial"].map((tipo) => {
+                    {["OEM", "Patrimonial", "Predial", "Logistica","Armazenamento", "Transporte"].map((tipo) => {
                       const key = `email_${tipo.toLowerCase()}`;
                       return (
                         <Box key={tipo} mb={2}>
@@ -570,12 +576,15 @@ export default function ContactEmail() {
               displayEmpty
               sx={{ mt: 2 }}
             >
-              <MenuItem disabled value="">
+              <MenuItem disabled selected value="Selecione uma área">
                 Selecione a área responsável
               </MenuItem>
               <MenuItem value="OEM">OEM</MenuItem>
               <MenuItem value="Patrimonial">Patrimonial</MenuItem>
               <MenuItem value="Predial">Predial</MenuItem>
+              <MenuItem value="Logistica">Logistica</MenuItem>
+              <MenuItem value="Armazenamento">Armazenamento</MenuItem>
+              <MenuItem value="Transporte">Transporte</MenuItem>
             </Select>
           </DialogContent>
           <DialogActions>
@@ -700,6 +709,9 @@ export default function ContactEmail() {
               <MenuItem value="OEM">OEM</MenuItem>
               <MenuItem value="Patrimonial">Patrimonial</MenuItem>
               <MenuItem value="Predial">Predial</MenuItem>
+              <MenuItem value="Logistica">Logistica</MenuItem>
+              <MenuItem value="Armazenamento">Armazenamento</MenuItem>
+              <MenuItem value="Transporte">Transporte</MenuItem>
             </Select>
             <TextField
               fullWidth

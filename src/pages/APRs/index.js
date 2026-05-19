@@ -180,6 +180,7 @@ export default function Dashboard() {
       cancelado: 0,
       revisado: 0,
       enviado: 0,
+      aguardandoPontoFocal: 0,
       respondidoArea: 0,
       concluido: 0,
       pendencia10Dias: 0,
@@ -193,6 +194,7 @@ export default function Dashboard() {
       else if (x.status === "Cancelado") counts.cancelado++;
       else if (x.status === "Revisado") counts.revisado++;
       else if (x.status === "Enviado") counts.enviado++;
+      else if (x.status === "Enviado para Área Responsável") counts.aguardandoPontoFocal++;
       else if (x.status === "Respondido pela Area") counts.respondidoArea++;
       else if (x.status === "Concluido") counts.concluido++;
 
@@ -297,6 +299,10 @@ export default function Dashboard() {
       query = query.where("site_id.Estado", "in", regional);
     } else if (user.nivel === "revisor" && regional) {
       query = query.where("site_id.Estado", "in", regional);
+    } else if (user.nivel === "revisor_logistica" && regional) {
+      query = query.where("site_id.Estado", "in", regional);
+    } else if (user.nivel === "ponto_focal") {
+      query = query.where("status", "==", "Enviado para Área Responsável");
     }
 
     // OTIMIZAÇÃO: Puxar filtros de igualdade para o Firestore para reduzir tráfego e aumentar velocidade
@@ -385,6 +391,13 @@ export default function Dashboard() {
       snapshot.forEach((doc) => {
         const docData = doc.data();
 
+        if (
+          user.nivel === "revisor_logistica" &&
+          !docData.site_id?.tipoSite?.includes("PGR")
+        ) {
+          return;
+        }
+
         // Se ID estiver preenchido, ele funciona de forma independente dos demais filtros.
         if (hasIdFilter) {
           const docAprId = String(docData.apr_id ?? "").trim();
@@ -409,8 +422,8 @@ export default function Dashboard() {
           contarQuestions(checklist);
 
         if (
-          doc.data().site_id.tipoSite === "AUDIT PGR FIXA" ||
-          doc.data().site_id.tipoSite === "AUDIT PGR MOVEL"
+          docData.site_id.tipoSite === "AUDIT PGR FIXA" ||
+          docData.site_id.tipoSite === "AUDIT PGR MOVEL"
         ) {
           checklist.forEach((area) => {
             area[1].forEach((question) => {
@@ -424,7 +437,7 @@ export default function Dashboard() {
           });
         }
 
-        if (doc.data().status === "Respondido pela Area") {
+        if (docData.status === "Respondido pela Area") {
           checklist.forEach((area) => {
             area[1].forEach((question) => {
               if (
@@ -457,15 +470,16 @@ export default function Dashboard() {
           if (paTrue === true) {
             lista.push({
               id: doc.id,
+              apr_id: docData.apr_id,
               nome:
-                doc.data().user_id.nome !== undefined
-                  ? doc.data().user_id.nome
+                docData.user_id.nome !== undefined
+                  ? docData.user_id.nome
                   : "",
-              motivo_apr: doc.data().motivo_apr,
-              site_id: doc.data().site_id,
-              status: doc.data().status,
+              motivo_apr: docData.motivo_apr,
+              site_id: docData.site_id,
+              status: docData.status,
               created: format(
-                doc.data().created.toDate(),
+                docData.created.toDate(),
                 "dd/MM/yyyy HH:mma"
               ),
               porcentagem_resp_area:
@@ -480,15 +494,15 @@ export default function Dashboard() {
         } else {
           lista.push({
             id: doc.id,
-            apr_id: doc.data().apr_id,
+            apr_id: docData.apr_id,
             nome:
-              doc.data().user_id.nome !== undefined
-                ? doc.data().user_id.nome
+              docData.user_id.nome !== undefined
+                ? docData.user_id.nome
                 : "",
-            motivo_apr: doc.data().motivo_apr,
-            site_id: doc.data().site_id,
-            status: doc.data().status,
-            created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+            motivo_apr: docData.motivo_apr,
+            site_id: docData.site_id,
+            status: docData.status,
+            created: format(docData.created.toDate(), "dd/MM/yyyy HH:mma"),
             porcentagem_resp_area:
               questoes !== 0
                 ? ((respondidas / questoes) * 100).toFixed(2) + "%"
@@ -650,7 +664,9 @@ export default function Dashboard() {
         <Title name="APRs">
           <FiMessageSquare size={25} onClick={() => console.log("")} />
         </Title>
-        {(user.nivel === "administrador" || user.nivel === "revisor") && (
+        {(user.nivel === "administrador" ||
+          user.nivel === "revisor" ||
+          user.nivel === "revisor_logistica") && (
           <Grid
             container
             marginBottom={3}
@@ -668,6 +684,19 @@ export default function Dashboard() {
                 <FiAlertCircle style={styles.kpiIcon} />
                 <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
                 <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
+              </Box>
+            </Grid>
+
+            <Grid
+              item
+              xs={5.5}
+              sm={6}
+              md={1.4}
+            >
+              <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                <FiSend style={styles.kpiIcon} />
+                <Box sx={styles.kpiTitle}>Aguardando Ponto Focal</Box>
+                <Box sx={styles.kpiValue}>{dashboardStats.aguardandoPontoFocal}</Box>
               </Box>
             </Grid>
 
