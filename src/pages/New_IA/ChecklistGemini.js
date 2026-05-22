@@ -94,7 +94,6 @@ export default function ChecklistGemini() {
     }
   };
 
-
   const handleImagemSelecionada = (file, campo, index) => {
     if (!file) return;
 
