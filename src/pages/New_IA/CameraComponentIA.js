@@ -57,11 +57,11 @@ const CameraComponent = ({ onCapture, children }) => {
       justifyContent: 'center',
       inset: '0px',        
       overflow: 'unset', 
-      zIndex: 2000,
+      zIndex: 9999,
     },
     overlay: {
       backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      zIndex: 2000,
+      zIndex: 9999,
     }
   };
 

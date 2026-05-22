@@ -40,8 +40,23 @@ const REGIONAIS = {
   RJ_ES: ["RJ", "ES"],
   MG: ["MG"],
   SP: ["SP"],
+  SP_CAPITAL: ["SP"],
+  SP_INTERIOR: ["SP"],
   SUL: ["RS", "PR", "SC"]
 };
+
+// Lista de municípios de São Paulo considerados Capital
+const municipiosCapital = [
+  "BERTIOGA", "CAJATI", "CANANÉIA", "CUBATÃO", "ELDORADO", "GUARUJÁ",
+  "IGUAPE", "ILHA COMPRIDA", "ITANHAÉM", "ITARIRI", "JACUPIRANGA", "JUQUIÁ",
+  "MIRACATU", "MONGAGUÁ", "PARIQUERA-AÇU", "PEDRO DE TOLEDO", "PERUÍBE",
+  "PRAIA GRANDE", "REGISTRO", "SANTOS", "SÃO VICENTE", "SETE BARRAS",
+  "SÃO PAULO", "SAO PAULO", "GUARULHOS", "ARUJÁ", "BIRITIBA MIRIM", "DIADEMA",
+  "FERRAZ DE VASCONCELOS", "GUARAREMA", "IGARATÁ", "ITAQUAQUECETUBA",
+  "MAUÁ", "MOGI DAS CRUZES", "PARANAPIACABA", "POÁ", "RIBEIRÃO PIRES",
+  "RIO GRANDE DA SERRA", "SALESÓPOLIS", "SANTA ISABEL", "SANTO ANDRÉ",
+  "SÃO BERNARDO DO CAMPO", "SÃO CAETANO DO SUL", "SUZANO"
+];
 
 export default function Oem() {
   const { user } = useContext(AuthContext);
@@ -87,7 +102,7 @@ export default function Oem() {
   useEffect(() => {
     if (selectedRegion === "TODAS") {
       const allUFs = Object.values(REGIONAIS).flat();
-      setSelectedUFs(allUFs);
+      setSelectedUFs([...new Set(allUFs)]);
     } else if (REGIONAIS[selectedRegion]) {
       setSelectedUFs(REGIONAIS[selectedRegion]);
     } else {
@@ -143,7 +158,16 @@ export default function Oem() {
         const siteData = doc.data().site_id;
         const aprData = doc.data();
 
+        const municipioUpper = siteData.Cidade ? siteData.Cidade.toUpperCase().trim() : "";
+        let cityMatch = true;
+        if (selectedRegion === "SP_CAPITAL") {
+          cityMatch = municipiosCapital.includes(municipioUpper);
+        } else if (selectedRegion === "SP_INTERIOR") {
+          cityMatch = !municipiosCapital.includes(municipioUpper);
+        }
+
         if (selectedUFs.includes(siteData.Estado) &&
+          cityMatch &&
           (siteData.tipoSite === "ERB" || siteData.tipoSite === "CT")) {
           doc.data().checklist.forEach((area) => {
             area[1].forEach((question, idx) => {
@@ -375,19 +399,6 @@ export default function Oem() {
         console.log(`   Todas as propriedades com 'data':`, Object.keys(q).filter(key => key.includes('data')));
       }
 
-      // Lista de municípios de São Paulo considerados Capital
-      const municipiosCapital = [
-        "BERTIOGA", "CAJATI", "CANANÉIA", "CUBATÃO", "ELDORADO", "GUARUJÁ",
-        "IGUAPE", "ILHA COMPRIDA", "ITANHAÉM", "ITARIRI", "JACUPIRANGA", "JUQUIÁ",
-        "MIRACATU", "MONGAGUÁ", "PARIQUERA-AÇU", "PEDRO DE TOLEDO", "PERUÍBE",
-        "PRAIA GRANDE", "REGISTRO", "SANTOS", "SÃO VICENTE", "SETE BARRAS",
-        "SÃO PAULO", "GUARULHOS", "ARUJÁ", "BIRITIBA MIRIM", "DIADEMA",
-        "FERRAZ DE VASCONCELOS", "GUARAREMA", "IGARATÁ", "ITAQUAQUECETUBA",
-        "MAUÁ", "MOGI DAS CRUZES", "PARANAPIACABA", "POÁ", "RIBEIRÃO PIRES",
-        "RIO GRANDE DA SERRA", "SALESÓPOLIS", "SANTA ISABEL", "SANTO ANDRÉ",
-        "SÃO BERNARDO DO CAMPO", "SÃO CAETANO DO SUL", "SUZANO"
-      ];
-
       // Determinar se é Capital ou Interior (somente para SP)
       let regiao = "";
       if (q.uf === "SP") {
@@ -549,7 +560,9 @@ export default function Oem() {
                     label="Regional"
                     onChange={(e) => setSelectedRegion(e.target.value)}
                   >
-                    <MenuItem value="SP">SP</MenuItem>
+                    <MenuItem value="SP">SP (Tudo)</MenuItem>
+                    <MenuItem value="SP_CAPITAL">SP (Capital)</MenuItem>
+                    <MenuItem value="SP_INTERIOR">SP (Interior)</MenuItem>
                     <MenuItem value="RJ_ES">RJ/ES</MenuItem>
                     <MenuItem value="MG">MG</MenuItem>
                     <MenuItem value="SUL">Sul (RS/PR/SC)</MenuItem>
@@ -754,7 +767,7 @@ export default function Oem() {
                                       </Grid>
                                       <Grid item xs={12} sm={2}>
                                         {(user.nivel === "administrador" ||
-                                            user.nivel === "revisor") && <ModalLog sx={{zIndex:1}} chamadoId={question.uid} />}
+                                          user.nivel === "revisor") && <ModalLog sx={{ zIndex: 1 }} chamadoId={question.uid} />}
                                       </Grid>
                                     </Grid>
                                   </Grid>

@@ -14,7 +14,7 @@ export default function RouteWrapper({
   const location = useLocation();
 
   function pageTo() {
-    if (user.area === 'patrimonial' || user.area === 'oem' || user.area === 'pci' || user.area === 'logistica') return previousLocation !== null ? previousLocation : '/aprs';
+    if (user.area === 'patrimonial' || user.area === 'empresarial' || user.area === 'oem' || user.area === 'pci' || user.area === 'logistica') return previousLocation !== null ? previousLocation : '/aprs';
     else if (user.area === 'patrimonio') return previousLocation !== null ? previousLocation : '/patrimonio';
   }
 
