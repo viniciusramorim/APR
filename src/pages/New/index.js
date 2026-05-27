@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { FiClipboard, FiCheck, FiX, FiAlertCircle } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 import { createRoot } from "react-dom/client";
@@ -29,6 +29,8 @@ import {
 
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
+const UPLOAD_TIMEOUT_MS = 120000;
+const MAX_UPLOAD_RETRIES = 3;
 const MenuProps = {
   PaperProps: {
     style: {
@@ -132,27 +134,6 @@ export default function New() {
     }
   };
 
-  useEffect(() => {
-    addBodyClass("page-new");
-    loadSite();
-    getCheckLists();
-
-    // Verificar permissão de geolocalização
-    if (isGeolocationSupported()) {
-      navigator.permissions.query({ name: "geolocation" }).then((result) => {
-        if (result.state === "granted") {
-          getGeolocation();
-        } else if (result.state === "prompt") {
-          getGeolocation();
-        } else {
-          setShowGeolocationModal(true);
-        }
-      });
-    } else {
-      setShowGeolocationModal(true);
-    }
-  }, [id]);
-
   const base = "aprs-producao"; //aprs-producao
   const storage = "images"; //images
 
@@ -179,12 +160,74 @@ export default function New() {
   const [valorSinistro, setValorSinistro] = useState("");
   //Loja
   const [tipoLoja, setTipoLoja] = useState("");
+
+  useEffect(() => {
+    addBodyClass("page-new");
+    loadSite();
+    getCheckLists();
+
+    // Verificar permissão de geolocalização
+    if (isGeolocationSupported()) {
+      navigator.permissions.query({ name: "geolocation" }).then((result) => {
+        if (result.state === "granted") {
+          getGeolocation();
+        } else if (result.state === "prompt") {
+          getGeolocation();
+        } else {
+          setShowGeolocationModal(true);
+        }
+      });
+    } else {
+      setShowGeolocationModal(true);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    const activeFiles = new Set();
+
+    questions.forEach((area) => {
+      area[1].forEach((question) => {
+        (question.images || []).forEach((file) => {
+          activeFiles.add(file);
+        });
+      });
+    });
+
+    previewFilesRef.current.forEach((file) => {
+      if (!activeFiles.has(file)) {
+        const previewUrl = previewUrlMapRef.current.get(file);
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          previewUrlMapRef.current.delete(file);
+        }
+      }
+    });
+
+    previewFilesRef.current = Array.from(activeFiles);
+  }, [questions]);
+
+  useEffect(() => {
+    return () => {
+      previewFilesRef.current.forEach((file) => {
+        const previewUrl = previewUrlMapRef.current.get(file);
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+      });
+
+      previewFilesRef.current = [];
+      previewUrlMapRef.current = new WeakMap();
+    };
+  }, []);
+
   const [valorEstoque, setValorEstoque] = useState("0");
   // Estados para controle de geolocalização e justificativa
   const [geolocationEnabled, setGeolocationEnabled] = useState(false);
   const [geolocationJustification, setGeolocationJustification] = useState("");
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
+  const previewUrlMapRef = useRef(new WeakMap());
+  const previewFilesRef = useRef([]);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
 
@@ -208,6 +251,78 @@ export default function New() {
   async function getCheckLists() {
     const collections = await firebase.firestore().collection("question").get();
     setListQuestions(collections.docs);
+  }
+
+  function getPreviewUrl(file) {
+    if (!file) {
+      return "";
+    }
+
+    const cachedUrl = previewUrlMapRef.current.get(file);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlMapRef.current.set(file, previewUrl);
+    return previewUrl;
+  }
+
+  function addImageToQuestion(indexA, questionId, file) {
+    if (!file) {
+      return;
+    }
+
+    setQuestions((previousQuestions) =>
+      previousQuestions.map((area, areaIndex) => {
+        if (areaIndex !== indexA) {
+          return area;
+        }
+
+        return [
+          area[0],
+          area[1].map((question) => {
+            if (question.questionId !== questionId) {
+              return question;
+            }
+
+            const currentImages = question.images || [];
+            if (currentImages.length >= 4) {
+              return question;
+            }
+
+            return {
+              ...question,
+              images: [...currentImages, file],
+            };
+          }),
+        ];
+      })
+    );
+  }
+
+  function removeImageFromQuestion(indexA, questionId, imageIndex) {
+    setQuestions((previousQuestions) =>
+      previousQuestions.map((area, areaIndex) => {
+        if (areaIndex !== indexA) {
+          return area;
+        }
+
+        return [
+          area[0],
+          area[1].map((question) => {
+            if (question.questionId !== questionId) {
+              return question;
+            }
+
+            return {
+              ...question,
+              images: (question.images || []).filter((_, index) => index !== imageIndex),
+            };
+          }),
+        ];
+      })
+    );
   }
 
   async function loadSite() {
@@ -319,20 +434,7 @@ export default function New() {
     var element = document.getElementsByName(
       indexA + "-" + question.questionId
     );
-    let objIndex = questions[indexA][1].findIndex(
-      (obj) => obj.questionId == question.questionId
-    );
     saveIndexedDB();
-
-    document
-      .querySelectorAll("#inputimg_" + question.questionId + "_" + indexA)
-      .forEach((item) => {
-        for (let index = 0; index < item.children.length; index++) {
-          if (item.children.length > 1) {
-            item.lastChild.remove();
-          }
-        }
-      });
 
     let textarea = document.getElementById(
       indexA + "_textarea_" + question.questionId
@@ -349,28 +451,31 @@ export default function New() {
 
     textarea && (textarea.value = "");
 
-    questions[indexA][1][objIndex].resp = "";
-    questions[indexA][1][objIndex].images = [];
-    questions[indexA][1][objIndex].respTextArea = "";
+    setQuestions((previousQuestions) =>
+      previousQuestions.map((area, areaIndex) => {
+        if (areaIndex !== indexA) {
+          return area;
+        }
 
-    setQuestions(questions);
+        return [
+          area[0],
+          area[1].map((item) => {
+            if (item.questionId !== question.questionId) {
+              return item;
+            }
+
+            return {
+              ...item,
+              resp: "",
+              images: [],
+              respTextArea: "",
+            };
+          }),
+        ];
+      })
+    );
+
     for (var i = 0; i < element.length; i++) element[i].checked = false;
-  }
-
-  //função do botão remover imagem da lista
-  function removeImg(indexA, objIndex, file) {
-    let imageArray = [];
-    let arrayQuestion = questions[indexA][1][objIndex];
-    let index = arrayQuestion.images.findIndex((obj) => obj.name === file.name);
-
-    delete arrayQuestion.images[index];
-
-    arrayQuestion.images.forEach((file) => {
-      imageArray.push(file);
-    });
-
-    questions[indexA][1][objIndex].images = imageArray;
-    setQuestions(questions);
   }
 
   async function updateAssignments() {
@@ -389,8 +494,13 @@ export default function New() {
       });
   }
 
-  function togglePostModal() {
-    setShowPostModal(!showPostModal);
+  function openPostModal() {
+    setLoadingImages("");
+    setShowPostModal(true);
+  }
+
+  function closePostModal() {
+    setShowPostModal(false);
   }
 
   function hasRequired() {
@@ -448,7 +558,7 @@ export default function New() {
         return;
       }
 
-      togglePostModal(); //abre modal de loading
+      openPostModal(); //abre modal de loading
       toast.info("🔄 Processando APR...");
 
       if (geolocationEnabled && location.latitude && location.longitude) {
@@ -468,7 +578,7 @@ export default function New() {
     } catch (error) {
       console.error("❌ Erro crítico em submitWithErrorHandling:", error);
       toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
-      togglePostModal(); // Fechar modal de loading
+      closePostModal(); // Fechar modal de loading
     }
   }
 
@@ -524,7 +634,7 @@ export default function New() {
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro ao salvar APR: ${error.message || 'Falha no servidor'}`);
-      togglePostModal(); // Fechar modal de loading
+      closePostModal(); // Fechar modal de loading
     }
   }
 
@@ -604,34 +714,101 @@ export default function New() {
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
-      togglePostModal();
+      closePostModal();
     }
   }
 
+  function sanitizeFileName(fileName) {
+    return String(fileName || "imagem")
+      .replace(/[^\w.-]/g, "_")
+      .replace(/_+/g, "_");
+  }
+
+  function buildUploadFileName(file, imageIndex) {
+    const originalName = sanitizeFileName(file?.name);
+    return `${Date.now()}_${imageIndex}_${originalName}`;
+  }
+
+  function getUploadLabel(question, file) {
+    return `${question.questionId || "sem-id"} - ${file?.name || "imagem"}`;
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   // função de monitoramento de upload de imagens
-  function trackUpload(upload) {
+  function trackUpload(upload, label) {
     return new Promise((resolve, reject) => {
-      // promise para retornar somente quando concluido.
-      upload.on(
+      let settled = false;
+      const timeoutId = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        try {
+          upload.cancel();
+        } catch (cancelError) {
+          console.log("Erro ao cancelar upload travado:", cancelError);
+        }
+
+        reject(new Error(`Tempo limite excedido no upload: ${label}`));
+      }, UPLOAD_TIMEOUT_MS);
+
+      const unsubscribe = upload.on(
         "state_changed",
         (snapshot) => {
           let percent =
             ((snapshot.bytesTransferred / snapshot.totalBytes) * 100).toFixed(
               2
             ) + "%"; // exibe em porcentagem o processo de upload
-          console.log(percent);
+          console.log(`${label} - ${percent}`);
         },
         (error) => {
-          toast.error("Erro ao carregar imagem !");
-          console.log(error);
-          reject("Erro ao carregar imagem", error);
-          document.getElementById("modalLoading").style.display = "none";
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timeoutId);
+          unsubscribe();
+          reject(error);
         },
         () => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timeoutId);
+          unsubscribe();
           resolve(); // retorna quando concluido a imagem
         }
       );
     });
+  }
+
+  async function uploadFileWithRetry(storageRef, file, label) {
+    let lastError;
+
+    for (let attempt = 1; attempt <= MAX_UPLOAD_RETRIES; attempt++) {
+      try {
+        console.log(`Upload ${label} - tentativa ${attempt}/${MAX_UPLOAD_RETRIES}`);
+        const upload = storageRef.put(file);
+        await trackUpload(upload, label);
+        return await storageRef.getDownloadURL();
+      } catch (error) {
+        lastError = error;
+        console.error(`Erro no upload ${label} - tentativa ${attempt}:`, error);
+
+        if (attempt < MAX_UPLOAD_RETRIES) {
+          await delay(1500 * attempt);
+        }
+      }
+    }
+
+    throw new Error(`Falha ao enviar a imagem ${label}. ${lastError?.message || ""}`.trim());
   }
 
   function createChecklistQuestion(question) {
@@ -679,14 +856,15 @@ export default function New() {
   async function uploadQuestionImages(aprId, indexA, question, checklistQuestion, progress) {
     const uploadedImages = [];
 
-    for (const file of question.images || []) {
-      const imgPath = `${storage}/${aprId}/${indexA}/${question.questionId}/${file.name}`;
+    for (let imageIndex = 0; imageIndex < (question.images || []).length; imageIndex++) {
+      const file = question.images[imageIndex];
+      const uploadLabel = getUploadLabel(question, file);
+      const uploadFileName = buildUploadFileName(file, imageIndex);
+      const imgPath = `${storage}/${aprId}/${indexA}/${question.questionId}/${uploadFileName}`;
       const storageRef = firebase.storage().ref(imgPath);
-      const upload = storageRef.put(file);
+      setLoadingImages(`Enviando ${progress.completed + 1} / ${progress.total} - ${uploadLabel}`);
 
-      await trackUpload(upload);
-
-      const downloadUrl = await storageRef.getDownloadURL();
+      const downloadUrl = await uploadFileWithRetry(storageRef, file, uploadLabel);
 
       uploadedImages.push({
         url: downloadUrl,
@@ -781,6 +959,8 @@ export default function New() {
   }
 
   function conclusionApr(id) {
+    closePostModal();
+    setLoadingImages("");
     document.getElementById("container-conclusion").style.display = "flex";
     document.getElementById("container-questions").style.display = "none";
     document.getElementById("container-save").style.display = "none";
@@ -788,7 +968,6 @@ export default function New() {
     if (siteInfo.tipoSite?.includes('PGR')) document.getElementById("container-pgr").style.display = "none";
     if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") document.getElementById("container-loja").style.display = "none";
     document.getElementById("container").style.display = "none";
-    document.getElementById("modalLoading").style.display = "none";
 
     var container = document.getElementById("container-conclusion");
     var root = createRoot(container);
@@ -1365,35 +1544,32 @@ export default function New() {
                                     style={{ marginRight: 10 }}
                                   >
                                     <CameraComponent
-                                      saveIndexedDB={saveIndexedDB}
-                                      questions={questions}
                                       doc={doc}
                                       indexA={indexA}
+                                      onAddImage={addImageToQuestion}
                                     />
                                   </li>
                                   {doc.inputImagesLibrary === true && (
                                     <li className="notremove">
                                       <InputComponent
-                                        saveIndexedDB={saveIndexedDB}
-                                        questions={questions}
                                         doc={doc}
                                         indexA={indexA}
+                                        onAddImage={addImageToQuestion}
                                       />
                                     </li>
                                   )}
-                                  {doc.images.length > 0 &&
+                                  {doc.images?.length > 0 &&
                                     doc.images.map((img, indexImg) => {
                                       return (
                                         <li
+                                          key={`${doc.questionId}_${indexImg}_${img.name}`}
                                           id={
                                             doc.questionId +
                                             "_image_" +
                                             indexImg
                                           }
                                           style={{
-                                            background: `url(${URL.createObjectURL(
-                                              img
-                                            )}) round`,
+                                            background: `url(${getPreviewUrl(img)}) round`,
                                           }}
                                         >
                                           <i
@@ -1402,20 +1578,13 @@ export default function New() {
                                               "_removeimg_" +
                                               indexImg
                                             }
-                                            onClick={() => {
-                                              document
-                                                .getElementById(
-                                                  doc.questionId +
-                                                  "_image_" +
-                                                  indexImg
-                                                )
-                                                .remove();
-                                              removeImg(
+                                            onClick={() =>
+                                              removeImageFromQuestion(
                                                 indexA,
-                                                "0",
-                                                doc.images[0]
-                                              );
-                                            }}
+                                                doc.questionId,
+                                                indexImg
+                                              )
+                                            }
                                           >
                                             X
                                           </i>
@@ -1555,7 +1724,7 @@ export default function New() {
                 } catch (error) {
                   console.error("❌ Erro crítico ao concluir APR:", error);
                   toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada ao concluir APR'}`);
-                  togglePostModal(); // Fechar modal de loading se estiver aberto
+                  closePostModal(); // Fechar modal de loading se estiver aberto
                 }
               }}
             >

@@ -3,6 +3,7 @@ import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter
 import { FiFileText } from "react-icons/fi";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Title from "../../components/Title";
@@ -32,6 +33,7 @@ export default function Reports() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterMotivo, setFilterMotivo] = useState("");
   const [filterTipoSite, setFilterTipoSite] = useState("");
+  const [filterAprIds, setFilterAprIds] = useState("");
   const [includeQuestions, setIncludeQuestions] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -41,7 +43,200 @@ export default function Reports() {
     addBodyClass('page-reports');
   }, []);
 
+  function parseAprIds(rawValue) {
+    const tokens = rawValue
+      .split(/[\s,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const uniqueTokens = Array.from(new Set(tokens));
+    const numericAprIds = [];
+    const documentIds = [];
+
+    uniqueTokens.forEach((token) => {
+      if (/^\d+$/.test(token)) {
+        numericAprIds.push(Number(token));
+        return;
+      }
+
+      documentIds.push(token);
+    });
+
+    return {
+      numericAprIds,
+      documentIds,
+      total: uniqueTokens.length,
+    };
+  }
+
+  function chunkArray(items, chunkSize = 10) {
+    const chunks = [];
+
+    for (let index = 0; index < items.length; index += chunkSize) {
+      chunks.push(items.slice(index, index + chunkSize));
+    }
+
+    return chunks;
+  }
+
+  function matchesUserAndFilters(apr) {
+    if (filterStatus && apr.status !== filterStatus) {
+      return false;
+    }
+
+    if (filterMotivo && filterMotivo !== "Todos" && apr.motivo_apr !== filterMotivo) {
+      return false;
+    }
+
+    const siteType = apr.site_id?.tipoSite;
+
+    if (filterTipoSite && filterTipoSite !== "todos") {
+      const allowedTypes = [filterTipoSite.toUpperCase(), filterTipoSite.toLowerCase()];
+
+      if (!allowedTypes.includes(siteType)) {
+        return false;
+      }
+    }
+
+    if (user.nivel === "auditor") {
+      const auditorAllowed = ["AUDIT PGR FIXA", "AUDIT PGR MOVEL"];
+
+      if (!auditorAllowed.includes(siteType)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function sortResultsByRequestedIds(results, numericAprIds, documentIds) {
+    const orderMap = new Map();
+    let currentIndex = 0;
+
+    numericAprIds.forEach((aprId) => {
+      orderMap.set(`apr:${aprId}`, currentIndex);
+      currentIndex += 1;
+    });
+
+    documentIds.forEach((docId) => {
+      orderMap.set(`doc:${docId}`, currentIndex);
+      currentIndex += 1;
+    });
+
+    return [...results].sort((first, second) => {
+      const firstOrder = orderMap.has(`apr:${first.apr_id}`)
+        ? orderMap.get(`apr:${first.apr_id}`)
+        : orderMap.get(`doc:${first.id}`);
+      const secondOrder = orderMap.has(`apr:${second.apr_id}`)
+        ? orderMap.get(`apr:${second.apr_id}`)
+        : orderMap.get(`doc:${second.id}`);
+
+      return (firstOrder ?? Number.MAX_SAFE_INTEGER) - (secondOrder ?? Number.MAX_SAFE_INTEGER);
+    });
+  }
+
+  async function loadChamadosBySpecificIds() {
+    const { numericAprIds, documentIds, total } = parseAprIds(filterAprIds);
+
+    if (total === 0) {
+      toast.warning("Cole pelo menos um ID de APR para buscar.");
+      setChamados([]);
+      return;
+    }
+
+    setLoading(true);
+    setDownloadProgress(0);
+    setIsDownloading(true);
+
+    try {
+      const resultMap = new Map();
+      const newCache = new Map();
+      const numericChunks = chunkArray(numericAprIds, 10);
+      const documentChunks = chunkArray(documentIds, 10);
+      const totalChunks = numericChunks.length + documentChunks.length;
+      let processedChunks = 0;
+
+      for (const chunk of numericChunks) {
+        const snapshot = await firebase
+          .firestore()
+          .collection("aprs-producao")
+          .where("apr_id", "in", chunk)
+          .get();
+
+        snapshot.docs.forEach((doc) => {
+          if (resultMap.has(doc.id)) {
+            return;
+          }
+
+          const aprData = { id: doc.id, ...doc.data() };
+          resultMap.set(doc.id, aprData);
+
+          const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
+          if (!newCache.has(siteKey) && aprData.site_id) {
+            newCache.set(siteKey, aprData.site_id);
+          }
+        });
+
+        processedChunks += 1;
+        setDownloadProgress(Math.round((processedChunks / totalChunks) * 100));
+      }
+
+      for (const chunk of documentChunks) {
+        const snapshot = await firebase
+          .firestore()
+          .collection("aprs-producao")
+          .where(firebase.firestore.FieldPath.documentId(), "in", chunk)
+          .get();
+
+        snapshot.docs.forEach((doc) => {
+          if (resultMap.has(doc.id)) {
+            return;
+          }
+
+          const aprData = { id: doc.id, ...doc.data() };
+          resultMap.set(doc.id, aprData);
+
+          const siteKey = `${aprData.site_id?.Sigla}_${aprData.site_id?.Estado}`;
+          if (!newCache.has(siteKey) && aprData.site_id) {
+            newCache.set(siteKey, aprData.site_id);
+          }
+        });
+
+        processedChunks += 1;
+        setDownloadProgress(Math.round((processedChunks / totalChunks) * 100));
+      }
+
+      const filteredResults = sortResultsByRequestedIds(
+        Array.from(resultMap.values()).filter(matchesUserAndFilters),
+        numericAprIds,
+        documentIds
+      );
+
+      setSitesCache(newCache);
+      setChamados(filteredResults);
+
+      if (filteredResults.length < total) {
+        toast.info(`Busca concluída: ${filteredResults.length} APR(s) encontrada(s) de ${total} ID(s) informado(s).`);
+      }
+    } catch (err) {
+      console.error("❌ Erro ao carregar APRs por ID: ", err);
+      toast.error("Erro ao buscar APRs pelos IDs informados.");
+      setChamados([]);
+    } finally {
+      setLoading(false);
+      setIsDownloading(false);
+      setDownloadProgress(0);
+    }
+  }
+
   async function loadChamados() {
+    const hasSpecificIds = filterAprIds.trim() !== "";
+
+    if (hasSpecificIds) {
+      await loadChamadosBySpecificIds();
+      return;
+    }
+
     setLoading(true);
     try {
       const allResults = [];
@@ -49,7 +244,7 @@ export default function Reports() {
 
       // Validar se tem pelo menos uma data preenchida
       if (!filterDate.startDate && !filterDate.endDate) {
-        console.warn('⚠️ Preencha pelo menos a Data Início ou Data Fim para fazer a busca.');
+        toast.warning("Preencha pelo menos a Data Início ou Data Fim para fazer a busca.");
         setChamados([]);
         setLoading(false);
         return;
@@ -191,6 +386,7 @@ export default function Reports() {
       // Se der erro de índice ausente, o Firestore logará o link no console
     }
     setLoading(false);
+    setIsDownloading(false);
     setDownloadProgress(0); // Resetar após terminar
   }
 
@@ -570,6 +766,21 @@ export default function Reports() {
         <div className="filter-reports-container">
           <div className="filter-reports">
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  id="apr-ids"
+                  label="IDs da APR"
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  multiline
+                  minRows={3}
+                  value={filterAprIds}
+                  onChange={(e) => setFilterAprIds(e.target.value)}
+                  placeholder="Cole aqui os IDs da APR separados por quebra de linha, vírgula, espaço ou ponto e vírgula"
+                  helperText="Se preencher este campo, a busca usará apenas os IDs informados e ignorará o período."
+                />
+              </Grid>
               <Grid item xs={2} sx={12}>
                 <TextField
                   id="startDate"
