@@ -455,15 +455,15 @@ export default function New() {
         console.log('Com geolocalização:', geolocationEnabled, location);
         try {
           const perimeter = await getPerimetro(location.latitude, location.longitude);
-          insertDataWithErrorHandling(perimeter);
+          await insertDataWithErrorHandling(perimeter);
         } catch (err) {
           console.log("❌ Erro na geolocalização:", err);
           toast.warning("⚠️ Erro na geolocalização, usando justificativa");
-          insertDataWithErrorHandling("Erro na geolocalização - " + geolocationJustification);
+          await insertDataWithErrorHandling("Erro na geolocalização - " + geolocationJustification);
         }
       } else {
         console.log('Sem geolocalização, usando justificativa');
-        insertDataWithErrorHandling("Geolocalização não habilitada - " + geolocationJustification);
+        await insertDataWithErrorHandling("Geolocalização não habilitada - " + geolocationJustification);
       }
     } catch (error) {
       console.error("❌ Erro crítico em submitWithErrorHandling:", error);
@@ -518,9 +518,9 @@ export default function New() {
   }
 
   // Wrapper com tratamento de erros para insertData
-  function insertDataWithErrorHandling(perimeter) {
+  async function insertDataWithErrorHandling(perimeter) {
     try {
-      insertData(perimeter);
+      await insertData(perimeter);
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro ao salvar APR: ${error.message || 'Falha no servidor'}`);
@@ -530,11 +530,6 @@ export default function New() {
 
   async function insertData(perimeter) {
     try {
-      let checklist = [];
-
-      let qtdImages = 0;
-      let imagesCompleted = 0;
-
       try {
         saveIndexedDB();
       } catch (error) {
@@ -543,244 +538,69 @@ export default function New() {
       }
 
       const result_peso = calculatePontos();
+      const result = await incrementID();
 
-    incrementID()
-      .then(async (result) => {
-        setSite(id, motivoAPR)
-          .then(async () => {
-            console.log("ID Atual:", result);
+      await setSite(id, motivoAPR);
 
-            console.log({
-              user_id: user,
-              apr_id: result,
-              site_id: siteInfo,
-              created: new Date(),
-              motivo_apr: motivoAPR,
-              valor_armazenamento: valorArmazenamento,
-              valor_transporte: valorTransporte,
-              valor_sinistro: valorSinistro,
-              valor_estoque: valorEstoque,
-              tipo_loja: tipoLoja,
-              status: justificativa ? "Com Exceção" : "Em Aberto",
-              peso: result_peso,
-              justificativa: justificativa ? justificativa : "",
-              locationCreated: geolocationEnabled ? {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                perimetro: perimeter,
-              } : {
-                latitude: null,
-                longitude: null,
-                perimetro: "Geolocalização não habilitada",
-              },
-              tempoConclusao: {
-                inicio: inicio === undefined ? new Date() : inicio,
-                conclusao: new Date(),
-              },
-              geolocation_info: {
-                enabled: geolocationEnabled,
-                justification: geolocationJustification,
-                error: geolocationError
-              },
-            })
+      console.log("ID Atual:", result);
 
-            await firebase
-              .firestore()
-              .collection(base)
-              .add({
-                user_id: user,
-                apr_id: result,
-                site_id: siteInfo,
-                created: new Date(),
-                motivo_apr: motivoAPR,
-                valor_armazenamento: valorArmazenamento,
-                valor_transporte: valorTransporte,
-                valor_sinistro: valorSinistro,
-                valor_estoque: valorEstoque,
-                tipo_loja: tipoLoja,
-                status: justificativa ? "Com Exceção" : "Em Aberto",
-                peso: result_peso,
-                justificativa: justificativa ? justificativa : "",
-                locationCreated: geolocationEnabled ? {
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  perimetro: perimeter,
-                } : {
-                  latitude: null,
-                  longitude: null,
-                  perimetro: "Geolocalização não habilitada",
-                },
-                tempoConclusao: {
-                  inicio: inicio === undefined ? new Date() : inicio,
-                  conclusao: new Date(),
-                },
-                geolocation_info: {
-                  enabled: geolocationEnabled,
-                  justification: geolocationJustification,
-                  error: geolocationError
-                },
-              })
-              .then(async (index) => {
-                let containsImage = verifyContainsImage();
+      const aprPayload = {
+        user_id: user,
+        apr_id: result,
+        site_id: siteInfo,
+        created: new Date(),
+        motivo_apr: motivoAPR,
+        valor_armazenamento: valorArmazenamento,
+        valor_transporte: valorTransporte,
+        valor_sinistro: valorSinistro,
+        valor_estoque: valorEstoque,
+        tipo_loja: tipoLoja,
+        status: justificativa ? "Com Exceção" : "Em Aberto",
+        peso: result_peso,
+        justificativa: justificativa ? justificativa : "",
+        locationCreated: geolocationEnabled ? {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          perimetro: perimeter,
+        } : {
+          latitude: null,
+          longitude: null,
+          perimetro: "Geolocalização não habilitada",
+        },
+        tempoConclusao: {
+          inicio: inicio === undefined ? new Date() : inicio,
+          conclusao: new Date(),
+        },
+        geolocation_info: {
+          enabled: geolocationEnabled,
+          justification: geolocationJustification,
+          error: geolocationError
+        },
+      };
 
-                questions.forEach(async (area, indexA) => {
-                  checklist.push({
-                    0: area[0],
-                    1: [],
-                  });
-                  area[1].forEach(async (question, indexQ) => {
-                    question.question && checklist[indexA][1].push({
-                      imagesURL: [],
-                      resp: question.resp,
-                      respTextArea: question.respTextArea,
-                      questionId: question.questionId,
-                      question: question.question,
-                      plano_acao: question.plano_acao,
-                      openPA: question.openPA,
-                      areaResposavel: question.areaResposavel,
-                      respGabarito: question.respGabarito,
-                      answers: question.answers,
-                      selectOptions: question.selectOptions ? question.selectOptions : false,
-                      status: question.status ? question.status : false,
-                      isRequired: question.isRequired ? question.isRequired : false,
-                      optionList: question.optionList ? question.optionList : [],
-                      optionListResp: question.optionListResp ? question.optionListResp : [],
-                      listCheck: question.listCheck ? question.listCheck : "",
-                      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
-                      inputNumber: question.inputNumber ? question.inputNumber : "",
-                      valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
-                      valorEstoque: question.valorEstoque ? question.valorEstoque : [],
-                      valorTransporte: question.valorTransporte ? question.valorTransporte : [],
-                      ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
-                      tipoLoja: question.tipoLoja ? question.tipoLoja : []
-                    });
+      console.log(aprPayload);
 
-                    let imageList = []; // criar uma lista de imagem e reseta a cada questao
-                    //inserção de dados no banco OBS: se contem imagem ou não
-                    if (containsImage === true) {
-                      question.images &&
-                        question.images.forEach(async (file) => {
-                          let imgName = file.name;
-                          let imgPath = `${storage}/${index.id}/${indexA}/${question.questionId}/${imgName}`;
+      const aprRef = await firebase
+        .firestore()
+        .collection(base)
+        .add(aprPayload);
 
-                          let storageRef = await firebase
-                            .storage()
-                            .ref(imgPath);
-                          let upload = storageRef.put(file);
+      const checklist = await buildChecklistAndUploadImages(aprRef.id);
 
-                          qtdImages = qtdImages + 1;
+      await firebase
+        .firestore()
+        .collection(base)
+        .doc(aprRef.id)
+        .update({
+          checklist,
+        });
 
-                          let uploadCompleted = new Promise(
-                            (resolve, reject) => {
-                              // promise para concluir apos termino de upload geral de fotos
-                              trackUpload(upload)
-                                .then(() => {
-                                  storageRef
-                                    .getDownloadURL()
-                                    .then((downloadUrl) => {
-                                      imageList.push({
-                                        url: downloadUrl,
-                                        ref: storageRef.fullPath,
-                                      });
-                                      try {
-                                        console.log(indexA + "-" + indexQ);
-                                        checklist[indexA][1][
-                                          indexQ
-                                        ].imagesURL = imageList; //define a lista em uma pergunta
-                                      } catch (error) {
-                                        console.log(indexA + "-" + indexQ);
-                                        console.log(
-                                          "Erro ao obter url da imagem" +
-                                          error
-                                        );
-                                      }
-                                      imagesCompleted = imagesCompleted + 1; // conta quantos imagens foi obtida a url
-                                      // console.log((imagesCompleted / qtdImages * 100).toFixed(2) + '%'); // mostra o status de imagens concluida vs pendentes
-                                      console.log(
-                                        imagesCompleted + " / " + qtdImages
-                                      ); // mostra o status de imagens concluida vs pendentes
-                                      setLoadingImages(
-                                        imagesCompleted + " / " + qtdImages
-                                      );
-                                      if (imagesCompleted === qtdImages) {
-                                        // retorna como concluido apenas quantos os valores estiverem ok
-                                        resolve();
-                                      }
-                                    })
-                                    .catch((err) => {
-                                      console.log("Erro ao obter URL" + err);
-                                    });
-                                })
-                                .catch((err) => {
-                                  console.log("Erro no upload: " + err);
-                                });
-                            }
-                          );
+      if (id_assign !== undefined) {
+        await updateAssignments();
+      }
 
-                          uploadCompleted.then(async () => {
-                            await firebase
-                              .firestore()
-                              .collection(base)
-                              .doc(index.id)
-                              .update({
-                                checklist: checklist,
-                              })
-                              .then(() => {
-                                console.log("Completed");
-                                logSistem("A APR foi criada", index.id);
-                                conclusionApr(index.id);
-                              })
-                              .catch((err) => {
-                                console.log(err);
-                              });
-                          });
-                        });
-                    }
-                  });
-                });
-
-                if (containsImage === false) {
-                  console.log(checklist);
-                  await firebase
-                    .firestore()
-                    .collection(base)
-                    .doc(index.id)
-                    .update({
-                      checklist: checklist,
-                    })
-                    .then(async () => {
-                      console.log("Completed not contains Image");
-                      logSistem("A APR foi criado", index.id);
-                      conclusionApr(index.id);
-                    })
-                    .catch((err) => {
-                      console.log("❌ Erro ao inserir APR (sem imagens):", err);
-                      toast.error("❌ Erro ao salvar APR no banco de dados");
-                      togglePostModal();
-                    });
-                }
-
-                if (id_assign !== undefined) {
-                  updateAssignments();
-                }
-              })
-              .catch((err) => {
-                console.log("❌ Erro geral no processo:", err);
-                toast.error("❌ Erro no processo de conclusão da APR");
-                togglePostModal();
-              });
-          })
-          .catch((err) => {
-            console.log("❌ Erro ao inserir informações no SITE:", err);
-            toast.error("❌ Erro ao atualizar informações do site");
-            togglePostModal();
-          });
-      })
-      .catch((err) => {
-        console.log("❌ Erro ao inserir ID:", err);
-        toast.error("❌ Erro ao gerar ID da APR");
-        togglePostModal();
-      });
+      logSistem("A APR foi criada", aprRef.id);
+      conclusionApr(aprRef.id);
     } catch (error) {
       console.error("❌ Erro crítico em insertData:", error);
       toast.error(`❌ Erro crítico: ${error.message || 'Falha inesperada'}`);
@@ -814,24 +634,111 @@ export default function New() {
     });
   }
 
-  function verifyContainsImage() {
-    let containsImage = false;
-    questions.forEach(async (area) => {
-      area[1].forEach(async (question) => {
-        // verifica se contem imagem
+  function createChecklistQuestion(question) {
+    return {
+      imagesURL: [],
+      resp: question.resp,
+      respTextArea: question.respTextArea,
+      questionId: question.questionId,
+      question: question.question,
+      plano_acao: question.plano_acao,
+      openPA: question.openPA,
+      areaResposavel: question.areaResposavel,
+      respGabarito: question.respGabarito,
+      answers: question.answers,
+      selectOptions: question.selectOptions ? question.selectOptions : false,
+      status: question.status ? question.status : false,
+      isRequired: question.isRequired ? question.isRequired : false,
+      optionList: question.optionList ? question.optionList : [],
+      optionListResp: question.optionListResp ? question.optionListResp : [],
+      listCheck: question.listCheck ? question.listCheck : "",
+      respInputNumber: question.respInputNumber ? question.respInputNumber : "",
+      inputNumber: question.inputNumber ? question.inputNumber : "",
+      valorArmazenado: question.valorArmazenado ? question.valorArmazenado : [],
+      valorEstoque: question.valorEstoque ? question.valorEstoque : [],
+      valorTransporte: question.valorTransporte ? question.valorTransporte : [],
+      ValorSinistro: question.ValorSinistro ? question.ValorSinistro : [],
+      tipoLoja: question.tipoLoja ? question.tipoLoja : []
+    };
+  }
+
+  function countImages() {
+    let totalImages = 0;
+
+    questions.forEach((area) => {
+      area[1].forEach((question) => {
         if (question.images && question.images.length > 0) {
-          containsImage = true;
+          totalImages += question.images.length;
         }
       });
     });
 
-    return containsImage;
+    return totalImages;
+  }
+
+  async function uploadQuestionImages(aprId, indexA, question, checklistQuestion, progress) {
+    const uploadedImages = [];
+
+    for (const file of question.images || []) {
+      const imgPath = `${storage}/${aprId}/${indexA}/${question.questionId}/${file.name}`;
+      const storageRef = firebase.storage().ref(imgPath);
+      const upload = storageRef.put(file);
+
+      await trackUpload(upload);
+
+      const downloadUrl = await storageRef.getDownloadURL();
+
+      uploadedImages.push({
+        url: downloadUrl,
+        ref: storageRef.fullPath,
+      });
+
+      progress.completed += 1;
+      setLoadingImages(`${progress.completed} / ${progress.total}`);
+    }
+
+    checklistQuestion.imagesURL = uploadedImages;
+  }
+
+  async function buildChecklistAndUploadImages(aprId) {
+    const checklist = [];
+    const progress = {
+      completed: 0,
+      total: countImages(),
+    };
+
+    setLoadingImages(progress.total > 0 ? `0 / ${progress.total}` : "");
+
+    for (let indexA = 0; indexA < questions.length; indexA++) {
+      const area = questions[indexA];
+      const checklistArea = {
+        0: area[0],
+        1: [],
+      };
+
+      checklist.push(checklistArea);
+
+      for (const question of area[1]) {
+        if (!question.question) {
+          continue;
+        }
+
+        const checklistQuestion = createChecklistQuestion(question);
+        checklistArea[1].push(checklistQuestion);
+
+        if (question.images && question.images.length > 0) {
+          await uploadQuestionImages(aprId, indexA, question, checklistQuestion, progress);
+        }
+      }
+    }
+
+    return checklist;
   }
 
   function calculatePontos() {
     let peso = 0;
-    questions.forEach(async (area) => {
-      area[1].forEach(async (question) => {
+    questions.forEach((area) => {
+      area[1].forEach((question) => {
         if (question.resp !== "N/A" && question.resp !== "" && question.resp !== question.respGabarito) {
           peso = peso + question.peso;
         }
