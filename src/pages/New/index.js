@@ -30,7 +30,11 @@ import {
 const ITEM_HEIGHT = 30;
 const ITEM_PADDING_TOP = 8;
 const UPLOAD_TIMEOUT_MS = 120000;
+const DOWNLOAD_URL_TIMEOUT_MS = 30000;
 const MAX_UPLOAD_RETRIES = 3;
+const MIN_IMAGE_SIZE_TO_COMPRESS_BYTES = 2 * 1024 * 1024;
+const MAX_IMAGE_SIZE_PX = 2560;
+const IMAGE_UPLOAD_QUALITY = 0.88;
 const MenuProps = {
   PaperProps: {
     style: {
@@ -648,6 +652,12 @@ export default function New() {
       }
 
       const result_peso = calculatePontos();
+      const aprRef = firebase
+        .firestore()
+        .collection(base)
+        .doc();
+      const checklist = await buildChecklistAndUploadImages(aprRef.id);
+
       const result = await incrementID();
 
       await setSite(id, motivoAPR);
@@ -690,20 +700,10 @@ export default function New() {
 
       console.log(aprPayload);
 
-      const aprRef = await firebase
-        .firestore()
-        .collection(base)
-        .add(aprPayload);
-
-      const checklist = await buildChecklistAndUploadImages(aprRef.id);
-
-      await firebase
-        .firestore()
-        .collection(base)
-        .doc(aprRef.id)
-        .update({
-          checklist,
-        });
+      await aprRef.set({
+        ...aprPayload,
+        checklist,
+      });
 
       if (id_assign !== undefined) {
         await updateAssignments();
@@ -735,6 +735,80 @@ export default function New() {
 
   function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function withTimeout(promise, ms, errorMessage) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
+
+      promise
+        .then((result) => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        })
+        .catch((error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+    });
+  }
+
+  function shouldCompressImage(file) {
+    return (
+      file?.type?.startsWith("image/") &&
+      file.size > MIN_IMAGE_SIZE_TO_COMPRESS_BYTES
+    );
+  }
+
+  function compressImageFile(file) {
+    if (!shouldCompressImage(file)) {
+      return Promise.resolve(file);
+    }
+
+    return new Promise((resolve) => {
+      const imageUrl = URL.createObjectURL(file);
+      const image = new Image();
+
+      image.onload = () => {
+        const scale = Math.min(
+          1,
+          MAX_IMAGE_SIZE_PX / Math.max(image.width, image.height)
+        );
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(imageUrl);
+
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: file.lastModified || Date.now(),
+            });
+
+            resolve(compressedFile.size < file.size ? compressedFile : file);
+          },
+          "image/jpeg",
+          IMAGE_UPLOAD_QUALITY
+        );
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(imageUrl);
+        resolve(file);
+      };
+
+      image.src = imageUrl;
+    });
   }
 
   // função de monitoramento de upload de imagens
@@ -795,9 +869,16 @@ export default function New() {
     for (let attempt = 1; attempt <= MAX_UPLOAD_RETRIES; attempt++) {
       try {
         console.log(`Upload ${label} - tentativa ${attempt}/${MAX_UPLOAD_RETRIES}`);
-        const upload = storageRef.put(file);
+        const uploadFile = await compressImageFile(file);
+        const upload = storageRef.put(uploadFile, {
+          contentType: uploadFile.type || file.type || "image/jpeg",
+        });
         await trackUpload(upload, label);
-        return await storageRef.getDownloadURL();
+        return await withTimeout(
+          storageRef.getDownloadURL(),
+          DOWNLOAD_URL_TIMEOUT_MS,
+          `Tempo limite ao obter URL da imagem: ${label}`
+        );
       } catch (error) {
         lastError = error;
         console.error(`Erro no upload ${label} - tentativa ${attempt}:`, error);

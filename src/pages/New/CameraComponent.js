@@ -75,12 +75,14 @@ const CameraComponent = ({ doc, indexA, onAddImage }) => {
             <Webcam
               width={window.innerWidth}
               height={window.innerHeight}
-              screenshotQuality={0.5}
+              screenshotQuality={0.92}
               audio={false}
               ref={webcamRef}
               screenshotFormat="image/jpeg"
               videoConstraints={{
                 facingMode: "environment", // Use 'user' para a câmera frontal
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
               }}
             />
             <span className="botoesCam">
