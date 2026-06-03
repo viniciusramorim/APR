@@ -13,9 +13,8 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
   width: calc(100vw - 2rem);
   max-width: none;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  @include flex-start;
+  margin: 0 auto 20px auto;
+
 }
 
 .page-profile .label-avatar {

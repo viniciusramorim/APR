@@ -3,9 +3,17 @@
 
 .page-dash .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiTableContainer-root.css-v73c9r-MuiPaper-root-MuiTableContainer-root {
     width: 98%;
-    margin: 0 auto;
+    margin: 0 auto 20px auto;
 }
 
 .page-dash .MuiGrid-root.MuiGrid-container.css-yhxlfh-MuiGrid-root {
     padding-right: 20px;
+}
+
+.dashboard-kpis-grid {
+    display:flex;
+    flex-wrap:nowrap!important;
+    gap:20px;
+    max-width:98%;
+    margin: 0 auto 20px auto;
 }

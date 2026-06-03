@@ -19,6 +19,7 @@ import firebase from "../../services/firebaseConnection";
 import "./index.scss";
 import { toast } from "react-toastify";
 import TableDashboard from "./tableDashboard";
+import OfflineAPRsPanel from "../../components/OfflineAPRsPanel";
 import {
   Grid,
   Button,
@@ -40,41 +41,44 @@ const styles = {
     backdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.1)",
     color: "#fff",
-    padding: "15px",
-    borderRadius: "12px",
+    padding: "14px 10px",
+    borderRadius: "16px",
     transition: "transform 0.2s, box-shadow 0.2s",
     cursor: "default",
     display: "flex",
+    gap: "18px",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "100px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    minHeight: "118px",
+    height: "100%",
+    boxShadow: "0 8px 18px rgba(15, 23, 42, 0.16)",
     "&:hover": {
-      transform: "translateY(-5px)",
-      boxShadow: "0 12px 20px rgba(0, 0, 0, 0.3)",
+      transform: "translateY(-4px)",
+      boxShadow: "0 16px 28px rgba(15, 23, 42, 0.22)",
       filter: "brightness(1.1)",
     }
   },
   kpiTitle: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
+    fontSize: "0.72rem",
+    fontWeight: "700",
     color: "#fff",
-    marginBottom: "8px",
+    marginBottom: "10px",
     textAlign: "center",
     textTransform: "uppercase",
-    letterSpacing: "0.8px",
+    letterSpacing: "0.6px",
+    lineHeight: 1.25,
     textShadow: "1px 1px 2px rgba(0,0,0,0.2)"
   },
   kpiValue: {
-    fontSize: "1.6rem",
+    fontSize: "2rem",
     fontWeight: "bold",
     color: "#fff",
     textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
   },
   kpiIcon: {
-    fontSize: "1.4rem",
-    marginBottom: "10px",
+    fontSize: "1.25rem",
+    marginBottom: "12px",
     color: "#fff"
   },
   pendenciaCard: {
@@ -100,10 +104,6 @@ const styles = {
   },
   totalCard: {
     background: "linear-gradient(135deg, #380054 0%, #6a008a 100%)",
-  },
-  gridContainer: {
-    gap: "12px",
-    padding: "20px 0",
   },
 };
 
@@ -147,31 +147,16 @@ export default function Dashboard() {
 
   // Carregar os filtros do localStorage ao montar o componente
   const savedFilters = loadFiltersFromSessionStorage();
-
   const [filterUF, setFilterUF] = useState(savedFilters.filterUF || "");
-  const [filterSigla, setFilterSigla] = useState(
-    savedFilters.filterSigla || ""
-  );
-  const [filterTipoSite, setFilterTipoSite] = useState(
-    savedFilters.filterTipoSite || ""
-  );
-  const [filterStatus, setFilterStatus] = useState(
-    savedFilters.filterStatus || ""
-  );
+  const [filterSigla, setFilterSigla] = useState(savedFilters.filterSigla || "");
+  const [filterTipoSite, setFilterTipoSite] = useState(savedFilters.filterTipoSite || "");
+  const [filterStatus, setFilterStatus] = useState(savedFilters.filterStatus || "");
   const [filterNome, setFilterNome] = useState(savedFilters.filterNome || "");
   const [filterID, setFilterID] = useState(savedFilters.filterID || "");
-  const [filterMotivo, setFilterMotivo] = useState(
-    savedFilters.filterMotivo || ""
-  );
-  const [filterRegional, setFilterRegional] = useState(
-    savedFilters.filterRegional || ""
-  );
-  const [filterDataInicio, setFilterDataInicio] = useState(
-    savedFilters.filterDataInicio || ""
-  );
-  const [filterDataFim, setFilterDataFim] = useState(
-    savedFilters.filterDataFim || ""
-  );
+  const [filterMotivo, setFilterMotivo] = useState(savedFilters.filterMotivo || "");
+  const [filterRegional, setFilterRegional] = useState(savedFilters.filterRegional || "");
+  const [filterDataInicio, setFilterDataInicio] = useState(savedFilters.filterDataInicio || "");
+  const [filterDataFim, setFilterDataFim] = useState(savedFilters.filterDataFim || "");
 
   // Otimização: Calcular contagens do Dashboard de forma eficiente
   const dashboardStats = useMemo(() => {
@@ -236,20 +221,7 @@ export default function Dashboard() {
       hasIdFilter && Number.isFinite(numericFilterID) && normalizedFilterID !== "";
 
     const regionMap = {
-      CO_N: [
-        "DF",
-        "GO",
-        "TO",
-        "AC",
-        "MS",
-        "MT",
-        "RO",
-        "AM",
-        "AP",
-        "MA",
-        "PA",
-        "RR",
-      ],
+      CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR",],
       NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
       RJ_ES_MG: ["RJ", "ES", "MG"],
       SP: ["SP"],
@@ -655,145 +627,142 @@ export default function Dashboard() {
   //   return chamados.filter(x) => x.status === status).length;;
   // }
 
-
-
   return (
-    <div className="apr-digital">
-      <Header />
+    <div className="apr-digital dashboard-page">
+      <Header name="APRs" />
       <div className="content">
-        <Title name="APRs">
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
-        </Title>
         {(user.nivel === "administrador" ||
           user.nivel === "revisor" ||
           user.nivel === "revisor_logistica") && (
-          <Grid
-            container
-            marginBottom={3}
-            justifyContent="center"
-            alignItems="stretch"
-            sx={styles.gridContainer}
-          >
             <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
+              container
+              className="dashboard-kpis"
+              marginBottom={3}
+              justifyContent="center"
+              alignItems="stretch"
+              className="dashboard-kpis-grid"
+              sx={{ width: "100%" }}
             >
-              <Box sx={{ ...styles.kpiCard, ...styles.pendenciaCard }}>
-                <FiAlertCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.pendenciaCard }}>
+                  <FiAlertCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
-                <FiSend style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Aguardando Ponto Focal</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.aguardandoPontoFocal}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                  <FiSend style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Aguardando Ponto Focal</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.aguardandoPontoFocal}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.emAbertoCard }}>
-                <FiClock style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Em Aberto</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.emAberto}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.emAbertoCard }}>
+                  <FiClock style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Em Aberto</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.emAberto}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.canceladoCard }}>
-                <FiXCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Cancelado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.cancelado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.canceladoCard }}>
+                  <FiXCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Cancelado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.cancelado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.revisadoCard }}>
-                <FiCheckCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Revisado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.revisado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.revisadoCard }}>
+                  <FiCheckCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Revisado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.revisado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
-                <FiSend style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Enviado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.enviado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                  <FiSend style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Enviado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.enviado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={5}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.respondidoCard }}>
-                <FiMessageCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Respondido</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.respondidoArea}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={5}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.respondidoCard }}>
+                  <FiMessageCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Respondido</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.respondidoArea}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.concluidoCard }}>
-                <FiFileText style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Concluido</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.concluido}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.concluidoCard }}>
+                  <FiFileText style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Concluido</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.concluido}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={5}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.totalCard }}>
-                <FiActivity style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Total</Box>
-                <Box sx={styles.kpiValue}>{chamados.length}</Box>
-              </Box>
+              <Grid
+                item
+                xs={5.5}
+                sm={5}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.totalCard }}>
+                  <FiActivity style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Total</Box>
+                  <Box sx={styles.kpiValue}>{chamados.length}</Box>
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        )}
+          )}
 
-        <div className="container filter">
+        <div className="container filter dashboard-filters">
           <Grid container spacing={2}>
             <Grid item xs={12} sm={12} md={2}>
               <TextField
@@ -1065,7 +1034,7 @@ export default function Dashboard() {
               </Button>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={1.2}>
+            <Grid item xs={12} sm={6} md={1.6}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -1091,14 +1060,7 @@ export default function Dashboard() {
             </Grid>
           </Grid>
         </div>
-
-        {/* Lista de resultados */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.9rem', color: '#666' }}>
-            {chamados.length > 0 ? `Exibindo ${chamados.length} registros` : 'Nenhum registro encontrado'}
-          </span>
-        </div>
-
+        <OfflineAPRsPanel />
         <TableDashboard
           chamados={chamados}
           user={user}

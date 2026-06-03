@@ -122,7 +122,7 @@ export default function Header({ name, subtitle, children }) {
 
   if (user.nivel === "administrador") {
     menuItems.push(
-{
+      {
         text: "Aplicar APR",
         icon: <PlaylistAddCheckSharpIcon />,
         link: "/new",
@@ -241,7 +241,7 @@ export default function Header({ name, subtitle, children }) {
   return (
     <>
       {/* Hamburger Menu Button */}
-      <div className="header-fixed" sx={{ position: "fixed", display: "flex", justifyContent:"space-between" }}>
+      <div className="header-fixed" sx={{ position: "fixed", display: "flex", justifyContent: "space-between" }}>
         <Box className="title-pages">
           <Title name={name} subtitle={subtitle}>
             {children}
@@ -249,7 +249,7 @@ export default function Header({ name, subtitle, children }) {
         </Box>
         <Box>
           <Typography variant="subtitle2" sx={{ color: "#666", mt: 0.5, mr: 2, textTransform: "uppercase" }}>
-           {user.nome} - {user.nivel?.replace(/_/g, ' ')}
+            {user.nome} - {user.nivel?.replace(/_/g, ' ')}
           </Typography>
         </Box>
 

@@ -13,6 +13,17 @@ import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import ModalLoading from "../../components/Modal_Loading";
 import Modal_Justificativa from "../../components/Modal_Justificativa";
+import {
+  clearOfflineAprEditSession,
+  getOfflineAprById,
+  getOfflineAprEditSession,
+  getUserOfflineAprs,
+  hydrateQuestionsFromOffline,
+  removeOfflineAprRecord,
+  saveOfflineAprRecord,
+  serializeQuestionsForOffline,
+  updateOfflineAprRecord,
+} from "../../services/offlineAprStorage";
 import CameraComponent from "./CameraComponent";
 import InputComponent from "./InputComponent";
 import {
@@ -197,8 +208,175 @@ export default function New() {
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
   const [aprSalva, setAprSalva] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isEditingOffline, setIsEditingOffline] = useState(false);
+  const [editingAPRId, setEditingAPRId] = useState(null);
+  const [autoSyncRequested, setAutoSyncRequested] = useState(false);
+  const [autoSyncTriggered, setAutoSyncTriggered] = useState(false);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
+
+  const loadOfflineAPRForEdit = async () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const editOfflineId = urlParams.get("edit_offline");
+
+      if (!editOfflineId) {
+        return;
+      }
+
+      const sessionApr = getOfflineAprEditSession();
+      const storedApr =
+        (sessionApr && sessionApr.id === editOfflineId && sessionApr) ||
+        getOfflineAprById(editOfflineId);
+
+      if (!storedApr) {
+        toast.error("APR offline não encontrada.");
+        return;
+      }
+
+      const hydratedQuestions = await hydrateQuestionsFromOffline(
+        storedApr.questions || []
+      );
+
+      setQuestions(hydratedQuestions);
+      setMotivoAPR(storedApr.motivoAPR || "");
+      setSiteInfo(storedApr.siteInfo || []);
+      setLocation(storedApr.location || []);
+      setInicio(
+        storedApr.inicio ? new Date(storedApr.inicio) : new Date()
+      );
+      setJustificativa(storedApr.justificativa || undefined);
+      setValorArmazenamento(storedApr.valorArmazenamento || "");
+      setValorTransporte(storedApr.valorTransporte || "");
+      setValorSinistro(storedApr.valorSinistro || "");
+      setTipoLoja(storedApr.tipoLoja || "");
+      setValorEstoque(storedApr.valorEstoque || "0");
+      setGeolocationEnabled(Boolean(storedApr.geolocationEnabled));
+      setGeolocationJustification(storedApr.geolocationJustification || "");
+      setGeolocationError(storedApr.geolocationError || null);
+      setIsEditingOffline(true);
+      setEditingAPRId(editOfflineId);
+      setAutoSyncRequested(urlParams.get("auto_sync") === "1");
+
+      setTimeout(() => {
+        const selectSite = document.getElementById("selectSite");
+        if (selectSite && storedApr.siteInfo?.tipoSite) {
+          selectSite.value = storedApr.siteInfo.tipoSite;
+        }
+
+        const questionsContainer = document.getElementById("container-questions");
+        if (questionsContainer) {
+          questionsContainer.style.display = "flex";
+        }
+
+        const mainContainer = document.getElementById("container");
+        if (mainContainer) {
+          mainContainer.style.display = "flex";
+        }
+      }, 250);
+
+      clearOfflineAprEditSession();
+      toast.info("APR offline carregada.");
+    } catch (error) {
+      console.error("Erro ao carregar APR offline:", error);
+      toast.error("Erro ao carregar APR offline.");
+    }
+  };
+
+  const persistOfflineAPR = async () => {
+    const serializedQuestions = await serializeQuestionsForOffline(questions);
+
+    const offlineAprData = {
+      id: editingAPRId || `offline_${Date.now()}`,
+      siteId: id,
+      idAssign: id_assign,
+      siteInfo,
+      questions: serializedQuestions,
+      motivoAPR,
+      location,
+      inicio: inicio
+        ? new Date(inicio).toISOString()
+        : new Date().toISOString(),
+      user,
+      timestamp: new Date().toISOString(),
+      status: "offline",
+      justificativa: justificativa || null,
+      valorArmazenamento,
+      valorTransporte,
+      valorSinistro,
+      tipoLoja,
+      valorEstoque,
+      geolocationEnabled,
+      geolocationJustification,
+      geolocationError,
+    };
+
+    if (editingAPRId) {
+      const updatedApr = updateOfflineAprRecord(editingAPRId, offlineAprData);
+      return updatedApr?.id || null;
+    }
+
+    const savedApr = saveOfflineAprRecord(offlineAprData);
+    return savedApr.id;
+  };
+
+  useEffect(() => {
+    loadOfflineAPRForEdit();
+
+    const handleOnline = () => {
+      setIsOffline(false);
+      const pendingOfflineAprs = getUserOfflineAprs(user?.uid);
+      if (pendingOfflineAprs.length > 0) {
+        toast.info(
+          `Conexão restabelecida. Você tem ${pendingOfflineAprs.length} APR(s) offline pendente(s).`
+        );
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOffline(true);
+      toast.warning("Conexão perdida. O envio será salvo localmente.");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [id, user?.uid]);
+
+  useEffect(() => {
+    if (
+      !autoSyncRequested ||
+      autoSyncTriggered ||
+      isOffline ||
+      !isEditingOffline ||
+      questions.length === 0 ||
+      !siteInfo ||
+      Object.keys(siteInfo).length === 0
+    ) {
+      return;
+    }
+
+    setAutoSyncTriggered(true);
+
+    const timer = setTimeout(() => {
+      toast.info("Iniciando sincronização da APR offline.");
+      submitWithErrorHandling();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [
+    autoSyncRequested,
+    autoSyncTriggered,
+    isOffline,
+    isEditingOffline,
+    questions,
+    siteInfo,
+  ]);
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -236,7 +414,7 @@ export default function New() {
             motivo: snapshot.data().last_motivo,
           });
         }
-        setInicio(new Date());
+        setInicio((currentInicio) => currentInicio || new Date());
       })
       .catch((error) => {
         console.log("DEU ALGUM ERRO!", error);
@@ -479,6 +657,23 @@ export default function New() {
       if (!geolocationEnabled && !geolocationJustification) {
         setShowGeolocationModal(true);
         toast.warning("⚠️ Geolocalização necessária ou forneça uma justificativa");
+        return;
+      }
+
+      if (isOffline) {
+        const offlineAprId = await persistOfflineAPR();
+
+        if (!offlineAprId) {
+          toast.error("Erro ao salvar a APR offline.");
+          return;
+        }
+
+        toast.success(
+          isEditingOffline
+            ? "APR offline atualizada com sucesso."
+            : "APR salva offline. Ela poderá ser sincronizada depois."
+        );
+        window.location.href = "/aprs";
         return;
       }
 
@@ -975,6 +1170,16 @@ export default function New() {
     hideElement("container-motivo");
     setAprSalva(true);
 
+    if (isEditingOffline && editingAPRId) {
+      removeOfflineAprRecord(editingAPRId);
+      clearOfflineAprEditSession();
+      setIsEditingOffline(false);
+      setEditingAPRId(null);
+      setAutoSyncRequested(false);
+      setAutoSyncTriggered(false);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     if (siteInfo.tipoSite?.includes('PGR')) {
       hideElement("container-pgr");
     }
@@ -1389,6 +1594,16 @@ export default function New() {
       <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
       <Container maxWidth="md" sx={{ py: 3 }}>
+        {(isOffline || isEditingOffline) && (
+          <Alert
+            severity={isOffline ? "warning" : "info"}
+            sx={{ mt: 10, mb: 3, borderRadius: 2 }}
+          >
+            {isOffline
+              ? "Sem conexão: ao concluir, a APR será salva localmente."
+              : "Você está editando uma APR offline pendente de sincronização."}
+          </Alert>
+        )}
         {/* Informações de Localização */}
         <Paper
           elevation={0}
@@ -2138,7 +2353,7 @@ export default function New() {
                                             indexImg
                                           }
                                           style={{
-                                            background: `url(${URL.createObjectURL(
+                                            background: `url(${img?.data || URL.createObjectURL(
                                               img
                                             )}) round`,
                                           }}
@@ -2307,7 +2522,13 @@ export default function New() {
                 }
               }}
             >
-              Concluir APR
+              {isEditingOffline
+                ? isOffline
+                  ? "Salvar APR Offline"
+                  : "Sincronizar APR"
+                : isOffline
+                  ? "Salvar APR Offline"
+                  : "Concluir APR"}
             </button>
           </div>
         </div>
