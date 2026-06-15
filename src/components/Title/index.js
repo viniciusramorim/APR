@@ -6,9 +6,11 @@ export default function Title({ children, name, subtitle }) {
       <div className="name">
         <span>{name}</span>
       </div>
-      <div className="subtitle">
-        <span>{subtitle}</span>
-      </div>
+      {subtitle ? (
+        <div className="subtitle">
+          <span>{subtitle}</span>
+        </div>
+      ) : null}
     </div>
   );
 }

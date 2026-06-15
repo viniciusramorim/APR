@@ -1,39 +1,211 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.reports {
-  background-color: $reports-bg-color;
+.page-oem {
+  background:
+    radial-gradient(circle at top left, rgba(142, 36, 170, 0.08), transparent 24%),
+    linear-gradient(180deg, #f6f4fb 0%, #eef2f7 100%);
+  min-height: 100vh;
 
-  button {
-    padding: 0.8em;
-    border: 0;
-    @include button-style($reports-button-bg, $reports-button-hover-bg);
-    font-weight: $font-weight-bold;
-    justify-content: center;
+  .content {
+    padding: 24px;
   }
-  & #log-button-grid {
-    padding:11.5px 50px!important;
 }
 
+.page-oem .filter-reports-container,
+.page-oem .reports {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
 }
 
-.filter-reports-container {
-  padding: 20px 20px 10px 15px;
-  background: $reports-bg-color;
-  margin:20px;
+.page-oem .filter-reports-container {
+  padding: 24px;
+  margin: 0 0 24px;
+}
+
+.page-oem .filter-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.page-oem .filter-reports .MuiGrid-container:first-child {
+  align-items: stretch;
+}
+
+.page-oem .filter-reports .MuiFormControl-root,
+.page-oem .filter-reports .MuiTextField-root {
+  width: 100%;
+}
+
+.page-oem .filter-reports .MuiOutlinedInput-root {
+  min-height: 52px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  }
+
+  &.Mui-focused {
+    box-shadow: 0 0 0 4px rgba(142, 36, 170, 0.08);
+  }
+}
+
+.page-oem .filter-reports .MuiTypography-body1 {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin: 0;
+  color: #667085;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.page-oem .filter-reports .MuiButton-root {
+  min-height: 52px;
+  border-radius: 10px;
+  text-transform: none;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.page-oem .filter-reports .MuiButton-outlinedPrimary {
+  border-color: rgba(107, 33, 168, 0.7);
+  color: #6b21a8;
+}
+
+.page-oem .filter-reports .MuiButton-containedSuccess {
+  background: linear-gradient(135deg, #2e7d32 0%, #3f9b45 100%);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(46, 125, 50, 0.22);
+}
+
+.page-oem .filter-reports .MuiButton-root + .MuiButton-root {
+  margin-top: 10px;
+}
+
+.page-oem .filter-reports .MuiCard-root {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: none;
+  padding: 6px 6px 2px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 255, 0.94) 100%);
+}
+
+.page-oem .filter-reports .MuiGrid-container:last-child .MuiGrid-item:nth-child(2) .MuiCard-root {
+  background: linear-gradient(180deg, rgba(236, 253, 243, 0.98) 0%, rgba(220, 252, 231, 0.95) 100%);
+}
+
+.page-oem .filter-reports .MuiGrid-container:last-child .MuiGrid-item:nth-child(3) .MuiCard-root {
+  background: linear-gradient(180deg, rgba(254, 242, 242, 0.98) 0%, rgba(254, 226, 226, 0.95) 100%);
+}
+
+.page-oem .reports {
+  display: block;
+  padding: 22px;
+}
+
+.page-oem .questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-oem .reports .MuiAccordion-root {
+  border-radius: 18px !important;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: none;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.96);
+
+  &::before {
+    display: none;
+  }
+}
+
+.page-oem .reports .MuiAccordionSummary-root {
+  min-height: 68px;
+  padding: 0 20px;
+}
+
+.page-oem .reports .MuiAccordionSummary-content {
+  margin: 18px 0;
+}
+
+.page-oem .reports .MuiAccordionDetails-root {
+  padding: 0 20px 20px;
+}
+
+.page-oem .reports .MuiTypography-h6 {
+  color: #111827;
+  font-weight: 700;
+}
+
+.page-oem .reports .MuiTypography-body1 {
+  color: #334155;
+  line-height: 1.6;
+}
+
+.page-oem .reports .MuiButton-outlined {
+  border-radius: 10px;
+  text-transform: none;
+  font-weight: 700;
+}
+
+.page-oem .MuiPagination-root {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 0;
+}
+
+.page-oem .MuiPagination-ul {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.page-oem .MuiPaginationItem-root {
+  border-radius: 12px;
+}
+
+.page-oem .content > div:last-child > div[style*="text-align: center"],
+.page-oem .content > div[style*="text-align: center"] {
+  color: #667085 !important;
 }
 
 @include respond-to(medium) {
-  .filter-reports {
-    div {
-      display: flex;
-      flex-direction: column;
-      align-content: space-around;
-      flex-wrap: nowrap;
+  .page-oem .filter-reports-container,
+  .page-oem .reports {
+    border-radius: 20px;
+  }
 
-      div {
-        min-width: 95%;
-      }
-    }
+  .page-oem .filter-reports-container {
+    padding: 18px;
+  }
+}
+
+@include respond-to(small) {
+  .page-oem .content {
+    padding: 14px;
+  }
+
+  .page-oem .filter-reports-container,
+  .page-oem .reports {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .page-oem .filter-reports .MuiTypography-body1 {
+    font-size: 0.88rem;
+  }
+
+  .page-oem .reports .MuiAccordionSummary-root,
+  .page-oem .reports .MuiAccordionDetails-root {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }

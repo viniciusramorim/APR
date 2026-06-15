@@ -1,67 +1,87 @@
 import "./header.scss";
 import React, { useContext, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/auth";
-import DrawerMyAccount from "../../components/DrawerMyAccount/DrawerMyAccount";
-
-import { Link } from "react-router-dom";
-import { FiHome } from "react-icons/fi";
-import { Avatar, Tooltip } from "@mui/material";
 import MenuMobile from "./MenuMobile";
 import PlaylistAddCheckSharpIcon from "@mui/icons-material/PlaylistAddCheckSharp";
 import FileDownloadDoneSharpIcon from "@mui/icons-material/FileDownloadDoneSharp";
 import PlaylistAddSharpIcon from "@mui/icons-material/PlaylistAddSharp";
 import PersonOutlineSharpIcon from "@mui/icons-material/PersonOutlineSharp";
 import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchSharp";
-import PersonAddSharpIcon from "@mui/icons-material/PersonAddSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
-import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
-import SignUpModal from "../RegisterMember";
 import { AddModerator, Analytics, Email } from "@mui/icons-material";
 import {
-  Drawer,
+  Avatar,
   Box,
+  Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  IconButton,
   Typography,
-  Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
+import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 import Title from "../Title";
+import RegisterMember from "../RegisterMember";
+
+function getInitials(name) {
+  if (!name) return "U";
+
+  return name
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
 
 export default function Header({ name, subtitle, children }) {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
-  const [openModal, setOpenModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   const location = useLocation();
 
-  const handleOpenModal = () => {
-    setOpenModal(true);
+  const userInitials = getInitials(user?.nome);
+  const userLevelLabel = user?.nivel?.replace(/_/g, " ") || "usuario";
+
+  const handleChangePassword = () => {
+    setDrawerOpen(false);
+    redefinirPassword();
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
+  const handleSignOut = () => {
+    setDrawerOpen(false);
+    signOut();
+  };
+
+  const handleOpenRegister = () => {
+    setDrawerOpen(false);
+    setRegisterModalOpen(true);
   };
 
   const toggleDrawer = (open) => (event) => {
     if (
+      event &&
       event.type === "keydown" &&
       (event.key === "Tab" || event.key === "Shift")
     ) {
       return;
     }
+
     setDrawerOpen(open);
   };
 
   const menuItems = [];
-
-  // Adicionar itens do menu baseado no usuário
 
   if (user.area === "patrimonial" || user.area === "pci") {
     menuItems.push(
@@ -95,10 +115,10 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize suas APRs",
       },
       {
-        text: "Relatório",
+        text: "Relatorio",
         icon: <Analytics />,
         link: "/oem",
-        subtitle: "Gere relatórios",
+        subtitle: "Gere relatorios",
       }
     );
   }
@@ -144,19 +164,19 @@ export default function Header({ name, subtitle, children }) {
         text: "Gerenciar Perfis",
         icon: <PersonOutlineSharpIcon />,
         link: "/profileadm",
-        subtitle: "Gerencie usuários",
+        subtitle: "Gerencie usuarios",
       },
       {
-        text: "Relatório",
+        text: "Relatorio",
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
-        subtitle: "Visualize relatórios",
+        subtitle: "Visualize relatorios",
       },
       {
         text: "Analytics",
         icon: <Analytics />,
         link: "/oem",
-        subtitle: "Visualize métricas",
+        subtitle: "Visualize metricas",
       },
       {
         text: "Gerenciar Emails",
@@ -165,10 +185,10 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Configure emails",
       },
       {
-        text: "Questionários",
+        text: "Questionarios",
         icon: <ContentPasteIcon />,
         link: "/questions",
-        subtitle: "Gerencie questionários",
+        subtitle: "Gerencie questionarios",
       },
       {
         text: "Gerenciamento de Logs",
@@ -178,7 +198,6 @@ export default function Header({ name, subtitle, children }) {
       }
     );
 
-    // Adicionar gerenciar sites para usuários específicos
     if (
       [
         "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
@@ -207,10 +226,10 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize suas APRs",
       },
       {
-        text: "Relatório",
+        text: "Relatorio",
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
-        subtitle: "Visualize relatórios",
+        subtitle: "Visualize relatorios",
       }
     );
   }
@@ -224,10 +243,10 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize suas APRs",
       },
       {
-        text: "Relatório",
+        text: "Relatorio",
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
-        subtitle: "Visualize relatórios",
+        subtitle: "Visualize relatorios",
       },
       {
         text: "Gerenciar Emails",
@@ -240,20 +259,33 @@ export default function Header({ name, subtitle, children }) {
 
   return (
     <>
-      {/* Hamburger Menu Button */}
-      <div className="header-fixed" sx={{ position: "fixed", display: "flex", justifyContent: "space-between" }}>
+      <div
+        className="header-fixed"
+        sx={{ position: "fixed", display: "flex", justifyContent: "space-between" }}
+      >
         <Box className="title-pages">
           <Title name={name} subtitle={subtitle}>
             {children}
           </Title>
         </Box>
-        <Box>
-          <Typography variant="subtitle2" sx={{ color: "#666", mt: 0.5, mr: 2, textTransform: "uppercase" }}>
-            {user.nome} - {user.nivel?.replace(/_/g, ' ')}
+
+        <Box className="header-user-meta">
+          <Typography
+            className="header-user-label"
+            variant="subtitle2"
+            sx={{
+              color: "#666",
+              mt: 0.5,
+              mr: 2,
+              textTransform: "uppercase",
+            }}
+          >
+            {user.nome} - {userLevelLabel}
           </Typography>
         </Box>
 
         <Box
+          className="header-menu-trigger"
           sx={{
             position: "fixed",
             top: 16,
@@ -266,12 +298,12 @@ export default function Header({ name, subtitle, children }) {
             sx={{
               backgroundColor: "#8e24aa",
               color: "white",
+              borderRadius: 2.5,
+              p: 1.5,
+              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.18)",
               "&:hover": {
                 backgroundColor: "#7b1fa2",
               },
-              borderRadius: 2,
-              p: 1.5,
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
             }}
           >
             <MenuIcon />
@@ -279,7 +311,6 @@ export default function Header({ name, subtitle, children }) {
         </Box>
       </div>
 
-      {/* Drawer Menu */}
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -288,10 +319,13 @@ export default function Header({ name, subtitle, children }) {
         hideBackdrop={false}
         PaperProps={{
           sx: {
-            width: 320,
+            width: { xs: "86vw", sm: 320 },
+            maxWidth: 360,
             backgroundColor: "white",
             color: "#333",
             zIndex: 1200,
+            borderRight: "1px solid rgba(15, 23, 42, 0.08)",
+            boxShadow: "0 24px 48px rgba(15, 23, 42, 0.16)",
           },
         }}
         ModalProps={{
@@ -300,40 +334,56 @@ export default function Header({ name, subtitle, children }) {
           },
         }}
       >
-        <Box sx={{ height: "100vh", backgroundColor: "white" }}>
-          {/* Header Roxo do Drawer */}
+        <Box
+          sx={{
+            height: "100vh",
+            backgroundColor: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Box
             sx={{
-              backgroundColor: "#8e24aa",
-              p: 2,
+              background:
+                "linear-gradient(135deg, #7b1fa2 0%, #8e24aa 55%, #a63cc8 100%)",
+              px: 2.5,
+              py: 2.25,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              boxShadow: "0 8px 24px rgba(142, 36, 170, 0.22)",
             }}
           >
             <Box>
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: "white" }}
+                sx={{ fontWeight: 700, color: "white", letterSpacing: "-0.02em" }}
               >
                 APR Digital
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "rgba(255,255,255,0.8)" }}
-              >
-                Análise Preliminar de Risco
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.82)" }}>
+                Analise Preliminar de Risco
               </Typography>
             </Box>
-            <IconButton onClick={toggleDrawer(false)} sx={{ color: "white" }}>
+
+            <IconButton
+              onClick={toggleDrawer(false)}
+              sx={{
+                color: "white",
+                bgcolor: "rgba(255,255,255,0.12)",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.18)",
+                },
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
 
-          {/* Lista de Menus */}
-          <List sx={{ backgroundColor: "white", p: 2 }}>
+          <List sx={{ backgroundColor: "white", px: 1.5, pt: 2.25, pb: 2 }}>
             {menuItems.map((item, index) => {
               const isActive = location.pathname === item.link;
+
               return (
                 <ListItem key={index} disablePadding>
                   <ListItemButton
@@ -341,98 +391,269 @@ export default function Header({ name, subtitle, children }) {
                     to={item.link}
                     onClick={toggleDrawer(false)}
                     sx={{
-                      borderRadius: 2,
-                      mb: 1,
+                      borderRadius: 3,
+                      mb: 0.75,
+                      px: 1.5,
+                      py: 1.15,
                       backgroundColor: isActive
-                        ? "rgba(142, 36, 170, 0.1)"
+                        ? "rgba(142, 36, 170, 0.10)"
                         : "transparent",
-                      borderLeft: isActive
-                        ? "4px solid #8e24aa"
-                        : "4px solid transparent",
+                      border: isActive
+                        ? "1px solid rgba(142, 36, 170, 0.22)"
+                        : "1px solid transparent",
                       "&:hover": {
-                        backgroundColor: "rgba(142, 36, 170, 0.08)",
+                        backgroundColor: "rgba(142, 36, 170, 0.06)",
+                        borderColor: "rgba(142, 36, 170, 0.16)",
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ color: "#8e24aa", minWidth: 40 }}>
+                    <ListItemIcon
+                      sx={{
+                        color: isActive ? "#8e24aa" : "#7c3aed",
+                        minWidth: 44,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 2.5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: isActive
+                          ? "rgba(142, 36, 170, 0.14)"
+                          : "rgba(124, 58, 237, 0.08)",
+                      }}
+                    >
                       {item.icon}
                     </ListItemIcon>
+
                     <ListItemText
                       primary={item.text}
                       secondary={item.subtitle}
+                      sx={{ ml: 0.75 }}
                       primaryTypographyProps={{
                         fontSize: "0.9rem",
-                        fontWeight: 500,
-                        color: "#333",
+                        fontWeight: isActive ? 700 : 600,
+                        color: "#1f2937",
                       }}
                       secondaryTypographyProps={{
                         fontSize: "0.75rem",
-                        color: "#666",
+                        color: "#6b7280",
                       }}
                     />
                   </ListItemButton>
                 </ListItem>
               );
             })}
-          </List>
 
-          {/* Seção do Perfil */}
-          <Box sx={{ mt: "auto", backgroundColor: "white", p: 2 }}>
-            <ListItem disablePadding>
-              <ListItemButton
-                sx={{
-                  borderRadius: 2,
-                  "&:hover": {
-                    backgroundColor: "rgba(142, 36, 170, 0.08)",
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ color: "#8e24aa", minWidth: 40 }}>
-                  <PersonOutlineSharpIcon />
-                </ListItemIcon>
-                <DrawerMyAccount />
-              </ListItemButton>
-            </ListItem>
-
-            {/* Cadastrar Usuário para Administradores */}
             {user.nivel === "administrador" && (
-              <ListItem disablePadding sx={{ mt: 1 }}>
+              <ListItem disablePadding>
                 <ListItemButton
-                  onClick={() => {
-                    handleOpenModal();
-                    setDrawerOpen(false);
-                  }}
+                  onClick={handleOpenRegister}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 3,
+                    mb: 0.75,
+                    px: 1.5,
+                    py: 1.15,
+                    backgroundColor: "transparent",
+                    border: "1px solid transparent",
                     "&:hover": {
-                      backgroundColor: "rgba(142, 36, 170, 0.08)",
+                      backgroundColor: "rgba(142, 36, 170, 0.06)",
+                      borderColor: "rgba(142, 36, 170, 0.16)",
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: "#8e24aa", minWidth: 40 }}>
-                    <PersonAddSharpIcon />
+                  <ListItemIcon
+                    sx={{
+                      color: "#7c3aed",
+                      minWidth: 44,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(124, 58, 237, 0.08)",
+                    }}
+                  >
+                    <PersonAddAlt1RoundedIcon />
                   </ListItemIcon>
+
                   <ListItemText
-                    primary="Cadastrar Usuário"
-                    secondary="Adicione um novo usuário"
+                    primary="Adicionar usuario"
+                    secondary="Cadastre um novo acesso"
+                    sx={{ ml: 0.75 }}
                     primaryTypographyProps={{
                       fontSize: "0.9rem",
-                      fontWeight: 500,
-                      color: "white",
+                      fontWeight: 600,
+                      color: "#1f2937",
                     }}
                     secondaryTypographyProps={{
                       fontSize: "0.75rem",
-                      color: "rgba(255,255,255,0.7)",
+                      color: "#6b7280",
                     }}
                   />
                 </ListItemButton>
               </ListItem>
             )}
+          </List>
+
+          <Box
+            sx={{
+              mt: "auto",
+              backgroundColor: "white",
+              px: 2,
+              pb: 2,
+              pt: 1.5,
+              borderTop: "1px solid rgba(15, 23, 42, 0.08)",
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                px: 1,
+                color: "#6b7280",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                fontWeight: 700,
+              }}
+            >
+              Conta
+            </Typography>
+
+            <Box
+              sx={{
+                mt: 1,
+                borderRadius: 3,
+                border: "1px solid rgba(142, 36, 170, 0.14)",
+                background:
+                  "linear-gradient(180deg, rgba(250, 245, 255, 0.95) 0%, rgba(255, 255, 255, 1) 100%)",
+                px: 1.25,
+                py: 1.1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.25,
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 42,
+                  height: 42,
+                  bgcolor: "#8e24aa",
+                  fontWeight: 700,
+                  fontSize: "0.92rem",
+                }}
+              >
+                {userInitials}
+              </Avatar>
+
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    color: "#1f2937",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {user?.nome || "Meu perfil"}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    color: "#6b7280",
+                    textTransform: "capitalize",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {userLevelLabel}
+                </Typography>
+              </Box>
+            </Box>
+
+            <ListItem disablePadding sx={{ mt: 1 }}>
+              <ListItemButton
+                onClick={handleChangePassword}
+                sx={{
+                  borderRadius: 3,
+                  px: 1.25,
+                  py: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(142, 36, 170, 0.06)",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: "#8e24aa",
+                    minWidth: 40,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(124, 58, 237, 0.08)",
+                  }}
+                >
+                  <LockResetRoundedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Trocar senha"
+                  secondary="Atualize seu acesso"
+                  sx={{ ml: 0.75 }}
+                  primaryTypographyProps={{ fontSize: "0.88rem", fontWeight: 600 }}
+                  secondaryTypographyProps={{ fontSize: "0.74rem", color: "#6b7280" }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding sx={{ mt: 0.5 }}>
+              <ListItemButton
+                onClick={handleSignOut}
+                sx={{
+                  borderRadius: 3,
+                  px: 1.25,
+                  py: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(220, 38, 38, 0.06)",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: "#dc2626",
+                    minWidth: 40,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(220, 38, 38, 0.08)",
+                  }}
+                >
+                  <LogoutRoundedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Sair"
+                  secondary="Encerrar sessao"
+                  sx={{ ml: 0.75 }}
+                  primaryTypographyProps={{
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    color: "#991b1b",
+                  }}
+                  secondaryTypographyProps={{ fontSize: "0.74rem", color: "#6b7280" }}
+                />
+              </ListItemButton>
+            </ListItem>
           </Box>
         </Box>
       </Drawer>
 
-      {/* Menu Mobile Original (mantido para compatibilidade) */}
       <MenuMobile
         className="menu-mobile"
         user={user}
@@ -440,7 +661,10 @@ export default function Header({ name, subtitle, children }) {
         redefinirPassword={redefinirPassword}
       />
 
-      <SignUpModal open={openModal} onClose={handleCloseModal} />
+      <RegisterMember
+        open={registerModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+      />
     </>
   );
 }

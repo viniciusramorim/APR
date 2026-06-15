@@ -1589,14 +1589,23 @@ export default function New() {
     toast.success("Justificativa registrada. Prosseguindo com a APR...");
   };
 
+  const showPgrFields = Boolean(siteInfo.tipoSite?.includes("PGR"));
+  const showLojaFields = Boolean(
+    siteInfo.tipoSite &&
+      ["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(
+        siteInfo.tipoSite
+      )
+  );
+
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
-      <Container maxWidth="md" sx={{ py: 3 }}>
+      <Container maxWidth="lg" className="new-apr-shell" sx={{ py: 3 }}>
         {(isOffline || isEditingOffline) && (
           <Alert
             severity={isOffline ? "warning" : "info"}
+            className="new-apr-status-alert"
             sx={{ mt: 10, mb: 3, borderRadius: 2 }}
           >
             {isOffline
@@ -1604,340 +1613,115 @@ export default function New() {
               : "Você está editando uma APR offline pendente de sincronização."}
           </Alert>
         )}
-        {/* Informações de Localização */}
+
         <Paper
           elevation={0}
-          sx={{
-            mt: 10,
-            mb: 3,
-            p: 3,
-            border: '2px solid #8e24aa',
-            borderRadius: 2,
-            bgcolor: '#f7f7f7'
-          }}
+          className="new-apr-overview-card"
+          sx={{ mt: 10, mb: 3 }}
         >
-          <Typography
-            variant="h6"
-            sx={{
-              mb: 2,
-              fontWeight: 600,
-              color: '#1e293b',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}
-          >
-            📍 Informações de Localização
-          </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{
-              mb: 3,
-              color: '#64748b',
-              fontWeight: 500
-            }}
-          >
-            Dados de endereço e coordenadas do local
-          </Typography>
-
-          <Grid container spacing={0}>
-            {/* Linha 1: UNIDADE */}
-            <Grid item xs={12} sx={{ mb: 3 }}>
-              <Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#64748b',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  UNIDADE
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 500,
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.95rem'
-                  }}
-                >
-                  {siteInfo.Nome}
-                </Typography>
-              </Box>
-            </Grid>
-
-            {/* Linha 2: ENDEREÇO */}
-            <Grid item xs={12} sx={{ mb: 3 }}>
-              <Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#64748b',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  ENDEREÇO
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 500,
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.95rem'
-                  }}
-                >
-                  {siteInfo.Endereco}
-                </Typography>
-              </Box>
-            </Grid>
-
-            {/* Linha 3: UF e CIDADE (lilás - extremidades) */}
-            <Grid container item xs={12} spacing={0} sx={{ mb: 3 }}>
-              <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  UF
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.95rem'
-                  }}
-                >
-                  {siteInfo.Estado}
-                </Typography>
-              </Grid>
-              <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  CIDADE
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.95rem'
-                  }}
-                >
-                  {siteInfo.Cidade}
-                </Typography>
-              </Grid>
-            </Grid>
-
-            {/* Linha 4: ESTADO e CRITICIDADE */}
-            <Grid container item xs={12} spacing={3} sx={{ mb: 3 }}>
-              <Grid item xs={6}>
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#64748b',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    ESTADO
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 500,
-                      color: '#0f172a',
-                      mt: 0.5,
-                      fontSize: '0.95rem'
-                    }}
-                  >
-                    {siteInfo.Estado}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6}>
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#64748b',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    CRITICIDADE
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 500,
-                      color: '#0f172a',
-                      mt: 0.5,
-                      fontSize: '0.95rem'
-                    }}
-                  >
-                    {siteInfo.critical || 'BAIXO'}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-
-            {/* Linha 5: LATITUDE e LONGITUDE (cinza - extremidades) */}
-            <Grid container item xs={12} spacing={0}>
-              <Grid item xs={6} sx={{ background: '#c0c0c0', padding: '20px' }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#059669',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5
-                  }}
-                >
-                  ✅ LATITUDE
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontFamily: 'monospace',
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  {siteInfo.Latitude}
-                </Typography>
-              </Grid>
-              <Grid item xs={6} sx={{ background: '#c0c0c08a', padding: '20px' }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#059669',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5
-                  }}
-                >
-                  ✅ LONGITUDE
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontFamily: 'monospace',
-                    color: '#0f172a',
-                    mt: 0.5,
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  {siteInfo.Longitude}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        {/* Data e Status - esconde após salvar */}
-        {!aprSalva && (
-        <Box sx={{ background: '#f7f7f7', padding: '24px', borderRadius: '8px', border: 'solid, 2px, #8e24aa' }}>
-          <Box
-            sx={{
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#374151',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  fontWeight: 500
-                }}
-              >
-                📅 {lastAPR.data || new Date().toLocaleDateString('pt-BR')}
+          <Box className="new-apr-overview-header">
+            <Box>
+              <Typography variant="h6" className="new-apr-card-title">
+                Informações do local
+              </Typography>
+              <Typography variant="body2" className="new-apr-card-subtitle">
+                Confirme os dados do site antes de selecionar o checklist da APR.
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#64748b',
-                  fontWeight: 500
-                }}
-              >
-                ÚLTIMA APR ATIVA
+            <Chip
+              label={
+                geolocationEnabled
+                  ? "Geolocalização ativa"
+                  : geolocationJustification
+                    ? "Sem geolocalização"
+                    : "Geolocalização pendente"
+              }
+              color={
+                geolocationEnabled
+                  ? "success"
+                  : geolocationJustification
+                    ? "warning"
+                    : "default"
+              }
+              variant={geolocationEnabled ? "filled" : "outlined"}
+              size="small"
+            />
+          </Box>
+
+          <Box className="new-apr-overview-grid">
+            <Box className="new-apr-overview-item new-apr-overview-item--wide">
+              <span className="new-apr-overview-label">Unidade</span>
+              <strong>{siteInfo.Nome || "-"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item new-apr-overview-item--wide">
+              <span className="new-apr-overview-label">Endereço</span>
+              <strong>{siteInfo.Endereco || "-"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item">
+              <span className="new-apr-overview-label">UF</span>
+              <strong>{siteInfo.Estado || "-"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item">
+              <span className="new-apr-overview-label">Cidade</span>
+              <strong>{siteInfo.Cidade || "-"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item">
+              <span className="new-apr-overview-label">Criticidade</span>
+              <strong>{siteInfo.critical || "Baixo"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item new-apr-overview-item--code">
+              <span className="new-apr-overview-label">Latitude</span>
+              <strong>{siteInfo.Latitude || "-"}</strong>
+            </Box>
+
+            <Box className="new-apr-overview-item new-apr-overview-item--code">
+              <span className="new-apr-overview-label">Longitude</span>
+              <strong>{siteInfo.Longitude || "-"}</strong>
+            </Box>
+          </Box>
+        </Paper>
+
+        {!aprSalva && (
+        <Paper
+          id="container-motivo"
+          elevation={0}
+          className="new-apr-config-card"
+          sx={{ mb: 3 }}
+        >
+          <Box
+            className="new-apr-config-header"
+          >
+            <Box>
+              <Typography variant="h6" className="new-apr-card-title">
+                Configuração da APR
               </Typography>
-              <Box
-                sx={{
-                  backgroundColor: '#e2e8f0',
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#475569',
-                  letterSpacing: '0.5px'
-                }}
-              >
-                {lastAPR.motivo || 'OPINADA'}
-              </Box>
+              <Typography variant="body2" className="new-apr-card-subtitle">
+                Escolha a indicação, o checklist e avance para o preenchimento.
+              </Typography>
+            </Box>
+
+            <Box className="new-apr-history-pill">
+              <span className="new-apr-history-label">Última APR</span>
+              <strong>{lastAPR.motivo || "Opinada"}</strong>
+              <small>{lastAPR.data || new Date().toLocaleDateString("pt-BR")}</small>
             </Box>
           </Box>
 
-          {/* Botões de Controle */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6}>
+          <Grid container spacing={2} sx={{ mb: 3 }} id="container-save">
+            <Grid item xs={12} md={6}>
               <Button
                 fullWidth
                 variant="outlined"
                 onClick={() => loadIndexedDB()}
+                className="new-apr-secondary-action"
                 sx={{
-                  py: 1.5,
+                  py: 1.35,
                   textTransform: 'none',
                   borderColor: '#cbd5e1',
                   color: '#475569',
@@ -1952,21 +1736,22 @@ export default function New() {
                 Carregar Salvo
               </Button>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Button
                 fullWidth
                 variant="contained"
                 onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
+                className="new-apr-primary-action"
                 sx={{
-                  py: 1.5,
+                  py: 1.35,
                   textTransform: 'none',
-                  bgcolor: '#3b82f6',
+                  bgcolor: '#8e24aa',
                   fontWeight: 600,
                   fontSize: '0.95rem',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  boxShadow: '0 12px 30px rgba(142, 36, 170, 0.18)',
                   '&:hover': {
-                    bgcolor: '#2563eb',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    bgcolor: '#7b1fa2',
+                    boxShadow: '0 16px 36px rgba(142, 36, 170, 0.24)'
                   }
                 }}
               >
@@ -1975,10 +1760,9 @@ export default function New() {
             </Grid>
           </Grid>
 
-          {/* Selects lado a lado */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+          <Grid container spacing={2} className="new-apr-select-grid">
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth size="small">
                 <Select
                   id="selectMotivo"
                   value={motivoAPR}
@@ -2006,8 +1790,8 @@ export default function New() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} id="container" style={{ display: "none" }}>
-              <FormControl fullWidth>
+            <Grid item xs={12} md={6} id="container" style={{ display: "none" }}>
+              <FormControl fullWidth size="small">
                 <Select
                   id="selectSite"
                   defaultValue={siteInfo.tipoSite}
@@ -2044,31 +1828,25 @@ export default function New() {
               </FormControl>
             </Grid>
           </Grid>
-        </Box>
+        </Paper>
         )}
 
-        {siteInfo.tipoSite && siteInfo.tipoSite.includes("PGR") && !aprSalva && (
+        {showPgrFields && !aprSalva && (
           <Paper
             id="container-pgr"
             elevation={0}
-            sx={{
-              mt: 3,
-              mb: 3,
-              p: 3,
-              border: '1px solid #e2e8f0',
-              borderRadius: 2,
-              bgcolor: '#ffffff'
-            }}
+            className="new-apr-support-card"
+            sx={{ mt: 3, mb: 3 }}
           >
             <Typography
               variant="h6"
-              sx={{
-                mb: 3,
-                fontWeight: 600,
-                color: '#1e293b'
-              }}
+              className="new-apr-card-title"
+              sx={{ mb: 0.5 }}
             >
               Informações PGR
+            </Typography>
+            <Typography variant="body2" className="new-apr-card-subtitle" sx={{ mb: 3 }}>
+              Preencha os valores para filtrar corretamente as perguntas específicas de PGR.
             </Typography>
 
             <Grid container spacing={2}>
@@ -2129,26 +1907,22 @@ export default function New() {
           </Paper>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
+        {showLojaFields && !aprSalva && (
           <Paper
+            id="container-loja"
             elevation={0}
-            sx={{
-              mb: 3,
-              p: 3,
-              border: '1px solid #e2e8f0',
-              borderRadius: 2,
-              bgcolor: '#ffffff'
-            }}
+            className="new-apr-support-card"
+            sx={{ mb: 3 }}
           >
             <Typography
               variant="h6"
-              sx={{
-                mb: 3,
-                fontWeight: 600,
-                color: '#1e293b'
-              }}
+              className="new-apr-card-title"
+              sx={{ mb: 0.5 }}
             >
               Informações da Loja
+            </Typography>
+            <Typography variant="body2" className="new-apr-card-subtitle" sx={{ mb: 3 }}>
+              Informe o perfil da loja para exibir somente as verificações relevantes.
             </Typography>
 
             <Grid container spacing={2}>
@@ -2195,78 +1969,53 @@ export default function New() {
           </Paper>
         )}
 
-        {siteInfo.tipoSite && (["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) && !aprSalva && (
-          <div className="container" id="container-loja">
-            <label name="valor-estoque">
-              Tipo de Loja
-              <select
-                id="selectTipoLoja"
-                defaultValue={""}
-                value={tipoLoja}
-                onChange={(e) => setTipoLoja(e.target.value)}
-              >
-                <option disabled value={""}>
-                  Selecione um tipo de loja...
-                </option>
-                <option value={"LOJA ESTOQUE ZERO"}>LOJA ESTOQUE ZERO</option>
-                <option value={"LOJA GALERIA PISO TÉRREO"}>LOJA GALERIA PISO TÉRREO</option>
-                <option value={"GALERIA PISO SUPERIOR"}>GALERIA PISO SUPERIOR</option>
-                <option value={"LOJA RUA"}>LOJA RUA</option>
-                <option value={"LOJA SHOP PISO TERREO"}>LOJA SHOP PISO TERREO</option>
-                <option value={"LOJA SHOP PISO SUPERIOR"}>LOJA SHOP PISO SUPERIOR</option>
-              </select>
-            </label>
-            <label name="valor-estoque">
-              Valor Estoque
-              <input
-                id="selectValorEstoque"
-                name="valor-estoque"
-                type="text"
-                value={new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(valorEstoque / 100)}
-                onChange={(e) => {
-                  setValorEstoque(e.target.value.replace(/\D/g, ""))
-                }
-                }
-                placeholder="Valor de Estoque"
-              />
-            </label>
-          </div>
-        )}
-
         <div
-          className="container"
+          className="container new-apr-questions-card"
           id="container-questions"
           style={{ display: "none", width: "100%", margin: "0 auto" }}
         >
-          <div id="checklist" className="form-new">
+          <div id="checklist" className="form-new new-apr-form">
+            <div className="new-apr-checklist-header">
+              <div>
+                <Typography variant="h6" className="new-apr-card-title">
+                  Checklist da APR
+                </Typography>
+                <Typography variant="body2" className="new-apr-card-subtitle">
+                  Abra cada grupo, responda os itens obrigatórios e registre evidências quando necessário.
+                </Typography>
+              </div>
+            </div>
             {questions.map((area, indexA) => {
               return (
-                <div key={indexA} className="question">
-                  <i id="button-area" onClick={() => dropdownArea(indexA)}>
+                <div key={indexA} className="question new-apr-area">
+                  <button
+                    type="button"
+                    className="new-apr-area-toggle"
+                    onClick={() => dropdownArea(indexA)}
+                  >
                     {area[0]}
-                  </i>
+                  </button>
                   <span id={`container-${indexA}`} style={{ display: "none" }}>
                     {Array.isArray(area[1]) && area[1].map((doc, indexDoc) => {
                       if (enableQuestions(doc) === true) {
                         return (
                           <div
                             key={indexDoc}
-                            className="container-perg question"
+                            className="container-perg question new-apr-question-card"
                           >
-                            {indexDoc + 1} - {doc.question}
-                            {doc.isRequired === true && (
-                              <FiAlertCircle
-                                className="icon-required"
-                                size={15}
-                                color="#FF0000"
-                              />
-                            )}
-                            <div className="question">
+                            <div className="new-apr-question-title">
+                              <span>{indexDoc + 1} - {doc.question}</span>
+                              {doc.isRequired === true && (
+                                <FiAlertCircle
+                                  className="icon-required"
+                                  size={15}
+                                  color="#FF0000"
+                                />
+                              )}
+                            </div>
+                            <div className="question new-apr-question-body">
                               {doc.selectOptions === true && doc.answers && (
-                                <>
+                                <div className="new-apr-answer-group">
                                   <label>
                                     <input
                                       className="yes"
@@ -2313,7 +2062,7 @@ export default function New() {
                                     <FiX size={25} />{" "}
                                     {doc.answers[2] ? doc.answers[2] : "N/A"}
                                   </label>
-                                </>
+                                </div>
                               )}
                               {doc.inputImages === true && (
                                 <ul
@@ -2493,10 +2242,13 @@ export default function New() {
                                 </FormControl>
                               )}
                             </div>
-                            <i className="clearQuestion" onClick={() => clearQuestion(doc, indexA)}>
-                              {" "}
-                              Limpar{" "}
-                            </i>
+                            <button
+                              type="button"
+                              className="clearQuestion"
+                              onClick={() => clearQuestion(doc, indexA)}
+                            >
+                              Limpar
+                            </button>
                           </div>
                         );
                       }
@@ -2507,6 +2259,7 @@ export default function New() {
               );
             })}
             <button
+              type="button"
               className="submit-apr"
               onClick={async () => {
                 try {

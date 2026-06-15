@@ -1,0 +1,286 @@
+.page-contact-email .content {
+  background: #f4f6fb;
+  min-height: calc(100vh - 90px);
+}
+
+.contact-email-shell {
+  padding-top: 24px;
+  padding-bottom: 16px;
+}
+
+.contact-email-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 24px;
+  padding: 28px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at top left, rgba(142, 36, 170, 0.09), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.contact-email-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(142, 36, 170, 0.1);
+  color: #7b1fa2;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-email-title {
+  margin-top: 18px !important;
+  margin-bottom: 12px !important;
+  font-weight: 800 !important;
+  color: #1f2937;
+  letter-spacing: -0.03em;
+}
+
+.contact-email-subtitle {
+  max-width: 620px;
+  color: #667085;
+  line-height: 1.75 !important;
+}
+
+.contact-email-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-self: stretch;
+}
+
+.contact-email-summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px !important;
+  border-radius: 18px !important;
+  border-color: rgba(139, 92, 246, 0.14) !important;
+  background: rgba(255, 255, 255, 0.84);
+
+  span {
+    color: #7c3aed;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #111827;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 800;
+  }
+
+  small {
+    color: #6b7280;
+    font-size: 0.82rem;
+  }
+}
+
+.contact-email-toolbar {
+  padding: 22px !important;
+  margin-bottom: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px !important;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+}
+
+.contact-email-toolbar-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.contact-email-section-title {
+  font-weight: 800 !important;
+  color: #1f2937;
+}
+
+.contact-email-section-subtitle {
+  margin-top: 4px !important;
+  color: #6b7280;
+}
+
+.contact-email-toolbar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+
+  > * {
+    min-width: 0;
+  }
+
+  .MuiButton-root {
+    min-height: 42px;
+    border-radius: 12px;
+    text-transform: none;
+    font-weight: 700;
+  }
+
+  .MuiTextField-root,
+  .MuiFormControl-root {
+    .MuiOutlinedInput-root {
+      border-radius: 12px;
+      background: #fff;
+    }
+  }
+}
+
+.contact-email-primary-btn {
+  background: linear-gradient(135deg, #8e24aa 0%, #6d28d9 100%) !important;
+  box-shadow: 0 12px 26px rgba(142, 36, 170, 0.18) !important;
+}
+
+.contact-email-secondary-btn {
+  width: 100%;
+}
+
+.contact-email-danger-btn {
+  width: 100%;
+}
+
+.contact-email-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contact-email-estado-card,
+.contact-email-municipio-card {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.contact-email-estado-card {
+  .MuiAccordionSummary-root {
+    min-height: 74px;
+    padding: 6px 18px;
+  }
+}
+
+.contact-email-municipio-card {
+  .MuiAccordionSummary-root {
+    min-height: 66px;
+    padding: 4px 16px;
+  }
+}
+
+.contact-email-estado-summary,
+.contact-email-municipio-summary {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+}
+
+.contact-email-estado-copy,
+.contact-email-municipio-copy {
+  min-width: 0;
+}
+
+.contact-email-estado-title,
+.contact-email-municipio-title {
+  color: #111827;
+  font-weight: 800 !important;
+}
+
+.contact-email-estado-subtitle,
+.contact-email-municipio-subtitle {
+  color: #6b7280;
+}
+
+.contact-email-inline-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.contact-email-area-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contact-email-area-card {
+  padding: 16px !important;
+  border-radius: 16px !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  background: #fcfcff;
+}
+
+.contact-email-area-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.contact-email-email-item {
+  padding-right: 72px !important;
+  border-radius: 10px;
+
+  &:not(:last-child) {
+    margin-bottom: 4px;
+  }
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.05);
+  }
+
+  .MuiListItemText-primary {
+    color: #374151;
+    font-size: 0.94rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1100px) {
+  .contact-email-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-email-toolbar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-email-shell {
+    padding-top: 16px;
+  }
+
+  .contact-email-hero,
+  .contact-email-toolbar {
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .contact-email-summary-grid,
+  .contact-email-area-grid,
+  .contact-email-toolbar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-email-toolbar-top {
+    flex-direction: column;
+  }
+}

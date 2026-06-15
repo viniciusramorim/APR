@@ -1,19 +1,105 @@
 @import "../../styles/_variables.scss";
 @import "../../styles/_mixins.scss";
 
-.page-dash .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1.MuiTableContainer-root.css-v73c9r-MuiPaper-root-MuiTableContainer-root {
-    width: 98%;
-    margin: 0 auto 20px auto;
-}
-
-.page-dash .MuiGrid-root.MuiGrid-container.css-yhxlfh-MuiGrid-root {
-    padding-right: 20px;
-}
-
 .dashboard-kpis-grid {
     display:flex;
     flex-wrap:nowrap!important;
     gap:20px;
     max-width:98%;
     margin: 0 auto 20px auto;
+}
+
+.page-dash .dashboard-table-shell {
+    padding: 18px;
+}
+
+.page-dash .dashboard-table-shell .MuiTableContainer-root {
+    width: 100%;
+    margin: 0;
+}
+
+.container.filter.dashboard-filters {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.page-dash .dashboard-filters .MuiButton-root {
+    min-height: 40px;
+    white-space: nowrap;
+}
+
+.page-dash .dashboard-table-shell .MuiPaper-root,
+.page-dash .dashboard-table-shell .MuiTableContainer-root {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.page-dash .dashboard-table-shell .MuiTable-root {
+    min-width: 1180px;
+}
+
+.page-dash .dashboard-table-shell .MuiTablePagination-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.page-dash .dashboard-table-shell .MuiTablePagination-spacer {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .dashboard-kpis-grid {
+        flex-wrap: wrap !important;
+        justify-content: stretch;
+        gap: 14px;
+        max-width: 100%;
+    }
+
+    .dashboard-kpis-grid > .MuiGrid-item {
+        width: calc(33.333% - 10px);
+        max-width: calc(33.333% - 10px);
+        flex-basis: calc(33.333% - 10px);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-kpis-grid {
+        gap: 12px;
+        margin-bottom: 16px !important;
+    }
+
+    .dashboard-kpis-grid > .MuiGrid-item {
+        width: calc(50% - 6px);
+        max-width: calc(50% - 6px);
+        flex-basis: calc(50% - 6px);
+    }
+
+    .page-dash .dashboard-table-shell,
+    .container.filter.dashboard-filters {
+        padding: 14px;
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-kpis-grid > .MuiGrid-item {
+        width: 100%;
+        max-width: 100%;
+        flex-basis: 100%;
+    }
+
+    .page-dash .dashboard-filters .MuiGrid-container {
+        row-gap: 12px;
+    }
+
+    .page-dash .dashboard-filters .MuiButton-root {
+        width: 100%;
+    }
+
+    .page-dash .dashboard-table-shell {
+        padding: 12px;
+    }
 }

@@ -19,23 +19,24 @@
 
 
 .title-page .name {
+  min-width: 0;
   font-family: 'Montserrat', sans-serif;
   text-transform: uppercase;
   color: #471461;
   font-size: 1.2em;
   font-weight: bold;
-  margin-left: 80px;
+  // margin-left: 80px;
   padding-left: 10px;
   position: relative;
 }
 
 .title-page .subtitle {
+  min-width: 0;
   font-family: 'Montserrat', sans-serif;
   text-transform: capitalize;
   color: #471461;
   font-style: italic;
   font-size: 12px;
-  margin-left: 80px;
   padding-left: 10px;
   position: relative;
 }
@@ -51,4 +52,43 @@
   top: 50%;
   transform: translateY(-50%);
   border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .title-page .name,
+  .title-page .subtitle {
+    padding-left: 8px;
+  }
+
+  .title-page .name {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .title-page .subtitle {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .title-page:before {
+    left: 52px;
+    width: 2px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .title-page .subtitle {
+    display: none;
+  }
+
+  .title-page .name {
+    margin-left: 50px;
+    font-size: 0.96rem;
+  }
+
+  .title-page:before {
+    left: 46px;
+    height: 28px;
+  }
 }

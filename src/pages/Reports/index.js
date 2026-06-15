@@ -1,6 +1,5 @@
 import { useState, useEffect, useContext } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-import { FiFileText } from "react-icons/fi";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
 import firebase from "../../services/firebaseConnection";
@@ -9,6 +8,7 @@ import { AuthContext } from "../../contexts/auth";
 import "./report.scss";
 import {
   Button,
+  Chip,
   FormControl,
   Grid,
   InputLabel,
@@ -21,6 +21,9 @@ import {
   Typography,
   Box,
 } from "@mui/material";
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
@@ -39,6 +42,8 @@ export default function Reports() {
   useEffect(() => {
     addBodyClass('page-reports');
   }, []);
+
+  const hasDateFilter = filterDate.startDate || filterDate.endDate;
 
   async function loadChamados() {
     setLoading(true);
@@ -561,41 +566,86 @@ export default function Reports() {
 
   return (
     <div>
-      <Header name="Relatórios" subtitle="Gerar relatórios de APRs">
-      </Header>
+      <Header name="Relatorios" />
       <div className="content">
+        <div className="container reports-shell">
+          <div className="reports-hero">
+            <div className="reports-hero-copy">
+              <span className="reports-eyebrow">APR Digital</span>
+              <Typography variant="h5" className="reports-title">
+                Central de relatorios
+              </Typography>
+              <Typography variant="body2" className="reports-subtitle">
+                Filtre por periodo, status, motivo e tipo de site para gerar a exportacao com mais clareza.
+              </Typography>
+            </div>
+
+            <div className="reports-hero-aside">
+              <Chip
+                label={`${chamados.length} APR(s) carregadas`}
+                color="secondary"
+                className="reports-chip-primary"
+              />
+              <Chip
+                label={includeQuestions ? "Com perguntas" : "Resumo da APR"}
+                variant="outlined"
+              />
+            </div>
+          </div>
         <div className="filter-reports-container">
-          <div className="filter-reports">
+          <div className="filter-reports reports-filter-panel">
+            <div className="reports-filter-header">
+              <Box>
+                <Typography variant="h6" className="reports-filter-title">
+                  Ajustar filtros
+                </Typography>
+                <Typography variant="body2" className="reports-filter-subtitle">
+                  Informe pelo menos uma data para iniciar a consulta e depois refine os demais criterios.
+                </Typography>
+              </Box>
+
+              <div className="reports-filter-chips">
+                <Chip
+                  icon={<TuneRoundedIcon />}
+                  label={hasDateFilter ? "Periodo definido" : "Periodo obrigatorio"}
+                  variant={hasDateFilter ? "filled" : "outlined"}
+                  color={hasDateFilter ? "secondary" : "default"}
+                  size="small"
+                />
+              </div>
+            </div>
             <Grid container spacing={2}>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} lg={2}>
                 <TextField
                   id="startDate"
                   type="date"
-                  label=""
+                  label="Data inicio"
                   variant="outlined"
                   fullWidth
                   size="small"
+                  InputLabelProps={{ shrink: true }}
                   value={filterDate.startDate}
                   onChange={(e) =>
                     setFilterDate({ ...filterDate, startDate: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} lg={2}>
                 <TextField
                   id="endDate"
                   type="date"
-                  label=""
+                  label="Data fim"
                   variant="outlined"
                   fullWidth
                   size="small"
+                  InputLabelProps={{ shrink: true }}
                   value={filterDate.endDate}
                   onChange={(e) =>
                     setFilterDate({ ...filterDate, endDate: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} md={4} lg={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="status-label" size="small">Status</InputLabel>
                   <Select
@@ -616,7 +666,7 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="motivo-label" size="small">Motivo</InputLabel>
                   <Select
@@ -644,7 +694,7 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="tipo-de-site-label" size="small">Tipo de Site</InputLabel>
                   <Select
@@ -681,33 +731,37 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={includeQuestions}
-                      onChange={(e) => setIncludeQuestions(e.target.checked)}
-                    />
-                  }
-                  label="Incluir Perguntas"
-                />
+              <Grid item xs={12} md={7} lg={8}>
+                <div className="reports-options-row">
+                  <FormControlLabel
+                    className="reports-checkbox"
+                    control={
+                      <Checkbox
+                        checked={includeQuestions}
+                        onChange={(e) => setIncludeQuestions(e.target.checked)}
+                      />
+                    }
+                    label="Incluir perguntas no arquivo"
+                  />
+                </div>
               </Grid>
-              <Grid item xs={2}>
-                <FormControl>
+              <Grid item xs={12} md={5} lg={4}>
+                <div className="reports-submit-wrap">
                   <Button
-                    variant="outlined"
-                    color="primary"
+                    variant="contained"
+                    color="secondary"
                     onClick={loadChamados}
                     disabled={loading}
-                    style={{ borderColor: "#380054e8", color: "#380054e8" }}
+                    className="reports-submit-button"
+                    fullWidth
                   >
-                    {loading && !isDownloading ? "Filtrando..." : "Filtrar"}
+                    {loading && !isDownloading ? "Filtrando..." : "Carregar relatorio"}
                   </Button>
-                </FormControl>
+                </div>
               </Grid>
             </Grid>
             {loading && isDownloading && (
-              <Box sx={{ width: '100%', mt: 2 }}>
+              <Box className="reports-progress">
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 1 }}>
                   Carregando dados... {downloadProgress}%
                 </Typography>
@@ -717,20 +771,42 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className={"container reports"} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => updateState(chamados)}
-            disabled={loading || chamados.length === 0}
-            style={{ backgroundColor: loading ? '#ccc' : '#380054e8' }}
-          >
-            {loading ? "Processando..." : "Download"}
-          </Button>
+        <div className="container reports-export-card">
+          <div className="reports-export-copy">
+            <span className="reports-export-badge">
+              <TaskAltRoundedIcon fontSize="inherit" />
+              Exportacao
+            </span>
+            <Typography variant="h6" className="reports-export-title">
+              Gerar arquivo Excel
+            </Typography>
+            <Typography variant="body2" className="reports-export-subtitle">
+              Depois de carregar os registros, exporte a base consolidada em um unico arquivo.
+            </Typography>
+          </div>
+
+          <div className="reports-export-actions">
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => updateState(chamados)}
+              disabled={loading || chamados.length === 0}
+              className="reports-download-button"
+              startIcon={<DownloadRoundedIcon />}
+            >
+              {loading ? "Processando..." : "Baixar Excel"}
+            </Button>
+
+            <div className="reports-export-meta">
+              <strong>{chamados.length}</strong>
+              <span>APR(s) prontas para exportacao</span>
+            </div>
+          </div>
         </div>
         <div className="container reports">
           <i>APR´s carregadas: {chamados.length}</i>
         </div>
+      </div>
       </div>
     </div>
   );

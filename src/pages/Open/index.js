@@ -1931,7 +1931,7 @@ export default function Open() {
 
   return (
     <div>
-      <Header name="Aplicar APR" subtitle="Gerador de Relatórios"></Header>
+      <Header name="Aplicar APR" subtitle="Visualizacao e tratamento da APR"></Header>
 
       <div className="content">
         <div id="exportContent">

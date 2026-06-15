@@ -1061,12 +1061,14 @@ export default function Dashboard() {
           </Grid>
         </div>
         <OfflineAPRsPanel />
-        <TableDashboard
-          chamados={chamados}
-          user={user}
-          updateStatus={updateStatus}
-          updateStatusRollBack={updateStatusRollBack}
-        />
+        <div className="container dashboard-table-shell">
+          <TableDashboard
+            chamados={chamados}
+            user={user}
+            updateStatus={updateStatus}
+            updateStatusRollBack={updateStatusRollBack}
+          />
+        </div>
 
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
