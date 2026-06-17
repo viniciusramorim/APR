@@ -211,12 +211,29 @@
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   overflow: hidden;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .page-profile-adm .table-users .MuiTable-root {
-  min-width: 980px;
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.page-profile-adm .table-users .MuiTableCell-root {
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+.page-profile-adm .table-users .MuiTableCell-root:nth-child(2) {
+  width: 92px;
+}
+
+.page-profile-adm .table-users .MuiTableCell-root:nth-child(4) {
+  width: 135px;
+}
+
+.page-profile-adm .table-users .MuiTableCell-root:nth-child(5) {
+  width: 120px;
 }
 
 .page-profile-adm .table-users .MuiTableHead-root .MuiTableCell-root {
@@ -229,8 +246,103 @@
   background: rgba(124, 58, 237, 0.03);
 }
 
+.page-profile-adm .users-row-action {
+  min-width: 92px !important;
+  border-radius: 10px !important;
+  border-color: rgba(124, 58, 237, 0.28) !important;
+  color: #6b21a8 !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+.page-profile-adm .users-row-action .MuiButton-startIcon svg {
+  color: #6b21a8 !important;
+}
+
 .page-profile-adm td[data-label="Area"] {
   text-transform: capitalize !important;
+}
+
+.page-profile-adm .users-actions-dialog .MuiPaper-root {
+  border-radius: 16px;
+}
+
+.page-profile-adm .users-actions-dialog-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  h6 {
+    margin: 0;
+    color: #1f2937;
+    font-weight: 800;
+  }
+
+  p {
+    margin-top: 2px;
+    color: #6b7280;
+    overflow-wrap: anywhere;
+  }
+}
+
+.page-profile-adm .users-actions-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-profile-adm .users-dialog-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(120px, 0.8fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fafafa;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+
+  div {
+    min-width: 0;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    font-weight: 700;
+  }
+
+  strong {
+    display: block;
+    color: #111827;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+    text-transform: none;
+  }
+}
+
+.page-profile-adm .users-dialog-password-button {
+  align-self: flex-start;
+  border-radius: 10px !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+}
+
+.page-profile-adm .users-dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.page-profile-adm .users-actions-dialog .MuiSelect-select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page-profile-adm .css-1sazv7p-MuiStack-root > :not(style):not(style) {
@@ -298,5 +410,25 @@
 
   .page-profile-adm .table-users table tr td:before {
     padding-right: 5px;
+  }
+
+  .page-profile-adm .table-users .MuiTable-root {
+    min-width: 0;
+  }
+
+  .page-profile-adm .table-users .MuiTableCell-root:nth-child(2),
+  .page-profile-adm .table-users .MuiTableCell-root:nth-child(4),
+  .page-profile-adm .table-users .MuiTableCell-root:nth-child(5) {
+    width: auto;
+  }
+
+  .page-profile-adm .users-dialog-summary,
+  .page-profile-adm .users-dialog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-profile-adm .users-dialog-password-button,
+  .page-profile-adm .users-row-action {
+    width: 100%;
   }
 }

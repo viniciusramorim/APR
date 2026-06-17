@@ -19,6 +19,7 @@ import {
   TextField,
   Divider,
   Card,
+  Chip,
   Pagination,
   CircularProgress,
   FormControlLabel,
@@ -687,16 +688,37 @@ export default function Oem() {
                           {chamadosUF.map((question, index) => (
                             <Accordion
                               key={`${question.uid}-${question.index}`}
-                              sx={{
-                                mb: 1,
-                                border: question.plano_acao?.comentario
-                                  ? '2px solid #4caf50'
-                                  : '2px solid #f44336',
-                                borderRadius: 2,
-                              }}
+                              className={`oem-question-card ${question.plano_acao?.comentario ? "is-treated" : "is-pending"}`}
+                              sx={{ mb: 1 }}
                               onClick={() => console.log(question)}
                             >
-                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />} className="oem-question-summary">
+                                <Box className="oem-question-summary-content">
+                                  <Box className="oem-question-title-wrap">
+                                    <Typography variant="body1" className="oem-question-title">
+                                      <strong>{question.id}</strong>
+                                      <span>{question.nome}</span>
+                                      <span>{question.municipio}</span>
+                                    </Typography>
+                                    <Typography variant="caption" className="oem-question-subtitle">
+                                      {question.tipoSite} - {question.area}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box className="oem-question-badges">
+                                    <Chip
+                                      label={question.plano_acao?.comentario ? "Tratado" : "Pendente"}
+                                      size="small"
+                                      className={question.plano_acao?.comentario ? "oem-status-chip is-treated" : "oem-status-chip is-pending"}
+                                    />
+                                    <Chip
+                                      label={`${aprQuestionStats[question.id]?.respondidas || 0}/${aprQuestionStats[question.id]?.total || 0} respondidas`}
+                                      size="small"
+                                      variant="outlined"
+                                      className="oem-count-chip"
+                                    />
+                                  </Box>
+                                </Box>
                                 <Typography variant="body1" noWrap>
                                   <strong>{question.id}</strong> - {question.nome} - {question.municipio}
                                   {question.plano_acao?.comentario ? " ✅" : " ❌"}
@@ -705,9 +727,9 @@ export default function Oem() {
                                   </span>
                                 </Typography>
                               </AccordionSummary>
-                              <AccordionDetails>
-                                <Grid container spacing={2}>
-                                  <Grid item xs={12} sm={8}>
+                              <AccordionDetails className="oem-question-details-wrap">
+                                <Grid container spacing={2} className="oem-question-details">
+                                  <Grid item xs={12} md={question.imagesURL?.length > 0 ? 8 : 12} className="oem-info-column">
                                     <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
                                       Informações da Inconformidade
                                     </Typography>
@@ -749,11 +771,12 @@ export default function Oem() {
                                       </>
                                     )}
 
-                                    <Grid container spacing={1}>
+                                    <Grid container spacing={1} className="oem-card-actions">
                                       <Grid item xs={12} sm={10}>
                                         <Button
                                           variant="outlined"
                                           onClick={() => window.open(`/open/${question.uid}`, '_blank')}
+                                          className="oem-open-apr-button"
                                           sx={{
                                             borderColor: "#380054e8",
                                             color: "#380054e8",
@@ -777,11 +800,12 @@ export default function Oem() {
                                   </Grid>
 
                                   {question.imagesURL?.length > 0 && (
-                                    <Grid item xs={12} sm={4}>
+                                    <Grid item xs={12} md={4} className="oem-image-column">
                                       <Typography variant="h6" fontWeight="bold" gutterBottom>
                                         Imagem
                                       </Typography>
                                       <Card
+                                        className="oem-image-card"
                                         elevation={3}
                                         sx={{ borderRadius: 2, overflow: "hidden", maxWidth: "100%" }}
                                       >

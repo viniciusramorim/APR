@@ -150,6 +150,12 @@ export default function Modal_PA({
       setSelectedOption(
         conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption
       );
+      const loadedOption =
+        conteudo?.resp_pa_selectedOption || conteudo?.plano_acao?.selectedOption || defaultOption;
+      if (loadedOption === "Logistica" && conteudo?.plano_acao?.sla_logistica) {
+        setSlaLogistica("");
+        setComentario("");
+      }
       setJustificativa(conteudo?.plano_acao?.justificativa || "");
       setNomeDetentora(conteudo?.plano_acao?.nome_detentora || "");
       setNumeroChamado(conteudo?.plano_acao?.numero_chamado || "");
@@ -382,18 +388,7 @@ export default function Modal_PA({
       toast.success("✅ SLA adicionado ao histórico!");
       
       // Atualizar o histórico local imediatamente para aparecer na lista
-      if (plano.plano_acao?.sla_logistica) {
-        const novoHistoricoLocal = [
-          ...(historicoLocal || []),
-          {
-            data: plano.resp_pa_data || new Date(),
-            usuario: plano.resp_pa_user_name || user.nome,
-            sla: plano.plano_acao.sla_logistica,
-            comentario: plano.plano_acao.comentario || '',
-          }
-        ];
-        setHistoricoLocal(novoHistoricoLocal);
-      }
+      setHistoricoLocal(planoAcaoToSave.historico_logistica || []);
       
       // Limpar campos para adicionar próximo SLA
       setSlaLogistica("");
@@ -1377,7 +1372,7 @@ export default function Modal_PA({
         {selectedOption === "Sim" && (
           <>
             <TextField
-              label="SLA (Data)"
+              label={planoAcaoLocal?.sla_logistica ? "Novo SLA (Data)" : "SLA (Data)"}
               type="date"
               value={tempo}
               onChange={(e) => setTempo(e.target.value)}
@@ -1884,7 +1879,7 @@ export default function Modal_PA({
               </Typography>
               
               <TextField
-                label="SLA (Data)"
+                label={planoAcaoLocal?.sla_logistica ? "Novo SLA (Data)" : "SLA (Data)"}
                 type="date"
                 value={slaLogistica}
                 onChange={(e) => setSlaLogistica(e.target.value)}
@@ -2880,25 +2875,32 @@ export default function Modal_PA({
                           value={selectedOption}
                           onChange={(e) => setSelectedOption(e.target.value)}
                         >
-                          <FormControlLabel 
-                            value="Sim" 
-                            control={<Radio />} 
-                            label="✓ Sim" 
+                          <FormControlLabel
+                            value="Sim"
+                            control={<Radio />}
+                            label="✓ Sim"
                             disabled={isReadOnly}
                             sx={{ mr: 3 }}
                           />
-                          <FormControlLabel 
-                            value="Não" 
-                            control={<Radio />} 
-                            label="✗ Não" 
+                          <FormControlLabel
+                            value="Não"
+                            control={<Radio />}
+                            label="✗ Não"
                             disabled={isReadOnly}
                             sx={{ mr: 3 }}
                           />
-                          <FormControlLabel 
-                            value="Patrimonio" 
-                            control={<Radio />} 
-                            label="🏗️ Patrimonio" 
+                          <FormControlLabel
+                            value="Patrimonio"
+                            control={<Radio />}
+                            label="🏗️ Patrimonio"
                             disabled={isReadOnly}
+                          />
+                          <FormControlLabel
+                            value="Logistica"
+                            control={<Radio />}
+                            label="Logistica"
+                            disabled={isReadOnly}
+                            sx={{ ml: 3 }}
                           />
                         </RadioGroup>
                       </FormControl>
@@ -2975,24 +2977,24 @@ export default function Modal_PA({
                           value={selectedOptionOEM}
                           onChange={(e) => setSelectedOptionOEM(e.target.value)}
                         >
-                          <FormControlLabel 
-                            value="Sim" 
-                            control={<Radio />} 
-                            label="✓ Sim" 
+                          <FormControlLabel
+                            value="Sim"
+                            control={<Radio />}
+                            label="✓ Sim"
                             disabled={isReadOnly}
                             sx={{ mr: 3 }}
                           />
-                          <FormControlLabel 
-                            value="Não" 
-                            control={<Radio />} 
-                            label="✗ Não" 
+                          <FormControlLabel
+                            value="Não"
+                            control={<Radio />}
+                            label="✗ Não"
                             disabled={isReadOnly}
                             sx={{ mr: 3 }}
                           />
-                          <FormControlLabel 
-                            value="Detentora" 
-                            control={<Radio />} 
-                            label="🏛️ Detentora" 
+                          <FormControlLabel
+                            value="Detentora"
+                            control={<Radio />}
+                            label="🏛️ Detentora"
                             disabled={isReadOnly}
                           />
                         </RadioGroup>

@@ -17,13 +17,20 @@ import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import Groups2RoundedIcon from "@mui/icons-material/Groups2Rounded";
 import PersonOffRoundedIcon from "@mui/icons-material/PersonOffRounded";
 import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RegisterMember from "../../components/RegisterMember";
 import {
   Box,
   Button,
   Checkbox,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  IconButton,
   InputAdornment,
   InputLabel,
   ListItemText,
@@ -39,6 +46,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -72,6 +80,7 @@ export default function ProfileADM() {
   const [loadingUpdatePassword, setLoadingUpdatePassword] = useState(false);
   const [loadingForceChange, setLoadingForceChange] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const permissionMaster = [
     "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
@@ -118,6 +127,18 @@ export default function ProfileADM() {
     return filteredUsers.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   }, [filteredUsers, page, rowsPerPage]);
 
+  const closeActionsDialog = () => {
+    setSelectedUser(null);
+  };
+
+  const syncSelectedUser = (id_user, changes) => {
+    setSelectedUser((currentUser) =>
+      currentUser?.id_user === id_user
+        ? { ...currentUser, ...changes }
+        : currentUser
+    );
+  };
+
   async function handleUpdateAllPasswordExpiry() {
     if (
       window.confirm(
@@ -146,11 +167,14 @@ export default function ProfileADM() {
     const {
       target: { value },
     } = event;
+    const checklistValue =
+      typeof value === "string" ? value.split(",") : value;
 
     await listRef
       .doc(id)
-      .update({ checklist: value })
+      .update({ checklist: checklistValue })
       .then(() => {
+        syncSelectedUser(id, { checklist: checklistValue });
         loadUsers();
       })
       .catch((err) => console.log(err));
@@ -233,6 +257,7 @@ export default function ProfileADM() {
       })
       .then(() => {
         toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { nivel });
         logSistem(
           `O NIVEL DO USUARIO ${nome} FOI ALTERADO PARA ${nivel.toUpperCase()}`,
           id_user
@@ -255,6 +280,7 @@ export default function ProfileADM() {
       })
       .then(() => {
         toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { status });
         logSistem(
           `O STATUS DO USUARIO ${nome} FOI ALTERADO PARA ${status === true ? "ATIVO" : "INATIVO"}`,
           id_user
@@ -276,6 +302,7 @@ export default function ProfileADM() {
       })
       .then(() => {
         toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { regional });
         logSistem(
           `A REGIONAL DO USUARIO ${nome} FOI ALTERADA PARA ${regional}`,
           id_user
@@ -448,21 +475,14 @@ export default function ProfileADM() {
 
         <div className="container table-usuarios">
           <TableContainer component={Paper} className="table-users">
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table aria-label="Tabela de usuarios">
               <TableHead>
                 <TableRow>
                   <TableCell>Nome</TableCell>
-                  {hasMasterPermission && (
-                    <TableCell align="center">Trocar Senha</TableCell>
-                  )}
                   <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Email</TableCell>
+                  <TableCell>Email</TableCell>
                   <TableCell align="center">Area</TableCell>
-                  {hasMasterPermission && (
-                    <TableCell align="center">Checklists</TableCell>
-                  )}
-                  <TableCell align="center">Nivel de Usuario</TableCell>
-                  <TableCell align="center">Regional</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -470,16 +490,6 @@ export default function ProfileADM() {
                   return (
                     <TableRow key={index}>
                       <TableCell data-label="Usuario">{item.nome}</TableCell>
-                      {hasMasterPermission && (
-                        <TableCell align="center">
-                          <Chip
-                            label={<FiLock size={15} />}
-                            color="secondary"
-                            size="small"
-                            onClick={() => trocaSenha(item.id_user)}
-                          />
-                        </TableCell>
-                      )}
                       <TableCell data-label="Status" sx={{ textAlign: "center" }}>
                         <Switch
                           checked={item.status}
@@ -503,83 +513,16 @@ export default function ProfileADM() {
                       <TableCell data-label="Area" sx={{ textAlign: "center" }}>
                         {item.area === "patrimonial" ? "empresarial" : item.area}
                       </TableCell>
-                      {hasMasterPermission && (
-                        <TableCell data-label="Checklists">
-                          <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                            <InputLabel id="checklists-label">Checklists</InputLabel>
-                            <Select
-                              labelId="checklists-label"
-                              id="checklists"
-                              multiple={true}
-                              value={item.checklist ? item.checklist : []}
-                              onChange={(e) => handleChangeChecklist(e, item.id_user)}
-                              input={<OutlinedInput label="Checklists" />}
-                              renderValue={(selected) => selected.join(", ")}
-                              MenuProps={MenuProps}
-                            >
-                              {checklists.map((name) => (
-                                <MenuItem key={name} value={name} sx={{ height: "30px" }}>
-                                  <Checkbox
-                                    checked={
-                                      item.checklist && item.checklist.includes(name)
-                                    }
-                                  />
-                                  <ListItemText primary={name} />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                          <InputLabel id="nivel-usuario-label">
-                            Nivel de Usuario
-                          </InputLabel>
-                          <Select
-                            labelId="nivel-usuario-label"
-                            id={`nivel-usuario-${index}`}
-                            label="Nivel de Usuario"
-                            value={item.nivel || ""}
-                            onChange={(e) =>
-                              updateNivel(item.id_user, e.target.value, item.nome)
-                            }
-                            MenuProps={MenuProps}
-                          >
-                            <MenuItem disabled={isDisabled} value={"administrador"}>
-                              Administrador
-                            </MenuItem>
-                            <MenuItem value={"usuario_gcn"}>Usuario GCM</MenuItem>
-                            <MenuItem value={"aplicador"}>Aplicador</MenuItem>
-                            <MenuItem value={"supervisor"}>Supervisor</MenuItem>
-                            <MenuItem value={"revisor"}>Revisor</MenuItem>
-                            <MenuItem value={"revisor_logistica"}>
-                              Revisor Logistica
-                            </MenuItem>
-                            <MenuItem value={"ponto_focal"}>Ponto Focal</MenuItem>
-                            <MenuItem value={"auditor"}>Auditor</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </TableCell>
-                      <TableCell>
-                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                          <InputLabel id="regional-label">Regional</InputLabel>
-                          <Select
-                            labelId="regional-label"
-                            id={`regional-${index}`}
-                            label="Regional"
-                            value={item.regional !== undefined ? item.regional : ""}
-                            onChange={(e) =>
-                              updateRegional(item.id_user, e.target.value, item.nome)
-                            }
-                          >
-                            <MenuItem value={"SP"}>SP</MenuItem>
-                            <MenuItem value={"SUL"}>SUL</MenuItem>
-                            <MenuItem value={"NE"}>NE</MenuItem>
-                            <MenuItem value={"CO_N"}>CO_N</MenuItem>
-                            <MenuItem value={"RJ_ES_MG"}>RJ_ES_MG</MenuItem>
-                          </Select>
-                        </FormControl>
+                      <TableCell data-label="Ações" sx={{ textAlign: "center" }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<ManageAccountsRoundedIcon fontSize="small" />}
+                          className="users-row-action"
+                          onClick={() => setSelectedUser(item)}
+                        >
+                          Ações
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -602,6 +545,183 @@ export default function ProfileADM() {
             )}
           />
         </Stack>
+
+        <Dialog
+          open={Boolean(selectedUser)}
+          onClose={closeActionsDialog}
+          maxWidth="sm"
+          fullWidth
+          className="users-actions-dialog"
+        >
+          <DialogTitle className="users-actions-dialog-title">
+            <Box>
+              <Typography variant="h6">Ações do usuario</Typography>
+              <Typography variant="body2">{selectedUser?.nome}</Typography>
+            </Box>
+            <Tooltip title="Fechar">
+              <IconButton onClick={closeActionsDialog} aria-label="Fechar">
+                <CloseRoundedIcon />
+              </IconButton>
+            </Tooltip>
+          </DialogTitle>
+
+          <DialogContent dividers className="users-actions-dialog-content">
+            {selectedUser && (
+              <>
+                <div className="users-dialog-summary">
+                  <div>
+                    <span>Email</span>
+                    <strong>{selectedUser.email}</strong>
+                  </div>
+                  <div>
+                    <span>Area</span>
+                    <strong>
+                      {selectedUser.area === "patrimonial"
+                        ? "empresarial"
+                        : selectedUser.area}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Status</span>
+                    <Switch
+                      checked={selectedUser.status}
+                      onChange={() =>
+                        updateStatus(
+                          selectedUser.id_user,
+                          !selectedUser.status,
+                          selectedUser.nome
+                        )
+                      }
+                      sx={{
+                        "& .MuiSwitch-switchBase.Mui-checked": {
+                          color: "#0deb0d",
+                          "&:hover": {
+                            backgroundColor: "rgba(18, 18, 18, 0.08)",
+                          },
+                        },
+                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                          backgroundColor: "#0deb0d",
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {hasMasterPermission && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<FiLock />}
+                    className="users-dialog-password-button"
+                    onClick={() => trocaSenha(selectedUser.id_user)}
+                  >
+                    Trocar senha
+                  </Button>
+                )}
+
+                {hasMasterPermission && (
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`checklists-label-${selectedUser.id_user}`}>
+                      Checklists
+                    </InputLabel>
+                    <Select
+                      labelId={`checklists-label-${selectedUser.id_user}`}
+                      id={`checklists-${selectedUser.id_user}`}
+                      multiple
+                      value={selectedUser.checklist ? selectedUser.checklist : []}
+                      onChange={(e) =>
+                        handleChangeChecklist(e, selectedUser.id_user)
+                      }
+                      input={<OutlinedInput label="Checklists" />}
+                      renderValue={(selected) => selected.join(", ")}
+                      MenuProps={MenuProps}
+                    >
+                      {checklists.map((name) => (
+                        <MenuItem key={name} value={name} sx={{ height: "30px" }}>
+                          <Checkbox
+                            checked={
+                              selectedUser.checklist &&
+                              selectedUser.checklist.includes(name)
+                            }
+                          />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
+                <div className="users-dialog-grid">
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`nivel-usuario-label-${selectedUser.id_user}`}>
+                      Nivel de Usuario
+                    </InputLabel>
+                    <Select
+                      labelId={`nivel-usuario-label-${selectedUser.id_user}`}
+                      id={`nivel-usuario-${selectedUser.id_user}`}
+                      label="Nivel de Usuario"
+                      value={selectedUser.nivel || ""}
+                      onChange={(e) =>
+                        updateNivel(
+                          selectedUser.id_user,
+                          e.target.value,
+                          selectedUser.nome
+                        )
+                      }
+                      MenuProps={MenuProps}
+                    >
+                      <MenuItem disabled={isDisabled} value={"administrador"}>
+                        Administrador
+                      </MenuItem>
+                      <MenuItem value={"usuario_gcn"}>Usuario GCM</MenuItem>
+                      <MenuItem value={"aplicador"}>Aplicador</MenuItem>
+                      <MenuItem value={"supervisor"}>Supervisor</MenuItem>
+                      <MenuItem value={"revisor"}>Revisor</MenuItem>
+                      <MenuItem value={"revisor_logistica"}>
+                        Revisor Logistica
+                      </MenuItem>
+                      <MenuItem value={"ponto_focal"}>Ponto Focal</MenuItem>
+                      <MenuItem value={"auditor"}>Auditor</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`regional-label-${selectedUser.id_user}`}>
+                      Regional
+                    </InputLabel>
+                    <Select
+                      labelId={`regional-label-${selectedUser.id_user}`}
+                      id={`regional-${selectedUser.id_user}`}
+                      label="Regional"
+                      value={
+                        selectedUser.regional !== undefined
+                          ? selectedUser.regional
+                          : ""
+                      }
+                      onChange={(e) =>
+                        updateRegional(
+                          selectedUser.id_user,
+                          e.target.value,
+                          selectedUser.nome
+                        )
+                      }
+                    >
+                      <MenuItem value={"SP"}>SP</MenuItem>
+                      <MenuItem value={"SUL"}>SUL</MenuItem>
+                      <MenuItem value={"NE"}>NE</MenuItem>
+                      <MenuItem value={"CO_N"}>CO_N</MenuItem>
+                      <MenuItem value={"RJ_ES_MG"}>RJ_ES_MG</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
+              </>
+            )}
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={closeActionsDialog}>Fechar</Button>
+          </DialogActions>
+        </Dialog>
 
         <RegisterMember
           open={registerModalOpen}

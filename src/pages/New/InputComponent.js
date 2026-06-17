@@ -20,12 +20,37 @@ const VisuallyHiddenInput = styled('input')({
 const InputComponent = (item) => {
 
   function CapturePhoto(indexA, question, camCapture) {
+    if (!camCapture) {
+      return;
+    }
+
+    if (!item.questions[indexA] || !Array.isArray(item.questions[indexA][1])) {
+      console.error("Estrutura de questions invalida no InputComponent:", {
+        indexA,
+        questions: item.questions,
+      });
+      return;
+    }
+
     //se for imagem entao
     let imageArray = []
-    let objIndex = item.questions[indexA][1].findIndex((obj => obj.questionId == question.questionId));
+    let objIndex = item.questions[indexA][1].findIndex((obj => obj.questionId === question.questionId));
+
+    if (objIndex === -1 || !item.questions[indexA][1][objIndex]) {
+      console.error("Pergunta nao encontrada no InputComponent:", {
+        indexA,
+        questionId: question.questionId,
+      });
+      return;
+    }
+
+    if (!Array.isArray(item.questions[indexA][1][objIndex].images)) {
+      item.questions[indexA][1][objIndex].images = [];
+    }
+
     let arrayQuestion = item.questions[indexA][1][objIndex].images
 
-    if (item.questions[indexA][1][objIndex].images.length >= 4) {
+    if (arrayQuestion.length >= 4) {
       return;
     }
 
@@ -59,6 +84,10 @@ const InputComponent = (item) => {
 
     ul.appendChild(li);
     li.appendChild(i);
+
+    if (item.saveIndexedDB) {
+      item.saveIndexedDB();
+    }
   }
 
   function removeImg(indexA, objIndex, file) {

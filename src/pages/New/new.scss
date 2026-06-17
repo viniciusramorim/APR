@@ -33,6 +33,12 @@
   max-width: 100%;
   width: 100%;
 
+  button {
+    @include button-style($btn-primary-bg, $modal-link-bg);
+    font-size: 1.3em;
+    width: 100%;
+  }
+
   button#photo {
     @include button-style($btn-primary-bg, $modal-link-bg);
     font-size: 1.3em;
@@ -47,20 +53,13 @@
 
 
   .submit-apr {
-    @include button-style($btn-primary-bg, $modal-link-bg);
-    width: 100%;
-    min-height: 56px;
-    margin-top: 1.5rem;
-    border-radius: 16px !important;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 18px 40px rgba(142, 36, 170, 0.18);
+    height: 30px !important;
+    border-radius: 100px !important;
   }
 
   .question {
     display: flex;
-    margin-bottom: 1.25rem;
+    margin-bottom: 2em;
     margin-top: 0.5em;
     justify-content: space-around;
     flex-direction: column;
@@ -74,6 +73,34 @@
     display: flex;
     margin-bottom: 0.5em;
     font-size: 1.2em;
+  }
+
+  #button-area {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    color: $white-color;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
   }
 
   textarea,
@@ -162,228 +189,6 @@
   }
 }
 
-.page-new .new-apr-shell {
-  padding-bottom: 3rem;
-}
-
-.page-new .new-apr-shell .MuiGrid-container {
-  min-width: 0;
-}
-
-.page-new .new-apr-status-alert,
-.page-new .new-apr-overview-card,
-.page-new .new-apr-config-card,
-.page-new .new-apr-support-card,
-.page-new .new-apr-questions-card {
-  border-radius: 20px !important;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
-  background: linear-gradient(180deg, #ffffff 0%, #fcfbff 100%);
-}
-
-.page-new .new-apr-overview-card,
-.page-new .new-apr-config-card,
-.page-new .new-apr-support-card {
-  padding: 28px;
-}
-
-.page-new .new-apr-card-title {
-  margin: 0;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.page-new .new-apr-card-subtitle {
-  margin-top: 4px;
-  color: #64748b;
-}
-
-.page-new .new-apr-overview-header,
-.page-new .new-apr-config-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.page-new .new-apr-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.page-new .new-apr-overview-item {
-  min-width: 0;
-  padding: 16px 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(139, 92, 246, 0.12);
-  background: linear-gradient(180deg, rgba(248, 245, 255, 0.92) 0%, rgba(255, 255, 255, 1) 100%);
-
-  strong {
-    display: block;
-    margin-top: 8px;
-    color: #1f2937;
-    font-size: 0.98rem;
-    line-height: 1.45;
-    word-break: break-word;
-  }
-}
-
-.page-new .new-apr-overview-item--wide {
-  grid-column: span 2;
-}
-
-.page-new .new-apr-overview-item--code strong {
-  font-family: "Consolas", "Courier New", monospace;
-}
-
-.page-new .new-apr-overview-label {
-  display: inline-block;
-  color: #7c3aed;
-  font-size: 0.73rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.page-new .new-apr-history-pill {
-  min-width: 220px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(142, 36, 170, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);
-  border: 1px solid rgba(142, 36, 170, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  strong {
-    color: #1f2937;
-    font-size: 0.95rem;
-  }
-
-  small {
-    color: #64748b;
-    font-size: 0.78rem;
-  }
-}
-
-.page-new .new-apr-history-label {
-  color: #8e24aa;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-new .new-apr-primary-action,
-.page-new .new-apr-secondary-action {
-  border-radius: 14px !important;
-}
-
-.page-new .new-apr-select-grid .MuiOutlinedInput-root,
-.page-new #container-pgr .MuiOutlinedInput-root,
-.page-new #container-loja .MuiOutlinedInput-root {
-  border-radius: 14px;
-  background: #fff;
-}
-
-.page-new .new-apr-questions-card {
-  padding: 28px !important;
-}
-
-.page-new .new-apr-checklist-header {
-  margin-bottom: 1.5rem;
-}
-
-.page-new .new-apr-area {
-  margin-bottom: 1.25rem;
-}
-
-.page-new .new-apr-area-toggle {
-  width: 100%;
-  border: 0;
-  border-radius: 16px;
-  padding: 16px 18px;
-  text-align: left;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  background: linear-gradient(135deg, #7b1fa2 0%, #8e24aa 58%, #a63cc8 100%);
-  box-shadow: 0 14px 32px rgba(142, 36, 170, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 36px rgba(142, 36, 170, 0.24);
-  }
-}
-
-.page-new .new-apr-question-card {
-  margin: 1rem 0 0 0;
-  padding: 1.4rem 1.4rem 1.1rem 1.4rem;
-  border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-
-  &:hover {
-    transform: none;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  }
-}
-
-.page-new .new-apr-question-title {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 1rem;
-  color: #0f172a;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.5;
-
-  .icon-required {
-    position: static;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-}
-
-.page-new .new-apr-question-body {
-  gap: 0.9rem;
-}
-
-.page-new .new-apr-answer-group {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.page-new .new-apr-answer-group label {
-  max-width: none;
-  width: 100%;
-  margin: 0;
-  padding: 14px 16px;
-  border: 1px solid rgba(203, 213, 225, 0.9);
-  border-radius: 16px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-
-  &:hover {
-    border-color: rgba(142, 36, 170, 0.28);
-    background: #fff;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
-  }
-}
-
 .page-new #container-pgr,
 .page-new #container-loja {
   gap: 5px;
@@ -441,21 +246,14 @@
 }
 
 .page-new .clearQuestion {
-  align-self: flex-end;
-  margin-top: 0.35rem;
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.5rem 0.75rem;
+  width: 55px;
+  text-align: center;
+  padding: 0.2em;
   border-radius: 10px;
 
   &:hover {
-    background-color: rgba(220, 38, 38, 0.08);
-    color: #b91c1c;
+    background-color: $error-bg;
+    color: $white-color;
     cursor: pointer;
   }
 }
@@ -464,7 +262,7 @@
   display: flex;
   flex-direction: column;
 
-  span {
+  > span {
     padding: 0.8em;
     border-radius: 9px;
     margin-bottom: 0.5em;
@@ -475,7 +273,7 @@
     }
   }
 
-  a {
+  > a {
     @include button-style($btn-primary-bg, $btn-alt-bg);
     margin-bottom: 0.5em;
     padding: 7px 12px;
@@ -485,21 +283,52 @@
 .page-new .imageList {
   margin-bottom: 0.8em;
   display: flex;
-  border-radius:8px;
+  border-radius: 8px;
+  gap: 0.5rem;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  list-style: none;
   padding: 0;
 
   li {
-    background-color: var($container-bg-color);
-    width: 78px;
-    height: 78px;
+    background-color: rgba(138, 66, 231, 0.08);
+    border: 1px solid rgba(138, 66, 231, 0.28);
+    width: 60px;
+    height: 60px;
+    margin-left: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    border-radius: 14px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
     overflow: hidden;
-    border: 1px solid rgba(203, 213, 225, 0.9);
+
+    &.notremove {
+      align-items: center;
+    }
+
+    .MuiButton-root,
+    button#photo {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      color: $btn-primary-bg !important;
+      height: 100%;
+      min-height: 60px;
+      min-width: 60px;
+      margin: 0;
+      padding: 0 !important;
+      width: 100%;
+
+      &:hover {
+        background: rgba(138, 66, 231, 0.14) !important;
+        color: $btn-primary-hover-bg !important;
+      }
+
+      svg {
+        color: currentColor;
+      }
+    }
 
     label {
       margin: 0;
@@ -554,14 +383,7 @@
   background: transparent;
   width: 100%;
   max-width: 600px;
-}
-
-.page-new select {
   cursor: pointer;
-}
-
-.page-new input:not([type="radio"]) {
-  cursor: text;
 }
 
 
@@ -591,40 +413,6 @@
 
 // Responsividade
 @include respond-to(medium) {
-  .page-new .container {
-    padding: 18px !important;
-  }
-
-  .page-new .new-apr-overview-header,
-  .page-new .new-apr-config-header {
-    flex-direction: column;
-  }
-
-  .page-new .new-apr-overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .page-new .new-apr-overview-item--wide {
-    grid-column: span 2;
-  }
-
-  .page-new .new-apr-history-pill {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .page-new .new-apr-answer-group {
-    grid-template-columns: 1fr;
-  }
-
-  .page-new .save {
-    flex-direction: column;
-    gap: 10px;
-
-    a {
-      width: 100%;
-    }
-  }
 
   .page-new #container-pgr,
   .page-new #container-loja {
@@ -646,16 +434,44 @@
   }
 }
 
-.page-new .container-perg.question .new-apr-question-title .icon-required {
-  position: static;
-  bottom: auto;
-  right: auto;
+.container-perg.question .question-title-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  line-height: 1.4;
+}
+
+.container-perg.question .question-title-text {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.container-perg.question .question-required-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.container-perg.question .question-required-badge.is-required {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.container-perg.question .question-required-badge.is-optional {
+  background: #f3e8ff;
+  color: #581c87;
 }
 
 .container-perg.question .icon-required {
-  position:absolute;
-  bottom:8px;
-  right:0px;
+  position: absolute;
+  bottom: 8px;
+  right: 0px;
 }
 .question {
   position: relative;
@@ -814,70 +630,6 @@
 
 // Responsividade adicional
 @include respond-to(small) {
-  .page-new .container {
-    padding: 14px !important;
-  }
-
-  .page-new .form-new label,
-  .page-new .form-new textarea,
-  .page-new .form-new input:not([type="number"]),
-  .page-new .form-new select,
-  .page-new select,
-  .page-new input:not([type="radio"]) {
-    max-width: none;
-    width: 100%;
-  }
-
-  .page-new .form-new #selectSite,
-  .page-new .form-new #selectMotivo,
-  .page-new .form-new #selectValorArmazenamento,
-  .page-new .form-new #selectValorTransporte,
-  .page-new .form-new #selectValorSinistro,
-  .page-new .form-new #selectValorEstoque,
-  .page-new .form-new #selectTipoLoja {
-    max-width: none;
-    width: 100%;
-  }
-
-  .page-new .new-apr-overview-card,
-  .page-new .new-apr-config-card,
-  .page-new .new-apr-support-card,
-  .page-new .new-apr-questions-card {
-    padding: 18px !important;
-  }
-
-  .page-new .new-apr-overview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .page-new .new-apr-overview-item--wide {
-    grid-column: span 1;
-  }
-
-  .page-new .new-apr-area-toggle {
-    font-size: 0.88rem;
-    padding: 14px 16px;
-  }
-
-  .page-new .new-apr-question-card {
-    padding: 1rem;
-  }
-
-  .page-new .new-apr-question-title {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .page-new .new-apr-overview-item,
-  .page-new .new-apr-history-pill {
-    padding: 14px;
-  }
-
-  .page-new .imageList li {
-    width: 68px;
-    height: 68px;
-  }
-
   .modal-content {
     padding: 15px;
   }

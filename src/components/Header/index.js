@@ -257,6 +257,11 @@ export default function Header({ name, subtitle, children }) {
     );
   }
 
+  const uniqueMenuItems = menuItems.filter(
+    (item, index, items) =>
+      items.findIndex((currentItem) => currentItem.link === item.link) === index
+  );
+
   return (
     <>
       <div
@@ -381,7 +386,7 @@ export default function Header({ name, subtitle, children }) {
           </Box>
 
           <List sx={{ backgroundColor: "white", px: 1.5, pt: 2.25, pb: 2 }}>
-            {menuItems.map((item, index) => {
+            {uniqueMenuItems.map((item, index) => {
               const isActive = location.pathname === item.link;
 
               return (

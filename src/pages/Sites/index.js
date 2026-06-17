@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
-import { FiClipboard, FiEdit } from "react-icons/fi";
+import {
+  FiEdit,
+  FiMapPin,
+  FiSearch,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import Accordion from "@mui/material/Accordion";
@@ -9,6 +15,7 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import CircularProgress from "@mui/material/CircularProgress";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import * as geofire from "geofire-common";
 import { AuthContext } from "../../contexts/auth";
 import ModalSiteLogs from "../../components/Modal_Log_Sites";
@@ -42,12 +49,12 @@ export default function Sites() {
       const collection = firebase.firestore().collection("sites");
       let query = collection;
 
-      // Aplica os filtros de busca
       if (filters.name) {
         query = query
           .where("Nome", ">=", filters.name)
           .where("Nome", "<=", filters.name + "\uf8ff");
       }
+
       if (filters.sigla) {
         query = query
           .where("Sigla", ">=", filters.sigla)
@@ -63,6 +70,7 @@ export default function Sites() {
         if (data.lastUpdate && data.lastUpdate.toDate) {
           data.lastUpdate = data.lastUpdate.toDate().toLocaleString();
         }
+
         sitesArray.push({
           id: doc.id,
           ...data,
@@ -72,11 +80,7 @@ export default function Sites() {
       setSites(sitesArray);
 
       const startIndex = (currentPage - 1) * itemsPerPage;
-      const paginatedSites = sitesArray.slice(
-        startIndex,
-        startIndex + itemsPerPage
-      );
-      setFilteredSites(paginatedSites);
+      setFilteredSites(sitesArray.slice(startIndex, startIndex + itemsPerPage));
     } catch (error) {
       console.error("Erro ao carregar sites:", error);
     } finally {
@@ -107,8 +111,7 @@ export default function Sites() {
     setCurrentPage(value);
 
     const startIndex = (value - 1) * itemsPerPage;
-    const paginatedSites = sites.slice(startIndex, startIndex + itemsPerPage);
-    setFilteredSites(paginatedSites);
+    setFilteredSites(sites.slice(startIndex, startIndex + itemsPerPage));
   }
 
   function handleEditClick(field, value) {
@@ -141,12 +144,13 @@ export default function Sites() {
         ...prevValues,
         [name]: numericValue,
       }));
-    } else {
-      setEditValues((prevValues) => ({
-        ...prevValues,
-        [name]: value,
-      }));
+      return;
     }
+
+    setEditValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
   }
 
   async function handleSaveEdit(siteId) {
@@ -159,12 +163,11 @@ export default function Sites() {
       const oldData = siteDoc.data();
 
       const updatedData = { ...editValues };
-      const latitude = parseFloat(editValues["Latitude"]);
-      const longitude = parseFloat(editValues["Longitude"]);
+      const latitude = parseFloat(editValues.Latitude);
+      const longitude = parseFloat(editValues.Longitude);
 
       if (!isNaN(latitude) && !isNaN(longitude)) {
-        const geohash = geofire.geohashForLocation([latitude, longitude]);
-        updatedData["geohash"] = geohash;
+        updatedData.geohash = geofire.geohashForLocation([latitude, longitude]);
       }
 
       await firebase
@@ -176,9 +179,7 @@ export default function Sites() {
       for (const field in updatedData) {
         if (oldData[field] !== updatedData[field]) {
           await logSistem(
-            `O site ${siteDoc.data().Nome} teve ${field} alterado de "${
-              oldData[field]
-            }" para "${updatedData[field]}"`,
+            `O site ${siteDoc.data().Nome} teve ${field} alterado de "${oldData[field]}" para "${updatedData[field]}"`,
             siteId
           );
         }
@@ -188,21 +189,21 @@ export default function Sites() {
       setEditingField(null);
       loadSites();
     } catch (error) {
-      console.error("Erro ao salvar edição:", error);
-      alert("Erro ao salvar as alterações. Tente novamente.");
+      console.error("Erro ao salvar edicao:", error);
+      alert("Erro ao salvar as alteracoes. Tente novamente.");
     }
   }
 
   async function handleDeleteSite(siteId) {
     try {
       if (!siteId) {
-        console.error("ID do site não pode estar vazio.");
-        alert("Erro: ID do site não pode estar vazio.");
+        console.error("ID do site nao pode estar vazio.");
+        alert("Erro: ID do site nao pode estar vazio.");
         return;
       }
 
       const confirmDelete = window.confirm(
-        "Tem certeza de que deseja deletar este site? Esta ação não pode ser desfeita."
+        "Tem certeza de que deseja deletar este site? Esta acao nao pode ser desfeita."
       );
 
       if (confirmDelete) {
@@ -221,185 +222,220 @@ export default function Sites() {
     }
   }
 
-  // campos que serão exibidos
   const fieldLabels = {
     Nome: "Nome",
-    Endereco: "Endereço",
+    Endereco: "Endereco",
     Complemento: "Complemento",
     Bairro: "Bairro",
     Cidade: "Cidade",
     Estado: "Estado",
     CEP: "CEP",
-    Situacao: "Situação",
+    Situacao: "Situacao",
     Latitude: "Latitude",
     Longitude: "Longitude",
     Sigla: "Sigla",
     TipoContrato: "Tipo de Contrato",
-    CtCritica: "Ct Crítica",
+    CtCritica: "CT Critica",
     Detentora: "Detentora",
-    ErbCritica: "Erb Crítica",
+    ErbCritica: "ERB Critica",
     MapaCalor: "Mapa Calor",
     NonStop: "NonStop",
     Sigla_GVT: "Sigla GVT",
     critical: "Critical",
     tipoSite: "Tipo de Site",
-    Operador_logistico: "Operador Logístico",
+    Operador_logistico: "Operador Logistico",
     Cobertura_Seguro: "Cobertura Seguro",
   };
 
   const fieldsToShow = Object.keys(fieldLabels);
+  const hasFilters = Boolean(filters.name || filters.sigla);
 
   return (
-    <div>
-      <Header name="Gerenciamento de Sites" subtitle="Cadastro e edição de sites">
-      </Header>
+    <div className="page-sites">
+      <Header
+        name="Gerenciamento de Sites"
+        subtitle="Cadastro e edicao de sites"
+      />
 
-      <div className="content">
+      <main className="content sites-page-content">
+        <section className="sites-toolbar">
+          <div className="sites-toolbar-header">
+            <div>
+              <span className="sites-kicker">Consulta de cadastro</span>
+              <h2>Sites</h2>
+            </div>
 
-        <div className="filters">
-          <TextField
-            size="small"
-            fullWidth
-            label="Sigla"
-            name="sigla"
-            value={filters.sigla}
-            onChange={handleFilterChange}
-            style={{ textTransform: "uppercase" }}
-          />
-          <TextField
-            size="small"
-            fullWidth
-            label="Nome"
-            name="name"
-            value={filters.name}
-            onChange={handleFilterChange}
-            style={{ textTransform: "uppercase" }}
-          />
+            <div className="sites-result-pill">
+              <strong>{sites.length}</strong>
+              <span>{sites.length === 1 ? "resultado" : "resultados"}</span>
+            </div>
+          </div>
 
-          <Button
-            variant="contained"
-            onClick={handleSearch}
-            style={{ background: "#7b1fa2" }}
-            fullWidth
-          >
-            Buscar
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleClearFilters}
-            style={{
-              marginLeft: "10px",
-              borderColor: "#7b1fa2",
-              color: "#7b1fa2",
-            }}
-            fullWidth
-          >
-            Limpar Filtros
-          </Button>
-        </div>
+          <div className="filters">
+            <TextField
+              size="small"
+              fullWidth
+              label="Sigla"
+              name="sigla"
+              value={filters.sigla}
+              onChange={handleFilterChange}
+              className="sites-filter-field"
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Nome"
+              name="name"
+              value={filters.name}
+              onChange={handleFilterChange}
+              className="sites-filter-field"
+            />
+
+            <Button
+              variant="contained"
+              onClick={handleSearch}
+              fullWidth
+              className="sites-search-button"
+              startIcon={<FiSearch />}
+            >
+              Buscar
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleClearFilters}
+              fullWidth
+              className="sites-clear-button"
+              startIcon={<FiX />}
+            >
+              Limpar
+            </Button>
+          </div>
+        </section>
 
         {isLoading ? (
-          <div
-            className="loading-indicator"
-            style={{ textAlign: "center", marginTop: "20px" }}
-          >
+          <section className="sites-state">
             <CircularProgress />
             <p>Carregando...</p>
-          </div>
+          </section>
+        ) : !hasFilters ? (
+          <section className="sites-state sites-state--empty">
+            <FiSearch />
+            <h3>Busque um site</h3>
+            <p>Use a sigla ou o nome para consultar o cadastro.</p>
+          </section>
+        ) : filteredSites.length === 0 ? (
+          <section className="sites-state sites-state--empty">
+            <FiMapPin />
+            <h3>Nenhum site encontrado</h3>
+            <p>Revise os filtros e tente novamente.</p>
+          </section>
         ) : (
-          <div
-            className="accordion-container"
-            style={{ justifyContent: "space-between" }}
-          >
+          <section className="accordion-container">
             {filteredSites.map((site) => (
-              <Accordion key={site.id}>
-                <AccordionSummary>
-                  {site.Sigla} - {site.Nome} - {site.Estado} - {site.Cidade}
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    style={{ borderColor: "#f82b2b", color: "#f82b2b" }}
-                    className="btn-delete"
-                    onClick={() => handleDeleteSite(site.id)}
-                  >
-                    Excluir
-                  </Button>
-                  <ModalSiteLogs siteId={site.id} />
+              <Accordion key={site.id} className="site-card">
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <div className="site-summary">
+                    <div className="site-summary-main">
+                      <span className="site-sigla">
+                        {site.Sigla || "Sem sigla"}
+                      </span>
+                      <div>
+                        <h3>{site.Nome || "Site sem nome"}</h3>
+                        <p>
+                          <FiMapPin />
+                          {[site.Cidade, site.Estado]
+                            .filter(Boolean)
+                            .join(" / ") || "Localizacao nao informada"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="site-summary-meta">
+                      {site.tipoSite && <span>{site.tipoSite}</span>}
+                      {site.Situacao && <span>{site.Situacao}</span>}
+                    </div>
+
+                    <div
+                      className="site-actions"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <ModalSiteLogs siteId={site.id} />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        className="btn-delete"
+                        onClick={() => handleDeleteSite(site.id)}
+                        startIcon={<FiTrash2 />}
+                      >
+                        Excluir
+                      </Button>
+                    </div>
+                  </div>
                 </AccordionSummary>
+
                 <AccordionDetails>
                   <div className="site-details">
-                    <ul>
-                      {fieldsToShow.map((field) => (
-                        <li key={field}>
-                          {editingField === field ? (
-                            <>
-                              <TextField
-                                name={field}
-                                value={editValues[field] || site[field]}
-                                onChange={handleEditChange}
-                                size="small"
-                                fullWidth
-                                style={{ width: "70%" }}
-                              />
-                              <Button
-                                variant="contained"
-                                size="small"
-                                onClick={() => handleSaveEdit(site.id, field)}
-                                style={{
-                                  marginLeft: "10px",
-                                  width: "14%",
-                                  background: "#7b1fa2",
-                                }}
-                              >
-                                Salvar
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={handleCancelEdit}
-                                style={{
-                                  marginLeft: "5px",
-                                  width: "14%",
-                                  borderColor: "#7b1fa2",
-                                  color: "#7b1fa2",
-                                }}
-                              >
-                                Cancelar
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <strong>{fieldLabels[field]}:</strong>{" "}
-                              {site[field]}
-                              <FiEdit
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                }}
-                                onClick={() =>
-                                  handleEditClick(field, site[field])
-                                }
-                              />
-                            </>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                    {fieldsToShow.map((field) => (
+                      <div className="site-detail-item" key={field}>
+                        <span className="site-detail-label">
+                          {fieldLabels[field]}
+                        </span>
+
+                        {editingField === field ? (
+                          <div className="site-edit-row">
+                            <TextField
+                              name={field}
+                              value={editValues[field] || site[field] || ""}
+                              onChange={handleEditChange}
+                              size="small"
+                              fullWidth
+                            />
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleSaveEdit(site.id)}
+                              className="site-save-button"
+                            >
+                              Salvar
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={handleCancelEdit}
+                              className="site-cancel-button"
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="site-detail-value">
+                            <span>{site[field] || "-"}</span>
+                            <FiEdit
+                              onClick={() =>
+                                handleEditClick(field, site[field])
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </AccordionDetails>
               </Accordion>
             ))}
-          </div>
+          </section>
         )}
 
         {sites.length > 0 && (
-          <Pagination
-            count={Math.ceil(sites.length / itemsPerPage)}
-            page={currentPage}
-            onChange={handlePageChange}
-          />
+          <div className="sites-pagination">
+            <Pagination
+              count={Math.ceil(sites.length / itemsPerPage)}
+              page={currentPage}
+              onChange={handlePageChange}
+            />
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

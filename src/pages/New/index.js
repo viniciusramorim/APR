@@ -1,5 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import { FiClipboard, FiCheck, FiX, FiAlertCircle } from "react-icons/fi";
+import {
+  FiClipboard,
+  FiCheck,
+  FiX,
+  FiAlertCircle,
+  FiInfo,
+  FiArrowLeft,
+  FiEye,
+} from "react-icons/fi";
 import { useParams } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import { toast } from "react-toastify";
@@ -13,17 +21,6 @@ import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
 import ModalLoading from "../../components/Modal_Loading";
 import Modal_Justificativa from "../../components/Modal_Justificativa";
-import {
-  clearOfflineAprEditSession,
-  getOfflineAprById,
-  getOfflineAprEditSession,
-  getUserOfflineAprs,
-  hydrateQuestionsFromOffline,
-  removeOfflineAprRecord,
-  saveOfflineAprRecord,
-  serializeQuestionsForOffline,
-  updateOfflineAprRecord,
-} from "../../services/offlineAprStorage";
 import CameraComponent from "./CameraComponent";
 import InputComponent from "./InputComponent";
 import {
@@ -45,7 +42,6 @@ import {
   Stack,
   TextField,
   Typography,
-  Chip,
   Alert,
 } from "@mui/material";
 
@@ -185,6 +181,8 @@ export default function New() {
   const [motivoAPR, setMotivoAPR] = useState("");
 
   const [siteInfo, setSiteInfo] = useState([]);
+  const [selectedChecklist, setSelectedChecklist] = useState("");
+  const [loadedChecklist, setLoadedChecklist] = useState("");
   const [showPostModal, setShowPostModal] = useState(false);
 
   const [location, setLocation] = useState([]);
@@ -208,175 +206,15 @@ export default function New() {
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
   const [aprSalva, setAprSalva] = useState(false);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [isEditingOffline, setIsEditingOffline] = useState(false);
-  const [editingAPRId, setEditingAPRId] = useState(null);
-  const [autoSyncRequested, setAutoSyncRequested] = useState(false);
-  const [autoSyncTriggered, setAutoSyncTriggered] = useState(false);
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
-
-  const loadOfflineAPRForEdit = async () => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const editOfflineId = urlParams.get("edit_offline");
-
-      if (!editOfflineId) {
-        return;
-      }
-
-      const sessionApr = getOfflineAprEditSession();
-      const storedApr =
-        (sessionApr && sessionApr.id === editOfflineId && sessionApr) ||
-        getOfflineAprById(editOfflineId);
-
-      if (!storedApr) {
-        toast.error("APR offline não encontrada.");
-        return;
-      }
-
-      const hydratedQuestions = await hydrateQuestionsFromOffline(
-        storedApr.questions || []
-      );
-
-      setQuestions(hydratedQuestions);
-      setMotivoAPR(storedApr.motivoAPR || "");
-      setSiteInfo(storedApr.siteInfo || []);
-      setLocation(storedApr.location || []);
-      setInicio(
-        storedApr.inicio ? new Date(storedApr.inicio) : new Date()
-      );
-      setJustificativa(storedApr.justificativa || undefined);
-      setValorArmazenamento(storedApr.valorArmazenamento || "");
-      setValorTransporte(storedApr.valorTransporte || "");
-      setValorSinistro(storedApr.valorSinistro || "");
-      setTipoLoja(storedApr.tipoLoja || "");
-      setValorEstoque(storedApr.valorEstoque || "0");
-      setGeolocationEnabled(Boolean(storedApr.geolocationEnabled));
-      setGeolocationJustification(storedApr.geolocationJustification || "");
-      setGeolocationError(storedApr.geolocationError || null);
-      setIsEditingOffline(true);
-      setEditingAPRId(editOfflineId);
-      setAutoSyncRequested(urlParams.get("auto_sync") === "1");
-
-      setTimeout(() => {
-        const selectSite = document.getElementById("selectSite");
-        if (selectSite && storedApr.siteInfo?.tipoSite) {
-          selectSite.value = storedApr.siteInfo.tipoSite;
-        }
-
-        const questionsContainer = document.getElementById("container-questions");
-        if (questionsContainer) {
-          questionsContainer.style.display = "flex";
-        }
-
-        const mainContainer = document.getElementById("container");
-        if (mainContainer) {
-          mainContainer.style.display = "flex";
-        }
-      }, 250);
-
-      clearOfflineAprEditSession();
-      toast.info("APR offline carregada.");
-    } catch (error) {
-      console.error("Erro ao carregar APR offline:", error);
-      toast.error("Erro ao carregar APR offline.");
-    }
-  };
-
-  const persistOfflineAPR = async () => {
-    const serializedQuestions = await serializeQuestionsForOffline(questions);
-
-    const offlineAprData = {
-      id: editingAPRId || `offline_${Date.now()}`,
-      siteId: id,
-      idAssign: id_assign,
-      siteInfo,
-      questions: serializedQuestions,
-      motivoAPR,
-      location,
-      inicio: inicio
-        ? new Date(inicio).toISOString()
-        : new Date().toISOString(),
-      user,
-      timestamp: new Date().toISOString(),
-      status: "offline",
-      justificativa: justificativa || null,
-      valorArmazenamento,
-      valorTransporte,
-      valorSinistro,
-      tipoLoja,
-      valorEstoque,
-      geolocationEnabled,
-      geolocationJustification,
-      geolocationError,
-    };
-
-    if (editingAPRId) {
-      const updatedApr = updateOfflineAprRecord(editingAPRId, offlineAprData);
-      return updatedApr?.id || null;
-    }
-
-    const savedApr = saveOfflineAprRecord(offlineAprData);
-    return savedApr.id;
-  };
-
-  useEffect(() => {
-    loadOfflineAPRForEdit();
-
-    const handleOnline = () => {
-      setIsOffline(false);
-      const pendingOfflineAprs = getUserOfflineAprs(user?.uid);
-      if (pendingOfflineAprs.length > 0) {
-        toast.info(
-          `Conexão restabelecida. Você tem ${pendingOfflineAprs.length} APR(s) offline pendente(s).`
-        );
-      }
-    };
-
-    const handleOffline = () => {
-      setIsOffline(true);
-      toast.warning("Conexão perdida. O envio será salvo localmente.");
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, [id, user?.uid]);
-
-  useEffect(() => {
-    if (
-      !autoSyncRequested ||
-      autoSyncTriggered ||
-      isOffline ||
-      !isEditingOffline ||
-      questions.length === 0 ||
-      !siteInfo ||
-      Object.keys(siteInfo).length === 0
-    ) {
-      return;
-    }
-
-    setAutoSyncTriggered(true);
-
-    const timer = setTimeout(() => {
-      toast.info("Iniciando sincronização da APR offline.");
-      submitWithErrorHandling();
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [
-    autoSyncRequested,
-    autoSyncTriggered,
-    isOffline,
-    isEditingOffline,
-    questions,
-    siteInfo,
-  ]);
+  const currentChecklist = selectedChecklist || siteInfo?.tipoSite || "";
+  const lojaChecklists = [
+    "LOJA",
+    "LOJA DEALER",
+    "PROJETO VENEZA",
+    "LOJA PROJ VENEZA",
+  ];
 
   const handleChangeSelect = (question, indexA, e) => {
     const {
@@ -407,14 +245,16 @@ export default function New() {
       .doc(id)
       .get()
       .then((snapshot) => {
-        setSiteInfo(snapshot.data());
-        if (snapshot.data().last_apr !== undefined) {
+        const siteData = snapshot.data();
+        setSiteInfo(siteData);
+        setSelectedChecklist(siteData?.tipoSite || "");
+        if (siteData.last_apr !== undefined) {
           setLastAPR({
-            data: format(snapshot.data().last_apr.toDate(), "dd/MM/yyyy HH:mm"),
-            motivo: snapshot.data().last_motivo,
+            data: format(siteData.last_apr.toDate(), "dd/MM/yyyy HH:mm"),
+            motivo: siteData.last_motivo,
           });
         }
-        setInicio((currentInicio) => currentInicio || new Date());
+        setInicio(new Date());
       })
       .catch((error) => {
         console.log("DEU ALGUM ERRO!", error);
@@ -422,6 +262,11 @@ export default function New() {
   }
 
   async function getQuestions(snapshot) {
+    if (!snapshot) {
+      toast.error("Selecione um checklist antes de continuar.");
+      return;
+    }
+
     // Verificar se a geolocalização está habilitada ou se há justificativa
     if (!geolocationEnabled && !geolocationJustification) {
       setShowGeolocationModal(true);
@@ -429,7 +274,9 @@ export default function New() {
     }
 
     document.getElementById("container-questions").style.display = "flex";
-    siteInfo.tipoSite = snapshot;
+    setSelectedChecklist(snapshot);
+    setLoadedChecklist("");
+    setQuestions([]);
 
     await firebase
       .firestore()
@@ -437,6 +284,11 @@ export default function New() {
       .doc(snapshot)
       .get()
       .then(async (item_question) => {
+        if (!item_question.exists) {
+          toast.error(`Checklist "${snapshot}" nao encontrado.`);
+          return;
+        }
+
         const data = item_question.data();
         console.log(data);
 
@@ -446,12 +298,23 @@ export default function New() {
         const orderedEntries = Object.entries(restoData).sort((a, b) =>
           a[0].localeCompare(b[0])
         ).map(([key, value]) => {
-          // Garantir que o valor seja sempre um array
-          return [key, Array.isArray(value) ? value : []];
+          const questionsList = Array.isArray(value) ? value : [];
+
+          return [
+            key,
+            questionsList.map((question) => ({
+              ...question,
+              inputImages:
+                question.inputImages === true || question.images === true,
+              inputImagesLibrary: question.inputImagesLibrary === true,
+              images: Array.isArray(question.images) ? question.images : [],
+            })),
+          ];
         });
 
         console.log(orderedEntries);
         setQuestions(orderedEntries);
+        setLoadedChecklist(snapshot);
       });
   }
 
@@ -495,14 +358,19 @@ export default function New() {
       indexA + "_numberarea_" + question.questionId
     );
 
+    const hasImageInput =
+      question.inputImages === true ||
+      question.images === true ||
+      question.inputImagesLibrary === true;
+
     if (e.target.value === "N/A") {
       if (question.textarea === true) textarea.style.display = "none";
-      if (question.inputImages === true) inputimage.style.display = "none";
+      if (hasImageInput && inputimage) inputimage.style.display = "none";
       if (question.listCheck === true) inputSelectResp.style.display = "none";
       if (question.inputNumber === true) inputNumber.style.display = "none";
     } else if (e.target.value !== "") {
       if (question.textarea === true) textarea.style.display = "block";
-      if (question.inputImages === true) inputimage.style.display = "flex";
+      if (hasImageInput && inputimage) inputimage.style.display = "flex";
       if (question.listCheck === true)
         inputSelectResp.style.display = "inline-flex";
       if (question.inputNumber === true) inputNumber.style.display = "block";
@@ -521,11 +389,11 @@ export default function New() {
     document
       .querySelectorAll("#inputimg_" + question.questionId + "_" + indexA)
       .forEach((item) => {
-        for (let index = 0; index < item.children.length; index++) {
-          if (item.children.length > 1) {
-            item.lastChild.remove();
+        Array.from(item.children).forEach((child) => {
+          if (!child.classList.contains("notremove")) {
+            child.remove();
           }
-        }
+        });
       });
 
     let textarea = document.getElementById(
@@ -606,14 +474,6 @@ export default function New() {
   }
 
   function hasRequired() {
-    // Validar Tipo de Loja
-    if (siteInfo.tipoSite && ["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(siteInfo.tipoSite)) {
-      if (!tipoLoja || tipoLoja === "") {
-        toast.error("O campo 'Tipo de Loja' é obrigatório");
-        return true;
-      }
-    }
-    
     for (let area of questions) {
       for (let question of area[1]) {
         let questionStatus = enableQuestions(question);
@@ -634,6 +494,16 @@ export default function New() {
   // Função com tratamento robusto de erros
   async function submitWithErrorHandling() {
     try {
+      if (!currentChecklist) {
+        toast.error("Selecione um checklist antes de concluir a APR.");
+        return;
+      }
+
+      if (questions.length === 0 || loadedChecklist !== currentChecklist) {
+        toast.error(`Carregue as perguntas do checklist ${currentChecklist}.`);
+        return;
+      }
+
       let notBlankChecklist = 0;
       console.log(justificativa);
 
@@ -657,23 +527,6 @@ export default function New() {
       if (!geolocationEnabled && !geolocationJustification) {
         setShowGeolocationModal(true);
         toast.warning("⚠️ Geolocalização necessária ou forneça uma justificativa");
-        return;
-      }
-
-      if (isOffline) {
-        const offlineAprId = await persistOfflineAPR();
-
-        if (!offlineAprId) {
-          toast.error("Erro ao salvar a APR offline.");
-          return;
-        }
-
-        toast.success(
-          isEditingOffline
-            ? "APR offline atualizada com sucesso."
-            : "APR salva offline. Ela poderá ser sincronizada depois."
-        );
-        window.location.href = "/aprs";
         return;
       }
 
@@ -811,12 +664,18 @@ export default function New() {
         .then(async (result) => {
           setSite(id, motivoAPR)
             .then(async () => {
+              const aprSiteInfo = {
+                ...siteInfo,
+                tipoSite: currentChecklist,
+              };
+
               console.log("ID Atual:", result);
 
               console.log({
                 user_id: user,
                 apr_id: result,
-                site_id: siteInfo,
+                site_id: aprSiteInfo,
+                checklist_aplicado: currentChecklist,
                 created: new Date(),
                 motivo_apr: motivoAPR,
                 valor_armazenamento: valorArmazenamento,
@@ -850,7 +709,8 @@ export default function New() {
               const aprData = {
                 user_id: user,
                 apr_id: result,
-                site_id: siteInfo,
+                site_id: aprSiteInfo,
+                checklist_aplicado: currentChecklist,
                 created: new Date(),
                 motivo_apr: motivoAPR || "",
                 valor_armazenamento: valorArmazenamento || "",
@@ -1170,21 +1030,11 @@ export default function New() {
     hideElement("container-motivo");
     setAprSalva(true);
 
-    if (isEditingOffline && editingAPRId) {
-      removeOfflineAprRecord(editingAPRId);
-      clearOfflineAprEditSession();
-      setIsEditingOffline(false);
-      setEditingAPRId(null);
-      setAutoSyncRequested(false);
-      setAutoSyncTriggered(false);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    if (siteInfo.tipoSite?.includes('PGR')) {
+    if (currentChecklist?.includes('PGR')) {
       hideElement("container-pgr");
     }
 
-    if (siteInfo.tipoSite === "LOJA" || siteInfo.tipoSite === "LOJA DEALER") {
+    if (currentChecklist === "LOJA" || currentChecklist === "LOJA DEALER") {
       hideElement("container-loja");
     }
 
@@ -1325,7 +1175,8 @@ export default function New() {
           sx={{ 
             bgcolor: "#ffffff", 
             justifyContent: "center", 
-            gap: 1.5, 
+            gap: 2,
+            flexWrap: "wrap",
             p: 3,
             borderTop: "1px solid #e2e8f0"
           }}
@@ -1333,41 +1184,47 @@ export default function New() {
           <Button
             variant="outlined"
             href="/aprs"
-            size="small"
+            startIcon={<FiArrowLeft size={18} />}
             sx={{
               textTransform: "none",
-              fontWeight: 500,
-              fontSize: "0.9rem",
-              borderColor: "#cbd5e1",
-              color: "#64748b",
-              py: 0.75,
+              fontWeight: 700,
+              fontSize: "0.92rem",
+              borderColor: "#8a42e7",
+              color: "#581c87",
+              borderRadius: "10px",
+              minWidth: 170,
+              py: 1,
               px: 2.5,
               "&:hover": {
-                borderColor: "#667eea",
-                color: "#667eea",
-                backgroundColor: "#f8fbff"
+                borderColor: "#6e06f7",
+                color: "#43057e",
+                backgroundColor: "#f3e8ff"
               }
             }}
           >
-            Voltar
+            Voltar para APRs
           </Button>
           <Button
             variant="contained"
             href={`/open/${id}`}
-            size="small"
+            startIcon={<FiEye size={18} />}
             sx={{
               textTransform: "none",
-              fontWeight: 500,
-              fontSize: "0.9rem",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              py: 0.75,
+              fontWeight: 700,
+              fontSize: "0.92rem",
+              background: "linear-gradient(135deg, #8a42e7 0%, #581c87 100%)",
+              borderRadius: "10px",
+              minWidth: 170,
+              py: 1,
               px: 2.5,
+              boxShadow: "0 8px 18px rgba(88, 28, 135, 0.22)",
               "&:hover": {
-                boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)"
+                background: "linear-gradient(135deg, #6e06f7 0%, #43057e 100%)",
+                boxShadow: "0 10px 24px rgba(88, 28, 135, 0.3)"
               }
             }}
           >
-            Visualizar
+            Visualizar APR
           </Button>
         </CardActions>
       </Card>
@@ -1411,7 +1268,8 @@ export default function New() {
             }
             setInicio(date);
             document.getElementById("selectSite").value = objeto.tipo_site;
-            siteInfo.tipoSite = objeto.tipo_site;
+            setSelectedChecklist(objeto.tipo_site || "");
+            setLoadedChecklist(objeto.tipo_site || "");
             setMotivoAPR(objeto.motivo_apr);
             delete objeto.id;
             delete objeto.inicio;
@@ -1450,7 +1308,7 @@ export default function New() {
       id: 1,
       inicio: inicio,
       motivo_apr: motivoAPR,
-      tipo_site: siteInfo.tipoSite,
+      tipo_site: currentChecklist,
       ...questions,
     };
 
@@ -1524,6 +1382,9 @@ export default function New() {
     if (value !== undefined || value !== "") {
       setMotivoAPR(value);
       document.getElementById("container").style.display = "flex";
+      if (currentChecklist && loadedChecklist !== currentChecklist) {
+        getQuestions(currentChecklist);
+      }
     } else {
       setMotivoAPR(value);
       document.getElementById("container").style.display = "none";
@@ -1531,9 +1392,9 @@ export default function New() {
   }
 
   function enableQuestions(doc) {
-    const isPGR = siteInfo?.tipoSite?.includes('PGR');
-    const isVENEZA = siteInfo?.tipoSite?.includes("PROJETO VENEZA");
-    const isLOJAUNIFICAD = siteInfo?.tipoSite?.includes("LOJA PROJ VENEZA");
+    const isPGR = currentChecklist?.includes('PGR');
+    const isVENEZA = currentChecklist?.includes("PROJETO VENEZA");
+    const isLOJAUNIFICAD = currentChecklist?.includes("LOJA PROJ VENEZA");
 
     // Se não tiver estados no doc OU não tiver Estado no siteInfo, considera válido (true)
     const isEstadoValido = isPGR && (
@@ -1589,139 +1450,402 @@ export default function New() {
     toast.success("Justificativa registrada. Prosseguindo com a APR...");
   };
 
-  const showPgrFields = Boolean(siteInfo.tipoSite?.includes("PGR"));
-  const showLojaFields = Boolean(
-    siteInfo.tipoSite &&
-      ["LOJA", "LOJA DEALER", "PROJETO VENEZA", "LOJA PROJ VENEZA"].includes(
-        siteInfo.tipoSite
-      )
-  );
-
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
-      <Container maxWidth="lg" className="new-apr-shell" sx={{ py: 3 }}>
-        {(isOffline || isEditingOffline) && (
-          <Alert
-            severity={isOffline ? "warning" : "info"}
-            className="new-apr-status-alert"
-            sx={{ mt: 10, mb: 3, borderRadius: 2 }}
-          >
-            {isOffline
-              ? "Sem conexão: ao concluir, a APR será salva localmente."
-              : "Você está editando uma APR offline pendente de sincronização."}
-          </Alert>
-        )}
-
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        {/* Informações de Localização */}
         <Paper
           elevation={0}
-          className="new-apr-overview-card"
-          sx={{ mt: 10, mb: 3 }}
+          sx={{
+            mt: 10,
+            mb: 3,
+            p: 3,
+            border: '2px solid #8e24aa',
+            borderRadius: 2,
+            bgcolor: '#f7f7f7'
+          }}
         >
-          <Box className="new-apr-overview-header">
-            <Box>
-              <Typography variant="h6" className="new-apr-card-title">
-                Informações do local
-              </Typography>
-              <Typography variant="body2" className="new-apr-card-subtitle">
-                Confirme os dados do site antes de selecionar o checklist da APR.
-              </Typography>
-            </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            📍 Informações de Localização
+          </Typography>
 
-            <Chip
-              label={
-                geolocationEnabled
-                  ? "Geolocalização ativa"
-                  : geolocationJustification
-                    ? "Sem geolocalização"
-                    : "Geolocalização pendente"
-              }
-              color={
-                geolocationEnabled
-                  ? "success"
-                  : geolocationJustification
-                    ? "warning"
-                    : "default"
-              }
-              variant={geolocationEnabled ? "filled" : "outlined"}
-              size="small"
-            />
-          </Box>
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 3,
+              color: '#64748b',
+              fontWeight: 500
+            }}
+          >
+            Dados de endereço e coordenadas do local
+          </Typography>
 
-          <Box className="new-apr-overview-grid">
-            <Box className="new-apr-overview-item new-apr-overview-item--wide">
-              <span className="new-apr-overview-label">Unidade</span>
-              <strong>{siteInfo.Nome || "-"}</strong>
-            </Box>
+          <Grid container spacing={0}>
+            {/* Linha 1: UNIDADE */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UNIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Nome}
+                </Typography>
+              </Box>
+            </Grid>
 
-            <Box className="new-apr-overview-item new-apr-overview-item--wide">
-              <span className="new-apr-overview-label">Endereço</span>
-              <strong>{siteInfo.Endereco || "-"}</strong>
-            </Box>
+            {/* Linha 2: ENDEREÇO */}
+            <Grid item xs={12} sx={{ mb: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  ENDEREÇO
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Endereco}
+                </Typography>
+              </Box>
+            </Grid>
 
-            <Box className="new-apr-overview-item">
-              <span className="new-apr-overview-label">UF</span>
-              <strong>{siteInfo.Estado || "-"}</strong>
-            </Box>
+            {/* Linha 3: UF e CIDADE (lilás - extremidades) */}
+            <Grid container item xs={12} spacing={0} sx={{ mb: 3 }}>
+              <Grid item xs={6} sx={{ background: '#7b1fa26e', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  UF
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Estado}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#7b1fa27c', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  CIDADE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  {siteInfo.Cidade}
+                </Typography>
+              </Grid>
+            </Grid>
 
-            <Box className="new-apr-overview-item">
-              <span className="new-apr-overview-label">Cidade</span>
-              <strong>{siteInfo.Cidade || "-"}</strong>
-            </Box>
+            {/* Linha 4: ESTADO e CRITICIDADE */}
+            <Grid container item xs={12} spacing={3} sx={{ mb: 3 }}>
+              <Grid item xs={6}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    ESTADO
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.Estado}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    CRITICIDADE
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      mt: 0.5,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {siteInfo.critical || 'BAIXO'}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
 
-            <Box className="new-apr-overview-item">
-              <span className="new-apr-overview-label">Criticidade</span>
-              <strong>{siteInfo.critical || "Baixo"}</strong>
-            </Box>
-
-            <Box className="new-apr-overview-item new-apr-overview-item--code">
-              <span className="new-apr-overview-label">Latitude</span>
-              <strong>{siteInfo.Latitude || "-"}</strong>
-            </Box>
-
-            <Box className="new-apr-overview-item new-apr-overview-item--code">
-              <span className="new-apr-overview-label">Longitude</span>
-              <strong>{siteInfo.Longitude || "-"}</strong>
-            </Box>
-          </Box>
+            {/* Linha 5: LATITUDE e LONGITUDE (cinza - extremidades) */}
+            <Grid container item xs={12} spacing={0}>
+              <Grid item xs={6} sx={{ background: '#c0c0c0', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LATITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Latitude}
+                </Typography>
+              </Grid>
+              <Grid item xs={6} sx={{ background: '#c0c0c08a', padding: '20px' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#059669',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  ✅ LONGITUDE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    color: '#0f172a',
+                    mt: 0.5,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {siteInfo.Longitude}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
         </Paper>
 
+        {/* Data e Status - esconde após salvar */}
         {!aprSalva && (
-        <Paper
-          id="container-motivo"
-          elevation={0}
-          className="new-apr-config-card"
-          sx={{ mb: 3 }}
-        >
+        <Box sx={{ background: '#f7f7f7', padding: '24px', borderRadius: '8px', border: 'solid, 2px, #8e24aa' }}>
           <Box
-            className="new-apr-config-header"
+            sx={{
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
           >
-            <Box>
-              <Typography variant="h6" className="new-apr-card-title">
-                Configuração da APR
-              </Typography>
-              <Typography variant="body2" className="new-apr-card-subtitle">
-                Escolha a indicação, o checklist e avance para o preenchimento.
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#374151',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 500
+                }}
+              >
+                📅 {lastAPR.data || new Date().toLocaleDateString('pt-BR')}
               </Typography>
             </Box>
 
-            <Box className="new-apr-history-pill">
-              <span className="new-apr-history-label">Última APR</span>
-              <strong>{lastAPR.motivo || "Opinada"}</strong>
-              <small>{lastAPR.data || new Date().toLocaleDateString("pt-BR")}</small>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#64748b',
+                  fontWeight: 500
+                }}
+              >
+                ÚLTIMA APR ATIVA
+              </Typography>
+              <Box
+                sx={{
+                  backgroundColor: '#e2e8f0',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {lastAPR.motivo || 'OPINADA'}
+              </Box>
             </Box>
           </Box>
 
-          <Grid container spacing={2} sx={{ mb: 3 }} id="container-save">
-            <Grid item xs={12} md={6}>
+          {/* Botões de Controle */}
+          {/* <Box className="apr-history-card">
+            <Box className="apr-history-header">
+              <Typography variant="subtitle1">Historico de APRs</Typography>
+              <Typography variant="caption">
+                Ultimas APRs registradas para este site
+              </Typography>
+            </Box>
+
+            {loadHistorico ? (
+              historicoAPRs.length > 0 ? (
+                <Box className="apr-history-list">
+                  {historicoAPRs.map((aprHist) => (
+                    <Box key={aprHist.id} className="apr-history-item">
+                      <Box className="apr-history-main">
+                        <Box className="apr-history-id">
+                          <span>APR</span>
+                          <strong>{aprHist.apr_id}</strong>
+                        </Box>
+                        <Box className="apr-history-info">
+                          <strong>{aprHist.motivo}</strong>
+                          <span>
+                            {aprHist.created
+                              ? `${format(aprHist.created.toDate(), "dd/MM/yyyy")} as ${format(aprHist.created.toDate(), "HH:mm")}`
+                              : "Data nao informada"}
+                          </span>
+                        </Box>
+                      </Box>
+
+                      <Box className="apr-history-actions">
+                        <Chip
+                          size="small"
+                          label={aprHist.status}
+                          className={`apr-history-status status-${aprHist.status
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        />
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => visualizarAPR(aprHist.id)}
+                        >
+                          Visualizar
+                        </Button>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Box className="apr-history-empty">
+                  Nenhuma APR anterior encontrada para este site.
+                </Box>
+              )
+            ) : (
+              <Box className="apr-history-empty">Carregando historico...</Box>
+            )}
+          </Box> */}
+
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
               <Button
                 fullWidth
                 variant="outlined"
                 onClick={() => loadIndexedDB()}
-                className="new-apr-secondary-action"
                 sx={{
-                  py: 1.35,
+                  py: 1.5,
                   textTransform: 'none',
                   borderColor: '#cbd5e1',
                   color: '#475569',
@@ -1736,22 +1860,21 @@ export default function New() {
                 Carregar Salvo
               </Button>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <Button
                 fullWidth
                 variant="contained"
                 onClick={() => saveIndexedDB("APR salvo/atualizado com sucesso.")}
-                className="new-apr-primary-action"
                 sx={{
-                  py: 1.35,
+                  py: 1.5,
                   textTransform: 'none',
-                  bgcolor: '#8e24aa',
+                  bgcolor: '#3b82f6',
                   fontWeight: 600,
                   fontSize: '0.95rem',
-                  boxShadow: '0 12px 30px rgba(142, 36, 170, 0.18)',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                   '&:hover': {
-                    bgcolor: '#7b1fa2',
-                    boxShadow: '0 16px 36px rgba(142, 36, 170, 0.24)'
+                    bgcolor: '#2563eb',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                   }
                 }}
               >
@@ -1760,9 +1883,10 @@ export default function New() {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} className="new-apr-select-grid">
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth size="small">
+          {/* Selects lado a lado */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
                 <Select
                   id="selectMotivo"
                   value={motivoAPR}
@@ -1790,11 +1914,11 @@ export default function New() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6} id="container" style={{ display: "none" }}>
-              <FormControl fullWidth size="small">
+            <Grid item xs={12} sm={6} id="container" style={{ display: "none" }}>
+              <FormControl fullWidth>
                 <Select
                   id="selectSite"
-                  defaultValue={siteInfo.tipoSite}
+                  value={currentChecklist}
                   onChange={(e) => getQuestions(e.target.value)}
                   displayEmpty
                   sx={{ borderRadius: 2 }}
@@ -1803,7 +1927,7 @@ export default function New() {
                     Selecione um checklist...
                   </MenuItem>
                   <ListSubheader>Mais Utilizados</ListSubheader>
-                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                  {listQuestions.filter(doc => doc.data().ativo === true).map((value, index) => {
                     if (maisUtilizados.includes(index)) {
                       return (
                         <MenuItem key={index} value={value.id}>
@@ -1814,7 +1938,7 @@ export default function New() {
                     return null;
                   })}
                   <ListSubheader>Outros</ListSubheader>
-                  {listQuestions.filter(doc => doc.data().ativo === true || user.nivel === "administrador").map((value, index) => {
+                  {listQuestions.filter(doc => doc.data().ativo === true).map((value, index) => {
                     if (!maisUtilizados.includes(index)) {
                       return (
                         <MenuItem key={index} value={value.id}>
@@ -1828,25 +1952,31 @@ export default function New() {
               </FormControl>
             </Grid>
           </Grid>
-        </Paper>
+        </Box>
         )}
 
-        {showPgrFields && !aprSalva && (
+        {currentChecklist && currentChecklist.includes("PGR") && !aprSalva && (
           <Paper
             id="container-pgr"
             elevation={0}
-            className="new-apr-support-card"
-            sx={{ mt: 3, mb: 3 }}
+            sx={{
+              mt: 3,
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
           >
             <Typography
               variant="h6"
-              className="new-apr-card-title"
-              sx={{ mb: 0.5 }}
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
             >
               Informações PGR
-            </Typography>
-            <Typography variant="body2" className="new-apr-card-subtitle" sx={{ mb: 3 }}>
-              Preencha os valores para filtrar corretamente as perguntas específicas de PGR.
             </Typography>
 
             <Grid container spacing={2}>
@@ -1907,22 +2037,26 @@ export default function New() {
           </Paper>
         )}
 
-        {showLojaFields && !aprSalva && (
+        {currentChecklist && lojaChecklists.includes(currentChecklist) && !aprSalva && (
           <Paper
-            id="container-loja"
             elevation={0}
-            className="new-apr-support-card"
-            sx={{ mb: 3 }}
+            sx={{
+              mb: 3,
+              p: 3,
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              bgcolor: '#ffffff'
+            }}
           >
             <Typography
               variant="h6"
-              className="new-apr-card-title"
-              sx={{ mb: 0.5 }}
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: '#1e293b'
+              }}
             >
               Informações da Loja
-            </Typography>
-            <Typography variant="body2" className="new-apr-card-subtitle" sx={{ mb: 3 }}>
-              Informe o perfil da loja para exibir somente as verificações relevantes.
             </Typography>
 
             <Grid container spacing={2}>
@@ -1969,53 +2103,98 @@ export default function New() {
           </Paper>
         )}
 
+        {currentChecklist && lojaChecklists.includes(currentChecklist) && !aprSalva && (
+          <div className="container" id="container-loja">
+            <label name="valor-estoque">
+              Tipo de Loja
+              <select
+                id="selectTipoLoja"
+                defaultValue={""}
+                value={tipoLoja}
+                onChange={(e) => setTipoLoja(e.target.value)}
+              >
+                <option disabled value={""}>
+                  Selecione um tipo de loja...
+                </option>
+                <option value={"LOJA ESTOQUE ZERO"}>LOJA ESTOQUE ZERO</option>
+                <option value={"LOJA GALERIA PISO TÉRREO"}>LOJA GALERIA PISO TÉRREO</option>
+                <option value={"GALERIA PISO SUPERIOR"}>GALERIA PISO SUPERIOR</option>
+                <option value={"LOJA RUA"}>LOJA RUA</option>
+                <option value={"LOJA SHOP PISO TERREO"}>LOJA SHOP PISO TERREO</option>
+                <option value={"LOJA SHOP PISO SUPERIOR"}>LOJA SHOP PISO SUPERIOR</option>
+              </select>
+            </label>
+            <label name="valor-estoque">
+              Valor Estoque
+              <input
+                id="selectValorEstoque"
+                name="valor-estoque"
+                type="text"
+                value={new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(valorEstoque / 100)}
+                onChange={(e) => {
+                  setValorEstoque(e.target.value.replace(/\D/g, ""))
+                }
+                }
+                placeholder="Valor de Estoque"
+              />
+            </label>
+          </div>
+        )}
+
         <div
-          className="container new-apr-questions-card"
+          className="container"
           id="container-questions"
           style={{ display: "none", width: "100%", margin: "0 auto" }}
         >
-          <div id="checklist" className="form-new new-apr-form">
-            <div className="new-apr-checklist-header">
-              <div>
-                <Typography variant="h6" className="new-apr-card-title">
-                  Checklist da APR
-                </Typography>
-                <Typography variant="body2" className="new-apr-card-subtitle">
-                  Abra cada grupo, responda os itens obrigatórios e registre evidências quando necessário.
-                </Typography>
-              </div>
-            </div>
+          <div id="checklist" className="form-new">
             {questions.map((area, indexA) => {
               return (
-                <div key={indexA} className="question new-apr-area">
-                  <button
-                    type="button"
-                    className="new-apr-area-toggle"
-                    onClick={() => dropdownArea(indexA)}
-                  >
+                <div key={indexA} className="question">
+                  <i id="button-area" onClick={() => dropdownArea(indexA)}>
                     {area[0]}
-                  </button>
+                  </i>
                   <span id={`container-${indexA}`} style={{ display: "none" }}>
                     {Array.isArray(area[1]) && area[1].map((doc, indexDoc) => {
                       if (enableQuestions(doc) === true) {
                         return (
                           <div
                             key={indexDoc}
-                            className="container-perg question new-apr-question-card"
+                            className="container-perg question"
                           >
-                            <div className="new-apr-question-title">
-                              <span>{indexDoc + 1} - {doc.question}</span>
-                              {doc.isRequired === true && (
-                                <FiAlertCircle
-                                  className="icon-required"
-                                  size={15}
-                                  color="#FF0000"
-                                />
-                              )}
+                            <div className="question-title-row">
+                              <span className="question-title-text">
+                                {indexDoc + 1} - {doc.question}
+                              </span>
+                              <span
+                                className={`question-required-badge ${
+                                  doc.isRequired === true
+                                    ? "is-required"
+                                    : "is-optional"
+                                }`}
+                                title={
+                                  doc.isRequired === true
+                                    ? "Pergunta obrigatoria"
+                                    : "Pergunta opcional"
+                                }
+                              >
+                                {doc.isRequired === true ? (
+                                  <FiAlertCircle size={15} />
+                                ) : (
+                                  <FiInfo size={15} />
+                                )}
+                                <span>
+                                  {doc.isRequired === true
+                                    ? "Obrigatoria"
+                                    : "Opcional"}
+                                </span>
+                              </span>
                             </div>
-                            <div className="question new-apr-question-body">
+                            <div className="question">
                               {doc.selectOptions === true && doc.answers && (
-                                <div className="new-apr-answer-group">
+                                <>
                                   <label>
                                     <input
                                       className="yes"
@@ -2062,27 +2241,32 @@ export default function New() {
                                     <FiX size={25} />{" "}
                                     {doc.answers[2] ? doc.answers[2] : "N/A"}
                                   </label>
-                                </div>
+                                </>
                               )}
-                              {doc.inputImages === true && (
+                              {((doc.inputImages === true ||
+                                doc.inputImagesLibrary === true ||
+                                (Array.isArray(doc.images) ? doc.images : []).length > 0)) && (
                                 <ul
                                   className="imageList"
                                   id={
                                     "inputimg_" + doc.questionId + "_" + indexA
                                   }
                                 >
-                                  <li
-                                    className="notremove"
-                                    style={{ marginRight: 10 }}
-                                  >
-                                    <CameraComponent
-                                      saveIndexedDB={saveIndexedDB}
-                                      questions={questions}
-                                      doc={doc}
-                                      indexA={indexA}
-                                    />
-                                  </li>
-                                  {doc.inputImagesLibrary === true && (
+                                  {doc.inputImages === true && (
+                                    <li
+                                      className="notremove"
+                                      style={{ marginRight: 10 }}
+                                    >
+                                      <CameraComponent
+                                        saveIndexedDB={saveIndexedDB}
+                                        questions={questions}
+                                        doc={doc}
+                                        indexA={indexA}
+                                      />
+                                    </li>
+                                  )}
+                                  {(doc.inputImages === true ||
+                                    doc.inputImagesLibrary === true) && (
                                     <li className="notremove">
                                       <InputComponent
                                         saveIndexedDB={saveIndexedDB}
@@ -2092,10 +2276,15 @@ export default function New() {
                                       />
                                     </li>
                                   )}
-                                  {doc.images.length > 0 &&
-                                    doc.images.map((img, indexImg) => {
+                                  {(Array.isArray(doc.images) ? doc.images : []).filter(Boolean).length > 0 &&
+                                    (Array.isArray(doc.images) ? doc.images : []).filter(Boolean).map((img, indexImg) => {
                                       return (
                                         <li
+                                          key={
+                                            doc.questionId +
+                                            "_image_" +
+                                            indexImg
+                                          }
                                           id={
                                             doc.questionId +
                                             "_image_" +
@@ -2123,8 +2312,8 @@ export default function New() {
                                                 .remove();
                                               removeImg(
                                                 indexA,
-                                                "0",
-                                                doc.images[0]
+                                                indexDoc,
+                                                img
                                               );
                                             }}
                                           >
@@ -2207,14 +2396,14 @@ export default function New() {
                                     }}
                                   >
                                     <MenuItem key={""} value={""} sx={{ height: "30px" }} disabled>
-                                      <Checkbox checked={doc.optionListResp.includes("")} disabled />
+                                      <Checkbox checked={(doc.optionListResp || []).includes("")} disabled />
                                       <ListItemText
                                         primary={"Selecione uma opção"}
                                         sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
                                       />
                                     </MenuItem>
 
-                                    {doc.optionList.map((name) => (
+                                    {(doc.optionList || []).map((name) => (
                                       <MenuItem
                                         key={name}
                                         value={name}
@@ -2225,7 +2414,7 @@ export default function New() {
                                         }}
                                       >
                                         <Checkbox
-                                          checked={doc.optionListResp.includes(name)}
+                                          checked={(doc.optionListResp || []).includes(name)}
                                           sx={{ paddingTop: '4px' }}
                                         />
                                         <ListItemText
@@ -2242,13 +2431,10 @@ export default function New() {
                                 </FormControl>
                               )}
                             </div>
-                            <button
-                              type="button"
-                              className="clearQuestion"
-                              onClick={() => clearQuestion(doc, indexA)}
-                            >
-                              Limpar
-                            </button>
+                            <i className="clearQuestion" onClick={() => clearQuestion(doc, indexA)}>
+                              {" "}
+                              Limpar{" "}
+                            </i>
                           </div>
                         );
                       }
@@ -2259,7 +2445,6 @@ export default function New() {
               );
             })}
             <button
-              type="button"
               className="submit-apr"
               onClick={async () => {
                 try {
@@ -2275,13 +2460,7 @@ export default function New() {
                 }
               }}
             >
-              {isEditingOffline
-                ? isOffline
-                  ? "Salvar APR Offline"
-                  : "Sincronizar APR"
-                : isOffline
-                  ? "Salvar APR Offline"
-                  : "Concluir APR"}
+              Concluir APR
             </button>
           </div>
         </div>
