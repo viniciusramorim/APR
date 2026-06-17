@@ -2,6 +2,23 @@ import { useContext, useEffect, useState } from 'react';
 import { Route, Redirect, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/auth';
 
+function AuthLoading() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#6b21a8',
+        fontWeight: 800,
+      }}
+    >
+      Validando acesso...
+    </div>
+  );
+}
+
 export default function RouteWrapper({
   component: Component,
   isPrivate,
@@ -28,7 +45,7 @@ export default function RouteWrapper({
   }, [signed, isPrivate, authStateChanged, location.pathname]);
 
   if (loading) {
-    return <div></div>;
+    return <AuthLoading />;
   }
 
   // Se o usuário está logado e é seu primeiro login, redirecionar para mudar senha (como fallback)

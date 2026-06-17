@@ -22,11 +22,17 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, loadingAuth } = useContext(AuthContext);
+  const { signIn, loadingAuth, setupRecaptcha } = useContext(AuthContext);
 
   useEffect(() => {
-    addBodyClass("page-apply-apr");
-  }, []);
+    document.body.classList.remove("page-apply-apr", "page-new", "page-oem", "page-sites");
+    addBodyClass("page-signin");
+    setupRecaptcha();
+
+    return () => {
+      document.body.classList.remove("page-signin");
+    };
+  }, [setupRecaptcha]);
 
   function handleSubmit(e) {
     e.preventDefault();

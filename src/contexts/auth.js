@@ -138,22 +138,32 @@ function AuthProvider({ children }) {
 
   // =======================================================================
 
+  function setupRecaptcha() {
+    if (typeof window === "undefined") return;
+    if (window.recaptchaVerifier) return;
+    if (!document.getElementById("recaptcha-container")) return;
+
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
+      size: "normal",
+      callback: (response) => {
+        console.log("reCAPTCHA resolvido:", response);
+        setCaptchaToken(response);
+      },
+      "expired-callback": () => {
+        console.warn("reCAPTCHA expirado.");
+        setCaptchaToken(null);
+      },
+    });
+
+    window.recaptchaVerifier.render().catch((error) => {
+      console.error("Erro ao renderizar reCAPTCHA:", error);
+    });
+  }
+
   //Fazendo login do usuario com reCAPTCHA
   const signIn = async (email, password) => {
     if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        size: 'normal', // ou 'compact'
-        callback: (response) => {
-          console.log("reCAPTCHA resolvido:", response);
-          setCaptchaToken(response); // <- salva o token quando resolver
-        },
-        'expired-callback': () => {
-          console.warn('reCAPTCHA expirado.');
-          setCaptchaToken(null); // invalida o token
-        }
-      });
-
-      window.recaptchaVerifier.render();
+      setupRecaptcha();
     }
 
     if (!captchaToken) {
@@ -844,6 +854,7 @@ function AuthProvider({ children }) {
         user,
         loading,
         loadingAuth,
+        setupRecaptcha,
         signUp,
         signOut,
         signIn,
