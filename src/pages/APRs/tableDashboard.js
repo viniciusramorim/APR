@@ -169,7 +169,7 @@ export default function CustomPaginationActionsTable(props) {
   };
 
   const sortedRows = React.useMemo(() => {
-    return chamados.sort((a, b) => {
+    return [...chamados].sort((a, b) => {
       if (orderBy in a && orderBy in b) {
         if (order === "asc") {
           return a[orderBy] < b[orderBy] ? -1 : 1;

@@ -35,6 +35,15 @@ import {
 } from "@mui/material";
 import { useMemo } from "react";
 
+const MOBILE_BREAKPOINT_QUERY = 768;
+const MOBILE_DEFAULT_LIMIT = 80;
+const DESKTOP_DEFAULT_LIMIT = 1000;
+
+const isMobileViewport = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_QUERY}px)`).matches;
+
 const styles = {
   kpiCard: {
     background: "rgba(255, 255, 255, 0.05)",
@@ -333,28 +342,69 @@ export default function Dashboard() {
       // Sem limite ou um limite muito alto para garantir que traz tudo do período
       console.log("🔍 Buscando sem limite (Filtro de data ou Buscar Tudo ativo)");
     } else {
-      query = query.limit(1000);
+      query = query.limit(
+        isMobileViewport() ? MOBILE_DEFAULT_LIMIT : DESKTOP_DEFAULT_LIMIT
+      );
     }
 
-    const contarQuestions = (checklist) => {
+    const summarizeChecklist = (checklist, status, tipoSite) => {
       let totalQuestions = 0;
       let totalRespondidas = 0;
+      let questoes = 0;
+      let respondidas = 0;
+      let pgrInconformidade = 0;
 
-      if (checklist) {
-        checklist.forEach((area) => {
-          if (Array.isArray(area[1])) {
-            totalQuestions += area[1].length;
-
-            area[1].forEach((question) => {
-              if (question.resp && question.resp !== "") {
-                totalRespondidas++;
-              }
-            });
-          }
-        });
+      if (!Array.isArray(checklist)) {
+        return {
+          totalQuestions,
+          totalRespondidas,
+          questoes,
+          respondidas,
+          pgrInconformidade,
+        };
       }
 
-      return { totalQuestions, totalRespondidas };
+      const isPgrAudit =
+        tipoSite === "AUDIT PGR FIXA" || tipoSite === "AUDIT PGR MOVEL";
+      const needsRespondidoAreaStats = status === "Respondido pela Area";
+
+      checklist.forEach((area) => {
+        const questions = Array.isArray(area?.[1]) ? area[1] : [];
+        totalQuestions += questions.length;
+
+        questions.forEach((question) => {
+          const hasResponse = question?.resp && question.resp !== "";
+          const isInconformidade =
+            question?.respGabarito !== question?.resp && hasResponse;
+
+          if (hasResponse) {
+            totalRespondidas++;
+          }
+
+          if (isPgrAudit && isInconformidade) {
+            pgrInconformidade++;
+          }
+
+          if (
+            needsRespondidoAreaStats &&
+            question?.openPA === true &&
+            isInconformidade
+          ) {
+            questoes++;
+            if (question?.plano_acao?.comentario) {
+              respondidas++;
+            }
+          }
+        });
+      });
+
+      return {
+        totalQuestions,
+        totalRespondidas,
+        questoes,
+        respondidas,
+        pgrInconformidade,
+      };
     };
 
     const mapSnapshotToList = (snapshot) => {
@@ -386,45 +436,18 @@ export default function Dashboard() {
           }
         }
 
-        let questoes = 0;
-        let respondidas = 0;
-        let pgr_inconformidade = 0;
         const checklist = docData.checklist;
-        const { totalQuestions, totalRespondidas } =
-          contarQuestions(checklist);
-
-        if (
-          docData.site_id.tipoSite === "AUDIT PGR FIXA" ||
-          docData.site_id.tipoSite === "AUDIT PGR MOVEL"
-        ) {
-          checklist.forEach((area) => {
-            area[1].forEach((question) => {
-              if (
-                question.respGabarito !== question.resp &&
-                question.resp !== ""
-              ) {
-                pgr_inconformidade++;
-              }
-            });
-          });
-        }
-
-        if (docData.status === "Respondido pela Area") {
-          checklist.forEach((area) => {
-            area[1].forEach((question) => {
-              if (
-                question.openPA === true &&
-                question.respGabarito !== question.resp &&
-                question.resp !== ""
-              ) {
-                questoes++;
-                if (question.plano_acao.comentario) {
-                  respondidas++;
-                }
-              }
-            });
-          });
-        }
+        const {
+          totalQuestions,
+          totalRespondidas,
+          questoes,
+          respondidas,
+          pgrInconformidade,
+        } = summarizeChecklist(
+          checklist,
+          docData.status,
+          docData.site_id?.tipoSite
+        );
 
         if (user.area === "oem" && checklist !== undefined) {
           let paTrue = false;
@@ -458,7 +481,7 @@ export default function Dashboard() {
                 questoes !== 0
                   ? ((respondidas / questoes) * 100).toFixed(2) + "%"
                   : "-",
-              pgr_inconformidade: pgr_inconformidade,
+              pgr_inconformidade: pgrInconformidade,
               totalQuestions: totalQuestions,
               totalRespondidas: totalRespondidas,
             });
@@ -479,7 +502,7 @@ export default function Dashboard() {
               questoes !== 0
                 ? ((respondidas / questoes) * 100).toFixed(2) + "%"
                 : "-",
-            pgr_inconformidade: pgr_inconformidade,
+            pgr_inconformidade: pgrInconformidade,
             totalQuestions: totalQuestions,
             totalRespondidas: totalRespondidas,
           });
@@ -504,6 +527,17 @@ export default function Dashboard() {
       }
 
       setChamados(lista);
+      if (
+        isMobileViewport() &&
+        !searchAll &&
+        !hasIdFilter &&
+        !hasDateFilter &&
+        lista.length >= MOBILE_DEFAULT_LIMIT
+      ) {
+        toast.info(
+          `Carga otimizada no celular: exibindo os primeiros ${MOBILE_DEFAULT_LIMIT} registros.`
+        );
+      }
       setLoading(false);
     } catch (err) {
       console.error("Erro ao carregar APRs: ", err);
