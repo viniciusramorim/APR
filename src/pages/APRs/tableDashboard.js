@@ -347,7 +347,7 @@ export default function CustomPaginationActionsTable(props) {
               <TableCell data-label="%" align="center" sx={{ fontWeight: 'bold' }}>
                 {row.porcentagem_resp_area}
               </TableCell>
-              <TableCell align="center" style={{ minWidth: 150 }}>
+              <TableCell data-label="Ações" align="center" style={{ minWidth: 150 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
                   <Tooltip title="Exibir Detalhes">
                     <Link 

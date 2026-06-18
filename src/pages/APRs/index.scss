@@ -82,6 +82,80 @@
         padding: 14px;
         border-radius: 16px;
     }
+
+    .page-dash .dashboard-table-shell .MuiPaper-root,
+    .page-dash .dashboard-table-shell .MuiTableContainer-root {
+        overflow-x: visible;
+    }
+
+    .page-dash .dashboard-table-shell .MuiTable-root {
+        min-width: 0;
+    }
+
+    .page-dash .dashboard-table-shell table {
+        border: 0;
+        background: transparent;
+    }
+
+    .page-dash .dashboard-table-shell table thead {
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    .page-dash .dashboard-table-shell table tr {
+        display: block;
+        margin-bottom: 0.85rem;
+        padding: 0;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #fcfbff 100%);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+
+    .page-dash .dashboard-table-shell table td {
+        display: block !important;
+        width: 100%;
+        min-width: 0;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+        text-align: right !important;
+        font-size: 0.84rem !important;
+        background: transparent;
+    }
+
+    .page-dash .dashboard-table-shell table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6b7280;
+        margin-right: 12px;
+    }
+
+    .page-dash .dashboard-table-shell table td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .page-dash .dashboard-table-shell table td[data-label="Ações"] > div {
+        justify-content: flex-end !important;
+        flex-wrap: wrap;
+    }
+
+    .page-dash td.pendencias:before {
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        border-radius: 0 10px 10px 0;
+    }
 }
 
 @media (max-width: 600px) {
