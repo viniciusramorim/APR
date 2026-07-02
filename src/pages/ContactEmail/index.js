@@ -1,9 +1,10 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import firebase from "../../services/firebaseConnection";
 import {
   Box,
   TextField,
   Button,
+  Container,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -21,18 +22,36 @@ import {
   Pagination,
   Autocomplete,
   Checkbox,
+  Chip,
+  Paper,
+  Stack,
+  Divider,
+  InputAdornment,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
+import DeleteSweepRoundedIcon from "@mui/icons-material/DeleteSweepRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
-import { FiMessageSquare } from "react-icons/fi";
 import { read, utils } from "xlsx";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/auth";
+import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter";
+import "./contactEmail.scss";
+
+const mapaRegioes = {
+  RJ_ES_MG: ["RJ", "ES", "MG"],
+  SP: ["SP"],
+  CO_N: ["DF", "GO", "MT", "MS", "TO", "PA", "AM", "RO", "RR", "AC", "AP"],
+  SUL: ["RS", "SC", "PR"],
+  NE: ["BA", "SE", "AL", "PE", "PB", "RN", "CE", "PI", "MA"],
+};
 
 export default function ContactEmail() {
   const { user, logSistem } = useContext(AuthContext);
@@ -65,15 +84,17 @@ export default function ContactEmail() {
   const [docToEdit, setDocToEdit] = useState(null);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [duplicateMunicipioName, setDuplicateMunicipioName] = useState("");
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const pageSize = 10;
-
-  const mapaRegioes = {
-    RJ_ES_MG: ['RJ', 'ES', 'MG'],
-    SP: ['SP'],
-    CO_N: ['DF', 'GO', 'MT', 'MS', 'TO', 'PA', 'AM', 'RO', 'RR', 'AC', 'AP'],
-    SUL: ['RS', 'SC', 'PR'],
-    NE: ['BA', 'SE', 'AL', 'PE', 'PB', 'RN', 'CE', 'PI', 'MA']
-  };
+  const firestoreBatchLimit = 400;
+  const areaOptions = [
+    "OEM",
+    "Patrimonial",
+    "Predial",
+    "Logistica",
+    "Armazenamento",
+    "Transporte",
+  ];
 
   const filteredDocs = docs.filter(
     (item) =>
@@ -86,6 +107,7 @@ export default function ContactEmail() {
     acc[item.estado].push(item);
     return acc;
   }, {});
+  const bulkTargetDocs = filteredDocs;
 
   const estadoKeys = Object.keys(groupedByEstado).sort();
 
@@ -93,10 +115,29 @@ export default function ContactEmail() {
     (estadoPage - 1) * pageSize,
     estadoPage * pageSize
   );
+  const totalMunicipios = docs.length;
+  const totalEstados = estadoKeys.length;
+  const totalEmails = docs.reduce((acc, item) => {
+    return (
+      acc +
+      (item.email_oem?.length || 0) +
+      (item.email_patrimonial?.length || 0) +
+      (item.email_predial?.length || 0) +
+      (item.email_logistica?.length || 0) +
+      (item.email_armazenamento?.length || 0) +
+      (item.email_transporte?.length || 0)
+    );
+  }, 0);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const parseEmails = (value) =>
+    Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((email) => email.trim())
+          .filter((email) => email)
+      )
+    );
 
   const handleSelectEstado = (estado) => {
     setSelectedEstados((prev) => ({
@@ -133,7 +174,7 @@ export default function ContactEmail() {
 
   const handleDuplicateMunicipio = (doc) => {
     setDocToEdit(doc);
-    setDuplicateMunicipioName(`${doc.municipio} - Cópia`);
+    setDuplicateMunicipioName(`${doc.municipio} - Copia`);
     setDuplicateOpen(true);
   };
 
@@ -148,16 +189,19 @@ export default function ContactEmail() {
         email_oem: docToEdit.email_oem || [],
         email_patrimonial: docToEdit.email_patrimonial || [],
         email_predial: docToEdit.email_predial || [],
+        email_logistica: docToEdit.email_logistica || [],
+        email_armazenamento: docToEdit.email_armazenamento || [],
+        email_transporte: docToEdit.email_transporte || [],
       });
       await firebase.firestore().collection("contact_email").doc(docToEdit.id).delete();
-      await logSistem("Nome do município alterado", newDocId);
+      await logSistem("Nome do municipio alterado", newDocId);
 
       setEditMunicipioOpen(false);
       loadData();
-      toast.success("Município atualizado com sucesso!");
+      toast.success("Municipio atualizado com sucesso!");
     } catch (error) {
-      console.error("Erro ao atualizar município:", error);
-      toast.error("Erro ao atualizar município.");
+      console.error("Erro ao atualizar municipio:", error);
+      toast.error("Erro ao atualizar municipio.");
     }
   };
 
@@ -172,42 +216,81 @@ export default function ContactEmail() {
         email_oem: [...(docToEdit.email_oem || [])],
         email_patrimonial: [...(docToEdit.email_patrimonial || [])],
         email_predial: [...(docToEdit.email_predial || [])],
+        email_logistica: [...(docToEdit.email_logistica || [])],
+        email_armazenamento: [...(docToEdit.email_armazenamento || [])],
+        email_transporte: [...(docToEdit.email_transporte || [])],
       });
-      await logSistem("Município duplicado", newDocId);
+      await logSistem("Municipio duplicado", newDocId);
 
       setDuplicateOpen(false);
       loadData();
-      toast.success("Município duplicado com sucesso!");
+      toast.success("Municipio duplicado com sucesso!");
     } catch (error) {
-      console.error("Erro ao duplicar município:", error);
-      toast.error("Erro ao duplicar município.");
+      console.error("Erro ao duplicar municipio:", error);
+      toast.error("Erro ao duplicar municipio.");
     }
   };
 
   const handleAddEmailToAll = async () => {
-    if (!emailToAdd || !areaToAdd) {
-      toast.error("Por favor, insira um e-mail e selecione uma área.");
+    const emails = parseEmails(emailToAdd);
+
+    if (!emails.length || !areaToAdd) {
+      toast.error("Por favor, insira ao menos um e-mail e selecione uma area.");
       return;
     }
 
-    const batch = firebase.firestore().batch();
+    if (!bulkTargetDocs.length) {
+      toast.error("Nenhum municipio encontrado para aplicar esta acao.");
+      return;
+    }
+
     const areaKey = `email_${areaToAdd.toLowerCase()}`;
+    let updatedCount = 0;
 
-    docs.forEach((doc) => {
-      const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
-      const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), emailToAdd]));
-      batch.update(docRef, { [areaKey]: updatedEmails });
-      logSistem(`E-mail adicionado a todos (${emailToAdd}) na área ${areaToAdd}`, doc.id);
-    });
+    for (let i = 0; i < bulkTargetDocs.length; i += firestoreBatchLimit) {
+      const batch = firebase.firestore().batch();
+      const chunk = bulkTargetDocs.slice(i, i + firestoreBatchLimit);
+      let chunkUpdatedCount = 0;
 
-    await batch.commit();
-    loadData();
-    toast.success(`E-mail adicionado a todos os municípios na área ${areaToAdd} com sucesso!`);
+      for (const doc of chunk) {
+        const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+        const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), ...emails]));
+
+        if (updatedEmails.length !== (doc[areaKey] || []).length) {
+          batch.update(docRef, { [areaKey]: updatedEmails });
+          updatedCount += 1;
+          chunkUpdatedCount += 1;
+        }
+      }
+
+      if (chunkUpdatedCount > 0) {
+        await batch.commit();
+      }
+    }
+
+    await logSistem(
+      `E-mails adicionados em massa (${emails.join(", ")}) na area ${areaToAdd} para ${bulkTargetDocs.length} municipio(s)`,
+      `bulk-${areaKey}`
+    );
+
+    setBulkAddOpen(false);
+    setEmailToAdd("");
+    setAreaToAdd("");
+    await loadData();
+
+    if (updatedCount === 0) {
+      toast.info("Os municipios selecionados ja possuem este(s) e-mail(s) nesta area.");
+      return;
+    }
+
+    toast.success(
+      `${updatedCount} municipio(s) atualizado(s) com sucesso na area ${areaToAdd}!`
+    );
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const isAdmin = user?.nivel === "administrador";
-    const estadosPermitidos = mapaRegioes[user.regional] || [];
+    const estadosPermitidos = mapaRegioes[user?.regional] || [];
     const snapshot = await firebase.firestore().collection("contact_email").get();
 
     const list = snapshot.docs
@@ -229,7 +312,12 @@ export default function ContactEmail() {
 
     setAllEstados(Array.from(estadosSet).sort());
     setMunicipiosPorEstado(grouped);
-  };
+  }, [user?.nivel, user?.regional]);
+
+  useEffect(() => {
+    addBodyClass("page-contact-email");
+    loadData();
+  }, [loadData]);
 
   const handleDeleteEmail = async (docId, email, tipo) => {
     const key = `email_${tipo.toLowerCase()}`;
@@ -240,7 +328,7 @@ export default function ContactEmail() {
     data[key] = (data[key] || []).filter((e) => e !== email);
     await ref.set(data);
     const [uf, municipio] = docId.split("-");
-    await logSistem(`E-mail removido (${email}) da área ${tipo} - UF: ${uf}, Município: ${municipio}`, docId);
+    await logSistem(`E-mail removido (${email}) da area ${tipo} - UF: ${uf}, Municipio: ${municipio}`, docId);
     loadData();
   };
 
@@ -250,17 +338,30 @@ export default function ContactEmail() {
     const docSnap = await docRef.get();
     if (!docSnap.exists) return;
     const data = docSnap.data();
-    const tipos = ["email_oem", "email_patrimonial", "email_predial"];
+    const tipos = [
+      "email_oem",
+      "email_patrimonial",
+      "email_predial",
+      "email_logistica",
+      "email_armazenamento",
+      "email_transporte",
+    ];
+
     tipos.forEach((key) => {
       data[key] = (data[key] || []).filter((e) => e !== editEmail);
     });
+
     const targetKey = `email_${editTipo.toLowerCase()}`;
     if (!data[targetKey]) data[targetKey] = [];
     if (!data[targetKey].includes(editEmail)) {
       data[targetKey].push(editEmail);
     }
+
     await docRef.set(data);
-    await logSistem(`E-mail editado (${editEmail}) na área ${editTipo} - UF: ${editEstado}, Município: ${editMunicipio}`, editDocId);
+    await logSistem(
+      `E-mail editado (${editEmail}) na area ${editTipo} - UF: ${editEstado}, Municipio: ${editMunicipio}`,
+      editDocId
+    );
     setOpen(false);
     loadData();
   };
@@ -270,7 +371,7 @@ export default function ContactEmail() {
     const docRef = firebase.firestore().collection("contact_email").doc(docId);
     const docSnap = await docRef.get();
     const targetKey = `email_${newTipo.toLowerCase()}`;
-    const emails = newEmails.split(",").map((e) => e.trim()).filter((e) => e);
+    const emails = parseEmails(newEmails);
 
     if (docSnap.exists) {
       const data = docSnap.data();
@@ -284,12 +385,18 @@ export default function ContactEmail() {
         email_oem: [],
         email_patrimonial: [],
         email_predial: [],
+        email_logistica: [],
+        email_armazenamento: [],
+        email_transporte: [],
         [targetKey]: emails,
       };
       await docRef.set(newData);
     }
 
-    await logSistem(`Novo e-mail criado/atualizado (${emails.join(", ")}) na área ${newTipo} - UF: ${newEstado}, Município: ${newMunicipio}`, docId);
+    await logSistem(
+      `Novo e-mail criado/atualizado (${emails.join(", ")}) na area ${newTipo} - UF: ${newEstado}, Municipio: ${newMunicipio}`,
+      docId
+    );
     setCreateOpen(false);
     loadData();
   };
@@ -301,7 +408,7 @@ export default function ContactEmail() {
       if (selectedEstados[doc.estado] || selectedMunicipios[doc.estado]?.[doc.municipio]) {
         const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
         batch.delete(docRef);
-        logSistem(`Documento deletado - UF: ${doc.estado}, Município: ${doc.municipio}`, doc.id);
+        logSistem(`Documento deletado - UF: ${doc.estado}, Municipio: ${doc.municipio}`, doc.id);
       }
     });
 
@@ -334,7 +441,10 @@ export default function ContactEmail() {
             const newDocId = `${estado}-${novo_municipio}`;
             await firebase.firestore().collection("contact_email").doc(newDocId).set(originalData);
             await originalDocRef.delete();
-            await logSistem(`Importação XLSX: município renomeado de ${municipio} para ${novo_municipio} - UF: ${estado}`, newDocId);
+            await logSistem(
+              `Importacao XLSX: municipio renomeado de ${municipio} para ${novo_municipio} - UF: ${estado}`,
+              newDocId
+            );
           }
           continue;
         }
@@ -358,14 +468,20 @@ export default function ContactEmail() {
             email_oem: [],
             email_patrimonial: [],
             email_predial: [],
+            email_logistica: [],
+            email_armazenamento: [],
+            email_transporte: [],
             [areaKey]: [email.trim()],
           });
         }
 
-        await logSistem(`Importação XLSX: e-mail ${email} adicionado à área ${area} - UF: ${estado}, Município: ${municipio}`, docId);
+        await logSistem(
+          `Importacao XLSX: e-mail ${email} adicionado a area ${area} - UF: ${estado}, Municipio: ${municipio}`,
+          docId
+        );
       }
 
-      toast.success("Upload concluído com sucesso!");
+      toast.success("Upload concluido com sucesso!");
       loadData();
     } catch (error) {
       console.error("Erro ao importar XLSX:", error);
@@ -391,166 +507,282 @@ export default function ContactEmail() {
 
   return (
     <div className="apr-contact-email">
-      <Header />
+      <Header name="Contato" subtitle="Gestao de e-mails por estado, municipio e equipe"></Header>
       <div className="content">
-        <Title name="Contato">
-          <FiMessageSquare size={25} />
-        </Title>
+        <Container maxWidth={false} disableGutters className="contact-email-shell">
+          <Paper className="contact-email-hero" elevation={0}>
+            <Box className="contact-email-hero-copy">
+              <span className="contact-email-eyebrow">APR Digital</span>
+              <Typography variant="h4" className="contact-email-title">
+                Central de contatos por regiao
+              </Typography>
+              <Typography variant="body1" className="contact-email-subtitle">
+                Organize os destinatarios por estado, municipio e area responsavel
+                com uma visao mais clara para manutencao e auditoria.
+              </Typography>
+            </Box>
 
-        <Box display="flex" gap={2} mb={2} sx={{ backgroundColor: "rgba(248, 248, 248, 0.64)", padding: 2, borderRadius: 1 }}>
-          <TextField
-            label="Filtrar por Estado"
-            value={filterEstado}
-            onChange={(e) => setFilterEstado(e.target.value)}
-            size="small"
-          />
-          <TextField
-            label="Filtrar por Município"
-            value={filterMunicipio}
-            onChange={(e) => setFilterMunicipio(e.target.value)}
-            size="small"
-          />
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateOpen(true)}
-          >
-            Novo Registro
-          </Button>
-          <input
-            type="file"
-            accept=".xlsx, .xls"
-            id="upload-xlsx"
-            style={{ display: "none" }}
-            onChange={handleUploadXLSX}
-          />
+            <Box className="contact-email-summary-grid">
+              <Paper className="contact-email-summary-card" variant="outlined">
+                <span>Estados</span>
+                <strong>{totalEstados}</strong>
+                <small>agrupamentos ativos</small>
+              </Paper>
+              <Paper className="contact-email-summary-card" variant="outlined">
+                <span>Municipios</span>
+                <strong>{totalMunicipios}</strong>
+                <small>registros carregados</small>
+              </Paper>
+              <Paper className="contact-email-summary-card" variant="outlined">
+                <span>E-mails</span>
+                <strong>{totalEmails}</strong>
+                <small>contatos vinculados</small>
+              </Paper>
+            </Box>
+          </Paper>
 
-          <label htmlFor="upload-xlsx">
-            <Button
-              variant="outlined"
-              component="span"
-              startIcon={<AddIcon />}
-              disabled={loadingUpload}
-            >
-              {loadingUpload ? "Carregando..." : "Upload XLSX"}
-            </Button>
-          </label>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleDeleteSelected}
-          >
-            Remover Selecionados
-          </Button>
-        </Box>
+          <Paper className="contact-email-toolbar" elevation={0}>
+            <Box className="contact-email-toolbar-top">
+              <Box>
+                <Typography variant="h6" className="contact-email-section-title">
+                  Filtros e acoes
+                </Typography>
+                <Typography variant="body2" className="contact-email-section-subtitle">
+                  Busque registros especificos e mantenha a base atualizada com menos cliques.
+                </Typography>
+              </Box>
 
-        {paginatedEstados.map((estado) => (
-          <Accordion key={estado}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Checkbox
-                checked={!!selectedEstados[estado]}
-                onChange={() => handleSelectEstado(estado)}
+              <Chip
+                icon={<MailOutlineRoundedIcon />}
+                label={`${filteredDocs.length} resultado(s)`}
+                color="secondary"
+                variant="outlined"
               />
-              <Typography>{estado}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              {getMunicipiosPaginados(estado).map((item) => (
-                <Accordion key={item.id}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Checkbox
-                      checked={!!selectedMunicipios[estado]?.[item.municipio]}
-                      onChange={() => handleSelectMunicipio(estado, item.municipio)}
-                    />
-                    <Typography>{item.municipio}</Typography>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditMunicipio(item);
-                      }}
-                      size="small"
-                      sx={{ ml: 1 }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDuplicateMunicipio(item);
-                      }}
-                      size="small"
-                      sx={{ ml: 1 }}
-                    >
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    {["OEM", "Patrimonial", "Predial"].map((tipo) => {
-                      const key = `email_${tipo.toLowerCase()}`;
-                      return (
-                        <Box key={tipo} mb={2}>
-                          <Typography fontWeight="bold">
-                            Equipe {tipo}
-                          </Typography>
-                          <List dense>
-                            {(item[key] || []).map((email, index) => (
-                              <ListItem
-                                key={index}
-                                secondaryAction={
-                                  <>
-                                    <IconButton
-                                      edge="end"
-                                      onClick={() =>
-                                        handleEdit(
-                                          item.id,
-                                          email,
-                                          tipo,
-                                          item.estado,
-                                          item.municipio
-                                        )
-                                      }
-                                    >
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton
-                                      edge="end"
-                                      onClick={() =>
-                                        handleDeleteEmail(item.id, email, tipo)
-                                      }
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </>
-                                }
-                              >
-                                <ListItemText primary={email} />
-                              </ListItem>
-                            ))}
-                          </List>
-                        </Box>
-                      );
-                    })}
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-              {groupedByEstado[estado].length >
-                (municipioPages[estado] || 1) * pageSize && (
-                  <Box textAlign="center" mt={1}>
-                    <Button onClick={() => loadMoreMunicipios(estado)}>
-                      Carregar mais municípios
-                    </Button>
-                  </Box>
-                )}
-            </AccordionDetails>
-          </Accordion>
-        ))}
+            </Box>
 
-        <Box display="flex" justifyContent="center" mt={2}>
-          <Pagination
-            count={Math.ceil(estadoKeys.length / pageSize)}
-            page={estadoPage}
-            onChange={(e, value) => setEstadoPage(value)}
-          />
-        </Box>
+            <Box className="contact-email-toolbar-grid">
+              <TextField
+                label="Filtrar por Estado"
+                value={filterEstado}
+                onChange={(e) => setFilterEstado(e.target.value)}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Filtrar por Municipio"
+                value={filterMunicipio}
+                onChange={(e) => setFilterMunicipio(e.target.value)}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PlaceOutlinedIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setCreateOpen(true)}
+                className="contact-email-primary-btn"
+              >
+                Novo registro
+              </Button>
+
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                id="upload-xlsx"
+                style={{ display: "none" }}
+                onChange={handleUploadXLSX}
+              />
+
+              <label htmlFor="upload-xlsx">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  startIcon={<UploadFileRoundedIcon />}
+                  disabled={loadingUpload}
+                  className="contact-email-secondary-btn"
+                >
+                  {loadingUpload ? "Carregando..." : "Upload XLSX"}
+                </Button>
+              </label>
+
+              <Button
+                variant="outlined"
+                startIcon={<MailOutlineRoundedIcon />}
+                onClick={() => setBulkAddOpen(true)}
+                className="contact-email-secondary-btn"
+              >
+                Adicionar em massa
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteSweepRoundedIcon />}
+                onClick={handleDeleteSelected}
+                className="contact-email-danger-btn"
+              >
+                Remover selecionados
+              </Button>
+            </Box>
+          </Paper>
+
+          <Box className="contact-email-list">
+            {paginatedEstados.map((estado) => (
+              <Accordion key={estado} className="contact-email-estado-card" disableGutters>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box className="contact-email-estado-summary">
+                    <Checkbox
+                      checked={!!selectedEstados[estado]}
+                      onChange={() => handleSelectEstado(estado)}
+                    />
+                    <Box className="contact-email-estado-copy">
+                      <Typography className="contact-email-estado-title">{estado}</Typography>
+                      <Typography variant="body2" className="contact-email-estado-subtitle">
+                        {groupedByEstado[estado]?.length || 0} municipio(s)
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={1.5}>
+                    {getMunicipiosPaginados(estado).map((item) => (
+                      <Accordion key={item.id} className="contact-email-municipio-card" disableGutters>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                          <Box className="contact-email-municipio-summary">
+                            <Checkbox
+                              checked={!!selectedMunicipios[estado]?.[item.municipio]}
+                              onChange={() => handleSelectMunicipio(estado, item.municipio)}
+                            />
+                            <Box className="contact-email-municipio-copy">
+                              <Typography className="contact-email-municipio-title">
+                                {item.municipio}
+                              </Typography>
+                              <Typography variant="body2" className="contact-email-municipio-subtitle">
+                                {areaOptions.reduce(
+                                  (acc, tipo) => acc + (item[`email_${tipo.toLowerCase()}`]?.length || 0),
+                                  0
+                                )} e-mail(s)
+                              </Typography>
+                            </Box>
+                            <Box className="contact-email-inline-actions">
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditMunicipio(item);
+                                }}
+                                size="small"
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDuplicateMunicipio(item);
+                                }}
+                                size="small"
+                              >
+                                <ContentCopyIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </Box>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Box className="contact-email-area-grid">
+                            {areaOptions.map((tipo) => {
+                              const key = `email_${tipo.toLowerCase()}`;
+                              return (
+                                <Paper key={tipo} className="contact-email-area-card" variant="outlined">
+                                  <Box className="contact-email-area-header">
+                                    <Typography fontWeight="bold">Equipe {tipo}</Typography>
+                                    <Chip
+                                      size="small"
+                                      label={`${(item[key] || []).length} e-mail(s)`}
+                                      variant="outlined"
+                                    />
+                                  </Box>
+                                  <Divider sx={{ mb: 1.5 }} />
+                                  <List dense disablePadding>
+                                    {(item[key] || []).length === 0 && (
+                                      <ListItem disablePadding sx={{ py: 1 }}>
+                                        <ListItemText primary="Nenhum e-mail cadastrado." />
+                                      </ListItem>
+                                    )}
+                                    {(item[key] || []).map((email, index) => (
+                                      <ListItem
+                                        key={index}
+                                        className="contact-email-email-item"
+                                        secondaryAction={
+                                          <>
+                                            <IconButton
+                                              edge="end"
+                                              onClick={() =>
+                                                handleEdit(
+                                                  item.id,
+                                                  email,
+                                                  tipo,
+                                                  item.estado,
+                                                  item.municipio
+                                                )
+                                              }
+                                            >
+                                              <EditIcon fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                              edge="end"
+                                              onClick={() =>
+                                                handleDeleteEmail(item.id, email, tipo)
+                                              }
+                                            >
+                                              <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                          </>
+                                        }
+                                      >
+                                        <ListItemText primary={email} />
+                                      </ListItem>
+                                    ))}
+                                  </List>
+                                </Paper>
+                              );
+                            })}
+                          </Box>
+                        </AccordionDetails>
+                      </Accordion>
+                    ))}
+
+                    {groupedByEstado[estado].length >
+                      (municipioPages[estado] || 1) * pageSize && (
+                        <Box textAlign="center" mt={1}>
+                          <Button onClick={() => loadMoreMunicipios(estado)}>
+                            Carregar mais municipios
+                          </Button>
+                        </Box>
+                      )}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+
+          <Box display="flex" justifyContent="center" mt={3} mb={4}>
+            <Pagination
+              count={Math.ceil(estadoKeys.length / pageSize)}
+              page={estadoPage}
+              onChange={(e, value) => setEstadoPage(value)}
+            />
+          </Box>
+        </Container>
 
         <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
           <DialogTitle>Editar E-mail</DialogTitle>
@@ -564,18 +796,19 @@ export default function ContactEmail() {
             />
             <Select
               fullWidth
-              margin="dense"
               value={editTipo}
               onChange={(e) => setEditTipo(e.target.value)}
               displayEmpty
               sx={{ mt: 2 }}
             >
               <MenuItem disabled value="">
-                Selecione a área responsável
+                Selecione a area responsavel
               </MenuItem>
-              <MenuItem value="OEM">OEM</MenuItem>
-              <MenuItem value="Patrimonial">Patrimonial</MenuItem>
-              <MenuItem value="Predial">Predial</MenuItem>
+              {areaOptions.map((tipo) => (
+                <MenuItem key={tipo} value={tipo}>
+                  {tipo}
+                </MenuItem>
+              ))}
             </Select>
           </DialogContent>
           <DialogActions>
@@ -586,23 +819,20 @@ export default function ContactEmail() {
           </DialogActions>
         </Dialog>
 
-        <Dialog
-          open={editMunicipioOpen}
-          onClose={() => setEditMunicipioOpen(false)}
-        >
-          <DialogTitle>Editar Nome do Município</DialogTitle>
+        <Dialog open={editMunicipioOpen} onClose={() => setEditMunicipioOpen(false)}>
+          <DialogTitle>Editar nome do municipio</DialogTitle>
           <DialogContent>
             <TextField
               fullWidth
               margin="dense"
-              label="Nome Atual"
+              label="Nome atual"
               value={currentMunicipio}
               disabled
             />
             <TextField
               fullWidth
               margin="dense"
-              label="Novo Nome"
+              label="Novo nome"
               value={newMunicipioName}
               onChange={(e) => setNewMunicipioName(e.target.value)}
               sx={{ mt: 2 }}
@@ -616,23 +846,20 @@ export default function ContactEmail() {
           </DialogActions>
         </Dialog>
 
-        <Dialog
-          open={duplicateOpen}
-          onClose={() => setDuplicateOpen(false)}
-        >
-          <DialogTitle>Duplicar Município</DialogTitle>
+        <Dialog open={duplicateOpen} onClose={() => setDuplicateOpen(false)}>
+          <DialogTitle>Duplicar municipio</DialogTitle>
           <DialogContent>
             <TextField
               fullWidth
               margin="dense"
-              label="Município Original"
-              value={docToEdit?.municipio || ''}
+              label="Municipio original"
+              value={docToEdit?.municipio || ""}
               disabled
             />
             <TextField
               fullWidth
               margin="dense"
-              label="Novo Nome para Cópia"
+              label="Novo nome para copia"
               value={duplicateMunicipioName}
               onChange={(e) => setDuplicateMunicipioName(e.target.value)}
               sx={{ mt: 2 }}
@@ -646,16 +873,52 @@ export default function ContactEmail() {
           </DialogActions>
         </Dialog>
 
-        <Dialog
-          open={createOpen}
-          onClose={() => setCreateOpen(false)}
-          fullWidth
-        >
-          <DialogTitle>Novo Registro</DialogTitle>
+        <Dialog open={bulkAddOpen} onClose={() => setBulkAddOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Adicionar e-mail para varios municipios</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              O e-mail sera aplicado aos {bulkTargetDocs.length} municipio(s) do filtro atual.
+            </Typography>
+            <Select
+              fullWidth
+              value={areaToAdd}
+              onChange={(e) => setAreaToAdd(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem disabled value="">
+                Selecione a area responsavel
+              </MenuItem>
+              {areaOptions.map((tipo) => (
+                <MenuItem key={tipo} value={tipo}>
+                  {tipo}
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="E-mail(s)"
+              helperText="Voce pode informar mais de um e-mail separado por virgula."
+              value={emailToAdd}
+              onChange={(e) => setEmailToAdd(e.target.value)}
+              multiline
+              minRows={3}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setBulkAddOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleAddEmailToAll}>
+              Aplicar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth>
+          <DialogTitle>Novo registro</DialogTitle>
           <DialogContent>
             <Select
               fullWidth
-              margin="dense"
               value={newEstado}
               onChange={(e) => {
                 setNewEstado(e.target.value);
@@ -664,7 +927,7 @@ export default function ContactEmail() {
               displayEmpty
             >
               <MenuItem disabled value="">
-                Selecione um Estado
+                Selecione um estado
               </MenuItem>
               {allEstados.map((estado) => (
                 <MenuItem key={estado} value={estado}>
@@ -681,34 +944,37 @@ export default function ContactEmail() {
                 <TextField
                   {...params}
                   margin="dense"
-                  label="Município (existente ou novo)"
+                  label="Municipio (existente ou novo)"
                   fullWidth
                 />
               )}
+              sx={{ mt: 2 }}
             />
             <Select
               fullWidth
-              margin="dense"
               value={newTipo}
               onChange={(e) => setNewTipo(e.target.value)}
               displayEmpty
               sx={{ mt: 2 }}
             >
               <MenuItem disabled value="">
-                Selecione a área responsável
+                Selecione a area responsavel
               </MenuItem>
-              <MenuItem value="OEM">OEM</MenuItem>
-              <MenuItem value="Patrimonial">Patrimonial</MenuItem>
-              <MenuItem value="Predial">Predial</MenuItem>
+              {areaOptions.map((tipo) => (
+                <MenuItem key={tipo} value={tipo}>
+                  {tipo}
+                </MenuItem>
+              ))}
             </Select>
             <TextField
               fullWidth
               margin="dense"
-              label="E-mails (separados por vírgula)"
+              label="E-mails (separados por virgula)"
               value={newEmails}
               onChange={(e) => setNewEmails(e.target.value)}
               multiline
               minRows={3}
+              sx={{ mt: 2 }}
             />
           </DialogContent>
           <DialogActions>

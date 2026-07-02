@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { AuthContext } from '../../contexts/auth';
 import firebase from '../../services/firebaseConnection';
 import Header from '../../components/Header';
-import Title from '../../components/Title';
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
 import './assignments.scss'
@@ -46,12 +45,10 @@ export default function PreNew() {
 
 	return (
 		<div>
-			<Header />
+			<Header name="Assignments" subtitle="Aplicação de APRs">
+			</Header>
 
 			<div className="content">
-				<Title name="Aplicar APR">
-					<MdOutlineAssignmentLate size={25} />
-				</Title>
 
 				<div className='container'>
 					<table>

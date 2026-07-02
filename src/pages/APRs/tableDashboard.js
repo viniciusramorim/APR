@@ -21,8 +21,7 @@ import { TableHead, TableSortLabel, Tooltip, Chip } from "@mui/material";
 import { 
   FiEye, 
   FiTrash2, 
-  FiRotateCcw, 
-  FiList 
+  FiRotateCcw 
 } from "react-icons/fi";
 
 // Função para salvar a página no localStorage
@@ -170,7 +169,7 @@ export default function CustomPaginationActionsTable(props) {
   };
 
   const sortedRows = React.useMemo(() => {
-    return chamados.sort((a, b) => {
+    return [...chamados].sort((a, b) => {
       if (orderBy in a && orderBy in b) {
         if (order === "asc") {
           return a[orderBy] < b[orderBy] ? -1 : 1;
@@ -346,9 +345,9 @@ export default function CustomPaginationActionsTable(props) {
                 </Box>
               </TableCell>
               <TableCell data-label="%" align="center" sx={{ fontWeight: 'bold' }}>
-                {row.porcentagem_resp_area}%
+                {row.porcentagem_resp_area}
               </TableCell>
-              <TableCell align="center" style={{ minWidth: 150 }}>
+              <TableCell data-label="Ações" align="center" style={{ minWidth: 150 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
                   <Tooltip title="Exibir Detalhes">
                     <Link 
@@ -368,7 +367,9 @@ export default function CustomPaginationActionsTable(props) {
                     </Link>
                   </Tooltip>
 
-                  {(user.nivel === "administrador" || user.nivel === "revisor") && (
+                  {(user.nivel === "administrador" ||
+                    user.nivel === "revisor" ||
+                    user.nivel === "revisor_logistica") && (
                     <Tooltip title="Cancelar APR">
                       <IconButton
                         size="small"
@@ -400,7 +401,9 @@ export default function CustomPaginationActionsTable(props) {
                     </Tooltip>
                   )}
 
-                  {(user.nivel === "administrador" || user.nivel === "revisor") && (
+                  {(user.nivel === "administrador" ||
+                    user.nivel === "revisor" ||
+                    user.nivel === "revisor_logistica") && (
                     <Tooltip title="Ver Histórico/Logs">
                       <Box sx={{ display: 'inline-block' }}>
                         <ModalLog chamadoId={row.id} />

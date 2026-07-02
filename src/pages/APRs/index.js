@@ -19,6 +19,7 @@ import firebase from "../../services/firebaseConnection";
 import "./index.scss";
 import { toast } from "react-toastify";
 import TableDashboard from "./tableDashboard";
+import OfflineAPRsPanel from "../../components/OfflineAPRsPanel";
 import {
   Grid,
   Button,
@@ -34,47 +35,59 @@ import {
 } from "@mui/material";
 import { useMemo } from "react";
 
+const MOBILE_BREAKPOINT_QUERY = 768;
+const MOBILE_DEFAULT_LIMIT = 80;
+const DESKTOP_DEFAULT_LIMIT = 1000;
+
+const isMobileViewport = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_QUERY}px)`).matches;
+
 const styles = {
   kpiCard: {
     background: "rgba(255, 255, 255, 0.05)",
     backdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.1)",
     color: "#fff",
-    padding: "15px",
-    borderRadius: "12px",
+    padding: "14px 10px",
+    borderRadius: "16px",
     transition: "transform 0.2s, box-shadow 0.2s",
     cursor: "default",
     display: "flex",
+    gap: "18px",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "100px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    minHeight: "118px",
+    height: "100%",
+    boxShadow: "0 8px 18px rgba(15, 23, 42, 0.16)",
     "&:hover": {
-      transform: "translateY(-5px)",
-      boxShadow: "0 12px 20px rgba(0, 0, 0, 0.3)",
+      transform: "translateY(-4px)",
+      boxShadow: "0 16px 28px rgba(15, 23, 42, 0.22)",
       filter: "brightness(1.1)",
     }
   },
   kpiTitle: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
+    fontSize: "0.72rem",
+    fontWeight: "700",
     color: "#fff",
-    marginBottom: "8px",
+    marginBottom: "10px",
     textAlign: "center",
     textTransform: "uppercase",
-    letterSpacing: "0.8px",
+    letterSpacing: "0.6px",
+    lineHeight: 1.25,
     textShadow: "1px 1px 2px rgba(0,0,0,0.2)"
   },
   kpiValue: {
-    fontSize: "1.6rem",
+    fontSize: "2rem",
     fontWeight: "bold",
     color: "#fff",
     textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
   },
   kpiIcon: {
-    fontSize: "1.4rem",
-    marginBottom: "10px",
+    fontSize: "1.25rem",
+    marginBottom: "12px",
     color: "#fff"
   },
   pendenciaCard: {
@@ -100,10 +113,6 @@ const styles = {
   },
   totalCard: {
     background: "linear-gradient(135deg, #380054 0%, #6a008a 100%)",
-  },
-  gridContainer: {
-    gap: "12px",
-    padding: "20px 0",
   },
 };
 
@@ -147,31 +156,16 @@ export default function Dashboard() {
 
   // Carregar os filtros do localStorage ao montar o componente
   const savedFilters = loadFiltersFromSessionStorage();
-
   const [filterUF, setFilterUF] = useState(savedFilters.filterUF || "");
-  const [filterSigla, setFilterSigla] = useState(
-    savedFilters.filterSigla || ""
-  );
-  const [filterTipoSite, setFilterTipoSite] = useState(
-    savedFilters.filterTipoSite || ""
-  );
-  const [filterStatus, setFilterStatus] = useState(
-    savedFilters.filterStatus || ""
-  );
+  const [filterSigla, setFilterSigla] = useState(savedFilters.filterSigla || "");
+  const [filterTipoSite, setFilterTipoSite] = useState(savedFilters.filterTipoSite || "");
+  const [filterStatus, setFilterStatus] = useState(savedFilters.filterStatus || "");
   const [filterNome, setFilterNome] = useState(savedFilters.filterNome || "");
   const [filterID, setFilterID] = useState(savedFilters.filterID || "");
-  const [filterMotivo, setFilterMotivo] = useState(
-    savedFilters.filterMotivo || ""
-  );
-  const [filterRegional, setFilterRegional] = useState(
-    savedFilters.filterRegional || ""
-  );
-  const [filterDataInicio, setFilterDataInicio] = useState(
-    savedFilters.filterDataInicio || ""
-  );
-  const [filterDataFim, setFilterDataFim] = useState(
-    savedFilters.filterDataFim || ""
-  );
+  const [filterMotivo, setFilterMotivo] = useState(savedFilters.filterMotivo || "");
+  const [filterRegional, setFilterRegional] = useState(savedFilters.filterRegional || "");
+  const [filterDataInicio, setFilterDataInicio] = useState(savedFilters.filterDataInicio || "");
+  const [filterDataFim, setFilterDataFim] = useState(savedFilters.filterDataFim || "");
 
   // Otimização: Calcular contagens do Dashboard de forma eficiente
   const dashboardStats = useMemo(() => {
@@ -180,6 +174,7 @@ export default function Dashboard() {
       cancelado: 0,
       revisado: 0,
       enviado: 0,
+      aguardandoPontoFocal: 0,
       respondidoArea: 0,
       concluido: 0,
       pendencia10Dias: 0,
@@ -193,6 +188,7 @@ export default function Dashboard() {
       else if (x.status === "Cancelado") counts.cancelado++;
       else if (x.status === "Revisado") counts.revisado++;
       else if (x.status === "Enviado") counts.enviado++;
+      else if (x.status === "Enviado para Área Responsável") counts.aguardandoPontoFocal++;
       else if (x.status === "Respondido pela Area") counts.respondidoArea++;
       else if (x.status === "Concluido") counts.concluido++;
 
@@ -234,20 +230,7 @@ export default function Dashboard() {
       hasIdFilter && Number.isFinite(numericFilterID) && normalizedFilterID !== "";
 
     const regionMap = {
-      CO_N: [
-        "DF",
-        "GO",
-        "TO",
-        "AC",
-        "MS",
-        "MT",
-        "RO",
-        "AM",
-        "AP",
-        "MA",
-        "PA",
-        "RR",
-      ],
+      CO_N: ["DF", "GO", "TO", "AC", "MS", "MT", "RO", "AM", "AP", "MA", "PA", "RR",],
       NE: ["PE", "CE", "PB", "RN", "AL", "PI", "BA", "SE"],
       RJ_ES_MG: ["RJ", "ES", "MG"],
       SP: ["SP"],
@@ -297,6 +280,10 @@ export default function Dashboard() {
       query = query.where("site_id.Estado", "in", regional);
     } else if (user.nivel === "revisor" && regional) {
       query = query.where("site_id.Estado", "in", regional);
+    } else if (user.nivel === "revisor_logistica" && regional) {
+      query = query.where("site_id.Estado", "in", regional);
+    } else if (user.nivel === "ponto_focal") {
+      query = query.where("status", "==", "Enviado para Área Responsável");
     }
 
     // OTIMIZAÇÃO: Puxar filtros de igualdade para o Firestore para reduzir tráfego e aumentar velocidade
@@ -355,28 +342,69 @@ export default function Dashboard() {
       // Sem limite ou um limite muito alto para garantir que traz tudo do período
       console.log("🔍 Buscando sem limite (Filtro de data ou Buscar Tudo ativo)");
     } else {
-      query = query.limit(1000);
+      query = query.limit(
+        isMobileViewport() ? MOBILE_DEFAULT_LIMIT : DESKTOP_DEFAULT_LIMIT
+      );
     }
 
-    const contarQuestions = (checklist) => {
+    const summarizeChecklist = (checklist, status, tipoSite) => {
       let totalQuestions = 0;
       let totalRespondidas = 0;
+      let questoes = 0;
+      let respondidas = 0;
+      let pgrInconformidade = 0;
 
-      if (checklist) {
-        checklist.forEach((area) => {
-          if (Array.isArray(area[1])) {
-            totalQuestions += area[1].length;
-
-            area[1].forEach((question) => {
-              if (question.resp && question.resp !== "") {
-                totalRespondidas++;
-              }
-            });
-          }
-        });
+      if (!Array.isArray(checklist)) {
+        return {
+          totalQuestions,
+          totalRespondidas,
+          questoes,
+          respondidas,
+          pgrInconformidade,
+        };
       }
 
-      return { totalQuestions, totalRespondidas };
+      const isPgrAudit =
+        tipoSite === "AUDIT PGR FIXA" || tipoSite === "AUDIT PGR MOVEL";
+      const needsRespondidoAreaStats = status === "Respondido pela Area";
+
+      checklist.forEach((area) => {
+        const questions = Array.isArray(area?.[1]) ? area[1] : [];
+        totalQuestions += questions.length;
+
+        questions.forEach((question) => {
+          const hasResponse = question?.resp && question.resp !== "";
+          const isInconformidade =
+            question?.respGabarito !== question?.resp && hasResponse;
+
+          if (hasResponse) {
+            totalRespondidas++;
+          }
+
+          if (isPgrAudit && isInconformidade) {
+            pgrInconformidade++;
+          }
+
+          if (
+            needsRespondidoAreaStats &&
+            question?.openPA === true &&
+            isInconformidade
+          ) {
+            questoes++;
+            if (question?.plano_acao?.comentario) {
+              respondidas++;
+            }
+          }
+        });
+      });
+
+      return {
+        totalQuestions,
+        totalRespondidas,
+        questoes,
+        respondidas,
+        pgrInconformidade,
+      };
     };
 
     const mapSnapshotToList = (snapshot) => {
@@ -384,6 +412,13 @@ export default function Dashboard() {
 
       snapshot.forEach((doc) => {
         const docData = doc.data();
+
+        if (
+          user.nivel === "revisor_logistica" &&
+          !docData.site_id?.tipoSite?.includes("PGR")
+        ) {
+          return;
+        }
 
         // Se ID estiver preenchido, ele funciona de forma independente dos demais filtros.
         if (hasIdFilter) {
@@ -401,45 +436,18 @@ export default function Dashboard() {
           }
         }
 
-        let questoes = 0;
-        let respondidas = 0;
-        let pgr_inconformidade = 0;
         const checklist = docData.checklist;
-        const { totalQuestions, totalRespondidas } =
-          contarQuestions(checklist);
-
-        if (
-          doc.data().site_id.tipoSite === "AUDIT PGR FIXA" ||
-          doc.data().site_id.tipoSite === "AUDIT PGR MOVEL"
-        ) {
-          checklist.forEach((area) => {
-            area[1].forEach((question) => {
-              if (
-                question.respGabarito !== question.resp &&
-                question.resp !== ""
-              ) {
-                pgr_inconformidade++;
-              }
-            });
-          });
-        }
-
-        if (doc.data().status === "Respondido pela Area") {
-          checklist.forEach((area) => {
-            area[1].forEach((question) => {
-              if (
-                question.openPA === true &&
-                question.respGabarito !== question.resp &&
-                question.resp !== ""
-              ) {
-                questoes++;
-                if (question.plano_acao.comentario) {
-                  respondidas++;
-                }
-              }
-            });
-          });
-        }
+        const {
+          totalQuestions,
+          totalRespondidas,
+          questoes,
+          respondidas,
+          pgrInconformidade,
+        } = summarizeChecklist(
+          checklist,
+          docData.status,
+          docData.site_id?.tipoSite
+        );
 
         if (user.area === "oem" && checklist !== undefined) {
           let paTrue = false;
@@ -457,22 +465,23 @@ export default function Dashboard() {
           if (paTrue === true) {
             lista.push({
               id: doc.id,
+              apr_id: docData.apr_id,
               nome:
-                doc.data().user_id.nome !== undefined
-                  ? doc.data().user_id.nome
+                docData.user_id.nome !== undefined
+                  ? docData.user_id.nome
                   : "",
-              motivo_apr: doc.data().motivo_apr,
-              site_id: doc.data().site_id,
-              status: doc.data().status,
+              motivo_apr: docData.motivo_apr,
+              site_id: docData.site_id,
+              status: docData.status,
               created: format(
-                doc.data().created.toDate(),
+                docData.created.toDate(),
                 "dd/MM/yyyy HH:mma"
               ),
               porcentagem_resp_area:
                 questoes !== 0
                   ? ((respondidas / questoes) * 100).toFixed(2) + "%"
                   : "-",
-              pgr_inconformidade: pgr_inconformidade,
+              pgr_inconformidade: pgrInconformidade,
               totalQuestions: totalQuestions,
               totalRespondidas: totalRespondidas,
             });
@@ -480,20 +489,20 @@ export default function Dashboard() {
         } else {
           lista.push({
             id: doc.id,
-            apr_id: doc.data().apr_id,
+            apr_id: docData.apr_id,
             nome:
-              doc.data().user_id.nome !== undefined
-                ? doc.data().user_id.nome
+              docData.user_id.nome !== undefined
+                ? docData.user_id.nome
                 : "",
-            motivo_apr: doc.data().motivo_apr,
-            site_id: doc.data().site_id,
-            status: doc.data().status,
-            created: format(doc.data().created.toDate(), "dd/MM/yyyy HH:mma"),
+            motivo_apr: docData.motivo_apr,
+            site_id: docData.site_id,
+            status: docData.status,
+            created: format(docData.created.toDate(), "dd/MM/yyyy HH:mma"),
             porcentagem_resp_area:
               questoes !== 0
                 ? ((respondidas / questoes) * 100).toFixed(2) + "%"
                 : "-",
-            pgr_inconformidade: pgr_inconformidade,
+            pgr_inconformidade: pgrInconformidade,
             totalQuestions: totalQuestions,
             totalRespondidas: totalRespondidas,
           });
@@ -518,6 +527,17 @@ export default function Dashboard() {
       }
 
       setChamados(lista);
+      if (
+        isMobileViewport() &&
+        !searchAll &&
+        !hasIdFilter &&
+        !hasDateFilter &&
+        lista.length >= MOBILE_DEFAULT_LIMIT
+      ) {
+        toast.info(
+          `Carga otimizada no celular: exibindo os primeiros ${MOBILE_DEFAULT_LIMIT} registros.`
+        );
+      }
       setLoading(false);
     } catch (err) {
       console.error("Erro ao carregar APRs: ", err);
@@ -641,130 +661,142 @@ export default function Dashboard() {
   //   return chamados.filter(x) => x.status === status).length;;
   // }
 
-
-
   return (
-    <div className="apr-digital">
-      <Header />
+    <div className="apr-digital dashboard-page">
+      <Header name="APRs" />
       <div className="content">
-        <Title name="APRs">
-          <FiMessageSquare size={25} onClick={() => console.log("")} />
-        </Title>
-        {(user.nivel === "administrador" || user.nivel === "revisor") && (
-          <Grid
-            container
-            marginBottom={3}
-            justifyContent="center"
-            alignItems="stretch"
-            sx={styles.gridContainer}
-          >
+        {(user.nivel === "administrador" ||
+          user.nivel === "revisor" ||
+          user.nivel === "revisor_logistica") && (
             <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
+              container
+              className="dashboard-kpis"
+              marginBottom={3}
+              justifyContent="center"
+              alignItems="stretch"
+              className="dashboard-kpis-grid"
+              sx={{ width: "100%" }}
             >
-              <Box sx={{ ...styles.kpiCard, ...styles.pendenciaCard }}>
-                <FiAlertCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.pendenciaCard }}>
+                  <FiAlertCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Pendência (10 dias)</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.pendencia10Dias}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.emAbertoCard }}>
-                <FiClock style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Em Aberto</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.emAberto}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                  <FiSend style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Aguardando Ponto Focal</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.aguardandoPontoFocal}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.canceladoCard }}>
-                <FiXCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Cancelado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.cancelado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.emAbertoCard }}>
+                  <FiClock style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Em Aberto</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.emAberto}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.revisadoCard }}>
-                <FiCheckCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Revisado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.revisado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.canceladoCard }}>
+                  <FiXCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Cancelado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.cancelado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
-                <FiSend style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Enviado</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.enviado}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.revisadoCard }}>
+                  <FiCheckCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Revisado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.revisado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={5}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.respondidoCard }}>
-                <FiMessageCircle style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Respondido</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.respondidoArea}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.enviadoCard }}>
+                  <FiSend style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Enviado</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.enviado}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={6}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.concluidoCard }}>
-                <FiFileText style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Concluido</Box>
-                <Box sx={styles.kpiValue}>{dashboardStats.concluido}</Box>
-              </Box>
-            </Grid>
+              <Grid
+                item
+                xs={5.5}
+                sm={5}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.respondidoCard }}>
+                  <FiMessageCircle style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Respondido</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.respondidoArea}</Box>
+                </Box>
+              </Grid>
 
-            <Grid
-              item
-              xs={5.5}
-              sm={5}
-              md={1.4}
-            >
-              <Box sx={{ ...styles.kpiCard, ...styles.totalCard }}>
-                <FiActivity style={styles.kpiIcon} />
-                <Box sx={styles.kpiTitle}>Total</Box>
-                <Box sx={styles.kpiValue}>{chamados.length}</Box>
-              </Box>
-            </Grid>
-          </Grid>
-        )}
+              <Grid
+                item
+                xs={5.5}
+                sm={6}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.concluidoCard }}>
+                  <FiFileText style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Concluido</Box>
+                  <Box sx={styles.kpiValue}>{dashboardStats.concluido}</Box>
+                </Box>
+              </Grid>
 
-        <div className="container filter">
+              <Grid
+                item
+                xs={5.5}
+                sm={5}
+                md={1.4}
+              >
+                <Box sx={{ ...styles.kpiCard, ...styles.totalCard }}>
+                  <FiActivity style={styles.kpiIcon} />
+                  <Box sx={styles.kpiTitle}>Total</Box>
+                  <Box sx={styles.kpiValue}>{chamados.length}</Box>
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+
+        <div className="container filter dashboard-filters">
           <Grid container spacing={2}>
             <Grid item xs={12} sm={12} md={2}>
               <TextField
@@ -1036,7 +1068,7 @@ export default function Dashboard() {
               </Button>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={1.2}>
+            <Grid item xs={12} sm={6} md={1.6}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -1062,20 +1094,15 @@ export default function Dashboard() {
             </Grid>
           </Grid>
         </div>
-
-        {/* Lista de resultados */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.9rem', color: '#666' }}>
-            {chamados.length > 0 ? `Exibindo ${chamados.length} registros` : 'Nenhum registro encontrado'}
-          </span>
+        <OfflineAPRsPanel />
+        <div className="container dashboard-table-shell">
+          <TableDashboard
+            chamados={chamados}
+            user={user}
+            updateStatus={updateStatus}
+            updateStatusRollBack={updateStatusRollBack}
+          />
         </div>
-
-        <TableDashboard
-          chamados={chamados}
-          user={user}
-          updateStatus={updateStatus}
-          updateStatusRollBack={updateStatusRollBack}
-        />
 
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

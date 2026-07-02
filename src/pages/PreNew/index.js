@@ -1,25 +1,33 @@
 import "./prenew.scss";
 import { useEffect, useState, useContext } from "react";
 import * as geofire from "geofire-common";
-import { FiClipboard, FiMap, FiActivity, FiTag, FiSearch, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiClipboard } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import SiteDetailModal from "../../components/SiteDetailModal";
 import ModalNovoSite from "../../components/Modal_NovoSite/index.js";
-import { AuthContext } from '../../contexts/auth';
+import { AuthContext } from "../../contexts/auth";
 import {
+  Box,
   Button,
+  Chip,
+  CircularProgress,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
+  Stack,
   TextField,
-  CircularProgress,
+  Typography,
 } from "@mui/material";
+import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
+import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { format } from "date-fns";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 
@@ -47,8 +55,7 @@ export default function PreNew() {
   const [resultsPerPage, setResultsPerPage] = useState(10);
   const [showPostModal, setShowPostModal] = useState(false);
   const [selectedSite, setSelectedSite] = useState(null);
-
-  const [loading, setLoading] = useState(false); // <= NOVO
+  const [loading, setLoading] = useState(false);
 
   async function getPerimetro() {
     let lat = siteSelect[0].latitude;
@@ -58,15 +65,16 @@ export default function PreNew() {
     try {
       let latitude = parseFloat(lat.replace(",", "."));
       let longitude = parseFloat(lng.replace(",", "."));
-      const distanceInKm = geofire.distanceBetween([latitude, longitude], center);
+      geofire.distanceBetween([latitude, longitude], center);
       history.push("/new/" + siteSelect[0].id);
     } catch (err) {
-      alert("Erro na localização do site, informe um Administrador.");
+      alert("Erro na localizacao do site, informe um Administrador.");
     }
   }
 
   useEffect(() => {
-    addBodyClass('page-apply-apr');
+    addBodyClass("page-apply-apr");
+
     async function loadUsers() {
       await firebase
         .firestore()
@@ -75,9 +83,9 @@ export default function PreNew() {
         .where("status", "==", true)
         .get()
         .then((users) => {
-          let user = [];
+          let userList = [];
           users.forEach((doc) => {
-            user.push({
+            userList.push({
               uid: doc.id,
               email: doc.data().email,
               nome: doc.data().nome,
@@ -85,7 +93,7 @@ export default function PreNew() {
               uf: doc.data().uf,
             });
           });
-          setAplicador(user);
+          setAplicador(userList);
         })
         .catch((error) => {
           console.log("Erro ao carregar aplicadores:", error);
@@ -95,14 +103,18 @@ export default function PreNew() {
     loadUsers();
   }, []);
 
-  // Handle changes in the sigla input
   function handleSiglaChange(event) {
     setSigla(event.target.value.toUpperCase());
   }
 
-  // Handle changes in the nome input
   function handleNomeChange(event) {
     setNome(event.target.value.toUpperCase());
+  }
+
+  function handleKeyPress(event) {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
   }
 
   async function handleSearch() {
@@ -110,43 +122,43 @@ export default function PreNew() {
       return toast.error("Digite algo ou selecione um estado para buscar...");
     }
 
-    setLoading(true);
     let filteredData = [];
 
+    setLoading(true);
+
     try {
-      let query = firebase.firestore().collection("sites");
+      let searchQuery = firebase.firestore().collection("sites");
 
       if (uf !== "Todos") {
-        query = query.where("Estado", "==", uf.toUpperCase());
+        searchQuery = searchQuery.where("Estado", "==", uf.toUpperCase());
       }
 
-      // Se tiver sigla, usa como filtro primário (prefixo)
       if (sigla.trim() !== "") {
         const searchSigla = normalizeString(sigla.trim());
-        query = query.where("Sigla", ">=", searchSigla)
+        searchQuery = searchQuery
+          .where("Sigla", ">=", searchSigla)
           .where("Sigla", "<=", searchSigla + "\uf8ff");
-      }
-      // Se não tiver sigla mas tiver nome, usa nome como filtro primário (prefixo)
-      else if (nome.trim() !== "") {
+      } else if (nome.trim() !== "") {
         const searchNome = normalizeString(nome.trim());
-        query = query.where("Nome", ">=", searchNome)
+        searchQuery = searchQuery
+          .where("Nome", ">=", searchNome)
           .where("Nome", "<=", searchNome + "\uf8ff");
-      }
-      // Se tiver apenas UF, limita a busca
-      else {
-        query = query.limit(100);
+      } else {
+        searchQuery = searchQuery.limit(100);
       }
 
-      const snapshot = await query.get();
+      const snapshot = await searchQuery.get();
 
       snapshot.forEach((doc) => {
         const data = doc.data();
 
-        // Se ambos foram preenchidos, fazemos um filtro adicional em memória para o que não foi na query
         if (sigla.trim() !== "" && nome.trim() !== "") {
           const searchNome = normalizeString(nome.trim());
           const normalizedNome = normalizeString(data.Nome || "");
-          if (!normalizedNome.includes(searchNome)) return;
+
+          if (!normalizedNome.includes(searchNome)) {
+            return;
+          }
         }
 
         filteredData.push({
@@ -187,21 +199,8 @@ export default function PreNew() {
     setLoading(false);
   }
 
-  function handleKeyPress(e) {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }
-
-  function clearFilters() {
-    setSigla("");
-    setNome("");
-    setUf("Todos");
-    setSite([]);
-  }
-
   function handlePaginationChange(event) {
-    setResultsPerPage(parseInt(event.target.value));
+    setResultsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   }
 
@@ -211,6 +210,7 @@ export default function PreNew() {
 
   function handleList(sites) {
     setSelectedSite(sites);
+    setSiteSelect(sites);
     setShowPostModal(true);
   }
 
@@ -218,90 +218,155 @@ export default function PreNew() {
     page * resultsPerPage,
     page * resultsPerPage + resultsPerPage
   );
+  const hasFilters = sigla.trim() !== "" || nome.trim() !== "" || uf !== "Todos";
+  const totalPages = Math.max(1, Math.ceil(site.length / resultsPerPage));
+  const visibleStart = site.length === 0 ? 0 : page * resultsPerPage + 1;
+  const visibleEnd = Math.min(site.length, (page + 1) * resultsPerPage);
 
   return (
     <div>
-      <Header />
+      <Header name="Aplicar APR">
+        <FiClipboard size={25} />
+      </Header>
+
       <div className="content">
-        <Title name="Aplicar APR">
-          <FiClipboard size={25} />
-        </Title>
         <div className="container filters-container">
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                fullWidth
-                label="Sigla do Site"
-                variant="outlined"
-                value={sigla}
-                onChange={handleSiglaChange}
-                onKeyPress={handleKeyPress}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                fullWidth
-                label="Nome do Site"
-                variant="outlined"
-                value={nome}
-                onChange={handleNomeChange}
-                onKeyPress={handleKeyPress}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl variant="outlined" style={{ minWidth: "100%" }} size="small">
-                <InputLabel id="uf-select-label">UF</InputLabel>
-                <Select
-                  labelId="uf-select-label"
-                  id="uf-select"
-                  value={uf}
-                  onChange={(e) => setUf(e.target.value)}
-                  label="UF"
+          <div className="prenew-hero">
+            <div className="prenew-hero-copy">
+              <span className="prenew-eyebrow">APR Digital</span>
+              <Typography variant="h5" className="prenew-title">
+                Buscar site para iniciar APR
+              </Typography>
+              <Typography variant="body2" className="prenew-subtitle">
+                Localize o site por sigla ou nome, refine pela UF e escolha o registro correto para continuar.
+              </Typography>
+
+              <div className="prenew-newsite-action prenew-newsite-action--hero">
+                <ModalNovoSite user={user} />
+              </div>
+            </div>
+          </div>
+
+          <div className="prenew-search-panel">
+            <div className="prenew-search-topline">
+              <Typography variant="body2" className="prenew-search-topline-text">
+                Preencha um dos campos abaixo para localizar rapidamente o site desejado.
+              </Typography>
+
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap className="prenew-status-chips">
+                <Chip
+                  label={`${site.length} resultado(s)`}
+                  variant="filled"
+                  color="secondary"
+                  size="small"
+                />
+                <Chip
+                  label={uf === "Todos" ? "Busca nacional" : `UF ${uf}`}
+                  variant="outlined"
+                  size="small"
+                />
+              </Stack>
+            </div>
+
+            <Grid container spacing={2.2} alignItems="stretch">
+              <Grid item xs={12} md={4} lg={3}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Sigla do Site"
+                  variant="outlined"
+                  value={sigla}
+                  onChange={handleSiglaChange}
+                  onKeyPress={handleKeyPress}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={8} lg={5}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Nome do Site"
+                  variant="outlined"
+                  value={nome}
+                  onChange={handleNomeChange}
+                  onKeyPress={handleKeyPress}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} lg={2}>
+                <FormControl variant="outlined" size="small" fullWidth>
+                  <InputLabel id="uf-select-label">UF</InputLabel>
+                  <Select
+                    labelId="uf-select-label"
+                    id="uf-select"
+                    value={uf}
+                    onChange={(e) => setUf(e.target.value)}
+                    label="UF"
+                  >
+                    <MenuItem value="Todos">Todos</MenuItem>
+                    {[
+                      "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG",
+                      "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR",
+                      "RS", "SC", "SE", "SP", "TO",
+                    ].map((estado) => (
+                      <MenuItem key={estado} value={estado}>
+                        {estado}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6} lg={2}>
+                <Button
+                  variant="contained"
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="btn-search"
+                  fullWidth
+                  startIcon={!loading ? <SearchRoundedIcon /> : null}
                 >
-                  <MenuItem value="Todos">Todos</MenuItem>
-                  {[
-                    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG",
-                    "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR",
-                    "RS", "SC", "SE", "SP", "TO",
-                  ].map((estado) => (
-                    <MenuItem key={estado} value={estado}>
-                      {estado}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  {loading ? <CircularProgress size={24} color="inherit" /> : "Buscar"}
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                className="btn-search"
-                onClick={handleSearch}
-                disabled={loading}
-                fullWidth
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : (
-                  <>
-                    <FiSearch style={{ marginRight: '8px' }} /> Buscar
-                  </>
+
+            <div className="prenew-search-footer">
+              <div className="prenew-search-meta">
+                {hasFilters && !loading ? (
+                  <div className="prenew-filter-note">
+                    <span>Busca atual:</span>
+                    <strong>
+                      {sigla
+                        ? ` sigla "${sigla}"`
+                        : nome
+                          ? ` nome "${nome}"`
+                          : ` UF ${uf}`}
+                    </strong>
+                  </div>
+                ) : (
+                  <div className="prenew-filter-hint">
+                    Digite uma sigla ou nome para listar os sites disponiveis.
+                  </div>
                 )}
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <Button
-                variant="outlined"
-                className="btn-clear"
-                onClick={clearFilters}
-                fullWidth
-                style={{ height: '40px' }}
-              >
-                <FiTrash2 style={{ marginRight: '8px' }} /> Limpar
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <ModalNovoSite user={user} />
-            </Grid>
-          </Grid>
+              </div>
+
+            </div>
+          </div>
 
           {showPostModal && (
             <SiteDetailModal
@@ -316,70 +381,131 @@ export default function PreNew() {
         </div>
 
         <div className="container content-apr">
-          {loading ? (
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
+          {!loading && site.length > 0 && (
+            <div className="prenew-results-header">
+              <Box>
+                <Typography variant="h6" className="prenew-results-title">
+                  Sites encontrados
+                </Typography>
+                <Typography variant="body2" className="prenew-results-subtitle">
+                  Exibindo {visibleStart}-{visibleEnd} de {site.length} registros.
+                </Typography>
+              </Box>
+
+              <Chip
+                label={`${resultsPerPage} por pagina`}
+                size="small"
+                variant="outlined"
+                color="secondary"
+              />
+            </div>
+          )}
+
+          {loading && (
+            <div className="prenew-loading-state">
               <CircularProgress />
               <p>Buscando sites...</p>
             </div>
-          ) : (
-            <>
-              {paginatedSites.map((siteItem) => (
-                <div
-                  key={siteItem.id}
-                  className="site-item-content"
-                  onClick={() => handleList([siteItem])}
-                >
-                  <div className="site-info-main">
-                    <span className="site-sigla">{siteItem.sigla}</span>
-                    <span className="site-nome">{siteItem.nome}</span>
-                  </div>
-                  <div className="site-info-sub">
-                    <span><FiMap size={14} /> {siteItem.estado} - {siteItem.cidade}</span>
-                    <span className="site-tipo"><FiTag size={14} /> {siteItem.tipoSite}</span>
-                  </div>
-                </div>
-              ))}
+          )}
 
-              <div className="pagination-container">
-                <div className="pagination-info">
-                  Mostrando {paginatedSites.length} de {site.length} sites
+          {!loading &&
+            paginatedSites.map((item) => (
+              <div
+                key={item.id}
+                className="site-item-content"
+                onClick={() => handleList([item])}
+              >
+                <div className="site-info-main">
+                  <span className="site-sigla">{item.sigla}</span>
+                  <span className="site-nome">{item.nome}</span>
                 </div>
-                
-                <FormControl variant="outlined" size="small" className="pagination-select">
-                  <InputLabel id="results-per-page-label">Sites por página</InputLabel>
-                  <Select
-                    labelId="results-per-page-label"
-                    id="results-per-page"
-                    value={resultsPerPage}
-                    onChange={handlePaginationChange}
-                    label="Sites por página"
-                  >
-                    <MenuItem value={5}>5</MenuItem>
-                    <MenuItem value={10}>10</MenuItem>
-                    <MenuItem value={20}>20</MenuItem>
-                  </Select>
-                </FormControl>
 
-                <div className="pagination-actions">
-                  <Button
-                    variant="outlined"
-                    onClick={() => handlePageChange(page - 1)}
-                    disabled={page === 0}
-                    className="pagination-btn"
+                <div className="site-info-sub">
+                  <span>
+                    <PlaceRoundedIcon fontSize="inherit" />
+                    {item.estado} - {item.cidade}
+                  </span>
+                  <span>{item.endereco || "Endereco nao informado"}</span>
+                  <span className="site-tipo">{item.tipoSite || "Sem tipo"}</span>
+                  <span
+                    className={`site-critical ${
+                      normalizeString(item.critical || "BAIXO").includes("CRIT")
+                        ? "critical"
+                        : normalizeString(item.critical || "BAIXO").includes("ALTO")
+                          ? "high"
+                          : normalizeString(item.critical || "BAIXO").includes("MED")
+                            ? "medium"
+                            : "low"
+                    }`}
                   >
-                    <FiChevronLeft /> Anterior
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => handlePageChange(page + 1)}
-                    disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
-                    className="pagination-btn next"
-                  >
-                    Próximo <FiChevronRight />
-                  </Button>
+                    {item.critical || "Baixo"}
+                  </span>
+                </div>
+
+                <div className="site-item-footer">
+                  <span>Atualizado em {item.lastUpdate}</span>
+                  <span className="site-open-link">
+                    Selecionar site
+                    <ArrowOutwardRoundedIcon fontSize="inherit" />
+                  </span>
                 </div>
               </div>
-            </>
+            ))}
+
+          {!loading && site.length === 0 && hasFilters && (
+            <div className="prenew-empty-state">
+              <h3>Nenhum site encontrado</h3>
+              <p>Tente ajustar a sigla, o nome ou a UF para ampliar a busca.</p>
+            </div>
+          )}
+
+          {!loading && site.length === 0 && !hasFilters && (
+            <div className="prenew-empty-state prenew-empty-state--soft">
+              <h3>Comece pela busca</h3>
+              <p>Preencha uma sigla ou nome do site para listar os registros disponiveis.</p>
+            </div>
+          )}
+
+          {!loading && site.length > 0 && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                Pagina {page + 1} de {totalPages}
+              </div>
+
+              <FormControl variant="outlined" size="small" className="pagination-select">
+                <InputLabel id="results-per-page-label">Resultados por Pagina</InputLabel>
+                <Select
+                  labelId="results-per-page-label"
+                  id="results-per-page"
+                  value={resultsPerPage}
+                  onChange={handlePaginationChange}
+                  label="Resultados por Pagina"
+                >
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                </Select>
+              </FormControl>
+
+              <div className="pagination-actions">
+                <Button
+                  variant="outlined"
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 0}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outlined"
+                  className="pagination-btn next"
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page >= Math.ceil(site.length / resultsPerPage) - 1}
+                >
+                  Proximo
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>

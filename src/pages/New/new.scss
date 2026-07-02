@@ -30,7 +30,7 @@
   margin-top: 1.5em;
   display: flex;
   flex-direction: column;
-  max-width: 600px;
+  max-width: 100%;
   width: 100%;
 
   button {
@@ -76,17 +76,30 @@
   }
 
   #button-area {
-    padding: 0.5em;
-    border-radius: 15px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    color: $white-color;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
     text-align: center;
-    margin-bottom: 0.2em;
     cursor: pointer;
-    border: 1px solid $modal-link-bg;
-    transition: .2s ease-in-out;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
     &:hover {
-      background: $modal-link-bg;
-      color: #fff;
+      background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
     }
   }
 
@@ -193,8 +206,43 @@
 }
 
 .page-new .container-perg {
-  @include container-style($border-color-light, $box-shadow-light);
-  padding: 10px;
+  display: flex;
+  margin: 1em 0 2.5em 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #344767;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    border-left: 4px solid #007bff;
+    padding-left: 1rem;
+  }
+
+  > span {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    
+    &:first-of-type {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 0.75rem;
+    }
+  }
 }
 
 .page-new .clearQuestion {
@@ -214,7 +262,7 @@
   display: flex;
   flex-direction: column;
 
-  span {
+  > span {
     padding: 0.8em;
     border-radius: 9px;
     margin-bottom: 0.5em;
@@ -225,7 +273,7 @@
     }
   }
 
-  a {
+  > a {
     @include button-style($btn-primary-bg, $btn-alt-bg);
     margin-bottom: 0.5em;
     padding: 7px 12px;
@@ -235,17 +283,52 @@
 .page-new .imageList {
   margin-bottom: 0.8em;
   display: flex;
-  border-radius:8px;
+  border-radius: 8px;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
 
   li {
-    background-color: var($container-bg-color);
+    background-color: rgba(138, 66, 231, 0.08);
+    border: 1px solid rgba(138, 66, 231, 0.28);
     width: 60px;
     height: 60px;
-    margin-left: 0.2em;
+    margin-left: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: center;
     border-radius: 5px;
+    overflow: hidden;
+
+    &.notremove {
+      align-items: center;
+    }
+
+    .MuiButton-root,
+    button#photo {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      color: $btn-primary-bg !important;
+      height: 100%;
+      min-height: 60px;
+      min-width: 60px;
+      margin: 0;
+      padding: 0 !important;
+      width: 100%;
+
+      &:hover {
+        background: rgba(138, 66, 231, 0.14) !important;
+        color: $btn-primary-hover-bg !important;
+      }
+
+      svg {
+        color: currentColor;
+      }
+    }
 
     label {
       margin: 0;
@@ -262,7 +345,7 @@
       }
 
       svg {
-        margin: 0px;
+        margin: 0px; 
       }
     }
 
@@ -351,10 +434,44 @@
   }
 }
 
+.container-perg.question .question-title-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  line-height: 1.4;
+}
+
+.container-perg.question .question-title-text {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.container-perg.question .question-required-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.container-perg.question .question-required-badge.is-required {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.container-perg.question .question-required-badge.is-optional {
+  background: #f3e8ff;
+  color: #581c87;
+}
+
 .container-perg.question .icon-required {
-  position:absolute;
-  bottom:8px;
-  right:0px;
+  position: absolute;
+  bottom: 8px;
+  right: 0px;
 }
 .question {
   position: relative;

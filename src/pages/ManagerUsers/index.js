@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { FiClipboard } from "react-icons/fi";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
@@ -44,12 +43,10 @@ export default function ManagerUsers() {
 
   return (
     <div>
-      <Header />
+      <Header name="Gerenciamento de Usuários" subtitle="Permissões e níveis de acesso">
+      </Header>
 
       <div className="content">
-        <Title name="Gerenciamento de Permissões para Usuários">
-          <FiClipboard size={25} />
-        </Title>
         <div className="container">
           <select>
             {users.map((user, index) => (

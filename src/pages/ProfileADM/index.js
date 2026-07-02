@@ -1,10 +1,9 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiUsers, FiLock } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/auth";
 import firebase from "../../services/firebaseConnection";
-import Title from "../../components/Title";
 import Header from "../../components/Header";
 import "./profileAdm.scss";
 import Pagination from "@mui/material/Pagination";
@@ -12,10 +11,27 @@ import PaginationItem from "@mui/material/PaginationItem";
 import Stack from "@mui/material/Stack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import Groups2RoundedIcon from "@mui/icons-material/Groups2Rounded";
+import PersonOffRoundedIcon from "@mui/icons-material/PersonOffRounded";
+import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import RegisterMember from "../../components/RegisterMember";
 import {
+  Box,
+  Button,
   Checkbox,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  IconButton,
+  InputAdornment,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -30,6 +46,8 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 
 const listRef = firebase.firestore().collection("users");
@@ -46,27 +64,87 @@ const MenuProps = {
 };
 
 export default function ProfileADM() {
-  const { user, logSistem, updateAllUsersPasswordExpiry, forceAllUsersChangePassword } = useContext(AuthContext);
+  const {
+    user,
+    logSistem,
+    updateAllUsersPasswordExpiry,
+    forceAllUsersChangePassword,
+  } = useContext(AuthContext);
+
   const [users, setUsers] = useState([]);
   const [checklists, setChecklists] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
   const [loadingUpdatePassword, setLoadingUpdatePassword] = useState(false);
   const [loadingForceChange, setLoadingForceChange] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const permissionMaster = [
-    'zbLnqdRrhIQSf7a3Wg4fMe32EFJ2',
-    'wQzKfmkPgsV8PULa9t5JLg9Ta6j2',
-    '5WBRPLgGmzUSLzrthSs9e9qnSnb2']
+    "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2",
+    "wQzKfmkPgsV8PULa9t5JLg9Ta6j2",
+    "5WBRPLgGmzUSLzrthSs9e9qnSnb2",
+  ];
 
-
+  const hasMasterPermission = permissionMaster.includes(user.uid);
   const isDisabled = user.uid !== "wQzKfmkPgsV8PULa9t5JLg9Ta6j2";
 
+  const activeUsersCount = useMemo(
+    () => users.filter((item) => item.status === true).length,
+    [users]
+  );
+  const inactiveUsersCount = useMemo(
+    () => users.filter((item) => item.status === false).length,
+    [users]
+  );
+
+  const filteredUsers = useMemo(() => {
+    let filtered = [...users];
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (item) => item.status === (statusFilter === "active")
+      );
+    }
+
+    if (search) {
+      const normalizedSearch = search.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          item.nome.toLowerCase().includes(normalizedSearch) ||
+          item.email.toLowerCase().includes(normalizedSearch)
+      );
+    }
+
+    return filtered;
+  }, [users, statusFilter, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / rowsPerPage));
+
+  const paginatedUsers = useMemo(() => {
+    return filteredUsers.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  }, [filteredUsers, page, rowsPerPage]);
+
+  const closeActionsDialog = () => {
+    setSelectedUser(null);
+  };
+
+  const syncSelectedUser = (id_user, changes) => {
+    setSelectedUser((currentUser) =>
+      currentUser?.id_user === id_user
+        ? { ...currentUser, ...changes }
+        : currentUser
+    );
+  };
+
   async function handleUpdateAllPasswordExpiry() {
-    if (window.confirm("Tem certeza que deseja aplicar expiração de 30 dias a TODOS os usuários?")) {
+    if (
+      window.confirm(
+        "Tem certeza que deseja aplicar expiracao de 30 dias a TODOS os usuarios?"
+      )
+    ) {
       setLoadingUpdatePassword(true);
       await updateAllUsersPasswordExpiry();
       setLoadingUpdatePassword(false);
@@ -74,7 +152,11 @@ export default function ProfileADM() {
   }
 
   async function handleForceAllUsersChangePassword() {
-    if (window.confirm("ATENÇÃO: Todos os usuários serão obrigados a trocar senha no próximo login. Continuar?")) {
+    if (
+      window.confirm(
+        "ATENCAO: Todos os usuarios serao obrigados a trocar senha no proximo login. Continuar?"
+      )
+    ) {
       setLoadingForceChange(true);
       await forceAllUsersChangePassword();
       setLoadingForceChange(false);
@@ -85,37 +167,31 @@ export default function ProfileADM() {
     const {
       target: { value },
     } = event;
+    const checklistValue =
+      typeof value === "string" ? value.split(",") : value;
 
-    await listRef.doc(id)
-      .update({ checklist: value })
+    await listRef
+      .doc(id)
+      .update({ checklist: checklistValue })
       .then(() => {
+        syncSelectedUser(id, { checklist: checklistValue });
         loadUsers();
       })
-      .catch((err) => console.log(err))
+      .catch((err) => console.log(err));
   };
 
-  useEffect(() => {
-    loadUsers();
-    loadChecklists();
-    addBodyClass('page-profile-adm');
-  }, []);
+  const loadUsers = useCallback(async () => {
+    let query = listRef.orderBy("nome", "asc");
 
-  useEffect(() => {
-    filterUsers();
-  }, [users, statusFilter, search, page, rowsPerPage]);
-
-  async function loadUsers() {
-    let query = listRef;
-
-    query = query.orderBy("nome", "asc");
-
-    query =
-      user.area === "cabos" ? query.where("area", "==", user.area) : query;
+    if (user.area === "cabos") {
+      query = query.where("area", "==", user.area);
+    }
 
     await query
       .get()
       .then((snapshot) => {
-        let usuarios = [];
+        const usuarios = [];
+
         snapshot.forEach((doc) => {
           usuarios.push({
             id_user: doc.id,
@@ -128,51 +204,48 @@ export default function ProfileADM() {
             checklist: doc.data().checklist,
           });
         });
+
         setUsers(usuarios);
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
       });
-  }
+  }, [user.area]);
 
   async function loadChecklists() {
-    let query = firebase.firestore().collection("question");
-
-    await query
+    await firebase
+      .firestore()
+      .collection("question")
       .get()
       .then((snapshot) => {
-        let checklist = [];
+        const checklist = [];
+
         snapshot.forEach((doc) => {
-          checklist.push(doc.id)
+          checklist.push(doc.id);
         });
-        setChecklists(checklist)
+
+        setChecklists(checklist);
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
       });
   }
 
-  function filterUsers() {
-    let filtered = users;
+  useEffect(() => {
+    loadUsers();
+    loadChecklists();
+    addBodyClass("page-profile-adm");
+  }, [loadUsers]);
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (user) => user.status === (statusFilter === "active")
-      );
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, search, rowsPerPage]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
     }
-
-    if (search) {
-      filtered = filtered.filter(
-        (user) =>
-          user.nome.toLowerCase().includes(search.toLowerCase()) ||
-          user.email.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    setFilteredUsers(
-      filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage)
-    );
-  }
+  }, [page, totalPages]);
 
   async function updateNivel(id_user, nivel, nome) {
     await firebase
@@ -183,8 +256,12 @@ export default function ProfileADM() {
         nivel: nivel,
       })
       .then(() => {
-        toast.info("Usuario foi alterado !");
-        logSistem(`O NIVEL DO USUARIO ${nome} FOI ALTERADO PARA ${nivel.toUpperCase()}`, id_user);
+        toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { nivel });
+        logSistem(
+          `O NIVEL DO USUARIO ${nome} FOI ALTERADO PARA ${nivel.toUpperCase()}`,
+          id_user
+        );
         loadUsers();
       })
       .catch((err) => {
@@ -202,7 +279,8 @@ export default function ProfileADM() {
         ultimo_login: new Date(),
       })
       .then(() => {
-        toast.info("Usuario foi alterado !");
+        toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { status });
         logSistem(
           `O STATUS DO USUARIO ${nome} FOI ALTERADO PARA ${status === true ? "ATIVO" : "INATIVO"}`,
           id_user
@@ -223,18 +301,17 @@ export default function ProfileADM() {
         regional: regional,
       })
       .then(() => {
-        toast.info("Usuario foi alterado !");
-        logSistem(`A REGIONAL DO USUARIO ${nome} FOI ALTERADA PARA ${regional}`, id_user);
+        toast.info("Usuario foi alterado.");
+        syncSelectedUser(id_user, { regional });
+        logSistem(
+          `A REGIONAL DO USUARIO ${nome} FOI ALTERADA PARA ${regional}`,
+          id_user
+        );
         loadUsers();
       })
       .catch((err) => {
         console.log("Deu algum erro: ", err);
       });
-  }
-
-  function contUsers(status) {
-    var quantidadeElementos = users.filter((x) => x.status === status).length;
-    return quantidadeElementos;
   }
 
   function trocaSenha(id) {
@@ -249,7 +326,6 @@ export default function ProfileADM() {
     )
       .then((response) => response.text())
       .then((result) => {
-        console.log(result);
         logSistem("SENHA-USUARIO-TROCADA", id);
         alert(result);
         return result;
@@ -259,160 +335,161 @@ export default function ProfileADM() {
 
   return (
     <div>
-      <Header />
+      <Header name="ADM Usuarios">
+        <FiUsers size={25} />
+      </Header>
 
       <div className="content">
-        <Title name="ADM Usuarios">
-          <FiUsers size={25} />
-        </Title>
-
-        <div className="container indicadores">
-          <span>
-            Usuarios Ativos:<b>{contUsers(true)}</b>
-          </span>
-          <span>
-            Usuarios Inativos:<b>{contUsers(false)}</b>
-          </span>
-        </div>
-
-        <div className="container" style={{ marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderLeft: "4px solid #FF6B35", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", borderRadius: "4px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
-            <div>
-              <h3 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
-                ⚙️ Gerenciar Expiração de Senhas
-              </h3>
-              <p style={{ margin: "0", fontSize: "13px", color: "#666" }}>
-                Aplicar contagem de 30 dias para TODOS os usuários
-              </p>
+        <div className="container users-topbar">
+          <div className="users-topbar-summary">
+            <div className="users-stat-pill users-stat-pill--active">
+              <div className="users-stat-icon">
+                <Groups2RoundedIcon />
+              </div>
+              <div>
+                <span className="users-stat-label">Ativos</span>
+                <strong>{activeUsersCount}</strong>
+              </div>
             </div>
-            <button
-              onClick={handleUpdateAllPasswordExpiry}
-              disabled={loadingUpdatePassword}
-              style={{
-                backgroundColor: loadingUpdatePassword ? "#ccc" : "#FF6B35",
-                color: "white",
-                padding: "12px 24px",
-                border: "none",
-                borderRadius: "4px",
-                cursor: loadingUpdatePassword ? "not-allowed" : "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                whiteSpace: "nowrap",
-                transition: "all 0.3s ease"
-              }}
-            >
-              {loadingUpdatePassword ? "🔄 Processando..." : "✓ Aplicar aos 30 dias"}
-            </button>
+
+            <div className="users-stat-pill users-stat-pill--inactive">
+              <div className="users-stat-icon">
+                <PersonOffRoundedIcon />
+              </div>
+              <div>
+                <span className="users-stat-label">Inativos</span>
+                <strong>{inactiveUsersCount}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="users-topbar-actions">
+            <div className="users-action-inline users-action-inline--orange">
+              <div className="users-action-badge">
+                <KeyRoundedIcon fontSize="small" />
+                <span>Expiracao</span>
+              </div>
+              <p>Aplica contagem de 30 dias para todos os usuarios.</p>
+              <Button
+                variant="contained"
+                onClick={handleUpdateAllPasswordExpiry}
+                disabled={loadingUpdatePassword}
+                className="users-action-button users-action-button--orange"
+              >
+                {loadingUpdatePassword ? "Processando..." : "Aplicar aos 30 dias"}
+              </Button>
+            </div>
+
+            <div className="users-action-inline users-action-inline--red">
+              <div className="users-action-badge">
+                <WarningAmberRoundedIcon fontSize="small" />
+                <span>Troca forcada</span>
+              </div>
+              <p>Obriga todos os usuarios a trocar senha no proximo login.</p>
+              <Button
+                variant="contained"
+                onClick={handleForceAllUsersChangePassword}
+                disabled={loadingForceChange}
+                className="users-action-button users-action-button--red"
+              >
+                {loadingForceChange ? "Processando..." : "Forcar mudanca"}
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="container" style={{ marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderLeft: "4px solid #E74C3C", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", borderRadius: "4px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
-            <div>
-              <h3 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
-                🔐 Forçar Mudança de Senha
-              </h3>
-              <p style={{ margin: "0", fontSize: "13px", color: "#666" }}>
-                Obrigar TODOS os usuários a trocar senha no próximo login
-              </p>
-            </div>
-            <button
-              onClick={handleForceAllUsersChangePassword}
-              disabled={loadingForceChange}
-              style={{
-                backgroundColor: loadingForceChange ? "#ccc" : "#E74C3C",
-                color: "white",
-                padding: "12px 24px",
-                border: "none",
-                borderRadius: "4px",
-                cursor: loadingForceChange ? "not-allowed" : "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                whiteSpace: "nowrap",
-                transition: "all 0.3s ease"
-              }}
-            >
-              {loadingForceChange ? "🔄 Processando..." : "⚠️ Forçar Mudança"}
-            </button>
-          </div>
-        </div>
+        <div className="container filtros users-toolbar">
+          <div className="users-toolbar-header">
+            <Box>
+              <Typography variant="h6" className="users-toolbar-title">
+                Controle de usuarios
+              </Typography>
+            </Box>
 
-        <div className="container filtros">
-          <FormControl sx={{ minWidth: 120, marginRight: "5px" }} size="small">
-            <InputLabel id="status-filter-label">Status</InputLabel>
-            <Select
-              labelId="status-filter-label"
-              id="status-filter"
-              value={statusFilter}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value)}
+            <Button
+              variant="outlined"
+              startIcon={<PersonAddAlt1RoundedIcon />}
+              className="users-register-button"
+              onClick={() => setRegisterModalOpen(true)}
             >
-              <MenuItem value="all">Todos</MenuItem>
-              <MenuItem value="active">Ativos</MenuItem>
-              <MenuItem value="inactive">Inativos</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            id="search"
-            label="Buscar"
-            variant="outlined"
-            size="small"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <FormControl sx={{ minWidth: 160, marginLeft: "5px" }} size="small">
-            <InputLabel id="rows-per-page-label">
-              Registros por página
-            </InputLabel>
-            <Select
-              labelId="rows-per-page-label"
-              id="rows-per-page"
-              value={rowsPerPage}
-              label="Registros por página"
-              onChange={(e) => setRowsPerPage(e.target.value)}
-            >
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-            </Select>
-          </FormControl>
+              Adicionar usuario
+            </Button>
+
+            <Chip
+              label={`${filteredUsers.length} resultado(s)`}
+              variant="outlined"
+              color="secondary"
+            />
+          </div>
+
+          <div className="users-toolbar-controls">
+            <FormControl sx={{ minWidth: 150 }} size="small">
+              <InputLabel id="status-filter-label">Status</InputLabel>
+              <Select
+                labelId="status-filter-label"
+                id="status-filter"
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <MenuItem value="all">Todos</MenuItem>
+                <MenuItem value="active">Ativos</MenuItem>
+                <MenuItem value="inactive">Inativos</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              id="search"
+              label="Buscar usuario ou email"
+              variant="outlined"
+              size="small"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="users-search-field"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <FormControl sx={{ minWidth: 180 }} size="small">
+              <InputLabel id="rows-per-page-label">Registros por pagina</InputLabel>
+              <Select
+                labelId="rows-per-page-label"
+                id="rows-per-page"
+                value={rowsPerPage}
+                label="Registros por pagina"
+                onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              >
+                <MenuItem value={5}>5</MenuItem>
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
         </div>
 
         <div className="container table-usuarios">
           <TableContainer component={Paper} className="table-users">
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table aria-label="Tabela de usuarios">
               <TableHead>
                 <TableRow>
                   <TableCell>Nome</TableCell>
-                  {permissionMaster.includes(user.uid) && (
-                    <TableCell align="center">Trocar Senha</TableCell>
-                  )}
                   <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Email</TableCell>
-                  <TableCell align="center">Área</TableCell>
-                  {permissionMaster.includes(user.uid) && (
-                    <TableCell align="center">Checklists</TableCell>
-                  )}
-                  <TableCell align="center">Nível de Usuário</TableCell>
-                  <TableCell align="center">Regional</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell align="center">Area</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredUsers.map((item, index) => {
+                {paginatedUsers.map((item, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell data-label="Usuario">{item.nome}</TableCell>
-                      {permissionMaster.includes(user.uid) && (
-                        <TableCell align="center">
-                          <Chip
-                            label={<FiLock size={15}></FiLock>}
-                            color="secondary"
-                            size="small"
-                            onClick={() => trocaSenha(item.id_user)}
-                          />
-                        </TableCell>
-                      )}
                       <TableCell data-label="Status" sx={{ textAlign: "center" }}>
                         <Switch
                           checked={item.status}
@@ -426,8 +503,7 @@ export default function ProfileADM() {
                                 backgroundColor: "rgba(18, 18, 18, 0.08)",
                               },
                             },
-                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                            {
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                               backgroundColor: "#0deb0d",
                             },
                           }}
@@ -435,89 +511,18 @@ export default function ProfileADM() {
                       </TableCell>
                       <TableCell data-label="Email">{item.email}</TableCell>
                       <TableCell data-label="Area" sx={{ textAlign: "center" }}>
-                        {item.area === "patrimonial"
-                          ? "empresarial"
-                          : item.area}
+                        {item.area === "patrimonial" ? "empresarial" : item.area}
                       </TableCell>
-                      {permissionMaster.includes(user.uid) && (
-                        <TableCell data-label="Checklists">
-                          <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                            <InputLabel id="demo-multiple-checkbox-label">CheckLists</InputLabel>
-                            <Select
-                              labelId="demo-multiple-checkbox-label"
-                              id="demo-multiple-checkbox"
-                              multiple={true}
-                              value={item.checklist ? item.checklist : []}
-                              onChange={(e) => handleChangeChecklist(e, item.id_user)}
-                              input={<OutlinedInput label="CheckLists" />}
-                              renderValue={(selected) => selected.join(', ')}
-                              MenuProps={MenuProps}
-                            >
-                              {checklists.map((name) => (
-                                <MenuItem key={name} value={name} sx={{ height: '30px' }}>
-                                  <Checkbox checked={item.checklist && item.checklist.includes(name)} />
-                                  <ListItemText primary={name} />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                      )}
-                      <TableCell >
-                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                          <InputLabel id="demo-select-small-label">
-                            Nível de Usuário
-                          </InputLabel>
-                          <Select
-                            labelId="demo-select-small-label"
-                            id="demo-select-small"
-                            label="Nível de Usuário"
-                            key={"nivel-" + index}
-                            value={item.nivel || ""}
-                            onChange={(e) =>
-                              updateNivel(item.id_user, e.target.value, item.nome)
-                            }
-                            MenuProps={MenuProps}
-                          >
-                            <MenuItem
-                              disabled={isDisabled}
-                              value={"administrador"}
-                            >
-                              Administrador
-                            </MenuItem>
-                            <MenuItem value={"usuario_gcn"}>Usuário GCM</MenuItem>
-                            <MenuItem value={"aplicador"}>Aplicador</MenuItem>
-                            <MenuItem value={"supervisor"}>Supervisor</MenuItem>
-                            <MenuItem value={"revisor"}>Revisor</MenuItem>
-                            <MenuItem value={"revisor_logistica"}>Revisor Logistica</MenuItem>
-                            <MenuItem value={"auditor"}>Auditor</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </TableCell>
-                      <TableCell >
-                        <FormControl sx={{ minWidth: 120 }} fullWidth size="small">
-                          <InputLabel id="demo-select-small-label">
-                            Regional
-                          </InputLabel>
-                          <Select
-                            labelId="demo-select-small-label"
-                            id="demo-select-small"
-                            label="Regional"
-                            key={"regional-" + index}
-                            value={
-                              item.regional !== undefined ? item.regional : ""
-                            }
-                            onChange={(e) =>
-                              updateRegional(item.id_user, e.target.value, item.nome)
-                            }
-                          >
-                            <MenuItem value={"SP"}>SP</MenuItem>
-                            <MenuItem value={"SUL"}>SUL</MenuItem>
-                            <MenuItem value={"NE"}>NE</MenuItem>
-                            <MenuItem value={"CO_N"}>CO_N</MenuItem>
-                            <MenuItem value={"RJ_ES_MG"}>RJ_ES_MG</MenuItem>
-                          </Select>
-                        </FormControl>
+                      <TableCell data-label="Ações" sx={{ textAlign: "center" }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<ManageAccountsRoundedIcon fontSize="small" />}
+                          className="users-row-action"
+                          onClick={() => setSelectedUser(item)}
+                        >
+                          Ações
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -529,7 +534,7 @@ export default function ProfileADM() {
 
         <Stack spacing={2} className="pagination">
           <Pagination
-            count={Math.ceil(users.length / rowsPerPage)}
+            count={totalPages}
             page={page}
             onChange={(event, value) => setPage(value)}
             renderItem={(item) => (
@@ -540,6 +545,188 @@ export default function ProfileADM() {
             )}
           />
         </Stack>
+
+        <Dialog
+          open={Boolean(selectedUser)}
+          onClose={closeActionsDialog}
+          maxWidth="sm"
+          fullWidth
+          className="users-actions-dialog"
+        >
+          <DialogTitle className="users-actions-dialog-title">
+            <Box>
+              <Typography variant="h6">Ações do usuario</Typography>
+              <Typography variant="body2">{selectedUser?.nome}</Typography>
+            </Box>
+            <Tooltip title="Fechar">
+              <IconButton onClick={closeActionsDialog} aria-label="Fechar">
+                <CloseRoundedIcon />
+              </IconButton>
+            </Tooltip>
+          </DialogTitle>
+
+          <DialogContent dividers className="users-actions-dialog-content">
+            {selectedUser && (
+              <>
+                <div className="users-dialog-summary">
+                  <div>
+                    <span>Email</span>
+                    <strong>{selectedUser.email}</strong>
+                  </div>
+                  <div>
+                    <span>Area</span>
+                    <strong>
+                      {selectedUser.area === "patrimonial"
+                        ? "empresarial"
+                        : selectedUser.area}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Status</span>
+                    <Switch
+                      checked={selectedUser.status}
+                      onChange={() =>
+                        updateStatus(
+                          selectedUser.id_user,
+                          !selectedUser.status,
+                          selectedUser.nome
+                        )
+                      }
+                      sx={{
+                        "& .MuiSwitch-switchBase.Mui-checked": {
+                          color: "#0deb0d",
+                          "&:hover": {
+                            backgroundColor: "rgba(18, 18, 18, 0.08)",
+                          },
+                        },
+                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                          backgroundColor: "#0deb0d",
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {hasMasterPermission && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<FiLock />}
+                    className="users-dialog-password-button"
+                    onClick={() => trocaSenha(selectedUser.id_user)}
+                  >
+                    Trocar senha
+                  </Button>
+                )}
+
+                {hasMasterPermission && (
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`checklists-label-${selectedUser.id_user}`}>
+                      Checklists
+                    </InputLabel>
+                    <Select
+                      labelId={`checklists-label-${selectedUser.id_user}`}
+                      id={`checklists-${selectedUser.id_user}`}
+                      multiple
+                      value={selectedUser.checklist ? selectedUser.checklist : []}
+                      onChange={(e) =>
+                        handleChangeChecklist(e, selectedUser.id_user)
+                      }
+                      input={<OutlinedInput label="Checklists" />}
+                      renderValue={(selected) => selected.join(", ")}
+                      MenuProps={MenuProps}
+                    >
+                      {checklists.map((name) => (
+                        <MenuItem key={name} value={name} sx={{ height: "30px" }}>
+                          <Checkbox
+                            checked={
+                              selectedUser.checklist &&
+                              selectedUser.checklist.includes(name)
+                            }
+                          />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
+                <div className="users-dialog-grid">
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`nivel-usuario-label-${selectedUser.id_user}`}>
+                      Nivel de Usuario
+                    </InputLabel>
+                    <Select
+                      labelId={`nivel-usuario-label-${selectedUser.id_user}`}
+                      id={`nivel-usuario-${selectedUser.id_user}`}
+                      label="Nivel de Usuario"
+                      value={selectedUser.nivel || ""}
+                      onChange={(e) =>
+                        updateNivel(
+                          selectedUser.id_user,
+                          e.target.value,
+                          selectedUser.nome
+                        )
+                      }
+                      MenuProps={MenuProps}
+                    >
+                      <MenuItem disabled={isDisabled} value={"administrador"}>
+                        Administrador
+                      </MenuItem>
+                      <MenuItem value={"usuario_gcn"}>Usuario GCM</MenuItem>
+                      <MenuItem value={"aplicador"}>Aplicador</MenuItem>
+                      <MenuItem value={"supervisor"}>Supervisor</MenuItem>
+                      <MenuItem value={"revisor"}>Revisor</MenuItem>
+                      <MenuItem value={"revisor_logistica"}>
+                        Revisor Logistica
+                      </MenuItem>
+                      <MenuItem value={"ponto_focal"}>Ponto Focal</MenuItem>
+                      <MenuItem value={"auditor"}>Auditor</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`regional-label-${selectedUser.id_user}`}>
+                      Regional
+                    </InputLabel>
+                    <Select
+                      labelId={`regional-label-${selectedUser.id_user}`}
+                      id={`regional-${selectedUser.id_user}`}
+                      label="Regional"
+                      value={
+                        selectedUser.regional !== undefined
+                          ? selectedUser.regional
+                          : ""
+                      }
+                      onChange={(e) =>
+                        updateRegional(
+                          selectedUser.id_user,
+                          e.target.value,
+                          selectedUser.nome
+                        )
+                      }
+                    >
+                      <MenuItem value={"SP"}>SP</MenuItem>
+                      <MenuItem value={"SUL"}>SUL</MenuItem>
+                      <MenuItem value={"NE"}>NE</MenuItem>
+                      <MenuItem value={"CO_N"}>CO_N</MenuItem>
+                      <MenuItem value={"RJ_ES_MG"}>RJ_ES_MG</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
+              </>
+            )}
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={closeActionsDialog}>Fechar</Button>
+          </DialogActions>
+        </Dialog>
+
+        <RegisterMember
+          open={registerModalOpen}
+          onClose={() => setRegisterModalOpen(false)}
+        />
       </div>
     </div>
   );

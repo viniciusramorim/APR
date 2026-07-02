@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import {
   Grid,
   TextField,
-  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Button,
   Box,
   RadioGroup,
@@ -17,24 +20,16 @@ import {
   InputLabel,
   Chip,
   OutlinedInput,
+  Divider,
+  Paper,
+  IconButton,
+  Stack,
+  alpha,
 } from "@mui/material";
+import { Close as CloseIcon, Edit as EditIcon, Image as ImageIcon } from "@mui/icons-material";
 import firebase from "../../services/firebaseConnection";
 import { FiEdit } from "react-icons/fi";
 import { toast } from "react-toastify";
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  height: 500,
-  overflowY: "scroll",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
 
 const areasDisponiveis = ['oem', 'patrimonio', 'CMC', 'comercial', 'logistica']; 
 
@@ -146,178 +141,295 @@ export default function ModalEdit(props) {
         </a>
         <a>{`( ${questionArea} )`}</a>
       </label>
-      <Modal
+
+      <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            backgroundColor: "#ffffff",
+          },
+        }}
       >
-        <Box sx={style}>
-          <Grid container spacing={2} textAlign={"right"}>
-            <Grid item xs={12} md={12}>
-              <Button
-                size="small"
-                color="error"
-                variant="contained"
-                onClick={handleClose}
-              >
-                X
-              </Button>
-            </Grid>
-          </Grid>
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontWeight: 600,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <EditIcon />
+            Editar Questão
+          </Box>
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={handleClose}
+            aria-label="close"
+            size="small"
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
 
-          <Grid container spacing={2} marginTop={0.5}>
-            <Grid item xs={12} md={12}>
-              <Typography variant="h6">
-                {checklistCompleto[areaIndex][1][questionIndex].question}
+        <DialogContent sx={{ mt: 2, backgroundColor: "#ffffff" }}>
+          <Stack spacing={3}>
+            {/* Título da Questão */}
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  color: "text.secondary",
+                  mb: 1,
+                }}
+              >
+                Questão
               </Typography>
-            </Grid>
-            <Grid item xs={12} md={12}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: alpha("#667eea", 0.05),
+                  borderLeft: "4px solid #667eea",
+                }}
+              >
+                <Typography variant="body1">
+                  {checklistCompleto[areaIndex][1][questionIndex].question}
+                </Typography>
+              </Paper>
+            </Box>
+
+            <Divider />
+
+            {/* Resposta Radio Group */}
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  color: "text.secondary",
+                  mb: 1.5,
+                }}
+              >
+                Resposta
+              </Typography>
               <FormControl>
                 <RadioGroup
                   row
-                  aria-labelledby="demo-row-radio-buttons-group-label"
                   value={questionResp}
                   onChange={(e) => setQuestionResp(e.target.value)}
-                  name="row-radio-buttons-group"
+                  sx={{ gap: 2 }}
                 >
                   <FormControlLabel
                     value="Sim"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label="Sim"
+                    sx={{ m: 0 }}
                   />
                   <FormControlLabel
                     value="Não"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label="Não"
+                    sx={{ m: 0 }}
                   />
                   <FormControlLabel
                     value="N/A"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label="N/A"
+                    sx={{ m: 0 }}
                   />
                   <FormControlLabel
                     value=""
-                    control={<Radio />}
-                    label="Remover Resposta"
+                    control={<Radio size="small" />}
+                    label="Remover"
+                    sx={{ m: 0 }}
                   />
                 </RadioGroup>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={12}>
-              {checklistCompleto[areaIndex][1][questionIndex]
-                .respInputNumber && (
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Quantidade"
-                    value={
-                      checklistCompleto[areaIndex][1][questionIndex]
-                        .respInputNumber
-                    }
-                    onChange={(e) => {
-                      const updatedChecklist = [...checklistCompleto];
-                      updatedChecklist[areaIndex][1][
-                        questionIndex
-                      ].respInputNumber = e.target.value;
-                      firebase
-                        .firestore()
-                        .collection("aprs-producao")
-                        .doc(id)
-                        .update({
-                          checklist: updatedChecklist,
-                        })
-                        .then(() => {
-                          console.log("update respInputNumber");
-                          loadApr();
-                        });
-                    }}
-                  />
-                )}
-            </Grid>
-            <Grid item xs={12} md={12}>
-              {checklistCompleto[areaIndex][1][questionIndex].imagesURL?.map(
-                (image, index) => {
-                  const imageUrl =
-                    typeof image === "string" ? image : image.url;
-                  return (
-                    <div key={index}>
-                      <img
-                        src={imageUrl}
-                        alt="Uploaded"
-                        style={{ maxWidth: "200px" }}
-                      />
-                      <Button
-                        color="error"
-                        variant="contained"
-                        size="small"
-                        sx={{ marginTop: "-25px", marginLeft: "5px" }}
-                        onClick={async () => {
-                          try {
-                            const storageRef = firebase
-                              .storage()
-                              .refFromURL(imageUrl);
-                            await storageRef.delete();
+            </Box>
 
-                            const updatedChecklist = [...checklistCompleto];
-                            updatedChecklist[areaIndex][1][
-                              questionIndex
-                            ].imagesURL = updatedChecklist[areaIndex][1][
-                              questionIndex
-                            ].imagesURL.filter((_, i) => i !== index);
-
-                            await firebase
-                              .firestore()
-                              .collection("aprs-producao")
-                              .doc(id)
-                              .update({
-                                checklist: updatedChecklist,
-                              });
-
-                            console.log("Image deleted");
-                            loadApr();
-                          } catch (err) {
-                            console.error("Error deleting image:", err);
-                          }
-                        }}
-                      >
-                        X
-                      </Button>
-                    </div>
-                  );
+            {/* Input de Quantidade */}
+            {checklistCompleto[areaIndex][1][questionIndex]
+              .respInputNumber && (
+              <TextField
+                fullWidth
+                type="number"
+                label="Quantidade"
+                size="small"
+                value={
+                  checklistCompleto[areaIndex][1][questionIndex]
+                    .respInputNumber
                 }
-              )}
-              <Grid item xs={12} md={12}>
-                <input
-                  accept="image/png, image/jpeg"
-                  id="upload-button"
-                  type="file"
-                  style={{ display: "none" }}
-                  onChange={handleUploadImage}
-                />
-                <label htmlFor="upload-button">
-                  <Button
-                    component="span"
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    fullWidth
-                    disabled={uploading}
-                    sx={{ marginTop: "20px" }}
+                onChange={(e) => {
+                  const updatedChecklist = [...checklistCompleto];
+                  updatedChecklist[areaIndex][1][
+                    questionIndex
+                  ].respInputNumber = e.target.value;
+                  firebase
+                    .firestore()
+                    .collection("aprs-producao")
+                    .doc(id)
+                    .update({
+                      checklist: updatedChecklist,
+                    })
+                    .then(() => {
+                      console.log("update respInputNumber");
+                      loadApr();
+                    });
+                }}
+                variant="outlined"
+              />
+            )}
+
+            {/* Imagens */}
+            {checklistCompleto[areaIndex][1][questionIndex].imagesURL &&
+              checklistCompleto[areaIndex][1][questionIndex].imagesURL.length >
+                0 && (
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      color: "text.secondary",
+                      mb: 1.5,
+                    }}
                   >
-                    {uploading ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      "Upload Imagem"
+                    Imagens Anexadas
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {checklistCompleto[areaIndex][1][questionIndex].imagesURL.map(
+                      (image, index) => {
+                        const imageUrl =
+                          typeof image === "string" ? image : image.url;
+                        return (
+                          <Grid item xs={6} key={index}>
+                            <Paper
+                              elevation={2}
+                              sx={{
+                                position: "relative",
+                                overflow: "hidden",
+                                borderRadius: 1,
+                                aspectRatio: "1",
+                              }}
+                            >
+                              <img
+                                src={imageUrl}
+                                alt="Uploaded"
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={async () => {
+                                  try {
+                                    const storageRef = firebase
+                                      .storage()
+                                      .refFromURL(imageUrl);
+                                    await storageRef.delete();
+
+                                    const updatedChecklist = [...checklistCompleto];
+                                    updatedChecklist[areaIndex][1][
+                                      questionIndex
+                                    ].imagesURL = updatedChecklist[areaIndex][1][
+                                      questionIndex
+                                    ].imagesURL.filter((_, i) => i !== index);
+
+                                    await firebase
+                                      .firestore()
+                                      .collection("aprs-producao")
+                                      .doc(id)
+                                      .update({
+                                        checklist: updatedChecklist,
+                                      });
+
+                                    console.log("Image deleted");
+                                    loadApr();
+                                  } catch (err) {
+                                    console.error("Error deleting image:", err);
+                                  }
+                                }}
+                                sx={{
+                                  position: "absolute",
+                                  top: 0,
+                                  right: 0,
+                                  backgroundColor: "rgba(0,0,0,0.5)",
+                                  "&:hover": {
+                                    backgroundColor: "rgba(0,0,0,0.7)",
+                                  },
+                                }}
+                              >
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
+                            </Paper>
+                          </Grid>
+                        );
+                      }
                     )}
-                  </Button>
-                </label>
-              </Grid>
-            </Grid>
-            <Grid item xs={12} md={12}>
-              <FormControl fullWidth>
-                {checklistCompleto[areaIndex][1][questionIndex].optionList && (
-                  <FormControl component="fieldset">
+                  </Grid>
+                </Box>
+              )}
+
+            {/* Upload Imagem */}
+            <Box>
+              <input
+                accept="image/png, image/jpeg"
+                id="upload-button"
+                type="file"
+                style={{ display: "none" }}
+                onChange={handleUploadImage}
+              />
+              <label htmlFor="upload-button" style={{ width: "100%" }}>
+                <Button
+                  component="span"
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  startIcon={
+                    uploading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <ImageIcon />
+                    )
+                  }
+                  disabled={uploading}
+                  sx={{ textTransform: "none" }}
+                >
+                  {uploading ? "Enviando..." : "Upload Imagem"}
+                </Button>
+              </label>
+            </Box>
+
+            {/* Option List Checkboxes */}
+            {checklistCompleto[areaIndex][1][questionIndex].optionList && (
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    color: "text.secondary",
+                    mb: 1.5,
+                  }}
+                >
+                  Opções
+                </Typography>
+                <FormControl component="fieldset">
+                  <Stack spacing={1}>
                     {checklistCompleto[areaIndex][1][
                       questionIndex
                     ].optionList.map((option, index) => (
@@ -325,6 +437,7 @@ export default function ModalEdit(props) {
                         key={index}
                         control={
                           <Checkbox
+                            size="small"
                             checked={
                               Array.isArray(
                                 checklistCompleto[areaIndex][1][questionIndex]
@@ -368,65 +481,95 @@ export default function ModalEdit(props) {
                           />
                         }
                         label={option}
+                        sx={{ m: 0 }}
                       />
                     ))}
-                  </FormControl>
-                )}
-              </FormControl>
-            </Grid>
+                  </Stack>
+                </FormControl>
+              </Box>
+            )}
 
-            <Grid item xs={12} md={12}>
-              <TextField
-                fullWidth
-                id="outlined-multiline-static"
-                label="Comentario"
-                multiline
-                rows={4}
-                value={questionComentario}
-                onChange={(e) => setQuestionComentario(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={12}>
-              <FormControl fullWidth>
-                <InputLabel id="area-label">Área Responsável</InputLabel>
-                <Select
-                  labelId="area-label"
-                  id="area-select"
-                  multiple
-                  value={questionArea}
-                  onChange={(e) => setQuestionArea(e.target.value)}
-                  input={<OutlinedInput id="select-multiple-chip" label="Área Responsável" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {areasDisponiveis.map((area) => (
-                    <MenuItem sx={{textTransform:"capitalize"}} key={area} value={area}>
-                      {area}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-          <Grid container spacing={2} marginTop={0.5} textAlign={"left"}>
-            <Grid item xs={3} md={3}>
-              <Button
-                size="small"
-                color="secondary"
-                variant="outlined"
-                onClick={concluirEdit}
+            <Divider />
+
+            {/* Comentário */}
+            <TextField
+              fullWidth
+              label="Comentário"
+              multiline
+              rows={4}
+              value={questionComentario}
+              onChange={(e) => setQuestionComentario(e.target.value)}
+              variant="outlined"
+              size="small"
+              placeholder="Adicione um comentário aqui..."
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 1,
+                },
+              }}
+            />
+
+            {/* Área Responsável */}
+            <FormControl fullWidth size="small">
+              <InputLabel id="area-label">Área Responsável</InputLabel>
+              <Select
+                labelId="area-label"
+                id="area-select"
+                multiple
+                value={questionArea}
+                onChange={(e) => setQuestionArea(e.target.value)}
+                input={<OutlinedInput id="select-multiple-chip" label="Área Responsável" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip
+                        key={value}
+                        label={value}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          textTransform: "capitalize",
+                          backgroundColor: alpha("#667eea", 0.1),
+                          borderColor: "#667eea",
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
               >
-                Editar
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-      </Modal>
+                {areasDisponiveis.map((area) => (
+                  <MenuItem
+                    sx={{ textTransform: "capitalize" }}
+                    key={area}
+                    value={area}
+                  >
+                    {area}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={handleClose}
+            variant="outlined"
+            color="inherit"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={concluirEdit}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            }}
+          >
+            Salvar Alterações
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
