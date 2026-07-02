@@ -696,7 +696,7 @@ const ChecklistManager = () => {
       />
 
       <div className="content">
-        <Container maxWidth="xl" className="questions-shell">
+        <Container maxWidth={false} disableGutters className="questions-shell">
           <section className="questions-hero">
             <div className="questions-hero-copy">
               <span className="questions-eyebrow">APR DIGITAL</span>

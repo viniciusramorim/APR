@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import firebase from "../../services/firebaseConnection";
 import {
   Box,
@@ -45,6 +45,14 @@ import { AuthContext } from "../../contexts/auth";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter";
 import "./contactEmail.scss";
 
+const mapaRegioes = {
+  RJ_ES_MG: ["RJ", "ES", "MG"],
+  SP: ["SP"],
+  CO_N: ["DF", "GO", "MT", "MS", "TO", "PA", "AM", "RO", "RR", "AC", "AP"],
+  SUL: ["RS", "SC", "PR"],
+  NE: ["BA", "SE", "AL", "PE", "PB", "RN", "CE", "PI", "MA"],
+};
+
 export default function ContactEmail() {
   const { user, logSistem } = useContext(AuthContext);
   const [docs, setDocs] = useState([]);
@@ -76,7 +84,9 @@ export default function ContactEmail() {
   const [docToEdit, setDocToEdit] = useState(null);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [duplicateMunicipioName, setDuplicateMunicipioName] = useState("");
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const pageSize = 10;
+  const firestoreBatchLimit = 400;
   const areaOptions = [
     "OEM",
     "Patrimonial",
@@ -85,14 +95,6 @@ export default function ContactEmail() {
     "Armazenamento",
     "Transporte",
   ];
-
-  const mapaRegioes = {
-    RJ_ES_MG: ["RJ", "ES", "MG"],
-    SP: ["SP"],
-    CO_N: ["DF", "GO", "MT", "MS", "TO", "PA", "AM", "RO", "RR", "AC", "AP"],
-    SUL: ["RS", "SC", "PR"],
-    NE: ["BA", "SE", "AL", "PE", "PB", "RN", "CE", "PI", "MA"],
-  };
 
   const filteredDocs = docs.filter(
     (item) =>
@@ -105,6 +107,7 @@ export default function ContactEmail() {
     acc[item.estado].push(item);
     return acc;
   }, {});
+  const bulkTargetDocs = filteredDocs;
 
   const estadoKeys = Object.keys(groupedByEstado).sort();
 
@@ -126,10 +129,15 @@ export default function ContactEmail() {
     );
   }, 0);
 
-  useEffect(() => {
-    addBodyClass("page-contact-email");
-    loadData();
-  }, []);
+  const parseEmails = (value) =>
+    Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((email) => email.trim())
+          .filter((email) => email)
+      )
+    );
 
   const handleSelectEstado = (estado) => {
     setSelectedEstados((prev) => ({
@@ -224,29 +232,65 @@ export default function ContactEmail() {
   };
 
   const handleAddEmailToAll = async () => {
-    if (!emailToAdd || !areaToAdd) {
-      toast.error("Por favor, insira um e-mail e selecione uma area.");
+    const emails = parseEmails(emailToAdd);
+
+    if (!emails.length || !areaToAdd) {
+      toast.error("Por favor, insira ao menos um e-mail e selecione uma area.");
       return;
     }
 
-    const batch = firebase.firestore().batch();
+    if (!bulkTargetDocs.length) {
+      toast.error("Nenhum municipio encontrado para aplicar esta acao.");
+      return;
+    }
+
     const areaKey = `email_${areaToAdd.toLowerCase()}`;
+    let updatedCount = 0;
 
-    docs.forEach((doc) => {
-      const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
-      const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), emailToAdd]));
-      batch.update(docRef, { [areaKey]: updatedEmails });
-      logSistem(`E-mail adicionado a todos (${emailToAdd}) na area ${areaToAdd}`, doc.id);
-    });
+    for (let i = 0; i < bulkTargetDocs.length; i += firestoreBatchLimit) {
+      const batch = firebase.firestore().batch();
+      const chunk = bulkTargetDocs.slice(i, i + firestoreBatchLimit);
+      let chunkUpdatedCount = 0;
 
-    await batch.commit();
-    loadData();
-    toast.success(`E-mail adicionado a todos os municipios na area ${areaToAdd} com sucesso!`);
+      for (const doc of chunk) {
+        const docRef = firebase.firestore().collection("contact_email").doc(doc.id);
+        const updatedEmails = Array.from(new Set([...(doc[areaKey] || []), ...emails]));
+
+        if (updatedEmails.length !== (doc[areaKey] || []).length) {
+          batch.update(docRef, { [areaKey]: updatedEmails });
+          updatedCount += 1;
+          chunkUpdatedCount += 1;
+        }
+      }
+
+      if (chunkUpdatedCount > 0) {
+        await batch.commit();
+      }
+    }
+
+    await logSistem(
+      `E-mails adicionados em massa (${emails.join(", ")}) na area ${areaToAdd} para ${bulkTargetDocs.length} municipio(s)`,
+      `bulk-${areaKey}`
+    );
+
+    setBulkAddOpen(false);
+    setEmailToAdd("");
+    setAreaToAdd("");
+    await loadData();
+
+    if (updatedCount === 0) {
+      toast.info("Os municipios selecionados ja possuem este(s) e-mail(s) nesta area.");
+      return;
+    }
+
+    toast.success(
+      `${updatedCount} municipio(s) atualizado(s) com sucesso na area ${areaToAdd}!`
+    );
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const isAdmin = user?.nivel === "administrador";
-    const estadosPermitidos = mapaRegioes[user.regional] || [];
+    const estadosPermitidos = mapaRegioes[user?.regional] || [];
     const snapshot = await firebase.firestore().collection("contact_email").get();
 
     const list = snapshot.docs
@@ -268,7 +312,12 @@ export default function ContactEmail() {
 
     setAllEstados(Array.from(estadosSet).sort());
     setMunicipiosPorEstado(grouped);
-  };
+  }, [user?.nivel, user?.regional]);
+
+  useEffect(() => {
+    addBodyClass("page-contact-email");
+    loadData();
+  }, [loadData]);
 
   const handleDeleteEmail = async (docId, email, tipo) => {
     const key = `email_${tipo.toLowerCase()}`;
@@ -322,10 +371,7 @@ export default function ContactEmail() {
     const docRef = firebase.firestore().collection("contact_email").doc(docId);
     const docSnap = await docRef.get();
     const targetKey = `email_${newTipo.toLowerCase()}`;
-    const emails = newEmails
-      .split(",")
-      .map((e) => e.trim())
-      .filter((e) => e);
+    const emails = parseEmails(newEmails);
 
     if (docSnap.exists) {
       const data = docSnap.data();
@@ -463,7 +509,7 @@ export default function ContactEmail() {
     <div className="apr-contact-email">
       <Header name="Contato" subtitle="Gestao de e-mails por estado, municipio e equipe"></Header>
       <div className="content">
-        <Container maxWidth="xl" className="contact-email-shell">
+        <Container maxWidth={false} disableGutters className="contact-email-shell">
           <Paper className="contact-email-hero" elevation={0}>
             <Box className="contact-email-hero-copy">
               <span className="contact-email-eyebrow">APR Digital</span>
@@ -569,6 +615,15 @@ export default function ContactEmail() {
                   {loadingUpload ? "Carregando..." : "Upload XLSX"}
                 </Button>
               </label>
+
+              <Button
+                variant="outlined"
+                startIcon={<MailOutlineRoundedIcon />}
+                onClick={() => setBulkAddOpen(true)}
+                className="contact-email-secondary-btn"
+              >
+                Adicionar em massa
+              </Button>
 
               <Button
                 variant="outlined"
@@ -814,6 +869,47 @@ export default function ContactEmail() {
             <Button onClick={() => setDuplicateOpen(false)}>Cancelar</Button>
             <Button variant="contained" onClick={handleSaveDuplicateMunicipio}>
               Duplicar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={bulkAddOpen} onClose={() => setBulkAddOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Adicionar e-mail para varios municipios</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              O e-mail sera aplicado aos {bulkTargetDocs.length} municipio(s) do filtro atual.
+            </Typography>
+            <Select
+              fullWidth
+              value={areaToAdd}
+              onChange={(e) => setAreaToAdd(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem disabled value="">
+                Selecione a area responsavel
+              </MenuItem>
+              {areaOptions.map((tipo) => (
+                <MenuItem key={tipo} value={tipo}>
+                  {tipo}
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="E-mail(s)"
+              helperText="Voce pode informar mais de um e-mail separado por virgula."
+              value={emailToAdd}
+              onChange={(e) => setEmailToAdd(e.target.value)}
+              multiline
+              minRows={3}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setBulkAddOpen(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={handleAddEmailToAll}>
+              Aplicar
             </Button>
           </DialogActions>
         </Dialog>

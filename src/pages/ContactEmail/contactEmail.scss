@@ -1,10 +1,13 @@
 .page-contact-email .content {
   background: #f4f6fb;
   min-height: calc(100vh - 90px);
+  padding: 24px;
 }
 
 .contact-email-shell {
-  padding-top: 24px;
+  width: 100%;
+  max-width: none !important;
+  padding-top: 0;
   padding-bottom: 16px;
 }
 
@@ -116,7 +119,7 @@
 
 .contact-email-toolbar-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
   align-items: stretch;
 
@@ -124,8 +127,19 @@
     min-width: 0;
   }
 
+  > label {
+    display: flex;
+    width: 100%;
+  }
+
+  > label .MuiButton-root {
+    display: flex;
+    width: 100%;
+  }
+
   .MuiButton-root {
     min-height: 42px;
+    width: 100%;
     border-radius: 12px;
     text-transform: none;
     font-weight: 700;
@@ -141,6 +155,7 @@
 }
 
 .contact-email-primary-btn {
+  width: 100%;
   background: linear-gradient(135deg, #8e24aa 0%, #6d28d9 100%) !important;
   box-shadow: 0 12px 26px rgba(142, 36, 170, 0.18) !important;
 }
@@ -264,8 +279,12 @@
 }
 
 @media (max-width: 768px) {
+  .page-contact-email .content {
+    padding: 16px;
+  }
+
   .contact-email-shell {
-    padding-top: 16px;
+    padding-top: 0;
   }
 
   .contact-email-hero,
