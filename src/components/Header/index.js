@@ -10,6 +10,7 @@ import PersonOutlineSharpIcon from "@mui/icons-material/PersonOutlineSharp";
 import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchSharp";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
+import TravelExploreRoundedIcon from "@mui/icons-material/TravelExploreRounded";
 import { AddModerator, Analytics, Email } from "@mui/icons-material";
 import {
   Avatar,
@@ -179,6 +180,12 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize metricas",
       },
       {
+        text: "Mapa Analytics",
+        icon: <TravelExploreRoundedIcon />,
+        link: "/analytics-map",
+        subtitle: "Radar territorial das APRs",
+      },
+      {
         text: "Gerenciar Emails",
         icon: <Email />,
         link: "/contact-email",
@@ -230,6 +237,12 @@ export default function Header({ name, subtitle, children }) {
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
         subtitle: "Visualize relatorios",
+      },
+      {
+        text: "Mapa Analytics",
+        icon: <TravelExploreRoundedIcon />,
+        link: "/analytics-map",
+        subtitle: "Radar territorial das APRs",
       }
     );
   }
@@ -247,6 +260,12 @@ export default function Header({ name, subtitle, children }) {
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
         subtitle: "Visualize relatorios",
+      },
+      {
+        text: "Mapa Analytics",
+        icon: <TravelExploreRoundedIcon />,
+        link: "/analytics-map",
+        subtitle: "Radar territorial das APRs",
       },
       {
         text: "Gerenciar Emails",

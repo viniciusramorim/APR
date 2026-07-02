@@ -84,7 +84,23 @@ export default function MenuMobile({ user }) {
             <MenuItem onClick={handleClose} component={Link} to="/reports">
               Relatorio
             </MenuItem>
+            <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
+              Mapa Analytics
+            </MenuItem>
             <MenuItem onClick={handleOpenRegister}>Adicionar usuario</MenuItem>
+          </Box>
+        )}
+
+        {(user.nivel === "auditor" ||
+          user.nivel === "revisor" ||
+          user.nivel === "revisor_logistica") && (
+          <Box>
+            <MenuItem onClick={handleClose} component={Link} to="/reports">
+              Relatorio
+            </MenuItem>
+            <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
+              Mapa Analytics
+            </MenuItem>
           </Box>
         )}
 

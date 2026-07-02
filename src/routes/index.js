@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Switch } from 'react-router-dom';
+import { Switch, Route as PublicRoute } from 'react-router-dom';
 import Route from './Route';
 
 const SignIn = lazy(() => import('../pages/SignIn'));
@@ -24,6 +24,8 @@ const ContactEmail = lazy(() => import('../pages/ContactEmail/index'));
 const Patrimonio = lazy(() => import('../pages/Patrimonio'));
 const ChecklistGemini = lazy(() => import('../pages/New_IA/ChecklistGemini'));
 const Oem = lazy(() => import('../pages/Oem'));
+const AnalyticsMap = lazy(() => import('../pages/AnalyticsMap'));
+const VenezaSupplement = lazy(() => import('../pages/VenezaSupplement'));
 
 function RouteLoading() {
   return (
@@ -48,11 +50,13 @@ export default function Routes() {
       <Switch>
         {/* paginas geral */}
         <Route exact path="/" component={SignIn} />
+        <PublicRoute exact path="/veneza/suplementacao" component={VenezaSupplement} />
         <Route exact path="/validation" component={FirstLoginChangePassword} isPrivate />
         <Route exact path="/profile" component={Profile} isPrivate />
         <Route exact path="/profileadm" component={ProfileADM} isPrivate isAdm />
         <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
         <Route exact path="/reports" component={Reports} isPrivate />
+        <Route exact path="/analytics-map" component={AnalyticsMap} isPrivate />
         <Route exact path="/patrimonio" component={Patrimonio} isPrivate />
         <Route exact path="/oem" component={Oem} isPrivate/>
         <Route exact path="/sites" component={Sites} isPrivate />
