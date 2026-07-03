@@ -1,9 +1,7 @@
 import { useState, useEffect, useContext } from "react";
-import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { FiExternalLink, FiFileText, FiList } from "react-icons/fi";
 import firebase from "../../services/firebaseConnection.js";
 import Header from "../../components/Header/index.js";
-import Title from "../../components/Title/index.js";
 import { AuthContext } from "../../contexts/auth.js";
 import * as XLSX from 'xlsx';
 import "./report.scss";
@@ -21,6 +19,7 @@ import {
   TextField,
   Divider,
   Card,
+  Chip,
   Pagination,
   CircularProgress,
   FormControlLabel,
@@ -45,7 +44,6 @@ const REGIONAIS = {
   SUL: ["RS", "PR", "SC"]
 };
 
-// Lista de municípios de São Paulo considerados Capital
 const municipiosCapital = [
   "BERTIOGA", "CAJATI", "CANANÉIA", "CUBATÃO", "ELDORADO", "GUARUJÁ",
   "IGUAPE", "ILHA COMPRIDA", "ITANHAÉM", "ITARIRI", "JACUPIRANGA", "JUQUIÁ",
@@ -95,7 +93,12 @@ export default function Oem() {
   const [ufsList, setUfsList] = useState([]); // Lista de UFs únicas
 
   useEffect(() => {
-    addBodyClass("page-reports");
+    document.body.classList.remove("page-reports");
+    document.body.classList.add("page-oem");
+
+    return () => {
+      document.body.classList.remove("page-oem");
+    };
   }, []);
 
   // Atualizar UFs quando a região mudar
@@ -158,8 +161,11 @@ export default function Oem() {
         const siteData = doc.data().site_id;
         const aprData = doc.data();
 
-        const municipioUpper = siteData.Cidade ? siteData.Cidade.toUpperCase().trim() : "";
+        const municipioUpper = siteData.Cidade
+          ? siteData.Cidade.toUpperCase().trim()
+          : "";
         let cityMatch = true;
+
         if (selectedRegion === "SP_CAPITAL") {
           cityMatch = municipiosCapital.includes(municipioUpper);
         } else if (selectedRegion === "SP_INTERIOR") {
@@ -543,12 +549,11 @@ export default function Oem() {
 
   return (
     <div>
-      <Header />
+      <Header name="Infra e Móvel">
+        <FiFileText size={25} />
+      </Header>
       <div className="content">
-        <Title name="Infra e Móvel">
-          <FiFileText size={25} />
-        </Title>
-        <div className="filter-reports-container">
+        <div className="filter-reports-container" sx={{ margin:"20px" }}>
           <div className="filter-reports">
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={3}>
@@ -683,16 +688,37 @@ export default function Oem() {
                           {chamadosUF.map((question, index) => (
                             <Accordion
                               key={`${question.uid}-${question.index}`}
-                              sx={{
-                                mb: 1,
-                                border: question.plano_acao?.comentario
-                                  ? '2px solid #4caf50'
-                                  : '2px solid #f44336',
-                                borderRadius: 2,
-                              }}
+                              className={`oem-question-card ${question.plano_acao?.comentario ? "is-treated" : "is-pending"}`}
+                              sx={{ mb: 1 }}
                               onClick={() => console.log(question)}
                             >
-                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />} className="oem-question-summary">
+                                <Box className="oem-question-summary-content">
+                                  <Box className="oem-question-title-wrap">
+                                    <Typography variant="body1" className="oem-question-title">
+                                      <strong>{question.id}</strong>
+                                      <span>{question.nome}</span>
+                                      <span>{question.municipio}</span>
+                                    </Typography>
+                                    <Typography variant="caption" className="oem-question-subtitle">
+                                      {question.tipoSite} - {question.area}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box className="oem-question-badges">
+                                    <Chip
+                                      label={question.plano_acao?.comentario ? "Tratado" : "Pendente"}
+                                      size="small"
+                                      className={question.plano_acao?.comentario ? "oem-status-chip is-treated" : "oem-status-chip is-pending"}
+                                    />
+                                    <Chip
+                                      label={`${aprQuestionStats[question.id]?.respondidas || 0}/${aprQuestionStats[question.id]?.total || 0} respondidas`}
+                                      size="small"
+                                      variant="outlined"
+                                      className="oem-count-chip"
+                                    />
+                                  </Box>
+                                </Box>
                                 <Typography variant="body1" noWrap>
                                   <strong>{question.id}</strong> - {question.nome} - {question.municipio}
                                   {question.plano_acao?.comentario ? " ✅" : " ❌"}
@@ -701,9 +727,9 @@ export default function Oem() {
                                   </span>
                                 </Typography>
                               </AccordionSummary>
-                              <AccordionDetails>
-                                <Grid container spacing={2}>
-                                  <Grid item xs={12} sm={8}>
+                              <AccordionDetails className="oem-question-details-wrap">
+                                <Grid container spacing={2} className="oem-question-details">
+                                  <Grid item xs={12} md={question.imagesURL?.length > 0 ? 8 : 12} className="oem-info-column">
                                     <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
                                       Informações da Inconformidade
                                     </Typography>
@@ -745,11 +771,12 @@ export default function Oem() {
                                       </>
                                     )}
 
-                                    <Grid container spacing={1}>
+                                    <Grid container spacing={1} className="oem-card-actions">
                                       <Grid item xs={12} sm={10}>
                                         <Button
                                           variant="outlined"
                                           onClick={() => window.open(`/open/${question.uid}`, '_blank')}
+                                          className="oem-open-apr-button"
                                           sx={{
                                             borderColor: "#380054e8",
                                             color: "#380054e8",
@@ -773,11 +800,12 @@ export default function Oem() {
                                   </Grid>
 
                                   {question.imagesURL?.length > 0 && (
-                                    <Grid item xs={12} sm={4}>
+                                    <Grid item xs={12} md={4} className="oem-image-column">
                                       <Typography variant="h6" fontWeight="bold" gutterBottom>
                                         Imagem
                                       </Typography>
                                       <Card
+                                        className="oem-image-card"
                                         elevation={3}
                                         sx={{ borderRadius: 2, overflow: "hidden", maxWidth: "100%" }}
                                       >

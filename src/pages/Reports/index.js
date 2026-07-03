@@ -1,16 +1,15 @@
 import { useState, useEffect, useContext } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
-import { FiFileText } from "react-icons/fi";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import firebase from "../../services/firebaseConnection";
 import Header from "../../components/Header";
-import Title from "../../components/Title";
 import { AuthContext } from "../../contexts/auth";
 import "./report.scss";
 import {
   Button,
+  Chip,
   FormControl,
   Grid,
   InputLabel,
@@ -23,6 +22,9 @@ import {
   Typography,
   Box,
 } from "@mui/material";
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
@@ -42,6 +44,9 @@ export default function Reports() {
   useEffect(() => {
     addBodyClass('page-reports');
   }, []);
+
+  const hasDateFilter = filterDate.startDate || filterDate.endDate;
+  const hasSpecificIds = filterAprIds.trim() !== "";
 
   function parseAprIds(rawValue) {
     const tokens = rawValue
@@ -216,10 +221,10 @@ export default function Reports() {
       setChamados(filteredResults);
 
       if (filteredResults.length < total) {
-        toast.info(`Busca concluída: ${filteredResults.length} APR(s) encontrada(s) de ${total} ID(s) informado(s).`);
+        toast.info(`Busca concluida: ${filteredResults.length} APR(s) encontrada(s) de ${total} ID(s) informado(s).`);
       }
     } catch (err) {
-      console.error("❌ Erro ao carregar APRs por ID: ", err);
+      console.error("Erro ao carregar APRs por ID: ", err);
       toast.error("Erro ao buscar APRs pelos IDs informados.");
       setChamados([]);
     } finally {
@@ -230,8 +235,6 @@ export default function Reports() {
   }
 
   async function loadChamados() {
-    const hasSpecificIds = filterAprIds.trim() !== "";
-
     if (hasSpecificIds) {
       await loadChamadosBySpecificIds();
       return;
@@ -244,7 +247,7 @@ export default function Reports() {
 
       // Validar se tem pelo menos uma data preenchida
       if (!filterDate.startDate && !filterDate.endDate) {
-        toast.warning("Preencha pelo menos a Data Início ou Data Fim para fazer a busca.");
+        toast.warning("Preencha pelo menos a Data Inicio ou Data Fim para fazer a busca.");
         setChamados([]);
         setLoading(false);
         return;
@@ -386,7 +389,6 @@ export default function Reports() {
       // Se der erro de índice ausente, o Firestore logará o link no console
     }
     setLoading(false);
-    setIsDownloading(false);
     setDownloadProgress(0); // Resetar após terminar
   }
 
@@ -758,13 +760,60 @@ export default function Reports() {
 
   return (
     <div>
-      <Header />
+      <Header name="Relatorios" />
       <div className="content">
-        <Title name="Relatórios">
-          <FiFileText size={25} onClick={() => console.log(chamados)} />
-        </Title>
+        <div className="container reports-shell">
+          <div className="reports-hero">
+            <div className="reports-hero-copy">
+              <span className="reports-eyebrow">APR Digital</span>
+              <Typography variant="h5" className="reports-title">
+                Central de relatorios
+              </Typography>
+              <Typography variant="body2" className="reports-subtitle">
+                Filtre por periodo, status, motivo e tipo de site para gerar a exportacao com mais clareza.
+              </Typography>
+            </div>
+
+            <div className="reports-hero-aside">
+              <Chip
+                label={`${chamados.length} APR(s) carregadas`}
+                color="secondary"
+                className="reports-chip-primary"
+              />
+              <Chip
+                label={includeQuestions ? "Com perguntas" : "Resumo da APR"}
+                variant="outlined"
+              />
+            </div>
+          </div>
         <div className="filter-reports-container">
-          <div className="filter-reports">
+          <div className="filter-reports reports-filter-panel">
+            <div className="reports-filter-header">
+              <Box>
+                <Typography variant="h6" className="reports-filter-title">
+                  Ajustar filtros
+                </Typography>
+                <Typography variant="body2" className="reports-filter-subtitle">
+                  Informe pelo menos uma data para iniciar a consulta e depois refine os demais criterios.
+                </Typography>
+              </Box>
+
+              <div className="reports-filter-chips">
+                <Chip
+                  icon={<TuneRoundedIcon />}
+                  label={
+                    hasSpecificIds
+                      ? "IDs definidos"
+                      : hasDateFilter
+                        ? "Periodo definido"
+                        : "Periodo obrigatorio"
+                  }
+                  variant={hasDateFilter || hasSpecificIds ? "filled" : "outlined"}
+                  color={hasDateFilter || hasSpecificIds ? "secondary" : "default"}
+                  size="small"
+                />
+              </div>
+            </div>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -777,39 +826,41 @@ export default function Reports() {
                   minRows={3}
                   value={filterAprIds}
                   onChange={(e) => setFilterAprIds(e.target.value)}
-                  placeholder="Cole aqui os IDs da APR separados por quebra de linha, vírgula, espaço ou ponto e vírgula"
-                  helperText="Se preencher este campo, a busca usará apenas os IDs informados e ignorará o período."
+                  placeholder="Cole os IDs separados por quebra de linha, virgula, espaco ou ponto e virgula"
+                  helperText="Se preencher este campo, a busca usa apenas os IDs informados e ignora o periodo."
                 />
               </Grid>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} lg={2}>
                 <TextField
                   id="startDate"
                   type="date"
-                  label=""
+                  label="Data inicio"
                   variant="outlined"
                   fullWidth
                   size="small"
+                  InputLabelProps={{ shrink: true }}
                   value={filterDate.startDate}
                   onChange={(e) =>
                     setFilterDate({ ...filterDate, startDate: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} lg={2}>
                 <TextField
                   id="endDate"
                   type="date"
-                  label=""
+                  label="Data fim"
                   variant="outlined"
                   fullWidth
                   size="small"
+                  InputLabelProps={{ shrink: true }}
                   value={filterDate.endDate}
                   onChange={(e) =>
                     setFilterDate({ ...filterDate, endDate: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={2} sx={12}>
+              <Grid item xs={12} sm={6} md={4} lg={2}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="status-label" size="small">Status</InputLabel>
                   <Select
@@ -830,7 +881,7 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="motivo-label" size="small">Motivo</InputLabel>
                   <Select
@@ -858,7 +909,7 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel id="tipo-de-site-label" size="small">Tipo de Site</InputLabel>
                   <Select
@@ -895,33 +946,37 @@ export default function Reports() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={includeQuestions}
-                      onChange={(e) => setIncludeQuestions(e.target.checked)}
-                    />
-                  }
-                  label="Incluir Perguntas"
-                />
+              <Grid item xs={12} md={7} lg={8}>
+                <div className="reports-options-row">
+                  <FormControlLabel
+                    className="reports-checkbox"
+                    control={
+                      <Checkbox
+                        checked={includeQuestions}
+                        onChange={(e) => setIncludeQuestions(e.target.checked)}
+                      />
+                    }
+                    label="Incluir perguntas no arquivo"
+                  />
+                </div>
               </Grid>
-              <Grid item xs={2}>
-                <FormControl>
+              <Grid item xs={12} md={5} lg={4}>
+                <div className="reports-submit-wrap">
                   <Button
-                    variant="outlined"
-                    color="primary"
+                    variant="contained"
+                    color="secondary"
                     onClick={loadChamados}
                     disabled={loading}
-                    style={{ borderColor: "#380054e8", color: "#380054e8" }}
+                    className="reports-submit-button"
+                    fullWidth
                   >
-                    {loading && !isDownloading ? "Filtrando..." : "Filtrar"}
+                    {loading && !isDownloading ? "Filtrando..." : "Carregar relatorio"}
                   </Button>
-                </FormControl>
+                </div>
               </Grid>
             </Grid>
             {loading && isDownloading && (
-              <Box sx={{ width: '100%', mt: 2 }}>
+              <Box className="reports-progress">
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 1 }}>
                   Carregando dados... {downloadProgress}%
                 </Typography>
@@ -931,20 +986,42 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className={"container reports"} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => updateState(chamados)}
-            disabled={loading || chamados.length === 0}
-            style={{ backgroundColor: loading ? '#ccc' : '#380054e8' }}
-          >
-            {loading ? "Processando..." : "Download"}
-          </Button>
+        <div className="container reports-export-card">
+          <div className="reports-export-copy">
+            <span className="reports-export-badge">
+              <TaskAltRoundedIcon fontSize="inherit" />
+              Exportacao
+            </span>
+            <Typography variant="h6" className="reports-export-title">
+              Gerar arquivo Excel
+            </Typography>
+            <Typography variant="body2" className="reports-export-subtitle">
+              Depois de carregar os registros, exporte a base consolidada em um unico arquivo.
+            </Typography>
+          </div>
+
+          <div className="reports-export-actions">
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => updateState(chamados)}
+              disabled={loading || chamados.length === 0}
+              className="reports-download-button"
+              startIcon={<DownloadRoundedIcon />}
+            >
+              {loading ? "Processando..." : "Baixar Excel"}
+            </Button>
+
+            <div className="reports-export-meta">
+              <strong>{chamados.length}</strong>
+              <span>APR(s) prontas para exportacao</span>
+            </div>
+          </div>
         </div>
         <div className="container reports">
           <i>APR´s carregadas: {chamados.length}</i>
         </div>
+      </div>
       </div>
     </div>
   );
