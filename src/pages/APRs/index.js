@@ -208,6 +208,9 @@ export default function Dashboard() {
         }
       }
     });
+    imagem_id = 
+    <img src="https://www.artic.edu/iiif/2/${imagem_id}/full/843,/0/default.jpg
+"></img>
 
     return counts;
   }, [chamados]);
@@ -216,6 +219,10 @@ export default function Dashboard() {
     addBodyClass("page-dash");
     // Carrega os chamados inicialmente
     loadChamados(false);
+
+    return () => {
+      document.body.classList.remove("page-dash");
+    };
   }, []);
 
   // Função para carregar os chamados com base nos filtros

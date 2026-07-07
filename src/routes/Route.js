@@ -23,6 +23,7 @@ export default function RouteWrapper({
   component: Component,
   isPrivate,
   isAdm,
+  allowedUids,
   ...rest
 }) {
 
@@ -64,6 +65,16 @@ export default function RouteWrapper({
   }
 
   if (signed && !isPrivate) {
+    return <Redirect to={pageTo()} />;
+  }
+
+  if (
+    signed &&
+    isPrivate &&
+    Array.isArray(allowedUids) &&
+    allowedUids.length > 0 &&
+    !allowedUids.includes(user.uid)
+  ) {
     return <Redirect to={pageTo()} />;
   }
 

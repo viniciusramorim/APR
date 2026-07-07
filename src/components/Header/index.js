@@ -49,6 +49,7 @@ export default function Header({ name, subtitle, children }) {
   const { user, signOut, redefinirPassword } = useContext(AuthContext);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const canAccessAnalyticsMap = user?.uid === "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2";
 
   const location = useLocation();
 
@@ -180,12 +181,6 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize metricas",
       },
       {
-        text: "Mapa Analytics",
-        icon: <TravelExploreRoundedIcon />,
-        link: "/analytics-map",
-        subtitle: "Radar territorial das APRs",
-      },
-      {
         text: "Gerenciar Emails",
         icon: <Email />,
         link: "/contact-email",
@@ -204,6 +199,15 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize logs do sistema",
       }
     );
+
+    if (canAccessAnalyticsMap) {
+      menuItems.push({
+        text: "Mapa Analytics",
+        icon: <TravelExploreRoundedIcon />,
+        link: "/analytics-map",
+        subtitle: "Radar territorial das APRs",
+      });
+    }
 
     if (
       [
@@ -237,18 +241,27 @@ export default function Header({ name, subtitle, children }) {
         icon: <ContentPasteSearchSharpIcon />,
         link: "/reports",
         subtitle: "Visualize relatorios",
-      },
-      {
+      }
+    );
+
+    if (canAccessAnalyticsMap) {
+      menuItems.push({
         text: "Mapa Analytics",
         icon: <TravelExploreRoundedIcon />,
         link: "/analytics-map",
         subtitle: "Radar territorial das APRs",
-      }
-    );
+      });
+    }
   }
 
   if (user.nivel === "revisor" || user.nivel === "revisor_logistica") {
     menuItems.push(
+      {
+        text: "Aplicar APR",
+        icon: <PlaylistAddCheckSharpIcon />,
+        link: "/new",
+        subtitle: "Submeta uma nova APR",
+      },
       {
         text: "APRs",
         icon: <FileDownloadDoneSharpIcon />,
@@ -262,18 +275,21 @@ export default function Header({ name, subtitle, children }) {
         subtitle: "Visualize relatorios",
       },
       {
-        text: "Mapa Analytics",
-        icon: <TravelExploreRoundedIcon />,
-        link: "/analytics-map",
-        subtitle: "Radar territorial das APRs",
-      },
-      {
         text: "Gerenciar Emails",
         icon: <Email />,
         link: "/contact-email",
         subtitle: "Configure emails",
       }
     );
+
+    if (canAccessAnalyticsMap) {
+      menuItems.push({
+        text: "Mapa Analytics",
+        icon: <TravelExploreRoundedIcon />,
+        link: "/analytics-map",
+        subtitle: "Radar territorial das APRs",
+      });
+    }
   }
 
   const uniqueMenuItems = menuItems.filter(
