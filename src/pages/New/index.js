@@ -185,6 +185,26 @@ export default function New() {
     restoreOfflineAprSession();
   }, [locationRouter.search]);
 
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsOfflineMode(true);
+      toast.warning("APR operando em modo offline. Verifique sua conexão.");
+    };
+
+    const handleOnline = () => {
+      setIsOfflineMode(false);
+      toast.success("Conexão restabelecida. Você já pode sincronizar APRs offline.");
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
+
   const base = "aprs-producao"; //aprs-producao
   const storage = "images"; //images
 
@@ -221,6 +241,8 @@ export default function New() {
   const [geolocationError, setGeolocationError] = useState(null);
   const [aprSalva, setAprSalva] = useState(false);
   const [activeOfflineAprId, setActiveOfflineAprId] = useState(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(!navigator.onLine);
+  const [showOfflineSavedNotice, setShowOfflineSavedNotice] = useState(false);
 
   const isEditingOfflineApr = new URLSearchParams(locationRouter.search).has("edit_offline");
 
@@ -336,13 +358,10 @@ export default function New() {
 
     clearOfflineAprEditSession();
     setShowPostModal(false);
+    setShowOfflineSavedNotice(true);
     toast.warning(
       "Sem conexão. APR salva localmente. Quando voltar a internet, use o painel APRs Offline para sincronizar."
     );
-
-    setTimeout(() => {
-      window.location.href = "/aprs";
-    }, 700);
   };
 
   async function restoreOfflineAprSession() {
@@ -1615,11 +1634,23 @@ export default function New() {
       <Header name="APLICAR APR" subtitle="Preencha as informações abaixo para criar uma nova APR" />
 
       <Container maxWidth="md" sx={{ py: 3 }}>
+        {isOfflineMode && (
+          <Alert severity="warning" sx={{ mt: 10, mb: 2 }}>
+            APR operando em modo offline. Verifique sua conexão.
+          </Alert>
+        )}
+
+        {showOfflineSavedNotice && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            APR salva apenas no local. É necessário sincronizar quando houver rede.
+          </Alert>
+        )}
+
         {/* Informações de Localização */}
         <Paper
           elevation={0}
           sx={{
-            mt: 10,
+            mt: isOfflineMode ? 0 : 10,
             mb: 3,
             p: 3,
             border: '2px solid #8e24aa',

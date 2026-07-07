@@ -11,7 +11,6 @@ import RegisterMember from "../RegisterMember";
 export default function MenuMobile({ user }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [registerModalOpen, setRegisterModalOpen] = React.useState(false);
-  const canAccessAnalyticsMap = user?.uid === "zbLnqdRrhIQSf7a3Wg4fMe32EFJ2";
   const open = Boolean(anchorEl);
 
   const handleClick = (event) => {
@@ -85,11 +84,9 @@ export default function MenuMobile({ user }) {
             <MenuItem onClick={handleClose} component={Link} to="/reports">
               Relatorio
             </MenuItem>
-            {canAccessAnalyticsMap && (
-              <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
-                Mapa Analytics
-              </MenuItem>
-            )}
+            <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
+              Mapa Analytics
+            </MenuItem>
             <MenuItem onClick={handleOpenRegister}>Adicionar usuario</MenuItem>
           </Box>
         )}
@@ -101,11 +98,9 @@ export default function MenuMobile({ user }) {
             <MenuItem onClick={handleClose} component={Link} to="/reports">
               Relatorio
             </MenuItem>
-            {canAccessAnalyticsMap && (
-              <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
-                Mapa Analytics
-              </MenuItem>
-            )}
+            <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
+              Mapa Analytics
+            </MenuItem>
           </Box>
         )}
 

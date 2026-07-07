@@ -26,7 +26,6 @@ const ChecklistGemini = lazy(() => import('../pages/New_IA/ChecklistGemini'));
 const Oem = lazy(() => import('../pages/Oem'));
 const AnalyticsMap = lazy(() => import('../pages/AnalyticsMap'));
 const VenezaSupplement = lazy(() => import('../pages/VenezaSupplement'));
-const ANALYTICS_MAP_ALLOWED_UIDS = ['zbLnqdRrhIQSf7a3Wg4fMe32EFJ2'];
 
 function RouteLoading() {
   return (
@@ -57,13 +56,7 @@ export default function Routes() {
         <Route exact path="/profileadm" component={ProfileADM} isPrivate isAdm />
         <Route exact path="/new_site" component={New_Site} isPrivate isAdm />
         <Route exact path="/reports" component={Reports} isPrivate />
-        <Route
-          exact
-          path="/analytics-map"
-          component={AnalyticsMap}
-          isPrivate
-          allowedUids={ANALYTICS_MAP_ALLOWED_UIDS}
-        />
+        <Route exact path="/analytics-map" component={AnalyticsMap} isPrivate isAdm />
         <Route exact path="/patrimonio" component={Patrimonio} isPrivate />
         <Route exact path="/oem" component={Oem} isPrivate/>
         <Route exact path="/sites" component={Sites} isPrivate />
