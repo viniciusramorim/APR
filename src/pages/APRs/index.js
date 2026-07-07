@@ -208,10 +208,6 @@ export default function Dashboard() {
         }
       }
     });
-    imagem_id = 
-    <img src="https://www.artic.edu/iiif/2/${imagem_id}/full/843,/0/default.jpg
-"></img>
-
     return counts;
   }, [chamados]);
 

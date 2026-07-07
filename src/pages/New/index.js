@@ -8,12 +8,21 @@ import {
   FiArrowLeft,
   FiEye,
 } from "react-icons/fi";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import * as geofire from "geofire-common";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
+import {
+  clearOfflineAprEditSession,
+  getOfflineAprEditSession,
+  hydrateQuestionsFromOffline,
+  removeOfflineAprRecord,
+  saveOfflineAprRecord,
+  serializeQuestionsForOffline,
+  updateOfflineAprRecord,
+} from "../../services/offlineAprStorage";
 import "./new.scss";
 
 import { AuthContext } from "../../contexts/auth";
@@ -60,6 +69,7 @@ export default function New() {
   const { user, logSistem } = useContext(AuthContext);
   const { id } = useParams();
   const { id_assign } = useParams();
+  const locationRouter = useLocation();
 
   // Verificar se geolocalização é suportada
   const isGeolocationSupported = () => {
@@ -171,6 +181,10 @@ export default function New() {
     }
   }, [id]);
 
+  useEffect(() => {
+    restoreOfflineAprSession();
+  }, [locationRouter.search]);
+
   const base = "aprs-producao"; //aprs-producao
   const storage = "images"; //images
 
@@ -206,6 +220,9 @@ export default function New() {
   const [showGeolocationModal, setShowGeolocationModal] = useState(false);
   const [geolocationError, setGeolocationError] = useState(null);
   const [aprSalva, setAprSalva] = useState(false);
+  const [activeOfflineAprId, setActiveOfflineAprId] = useState(null);
+
+  const isEditingOfflineApr = new URLSearchParams(locationRouter.search).has("edit_offline");
 
   const maisUtilizados = [2, 3, 5, 6, 7, 8, 10, 11, 18, 20];
   const currentChecklist = selectedChecklist || siteInfo?.tipoSite || "";
@@ -247,7 +264,9 @@ export default function New() {
       .then((snapshot) => {
         const siteData = snapshot.data();
         setSiteInfo(siteData);
-        setSelectedChecklist(siteData?.tipoSite || "");
+        if (!isEditingOfflineApr) {
+          setSelectedChecklist(siteData?.tipoSite || "");
+        }
         if (siteData.last_apr !== undefined) {
           setLastAPR({
             data: format(siteData.last_apr.toDate(), "dd/MM/yyyy HH:mm"),
@@ -259,6 +278,136 @@ export default function New() {
       .catch((error) => {
         console.log("DEU ALGUM ERRO!", error);
       });
+  }
+
+  const showAprFormContainers = () => {
+    const questionsContainer = document.getElementById("container-questions");
+    const formContainer = document.getElementById("container");
+
+    if (questionsContainer) {
+      questionsContainer.style.display = "flex";
+    }
+
+    if (formContainer) {
+      formContainer.style.display = "flex";
+    }
+  };
+
+  const buildOfflineAprPayload = async () => {
+    const serializedQuestions = await serializeQuestionsForOffline(questions);
+    const offlineId =
+      activeOfflineAprId ||
+      `offline-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    return {
+      id: offlineId,
+      timestamp: Date.now(),
+      user,
+      siteId: id,
+      idAssign: id_assign || null,
+      siteInfo,
+      selectedChecklist: currentChecklist,
+      loadedChecklist,
+      motivoAPR,
+      valorArmazenamento,
+      valorTransporte,
+      valorSinistro,
+      valorEstoque,
+      tipoLoja,
+      justificativa: justificativa || null,
+      geolocationEnabled,
+      geolocationJustification,
+      geolocationError,
+      location,
+      inicio,
+      questions: serializedQuestions,
+    };
+  };
+
+  const saveAprOffline = async () => {
+    const offlinePayload = await buildOfflineAprPayload();
+
+    if (activeOfflineAprId) {
+      updateOfflineAprRecord(activeOfflineAprId, offlinePayload);
+    } else {
+      saveOfflineAprRecord(offlinePayload);
+      setActiveOfflineAprId(offlinePayload.id);
+    }
+
+    clearOfflineAprEditSession();
+    setShowPostModal(false);
+    toast.warning(
+      "Sem conexão. APR salva localmente. Quando voltar a internet, use o painel APRs Offline para sincronizar."
+    );
+
+    setTimeout(() => {
+      window.location.href = "/aprs";
+    }, 700);
+  };
+
+  async function restoreOfflineAprSession() {
+    const params = new URLSearchParams(locationRouter.search);
+    const editOfflineId = params.get("edit_offline");
+    const offlineSession = getOfflineAprEditSession();
+
+    if (!offlineSession) {
+      return;
+    }
+
+    if (editOfflineId && offlineSession.id !== editOfflineId) {
+      return;
+    }
+
+    try {
+      const hydratedQuestions = await hydrateQuestionsFromOffline(
+        offlineSession.questions || []
+      );
+
+      setActiveOfflineAprId(offlineSession.id || editOfflineId || null);
+      setQuestions(hydratedQuestions);
+      setSelectedChecklist(
+        offlineSession.selectedChecklist || offlineSession.siteInfo?.tipoSite || ""
+      );
+      setLoadedChecklist(
+        offlineSession.selectedChecklist || offlineSession.siteInfo?.tipoSite || ""
+      );
+      setMotivoAPR(offlineSession.motivoAPR || "");
+      setValorArmazenamento(offlineSession.valorArmazenamento || "");
+      setValorTransporte(offlineSession.valorTransporte || "");
+      setValorSinistro(offlineSession.valorSinistro || "");
+      setValorEstoque(offlineSession.valorEstoque || "0");
+      setTipoLoja(offlineSession.tipoLoja || "");
+      setJustificativa(offlineSession.justificativa || undefined);
+      setGeolocationEnabled(Boolean(offlineSession.geolocationEnabled));
+      setGeolocationJustification(offlineSession.geolocationJustification || "");
+      setGeolocationError(offlineSession.geolocationError || null);
+
+      if (offlineSession.location) {
+        setLocation(offlineSession.location);
+      }
+
+      if (offlineSession.inicio) {
+        setInicio(new Date(offlineSession.inicio));
+      }
+
+      setSiteInfo((prev) => ({
+        ...(prev || {}),
+        ...(offlineSession.siteInfo || {}),
+      }));
+
+      setTimeout(showAprFormContainers, 0);
+
+      if (params.get("auto_sync") === "1" && navigator.onLine) {
+        toast.info(
+          "APR offline carregada para sincronização. Revise os dados e clique em Concluir APR."
+        );
+      } else {
+        toast.info("APR offline carregada para edição.");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar APR offline:", error);
+      toast.error("Erro ao carregar APR offline para edição.");
+    }
   }
 
   async function getQuestions(snapshot) {
@@ -527,6 +676,11 @@ export default function New() {
       if (!geolocationEnabled && !geolocationJustification) {
         setShowGeolocationModal(true);
         toast.warning("⚠️ Geolocalização necessária ou forneça uma justificativa");
+        return;
+      }
+
+      if (!navigator.onLine) {
+        await saveAprOffline();
         return;
       }
 
@@ -1004,6 +1158,12 @@ export default function New() {
   }
 
   function conclusionApr(id) {
+    if (activeOfflineAprId) {
+      removeOfflineAprRecord(activeOfflineAprId);
+      clearOfflineAprEditSession();
+      setActiveOfflineAprId(null);
+    }
+
     // Função helper para esconder elemento com verificação
     const hideElement = (elementId) => {
       const element = document.getElementById(elementId);
