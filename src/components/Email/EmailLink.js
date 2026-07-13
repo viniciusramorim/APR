@@ -786,44 +786,24 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     setIsLoading(true);
 
     try {
-      const needsLogistics = needsLogisticsFocalPoint();
-      let newStatus = "Revisado";
-      let updateData = {
+      const newStatus = "Revisado";
+
+      // Este caminho apenas finaliza a revisão. O envio para áreas/ponto focal
+      // fica restrito ao botão "Confirmar e Enviar E-mail".
+      await firebase.firestore().collection('aprs-producao').doc(id).update({
         status: newStatus,
         terms: agreeTerms,
         data_revisao: firebase.firestore.FieldValue.serverTimestamp()
-      };
+      });
 
-      // Se precisa ir para ponto focal de logística
-      if (needsLogistics) {
-        newStatus = "Aguardando Ponto Focal";
-        updateData = {
-          ...updateData,
-          status: newStatus,
-          data_envio_ponto_focal: firebase.firestore.FieldValue.serverTimestamp(),
-          sla_ponto_focal: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)) // 14 dias
-        };
-
-        // Enviar email para ponto focal
-        await sendEmailToLogisticsFocalPoint();
-        logSistem('APR revisada e enviada para ponto focal de logística', id);
-      } else {
-        logSistem('APR Revisada', id);
-      }
-
-      // Atualizar status da APR no Firestore
-      await firebase.firestore().collection('aprs-producao').doc(id).update(updateData);
+      logSistem('APR Revisada sem envio de e-mail', id);
 
       setApr({
         ...apr,
         status: newStatus
       });
 
-      const message = needsLogistics 
-        ? "APR revisada com inconformidades - enviada para correção!" 
-        : "APR revisada com sucesso!";
-      
-      toast.success(message);
+      toast.success("APR revisada com sucesso, sem envio de e-mail.");
       setOpenDialog(false);
       setAgreeTerms(false);
     } catch (error) {
@@ -901,10 +881,13 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                     color="primary"
-                    disabled={isLoading || isLoadingEmails || !emails}
+                    disabled={isLoading || isLoadingEmails}
                   />
                 }
-                label="Confirmo que os destinatários dos e-mails mencionados acima estão corretos e que a Análise Preventiva de Riscos (APR) já foi revisada e aprovada."
+                label={emails
+                  ? "Confirmo que os destinatários dos e-mails mencionados acima estão corretos e que a Análise Preventiva de Riscos (APR) já foi revisada e aprovada."
+                  : "Confirmo que a Análise Preventiva de Riscos (APR) já foi revisada e aprovada, sem envio de e-mail neste momento."
+                }
                 sx={{ mt: 2 }}
               />
             </>
@@ -921,7 +904,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
           </Button>
           {hasEmailToSend ? (
             <Fragment>
-              <Button onClick={revisado} color="primary" variant="contained" disabled={!agreeTerms || isLoading || isLoadingEmails || !emails}>
+              <Button onClick={revisado} color="primary" variant="contained" disabled={!agreeTerms || isLoading || isLoadingEmails}>
                 {isLoading ? "Processando..." : "Confirmar Revisão"}
               </Button>
               <Button onClick={sendEmail} color="primary" variant="contained" disabled={!agreeTerms || isLoading || isLoadingEmails || !emails}>
