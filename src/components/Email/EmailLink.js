@@ -18,7 +18,18 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   };
 
-  const docRef = `${apr.site_id.Estado}-${removeAccents(apr.site_id.Cidade.toUpperCase())}`;
+  const normalizeText = (value) => {
+    if (!value) return '';
+    return removeAccents(String(value))
+      .toUpperCase()
+      .trim()
+      .replace(/\s+/g, ' ');
+  };
+
+  const estadoOriginal = String(apr?.site_id?.Estado || '').trim();
+  const cidadeOriginal = String(apr?.site_id?.Cidade || '').trim();
+  const cidadeNormalizada = normalizeText(cidadeOriginal);
+  const docRef = `${normalizeText(estadoOriginal)}-${cidadeNormalizada}`;
 
   // Carregar contatos apenas se houver e-mails necessários
   useEffect(() => {
@@ -37,11 +48,64 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
         console.log('📄 DocRef montado:', docRef);
         console.log('📧 Email Types solicitados:', emailTypes);
         
-        const doc = await firebase.firestore().collection('contact_email').doc(docRef).get();
+        const candidateIds = Array.from(new Set([
+          `${estadoOriginal}-${cidadeOriginal}`,
+          `${estadoOriginal.toUpperCase()}-${cidadeOriginal}`,
+          `${estadoOriginal}-${cidadeNormalizada}`,
+          `${estadoOriginal.toUpperCase()}-${cidadeNormalizada}`,
+          `${normalizeText(estadoOriginal)}-${cidadeOriginal}`,
+          `${normalizeText(estadoOriginal)}-${cidadeNormalizada}`,
+        ].filter(Boolean)));
+
+        let doc = null;
+        let matchedDocId = '';
+
+        for (const candidateId of candidateIds) {
+          const candidateDoc = await firebase
+            .firestore()
+            .collection('contact_email')
+            .doc(candidateId)
+            .get();
+
+          if (candidateDoc.exists) {
+            doc = candidateDoc;
+            matchedDocId = candidateId;
+            break;
+          }
+        }
+
+        // Fallback robusto: procura por estado e casa município por normalização
+        if (!doc) {
+          const estadosParaBusca = Array.from(new Set([
+            estadoOriginal,
+            estadoOriginal.toUpperCase(),
+            normalizeText(estadoOriginal),
+          ].filter(Boolean)));
+
+          for (const estadoBusca of estadosParaBusca) {
+            const estadoSnapshot = await firebase
+              .firestore()
+              .collection('contact_email')
+              .where('estado', '==', estadoBusca)
+              .get();
+
+            const matchedByMunicipio = estadoSnapshot.docs.find((item) => {
+              const municipioDoc = normalizeText(item.data()?.municipio || '');
+              return municipioDoc === cidadeNormalizada;
+            });
+
+            if (matchedByMunicipio) {
+              doc = matchedByMunicipio;
+              matchedDocId = matchedByMunicipio.id;
+              break;
+            }
+          }
+        }
         
-        console.log('📋 Documento existe?', doc.exists);
+        console.log('📋 Documento existe?', !!doc?.exists);
+        console.log('📄 Documento encontrado por:', matchedDocId || 'nenhum');
         
-        if (doc.exists) {
+        if (doc?.exists) {
           const data = doc.data();
           console.log('📦 Dados completos do documento:', JSON.stringify(data, null, 2));
           const emailFields = [];
@@ -151,11 +215,12 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
             setEmails(allEmails);
             console.log('✅ Emails setados no estado');
           } else {
-            console.warn(`⚠️ Nenhum e-mail encontrado para ${docRef}`);
+            console.warn(`⚠️ Nenhum e-mail encontrado para ${matchedDocId || docRef}`);
             setEmails('');
           }
         } else {
           console.error(`❌ Documento de e-mail NÃO EXISTE: ${docRef}`);
+          console.log('🧩 IDs tentados:', candidateIds);
           console.log('💡 Verifique se o documento existe no Firestore com esse nome exato');
           setEmails('');
         }
