@@ -60,6 +60,37 @@ export default function Open() {
     return convertido > intervalo.min && convertido <= intervalo.max;
   };
 
+  // Conta total de perguntas, respondidas e inconformidades (resp != respGabarito) de um checklist
+  function computeChecklistStats(checklist) {
+    let totalQuestions = 0;
+    let totalRespondidas = 0;
+    let inconformidades = 0;
+
+    if (!Array.isArray(checklist)) {
+      return { totalQuestions, totalRespondidas, inconformidades };
+    }
+
+    checklist.forEach((area) => {
+      const questions = Array.isArray(area?.[1]) ? area[1] : [];
+      questions.forEach((question) => {
+        if (!question) return;
+        totalQuestions++;
+        const hasResponse = question.resp && question.resp !== "";
+        if (hasResponse) {
+          totalRespondidas++;
+          if (
+            question.resp !== "N/A" &&
+            question.resp !== question.respGabarito
+          ) {
+            inconformidades++;
+          }
+        }
+      });
+    });
+
+    return { totalQuestions, totalRespondidas, inconformidades };
+  }
+
   async function loadHistoricoAPRs(siteData) {
     try {
       const snapshot = await firebase
@@ -76,12 +107,16 @@ export default function Open() {
         const data = doc.data();
         if (doc.id !== id) {
           // Não incluir a APR atual
+          const stats = computeChecklistStats(data.checklist);
           aprs.push({
             id: doc.id,
             apr_id: data.apr_id || doc.id,
             motivo: data.motivo_apr || "Sem motivo informado",
             status: data.status || "N/A",
             created: data.created,
+            totalQuestions: stats.totalQuestions,
+            totalRespondidas: stats.totalRespondidas,
+            inconformidades: stats.inconformidades,
           });
         }
       });
@@ -644,36 +679,7 @@ export default function Open() {
       });
   }
 
-  // Função para revisor_logistica finalizar APR após correções
-  async function finalizarAPRRevisorLogistica(e, id) {
-    e.preventDefault();
-
-    let confirm = window.confirm(
-      "Confirma a finalização da APR? O status será alterado para Concluído."
-    );
-    if (confirm === false) return;
-
-    try {
-      await firebase
-        .firestore()
-        .collection(base)
-        .doc(id)
-        .update({
-          status: "Concluido",
-          data_finalizacao: firebase.firestore.FieldValue.serverTimestamp(),
-          data_alteracao: new Date(),
-        });
-
-      toast.success("APR finalizada com sucesso!");
-      logSistem(`APR finalizada pelo revisor_logistica`, id);
-      ReloadAPR();
-    } catch (error) {
-      toast.error("Erro ao finalizar APR: " + error.message);
-      console.error("Erro:", error);
-    }
-  }
-
-  // Função para revisor_logistica enviar APR para operação após validar todos os planos
+  // Função para revisor enviar APR para operação após validar todos os planos
   async function enviarParaOperacao(e, id) {
     e.preventDefault();
 
@@ -693,7 +699,7 @@ export default function Open() {
         });
 
       toast.success("APR enviada para operação!");
-      logSistem(`APR enviada para operação pelo revisor_logistica`, id);
+      logSistem(`APR enviada para operação pelo revisor`, id);
       ReloadAPR();
     } catch (error) {
       toast.error("Erro ao enviar para operação: " + error.message);
@@ -722,7 +728,7 @@ export default function Open() {
     return temPendencias;
   }
 
-  // Função para verificar se todos os planos de ação foram validados pelo revisor_logistica
+  // Função para verificar se todos os planos de ação foram validados pelo revisor
   function verificarTodosValidados() {
     const checklist = apr.checklist;
     let todosValidados = true;
@@ -825,7 +831,7 @@ export default function Open() {
     }
 
     let confirm = window.confirm(
-      "Confirma o envio da APR para revisão? O revisor e revisor_logistica serão notificados."
+      "Confirma o envio da APR para revisão? O revisor será notificado."
     );
     if (confirm === false) return;
 
@@ -2143,6 +2149,23 @@ export default function Open() {
                                     {aprHist.motivo}
                                   </span>
                                 </div>
+                                <div className="history-stats">
+                                  <span className="history-stat">
+                                    📝 {aprHist.totalRespondidas}/
+                                    {aprHist.totalQuestions} perguntas respondidas
+                                  </span>
+                                  <span
+                                    className={`history-stat ${aprHist.inconformidades > 0
+                                        ? "history-stat-alert"
+                                        : ""
+                                      }`}
+                                  >
+                                    ⚠️ {aprHist.inconformidades}{" "}
+                                    {aprHist.inconformidades === 1
+                                      ? "inconformidade"
+                                      : "inconformidades"}
+                                  </span>
+                                </div>
                                 {aprHist.created && (
                                   <span className="history-date">
                                     📅{" "}
@@ -2394,7 +2417,6 @@ export default function Open() {
                                 } else if (
                                   user.nivel === "revisor" ||
                                   user.nivel === "administrador" ||
-                                  user.nivel === "revisor_logistica" ||
                                   user.uid === apr.user_id.uid
                                 ) {
                                   return (
@@ -2764,8 +2786,7 @@ export default function Open() {
                     </div>
 
                     {(user.nivel === "administrador" ||
-                      user.nivel === "revisor" ||
-                      user.nivel === "revisor_logistica") &&
+                      user.nivel === "revisor") &&
                       (apr.status === "Em Aberto" ||
                         apr.status === "Revisado" ||
                         ((user.nivel === "administrador" ||
@@ -2810,7 +2831,7 @@ export default function Open() {
                         </div>
                       )}
 
-                    {(user.nivel === "revisor" || user.nivel === "administrador" || user.nivel === "revisor_logistica") &&
+                    {(user.nivel === "revisor" || user.nivel === "administrador") &&
                       apr.status === "Aguardando Revisão Plano de Ação" && (
                         <div className="pa-validation-section" style={{ marginTop: "20px" }}>
                           <div className="section-header">
@@ -2926,7 +2947,7 @@ export default function Open() {
                             <h3>📤 Enviar para Revisão</h3>
                             <p>
                               Todos os planos de ação foram definidos. Envie a APR
-                              para revisão do revisor e revisor_logistica
+                              para revisão do revisor
                             </p>
                             {verificarSeTemPendencias() && (
                               <div style={{ color: '#ff6b6b', marginTop: '10px', fontSize: '14px' }}>
@@ -2981,7 +3002,7 @@ export default function Open() {
                         </div>
                       )}
 
-                    {user.nivel === "revisor_logistica" &&
+                    {user.nivel === "revisor" &&
                       apr.status === "Aguardando Correção" && (
                         <div className="logistics-section">
                           <div className="section-header">
@@ -3011,32 +3032,10 @@ export default function Open() {
                         </div>
                       )}
 
-                    {/* Seção para revisor_logistica finalizar APR após correções */}
-                    {user.nivel === "revisor_logistica" &&
-                      apr.status === "Respondido pela Area" && (
-                        <div className="logistics-section">
-                          <div className="section-header">
-                            <h3>✅ Acompanhamento de SLA Concluído</h3>
-                            <p>
-                              As correções foram realizadas. Finalize a APR
-                            </p>
-                          </div>
-                          <div className="finalization-action">
-                            <button
-                              className="btn-send-review"
-                              onClick={(e) => finalizarAPRRevisorLogistica(e, id)}
-                            >
-                              ✅ Finalizar APR
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
                     {/* Botão para finalizar APR - apenas quando status for Aguardando Revisão */}
                     {/* Ponto focal NÃO pode encerrar APR, apenas insere planos de ação */}
                     {(user.nivel === "administrador" ||
                       user.nivel === "revisor" ||
-                      user.nivel === "revisor_logistica" ||
                       user.nivel === "aplicador") &&
                       user.nivel !== "ponto_focal" &&
                       apr.status === "Aguardando Revisão" && (

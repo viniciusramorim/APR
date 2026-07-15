@@ -883,7 +883,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
     try {
       await firebase.firestore().collection('aprs-producao').doc(id).update({
-        status: "Concluído",
+        status: "Concluido",
         data_conclusao_sem_email: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -891,7 +891,7 @@ const EmailLink = ({ apr, id, logSistem, setApr }) => {
 
       setApr({
         ...apr,
-        status: "Concluído"
+        status: "Concluido"
       });
 
       toast.success("APR concluída com sucesso, sem necessidade de envio de e-mail.");

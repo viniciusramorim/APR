@@ -368,8 +368,7 @@ export default function CustomPaginationActionsTable(props) {
                   </Tooltip>
 
                   {(user.nivel === "administrador" ||
-                    user.nivel === "revisor" ||
-                    user.nivel === "revisor_logistica") && (
+                    user.nivel === "revisor") && (
                     <Tooltip title="Cancelar APR">
                       <IconButton
                         size="small"
@@ -402,8 +401,7 @@ export default function CustomPaginationActionsTable(props) {
                   )}
 
                   {(user.nivel === "administrador" ||
-                    user.nivel === "revisor" ||
-                    user.nivel === "revisor_logistica") && (
+                    user.nivel === "revisor") && (
                     <Tooltip title="Ver Histórico/Logs">
                       <Box sx={{ display: 'inline-block' }}>
                         <ModalLog chamadoId={row.id} />

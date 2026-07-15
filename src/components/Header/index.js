@@ -247,7 +247,7 @@ export default function Header({ name, subtitle, children }) {
     );
   }
 
-  if (user.nivel === "revisor" || user.nivel === "revisor_logistica") {
+  if (user.nivel === "revisor") {
     menuItems.push(
       {
         text: "Aplicar APR",

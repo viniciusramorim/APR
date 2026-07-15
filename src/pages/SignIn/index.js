@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { addBodyClass } from "../../components/BodyClassInsert/bodyClassInserter.js";
 import { AuthContext } from "../../contexts/auth";
-import firebase from "../../services/firebaseConnection";
 import "./signin.scss";
 import logo from "../../assets/logoaprdigital-removebg.png";
 import { toast } from "react-toastify";
@@ -22,7 +21,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, loadingAuth, setupRecaptcha } = useContext(AuthContext);
+  const { signIn, loadingAuth, setupRecaptcha, resetPassword } = useContext(AuthContext);
 
   useEffect(() => {
     document.body.classList.remove("page-apply-apr", "page-new", "page-oem", "page-sites");
@@ -52,32 +51,7 @@ export default function SignIn() {
 
   function handleResetPassword() {
     if (email !== "") {
-      firebase
-        .auth()
-        .fetchSignInMethodsForEmail(email)
-        .then((signInMethods) => {
-          if (signInMethods.length > 0) {
-            firebase
-              .auth()
-              .sendPasswordResetEmail(email)
-              .then(() => {
-                alert(
-                  "Por favor, verifique seu e-mail para redefinir sua senha."
-                );
-              })
-              .catch((error) => {
-                toast.error(
-                  "Erro ao enviar e-mail de redefinição de senha. Por favor, tente novamente."
-                );
-                console.error(error);
-              });
-          } else {
-            toast.error("E-mail não existente");
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      resetPassword(email.replaceAll(" ", ""));
     } else {
       toast.error(
         "Por favor, insira seu e-mail antes de tentar redefinir a senha."

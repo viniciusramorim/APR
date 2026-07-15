@@ -123,8 +123,8 @@ export default function Modal_PA({
 
   useEffect(() => {
     function loadConstants() {
-      // Se for revisor_logistica, ativar aba de Plano de Ação (0) automaticamente
-      if (user.nivel === "revisor_logistica") {
+      // Se for revisor, ativar aba de Plano de Ação (0) automaticamente
+      if (user.nivel === "revisor") {
         setActiveTab(0);
       }
 
@@ -134,7 +134,7 @@ export default function Modal_PA({
         setComentario("");
         setSlaLogistica("");
       } else {
-        // Todos os outros (revisor, revisor_logistica, administrador) carregam e podem editar
+        // Todos os outros (revisor, administrador) carregam e podem editar
         setComentario(conteudo?.plano_acao?.comentario || "");
         if (conteudo?.plano_acao?.sla_logistica) {
           setSlaLogistica(new Date(conteudo.plano_acao.sla_logistica.toDate()).toISOString().split('T')[0]);
@@ -144,7 +144,7 @@ export default function Modal_PA({
       }
 
       const defaultOption =
-        user.nivel === "revisor_logistica" || user.nivel === "ponto_focal"
+        user.nivel === "ponto_focal"
           ? "Logistica"
           : "";
       setSelectedOption(
@@ -194,19 +194,17 @@ export default function Modal_PA({
   }, [arquivosSelecionados]);
 
   // Variável para bloquear edição baseada no usuário e status
-  // Revisor, revisor_logistica e administrador podem sempre editar o SLA e comentário da opção Logística
+  // Revisor e administrador podem sempre editar o SLA e comentário da opção Logística
   // Ponto focal também pode editar para adicionar/alterar SLAs
-  // Para revisor_logistica, isReadOnly só é true se a pergunta já tem um plano de ação definido (para mostrar o botão Validar)
-  const isReadOnly = conteudo?.resp_pa_selectedOption && 
-    user.nivel !== "revisor_logistica" && 
+  const isReadOnly = conteudo?.resp_pa_selectedOption &&
     user.nivel !== "ponto_focal" &&
     !((user.nivel === "revisor" || user.nivel === "administrador") && conteudo?.resp_pa_selectedOption === "Logistica");
 
   // Modo visualização: mostrar histórico completo quando APR está em status final
-  // Revisor_logistica e ponto_focal não entram em modo visualização pois precisam continuar definindo SLAs
+  // Ponto focal não entra em modo visualização pois precisa continuar definindo SLAs
   const statusVisualizacao = ["Revisado", "Enviado", "Concluido", "Respondido pela Area"];
-  const isModoVisualizacao = statusVisualizacao.includes(apr.status) && conteudo?.resp_pa_selectedOption && 
-    user.nivel !== "revisor_logistica" && user.nivel !== "ponto_focal";
+  const isModoVisualizacao = statusVisualizacao.includes(apr.status) && conteudo?.resp_pa_selectedOption &&
+    user.nivel !== "ponto_focal";
 
   // Função para verificar se todos os planos de ação foram definidos
   function todosOsPlanosForamDefinidos() {
@@ -256,7 +254,7 @@ export default function Modal_PA({
 
   // Função para verificar se o revisor pode validar (quando status for Aguardando Revisão Plano de Ação)
   function podeValidarPlano() {
-    return apr.status === "Aguardando Revisão Plano de Ação" && user.nivel === "revisor_logistica";
+    return apr.status === "Aguardando Revisão Plano de Ação" && user.nivel === "revisor";
   };
 
   async function alterarPA() {
@@ -277,9 +275,9 @@ export default function Modal_PA({
     const plano = dados.checklist[area][1][index];
     console.log("🔹 Plano atual:", plano);
 
-    // Se revisor_logistica e selectedOption vazio, definir como Logistica automaticamente
+    // Se ponto_focal e selectedOption vazio, definir como Logistica automaticamente
     let optionToSave = selectedOption;
-    if ((user.nivel === "revisor_logistica" || user.nivel === "ponto_focal") && !selectedOption) {
+    if (user.nivel === "ponto_focal" && !selectedOption) {
       optionToSave = "Logistica";
     }
 
@@ -375,8 +373,8 @@ export default function Modal_PA({
     
     console.log("✅ Documento atualizado no Firebase");
 
-    // Se for revisor de logística finalizando plano de ação, atualizar status da APR
-    if (user.nivel === "revisor_logistica") {
+    // Se for o revisor finalizando um plano de ação de logística, atualizar status da APR
+    if (user.nivel === "revisor" && optionToSave === "Logistica") {
       await updateAPRStatusLogistics(id);
     } else {
       await updateAPR(id);
@@ -889,8 +887,8 @@ export default function Modal_PA({
     console.log("🎯 handleArquivoChange chamado. isReadOnly:", isReadOnly);
     console.log("👤 Nível do usuário:", user.nivel);
     
-    // Permitir upload para revisor_logistica e ponto_focal mesmo com isReadOnly = true
-    const podeUpload = !isReadOnly || user.nivel === "revisor_logistica" || user.nivel === "ponto_focal";
+    // Permitir upload para ponto_focal mesmo com isReadOnly = true
+    const podeUpload = !isReadOnly || user.nivel === "ponto_focal";
     
     if (!podeUpload) {
       console.log("❌ Bloqueado: Usuário não tem permissão");
@@ -1552,8 +1550,8 @@ export default function Modal_PA({
               InputLabelProps={{ shrink: true }}
               helperText="Defina o prazo para tratativa de logística"
               slotProps={
-                // Revisor, revisor_logistica e administrador podem editar
-                (user.nivel !== "revisor" && user.nivel !== "revisor_logistica" && user.nivel !== "administrador" && isReadOnly) && {
+                // Revisor e administrador podem editar
+                (user.nivel !== "revisor" && user.nivel !== "administrador" && isReadOnly) && {
                   input: {
                     readOnly: true,
                   },
@@ -1569,8 +1567,8 @@ export default function Modal_PA({
               rows={4}
               placeholder="Comentários sobre as tratativas e justificativa para alteração de SLA (se aplicável)"
               slotProps={
-                // Revisor, revisor_logistica e administrador podem editar
-                (user.nivel !== "revisor" && user.nivel !== "revisor_logistica" && user.nivel !== "administrador" && isReadOnly) && {
+                // Revisor e administrador podem editar
+                (user.nivel !== "revisor" && user.nivel !== "administrador" && isReadOnly) && {
                   input: {
                     readOnly: true,
                   },
@@ -1771,13 +1769,13 @@ export default function Modal_PA({
   return (
     <Dialog open={true} onClose={close} maxWidth="lg" fullWidth>
       <DialogTitle>
-        {(user.nivel === "revisor_logistica" || user.nivel === "ponto_focal") && !isModoVisualizacao 
-          ? "📦 Plano de Ação - Logística" 
+        {user.nivel === "ponto_focal" && !isModoVisualizacao
+          ? "📦 Plano de Ação - Logística"
           : "Plano de Ação"}
       </DialogTitle>
       <DialogContent dividers>
-        {/* MODO ESPECIAL PARA REVISOR DE LOGÍSTICA E PONTO FOCAL */}
-        {(user.nivel === "revisor_logistica" || user.nivel === "ponto_focal") && !isModoVisualizacao ? (
+        {/* MODO ESPECIAL PARA PONTO FOCAL */}
+        {user.nivel === "ponto_focal" && !isModoVisualizacao ? (
           <Box>
             <Typography variant="h6" sx={{ mb: 3, color: '#660099', borderBottom: '2px solid #660099', pb: 1 }}>
               🚚 Definir SLA para Tratativa de Logística
@@ -1849,11 +1847,6 @@ export default function Modal_PA({
                     )}
                   </Box>
                 ))}
-                {user.nivel === "revisor_logistica" && (
-                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #ddd' }}>
-                    {renderResolucaoInconformidade(true)}
-                  </Box>
-                )}
               </Box>
             )}
 
@@ -1872,12 +1865,11 @@ export default function Modal_PA({
               </Box>
             )}
 
-            {user.nivel !== "revisor_logistica" && (
             <Box sx={{ mb: 3, p: 3, bgcolor: '#e3f2fd', borderRadius: 2, border: '2px solid #1976d2' }}>
               <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: '#0d47a1' }}>
                 📅 {planoAcaoLocal?.sla_logistica ? "Redefinir SLA:" : "Definir SLA:"}
               </Typography>
-              
+
               <TextField
                 label={planoAcaoLocal?.sla_logistica ? "Novo SLA (Data)" : "SLA (Data)"}
                 type="date"
@@ -1888,7 +1880,7 @@ export default function Modal_PA({
                 helperText={`Defina o prazo para tratativa de ${user.area}`}
                 sx={{ mb: 2 }}
               />
-              
+
               <TextField
                 label="Comentário"
                 value={comentario}
@@ -1900,7 +1892,6 @@ export default function Modal_PA({
                 helperText={planoAcaoLocal?.sla_logistica ? "Explique o motivo da alteração do SLA" : "Descreva as ações planejadas"}
               />
             </Box>
-            )}
 
             {/* Área para anexar arquivo */}
             <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
@@ -2639,7 +2630,7 @@ export default function Modal_PA({
             )}
           </Box>
         ) : podeValidarPlano() ? (
-          /* Interface para revisor_logistica validar plano de ação */
+          /* Interface para o revisor validar plano de ação */
           <Box>
             <Typography variant="h6" sx={{ mb: 2, color: '#9c27b0', fontWeight: 'bold' }}>
               ✅ Validação de Plano de Ação
@@ -3078,19 +3069,11 @@ export default function Modal_PA({
                     value={selectedOption}
                     onChange={(e) => setSelectedOption(e.target.value)}
                   >
-                    {user.nivel === "revisor_logistica" ? (
-                      // Revisor de logística só vê a opção Logística
-                      <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
-                    ) : (
-                      // Administrador e outros usuários veem todas as opções
-                      <>
-                        <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
-                        <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
-                        <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
-                        <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
-                        <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
-                      </>
-                    )}
+                    <FormControlLabel value="Sim" control={<Radio />} label="Sim" disabled={isReadOnly} />
+                    <FormControlLabel value="Não" control={<Radio />} label="Não" disabled={isReadOnly} />
+                    <FormControlLabel value="Detentora" control={<Radio />} label="Detentora" disabled={isReadOnly} />
+                    <FormControlLabel value="Patrimonio" control={<Radio />} label="Patrimonio" disabled={isReadOnly} />
+                    <FormControlLabel value="Logistica" control={<Radio />} label="Logística" disabled={isReadOnly} />
                   </RadioGroup>
                 </FormControl>
                 <Box mt={2}>{renderOptionInputs()}</Box>
@@ -3120,7 +3103,7 @@ export default function Modal_PA({
           Cancelar
         </Button>
         
-        {(user.nivel === "ponto_focal" || user.nivel === "revisor_logistica") && !isModoVisualizacao && (
+        {user.nivel === "ponto_focal" && !isModoVisualizacao && (
           <Button 
             onClick={() => alterarPA()} 
             variant="contained" 
@@ -3157,7 +3140,7 @@ export default function Modal_PA({
             ✅ Confirmar Correção
           </Button>
         )}
-        {user.nivel !== "aplicador" && user.nivel !== "ponto_focal" && user.nivel !== "revisor_logistica" && !isReadOnly && (
+        {user.nivel !== "aplicador" && user.nivel !== "ponto_focal" && !isReadOnly && (
           <Button onClick={() => alterarPA()} variant="contained" color="primary">
             Salvar
           </Button>

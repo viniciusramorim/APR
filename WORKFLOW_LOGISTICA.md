@@ -21,10 +21,10 @@
 - Alertas automáticos por email para administradores
 - Status visual na interface (ativo/vencido)
 
-#### 4. **Novo Tipo de Usuário**
-- `"revisor_logistica"` - Usuário dedicado para gestão de planos de ação logísticos
-- Permissões específicas para visualizar apenas APRs relacionadas à logística
-- Acesso restrito ao modal de plano de ação com opção "Logística"
+#### 4. **Gestão de Planos de Ação Logísticos**
+- Função absorvida pelo nível `"revisor"` (não existe mais um tipo de usuário dedicado)
+- O revisor valida/reprova planos de ação item a item e pode definir/redefinir SLA de logística
+- Ao salvar um plano do tipo "Logística", a APR avança automaticamente para revisão
 
 #### 5. **Interface Adaptada**
 - Seção específica na página Open para ponto focal
@@ -51,7 +51,7 @@
 2. **APR Revisada** → Revisor analisa APR
 3. **Verificação Automática** → Sistema verifica se há questões de logística
 4. **Envio Automático** → Email enviado para revisor de logística
-5. **Revisor Logística** → Recebe email, acessa APR, define planos de ação e SLA
+5. **Revisor** → Recebe email, acessa APR, define planos de ação e SLA
 6. **Gestão de SLA** → Revisor pode alterar ou adicionar novo SLA conforme necessário
 7. **Finalização** → APR segue fluxo normal após definição do plano
 
@@ -71,10 +71,9 @@ Criar documento na collection `contact_email`:
 ```
 
 #### **Usuário no Sistema**
-Criar usuário com:
-- **Nível:** `revisor_logistica`
-- **Email:** Mesmo configurado no documento acima
-- **Permissões:** Acesso à interface web
+Não há mais um nível dedicado — qualquer usuário com:
+- **Nível:** `revisor`
+já tem acesso a essa função.
 
 ### 📊 Status da APR
 

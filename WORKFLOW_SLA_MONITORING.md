@@ -101,7 +101,7 @@
 
 ## 👥 Papéis e Permissões
 
-### 🔍 REVISOR / REVISOR LOGÍSTICA
+### 🔍 REVISOR
 - ✅ Analisa APRs
 - ✅ Identifica inconformidades
 - ✅ Muda status para "Aguardando Correção"

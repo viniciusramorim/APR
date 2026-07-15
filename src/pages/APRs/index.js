@@ -283,8 +283,6 @@ export default function Dashboard() {
       query = query.where("site_id.Estado", "in", regional);
     } else if (user.nivel === "revisor" && regional) {
       query = query.where("site_id.Estado", "in", regional);
-    } else if (user.nivel === "revisor_logistica" && regional) {
-      query = query.where("site_id.Estado", "in", regional);
     } else if (user.nivel === "ponto_focal") {
       query = query.where("status", "==", "Enviado para Área Responsável");
     }
@@ -415,13 +413,6 @@ export default function Dashboard() {
 
       snapshot.forEach((doc) => {
         const docData = doc.data();
-
-        if (
-          user.nivel === "revisor_logistica" &&
-          !docData.site_id?.tipoSite?.includes("PGR")
-        ) {
-          return;
-        }
 
         // Se ID estiver preenchido, ele funciona de forma independente dos demais filtros.
         if (hasIdFilter) {
@@ -669,8 +660,7 @@ export default function Dashboard() {
       <Header name="APRs" />
       <div className="content">
         {(user.nivel === "administrador" ||
-          user.nivel === "revisor" ||
-          user.nivel === "revisor_logistica") && (
+          user.nivel === "revisor") && (
             <Grid
               container
               className="dashboard-kpis"

@@ -524,6 +524,91 @@ export default function Reports() {
       return "";
     };
 
+    const formatAnyDate = (value) => {
+      if (!value) return "-";
+      if (typeof value.toDate === "function") return format(value.toDate(), "dd/MM/yyyy HH:mm:ss");
+      if (value instanceof Date) return format(value, "dd/MM/yyyy HH:mm:ss");
+      return "-";
+    };
+
+    const buildSiteExtraFields = (site) => ({
+      SITUACAO_SITE: site?.Situacao || "-",
+      TIPO_CONTRATO_SITE: site?.tipoContrato || "-",
+      DETENTORA_SITE: site?.Detentora || "-",
+      NONSTOP_SITE: site?.NonStop || "-",
+      CT_CRITICA_SITE: site?.CtCritica || "-",
+      ERB_CRITICA_SITE: site?.ErbCritica || "-",
+      MAPA_CALOR_SITE: site?.MapaCalor || "-",
+      ULTIMA_APR_SITE: formatAnyDate(site?.last_apr),
+      ULTIMO_MOTIVO_SITE: site?.last_motivo || "-",
+    });
+
+    const buildWorkflowDateFields = (doc) => ({
+      DATA_ALTERACAO: formatAnyDate(doc.data_alteracao),
+      DATA_ENVIO_EMAIL: formatAnyDate(doc.data_envio_email),
+      DATA_REVISAO: formatAnyDate(doc.data_revisao),
+      DATA_CONCLUSAO_SEM_EMAIL: formatAnyDate(doc.data_conclusao_sem_email),
+      DATA_ENVIO_MONITORAMENTO: formatAnyDate(doc.data_envio_monitoramento),
+      DATA_ENVIO_REVISAO: formatAnyDate(doc.data_envio_revisao),
+      DATA_DEVOLUCAO_PONTO_FOCAL: formatAnyDate(doc.data_devolucao_ponto_focal),
+      DATA_PONTO_FOCAL_RESPOSTA: formatAnyDate(doc.data_ponto_focal_resposta),
+      DATA_CORRECOES_COMPLETAS: formatAnyDate(doc.data_correcoes_completas),
+      DATA_CORRECAO_APLICADOR: formatAnyDate(doc.data_correcao_aplicador),
+      SLA_PONTO_FOCAL: formatAnyDate(doc.sla_ponto_focal),
+      MOTIVO_REPROVACAO: doc.motivo_reprovacao || "-",
+      TERMOS_ACEITOS: doc.terms ? "Sim" : "-",
+    });
+
+    const buildJustificativaFields = (doc) => ({
+      JUSTIFICATIVA_MOTIVO: doc.justificativa?.motivo || "-",
+      JUSTIFICATIVA_DESC: doc.justificativa?.desc || "-",
+      JUSTIFICATIVA_DATA_INATIVO: doc.justificativa?.data_inativo || "-",
+    });
+
+    const buildUserExtraFields = (userData) => ({
+      USER_EMAIL: userData?.email || "-",
+      USER_AREA: userData?.area || "-",
+      USER_NIVEL: userData?.nivel || "-",
+      USER_REGIONAL: userData?.regional || "-",
+    });
+
+    // Campos do plano de ação por pergunta: SLA de logística, parecer do revisor e data de resolução
+    const buildPlanoAcaoFields = (question) => {
+      const pa = question.plano_acao || {};
+      return {
+        QUESTION_ID: question.questionId || "-",
+        QUESTION_IS_REQUIRED: question.isRequired ? "Sim" : "Não",
+        QUESTION_IMAGENS: Array.isArray(question.imagesURL)
+          ? question.imagesURL.map((img) => img.url).join(" | ")
+          : "-",
+        QUESTION_PA_STATUS: question.resp_pa_status || "-",
+        QUESTION_PA_RESOLUCAO: question.resp_pa_resolucao || "-",
+        QUESTION_PA_VALIDADO_POR: question.resp_pa_status_alterado || "-",
+        QUESTION_PA_VALIDADO_DATA: formatAnyDate(question.resp_pa_status_alterado_data),
+        QUESTION_PA_PARECER_REVISOR: question.resp_pa_status_parecer || "-",
+        QUESTION_PA_SLA: formatAnyDate(question.resp_pa_sla),
+        QUESTION_PA_VALIDACAO_IMAGENS: Array.isArray(question.resp_pa_validacao_imagens)
+          ? question.resp_pa_validacao_imagens.join(" | ")
+          : "-",
+        PA_SLA_LOGISTICA: formatAnyDate(pa.sla_logistica),
+        PA_COMENTARIO: pa.comentario || "-",
+        PA_TEMPO: pa.tempo || "-",
+        PA_JUSTIFICATIVA: pa.justificativa || "-",
+        PA_NOME_DETENTORA: pa.nome_detentora || "-",
+        PA_NUMERO_CHAMADO: pa.numero_chamado || "-",
+        PA_QTD_ANEXOS: Array.isArray(pa.anexos) ? pa.anexos.length : pa.anexo_url ? 1 : 0,
+        PA_EVIDENCIA_URL: pa.evidencia_url || "-",
+        PA_RESOLVIDO: pa.resolvido ? "Sim" : "-",
+        PA_RESOLVIDO_POR: pa.resolvido_por || "-",
+        PA_RESOLVIDO_DATA: formatAnyDate(pa.resolvido_data),
+        PA_NOVA_RESPOSTA: pa.nova_resposta || "-",
+        PA_COMENTARIO_CORRECAO: pa.comentario_correcao || "-",
+        QUESTION_IMAGENS_CORRECAO: Array.isArray(question.images_correcao)
+          ? question.images_correcao.join(" | ")
+          : "-",
+      };
+    };
+
     const hasFilledValue = (value) => {
       if (value === null || value === undefined) return false;
       if (Array.isArray(value)) return value.filter((item) => String(item).trim() !== "").length > 0;
@@ -608,6 +693,7 @@ export default function Reports() {
                           : "",
                         QUESTION_PA_RESP: question.resp_pa_selectedOption || "",
                         QUESTION_PA_NOME: question.resp_pa_user_name || "",
+                        ...buildPlanoAcaoFields(question),
                         SIGLA: doc.site_id.Sigla,
                         SIGLA_GVT: doc.site_id.Sigla_GVT,
                         TIPO_CHECKLIST: doc.site_id.tipoSite,
@@ -622,8 +708,9 @@ export default function Reports() {
                         CRITICIDADE_SITE: doc.site_id.critical,
                         OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
                         COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
+                        ...buildSiteExtraFields(doc.site_id),
                         ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-                        ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                        ABERTURA_LNG: doc.locationCreated ? (doc.locationCreated.longitude ?? doc.locationCreated.logitude) : '-',
                         ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
                         TEMP_INCIO: doc.tempoConclusao ? format(
                           doc.tempoConclusao.inicio.toDate(),
@@ -638,9 +725,12 @@ export default function Reports() {
                             doc.tempoConclusao.inicio.toDate()) /
                           (1000 * 60)
                         ) : '-',
+                        ...buildWorkflowDateFields(doc),
+                        ...buildJustificativaFields(doc),
                         USER_ID: doc.user_id.uid,
                         USER_NOME: doc.user_id.nome,
                         USER_UF: doc.user_id.uf,
+                        ...buildUserExtraFields(doc.user_id),
                         V0: result,
                       });
                     }
@@ -666,8 +756,9 @@ export default function Reports() {
                   CRITICIDADE_SITE: doc.site_id.critical,
                   OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
                   COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
+                  ...buildSiteExtraFields(doc.site_id),
                   ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-                  ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                  ABERTURA_LNG: doc.locationCreated ? (doc.locationCreated.longitude ?? doc.locationCreated.logitude) : '-',
                   ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
                   TEMP_INCIO: doc.tempoConclusao ? format(
                     doc.tempoConclusao.inicio.toDate(),
@@ -682,9 +773,12 @@ export default function Reports() {
                       doc.tempoConclusao.inicio.toDate()) /
                     (1000 * 60)
                   ) : '-',
+                  ...buildWorkflowDateFields(doc),
+                  ...buildJustificativaFields(doc),
                   USER_ID: doc.user_id.uid,
                   USER_NOME: doc.user_id.nome,
                   USER_UF: doc.user_id.uf,
+                  ...buildUserExtraFields(doc.user_id),
                   V0: "-",
                 });
               }
@@ -697,6 +791,9 @@ export default function Reports() {
                 STATUS: doc.status,
                 TIPO_LOJA: doc.tipo_loja ? doc.tipo_loja : '-',
                 VALOR_ESTOQUE: doc.valor_estoque ? parseInt(doc.valor_estoque) / 100 : '-',
+                VALOR_SINISTRO: doc.valor_sinistro ? parseInt(doc.valor_sinistro) / 100 : '-',
+                VALOR_TRANSPORTE: doc.valor_transporte ? parseInt(doc.valor_transporte) / 100 : '-',
+                VALOR_ARMAZENAMENTO: doc.valor_armazenamento ? parseInt(doc.valor_armazenamento) / 100 : '-',
                 MOTIVO: doc.motivo_apr,
                 // CLASSIFICACAO: calculatePontos(doc.peso),
                 PESO_APR: doc.peso,
@@ -714,8 +811,9 @@ export default function Reports() {
                 CRITICIDADE_SITE: doc.site_id.critical,
                 OPERADOR_LOGISTICO: doc.site_id.operador_logistico || doc.site_id['Operador Logistico'] || '-',
                 COBERTURA_SEGURO: doc.site_id.Cobertura_Seguro || doc.site_id['Cobertura Seguro'] || '-',
+                ...buildSiteExtraFields(doc.site_id),
                 ABERTURA_LAT: doc.locationCreated ? doc.locationCreated.latitude : '-',
-                ABERTURA_LNG: doc.locationCreated ? doc.locationCreated.logitude : '-',
+                ABERTURA_LNG: doc.locationCreated ? (doc.locationCreated.longitude ?? doc.locationCreated.logitude) : '-',
                 ABERTURA_PERIMETRO: doc.locationCreated ? doc.locationCreated.perimetro : '-',
                 TEMP_INCIO: doc.tempoConclusao ? format(
                   doc.tempoConclusao.inicio.toDate(),
@@ -730,9 +828,12 @@ export default function Reports() {
                     doc.tempoConclusao.inicio.toDate()) /
                   (1000 * 60)
                 ) : '-',
+                ...buildWorkflowDateFields(doc),
+                ...buildJustificativaFields(doc),
                 USER_ID: doc.user_id.uid,
                 USER_NOME: doc.user_id.nome,
                 USER_UF: doc.user_id.uf,
+                ...buildUserExtraFields(doc.user_id),
                 V0: result,
               });
             }

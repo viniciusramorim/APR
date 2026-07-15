@@ -242,8 +242,7 @@ function matchesUserVisibility(apr, user) {
   }
   if (
     user.nivel === "supervisor" ||
-    user.nivel === "revisor" ||
-    user.nivel === "revisor_logistica"
+    user.nivel === "revisor"
   ) {
     return userRegionalStates.length === 0 || userRegionalStates.includes(aprState);
   }

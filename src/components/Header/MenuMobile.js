@@ -92,8 +92,7 @@ export default function MenuMobile({ user }) {
         )}
 
         {(user.nivel === "auditor" ||
-          user.nivel === "revisor" ||
-          user.nivel === "revisor_logistica") && (
+          user.nivel === "revisor") && (
           <Box>
             <MenuItem onClick={handleClose} component={Link} to="/reports">
               Relatorio
