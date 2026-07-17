@@ -11,6 +11,7 @@ import ContentPasteSearchSharpIcon from "@mui/icons-material/ContentPasteSearchS
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
 import TravelExploreRoundedIcon from "@mui/icons-material/TravelExploreRounded";
+import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import { AddModerator, Analytics, Email } from "@mui/icons-material";
 import {
   Avatar,
@@ -202,6 +203,12 @@ export default function Header({ name, subtitle, children }) {
         icon: <AddModerator />,
         link: "/manager-logs",
         subtitle: "Visualize logs do sistema",
+      },
+      {
+        text: "Documentação",
+        icon: <MenuBookRoundedIcon />,
+        link: "/documentacao",
+        subtitle: "Dicionario de dados e workflow",
       }
     );
 

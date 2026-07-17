@@ -38,6 +38,34 @@ function normalizeString(str) {
     .toUpperCase();
 }
 
+// Cache em memoria da colecao "sites" por UF (ou "ALL" para busca nacional).
+// Evita rebaixar a colecao inteira do Firestore a cada busca por texto repetida
+// (ex: usuario ajusta a grafia e busca de novo sem trocar a UF).
+const sitesCache = {};
+const SITES_CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function fetchSitesForUf(ufValue) {
+  const cacheKey = ufValue === "Todos" ? "ALL" : ufValue.toUpperCase();
+  const cached = sitesCache[cacheKey];
+  const now = Date.now();
+
+  if (cached && now - cached.timestamp < SITES_CACHE_TTL_MS) {
+    return cached.docs;
+  }
+
+  let searchQuery = firebase.firestore().collection("sites");
+  if (ufValue !== "Todos") {
+    searchQuery = searchQuery.where("Estado", "==", ufValue.toUpperCase());
+  }
+
+  const snapshot = await searchQuery.get();
+  const rawDocs = snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
+
+  sitesCache[cacheKey] = { docs: rawDocs, timestamp: now };
+
+  return rawDocs;
+}
+
 export default function PreNew() {
   const { user } = useContext(AuthContext);
   const history = useHistory();
@@ -127,32 +155,40 @@ export default function PreNew() {
     setLoading(true);
 
     try {
-      let searchQuery = firebase.firestore().collection("sites");
+      const hasTextSearch = sigla.trim() !== "" || nome.trim() !== "";
 
-      if (uf !== "Todos") {
-        searchQuery = searchQuery.where("Estado", "==", uf.toUpperCase());
-      }
+      // O Firestore s\u00f3 filtra por prefixo (">="/"<="), e al\u00e9m disso \u00e9 case-sensitive
+      // \u2014 quebra com Sigla/Nome em grafia mista (ex: "St. Oeste") ou com acento. Por
+      // isso, quando h\u00e1 busca por texto, trazemos a cole\u00e7\u00e3o inteira (restrita pela UF
+      // quando informada, e cacheada por alguns minutos) e filtramos por "cont\u00e9m"
+      // normalizado no cliente, de forma independente por campo \u2014 sem limite
+      // artificial que possa deixar o site de fora.
+      let rawDocs;
 
-      if (sigla.trim() !== "") {
-        const searchSigla = normalizeString(sigla.trim());
-        searchQuery = searchQuery
-          .where("Sigla", ">=", searchSigla)
-          .where("Sigla", "<=", searchSigla + "\uf8ff");
-      } else if (nome.trim() !== "") {
-        const searchNome = normalizeString(nome.trim());
-        searchQuery = searchQuery
-          .where("Nome", ">=", searchNome)
-          .where("Nome", "<=", searchNome + "\uf8ff");
+      if (hasTextSearch) {
+        rawDocs = await fetchSitesForUf(uf);
       } else {
-        searchQuery = searchQuery.limit(100);
+        let searchQuery = firebase.firestore().collection("sites").limit(100);
+
+        if (uf !== "Todos") {
+          searchQuery = searchQuery.where("Estado", "==", uf.toUpperCase());
+        }
+
+        const snapshot = await searchQuery.get();
+        rawDocs = snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
       }
 
-      const snapshot = await searchQuery.get();
+      rawDocs.forEach(({ id, data }) => {
+        if (sigla.trim() !== "") {
+          const searchSigla = normalizeString(sigla.trim());
+          const normalizedSigla = normalizeString(data.Sigla || "");
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+          if (!normalizedSigla.includes(searchSigla)) {
+            return;
+          }
+        }
 
-        if (sigla.trim() !== "" && nome.trim() !== "") {
+        if (nome.trim() !== "") {
           const searchNome = normalizeString(nome.trim());
           const normalizedNome = normalizeString(data.Nome || "");
 
@@ -162,7 +198,7 @@ export default function PreNew() {
         }
 
         filteredData.push({
-          id: doc.id,
+          id,
           nome: data.Nome,
           cidade: data.Cidade,
           cep: data.CEP,

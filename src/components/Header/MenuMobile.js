@@ -87,6 +87,9 @@ export default function MenuMobile({ user }) {
             <MenuItem onClick={handleClose} component={Link} to="/analytics-map">
               Mapa Analytics
             </MenuItem>
+            <MenuItem onClick={handleClose} component={Link} to="/documentacao">
+              Documentação
+            </MenuItem>
             <MenuItem onClick={handleOpenRegister}>Adicionar usuario</MenuItem>
           </Box>
         )}

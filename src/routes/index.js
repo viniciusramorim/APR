@@ -26,6 +26,7 @@ const ChecklistGemini = lazy(() => import('../pages/New_IA/ChecklistGemini'));
 const Oem = lazy(() => import('../pages/Oem'));
 const AnalyticsMap = lazy(() => import('../pages/AnalyticsMap'));
 const VenezaSupplement = lazy(() => import('../pages/VenezaSupplement'));
+const Documentation = lazy(() => import('../pages/Documentation'));
 
 function RouteLoading() {
   return (
@@ -62,6 +63,7 @@ export default function Routes() {
         <Route exact path="/sites" component={Sites} isPrivate />
         <Route exact path="/manager-users" component={Manager} isPrivate isAdm />
         <Route exact path="/manager-logs" component={LogManager} isPrivate isAdm />
+        <Route exact path="/documentacao" component={Documentation} isPrivate isAdm />
         {/* paginas apr digital */}
         <Route exact path="/aprs" component={APRs} isPrivate />
         <Route exact path="/questions" component={QuestionsPage} isPrivate isAdm/>

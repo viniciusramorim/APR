@@ -254,22 +254,28 @@ function AuthProvider({ children }) {
       console.log(error);
       switch (error.code) {
         case "auth/email-already-in-use":
-          toast.error("E-mail já utilizado.");
+          toast.error("Este e-mail já está em uso.");
           break;
         case "auth/wrong-password":
-          toast.error("E-mail / Senha incorretos!");
-          break;
         case "auth/user-not-found":
-          toast.error("E-mail não cadastrado!");
+        case "auth/invalid-credential":
+        case "auth/invalid-login-credentials":
+          toast.error("E-mail ou senha incorretos. Confira os dados e tente novamente.");
           break;
         case "auth/invalid-email":
-          toast.error("E-mail inválido!");
+          toast.error("Digite um e-mail válido.");
           break;
         case "auth/user-disabled":
-          toast.error("Usuário desabilitado!");
+          toast.error("Este usuário foi desativado. Fale com um administrador.");
+          break;
+        case "auth/too-many-requests":
+          toast.error("Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.");
+          break;
+        case "auth/network-request-failed":
+          toast.error("Sem conexão com a internet. Verifique sua rede e tente novamente.");
           break;
         default:
-          toast.error(error.code);
+          toast.error("Não foi possível entrar. Tente novamente em instantes.");
           break;
       }
     }
